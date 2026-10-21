@@ -5,15 +5,17 @@
 
 ResourceDll::ResourceDll(const char* libraryName)
 {
-  m_module = LoadLibraryA(libraryName);
-  if (!m_module)
+  m_module = reb::compat::LoadLibraryA(libraryName);
+  if (!m_module) {
     GetLastError();
+  }
 }
 
 ResourceDll::~ResourceDll()
 {
-  if (m_module)
-    FreeLibrary(m_module);
+  if (m_module) {
+    reb::compat::FreeLibrary(m_module);
+  }
 }
 
 ResourceDllList::~ResourceDllList() = default;
@@ -47,20 +49,22 @@ FontTable::~FontTable()
 
 void FontTable::Clear()
 {
-  for (HFONT& font : m_fonts)
-  {
-    if (font)
-      DeleteObject(font);
+  for (HFONT& font : m_fonts) {
+    if (font) {
+      reb::compat::DeleteObject(font);
+    }
     font = nullptr;
   }
 }
 
 HFONT FontTable::GetFont(uint32_t slot)
 {
-  if (slot >= kFontSlotCount)
+  if (slot >= kFontSlotCount) {
     return nullptr;
-  if (!m_fonts[slot])
+  }
+  if (!m_fonts[slot]) {
     CreateSlotFont(static_cast<int>(slot));
+  }
   return m_fonts[slot];
 }
 
@@ -71,8 +75,7 @@ void FontTable::CreateSlotFont(int slot)
   font.lfQuality = PROOF_QUALITY;
   std::strncpy(font.lfFaceName, m_faceName, sizeof(font.lfFaceName) - 1);
   font.lfFaceName[sizeof(font.lfFaceName) - 1] = '\0';
-  switch (slot)
-  {
+  switch (slot) {
     case 1:
     case 5:
       font.lfHeight = 16;
@@ -115,12 +118,16 @@ void FontTable::CreateSlotFont(int slot)
       font.lfHeight = 12;
       font.lfWeight = FW_BLACK;
       break;
+    case kCompactUnitFontSlot:
+      font.lfHeight = 10;
+      font.lfWeight = FW_NORMAL;
+      break;
     default:
       font.lfHeight = 16;
       font.lfWeight = FW_NORMAL;
       break;
   }
-  m_fonts[slot] = CreateFontIndirectA(&font);
+  m_fonts[slot] = reb::compat::CreateFontIndirectA(&font);
 }
 
 UiResources* CurrentUiResources()

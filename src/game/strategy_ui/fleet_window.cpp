@@ -1,7 +1,10 @@
 #include "strategy_ui/fleet_window.h"
+#include "strategy_ui/eta_display.h"
 
+#include <array>
 #include <new>
 
+#include "app/enhancements.h"
 #include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
 #include "character/role.h"
@@ -30,8 +33,8 @@
 #include "ui/resource_dll.h"
 
 extern const char* g_gokresDllName; // 0x6a8708 "gokres.dll"
-extern POINT g_fleetRowLines[12]; // 0x6a87b8 six two-point lines
-extern RECT g_fleetInfoRect; // 0x6a8818 where the selection's picture and totals are drawn
+extern POINT g_fleetRowLines[12];   // 0x6a87b8 six two-point lines
+extern RECT g_fleetInfoRect;        // 0x6a8818 where the selection's picture and totals are drawn
 
 namespace
 {
@@ -79,11 +82,22 @@ constexpr uint32_t kStateCompleted = 0x4;
 
 constexpr int kSkinStep = 0x32;
 constexpr int kRowWidth = 0x5b;
-constexpr int kRowHeight = 0x32;
+// The enhanced layout's taller rows leave room for a second label line (a unit's ETA); the original's are 0x32.
+constexpr int kRowHeight = 70;
+constexpr int kUnitRowHeight = 60;
+constexpr int kOriginalRowHeight = 0x32;
+constexpr int kOriginalFontSlot = 10;
 
-const POINT* RowLine(int index)
+// The connector line `index`, its full-height ends reaching `rowHeight`.
+std::array<POINT, 2> RowLine(int index, int rowHeight)
 {
-  return &g_fleetRowLines[index * 2];
+  std::array<POINT, 2> line = {g_fleetRowLines[index * 2], g_fleetRowLines[index * 2 + 1]};
+  for (POINT& point : line) {
+    if (point.y == kRowHeight) {
+      point.y = rowHeight;
+    }
+  }
+  return line;
 }
 constexpr int kLineFleetToShip = 0;
 constexpr int kLineDown = 1;
@@ -99,8 +113,9 @@ ResourceStringId StringId(uint16_t id)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
@@ -110,18 +125,8 @@ DibBitmap* LoadBitmap(HMODULE module, uint32_t id, uint32_t kind = kPictureKind)
   return NewOrNull<DibBitmap>(module, id, kind);
 }
 
-CoolStrobeButton* NewButton(HMODULE art,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t id,
-                            uint32_t normal,
-                            uint32_t pressed,
-                            DibBitmap* backdrop,
-                            int repeatRate,
-                            int pixelHit)
+CoolStrobeButton* NewButton(HMODULE art, int x, int y, int width, int height, CoolWindow* parent, uint32_t id,
+                            uint32_t normal, uint32_t pressed, DibBitmap* backdrop, int repeatRate, int pixelHit)
 {
   return NewOrNull<CoolStrobeButton>(art, x, y, width, height, parent, id, normal, pressed, backdrop, repeatRate,
                                      pixelHit);
@@ -147,6 +152,21 @@ const char* NameOf(GameObjNotifier* object)
   return static_cast<GameObj*>(object)->GetName()->c_str();
 }
 
+// The row label: in the compact layout the name with any ETA on a second line, otherwise the original's plain name.
+std::string RowName(GameObjNotifier* object, bool compact)
+{
+  if (!compact) {
+    return NameOf(object);
+  }
+  auto* unit = static_cast<GameObj*>(object);
+  std::string name = strategy_ui::DisplayName(unit);
+  const size_t nameLength = unit->GetName()->size();
+  if (name.size() > nameLength) {
+    name[nameLength] = '\n';
+  }
+  return name;
+}
+
 // The skin of the pictures of the side: the Alliance's, or the Empire's 0x32 further.
 int SkinOffset(int side)
 {
@@ -155,12 +175,9 @@ int SkinOffset(int side)
 
 void SetFlag(FleetListItem* item, uint32_t flag, bool on)
 {
-  if (on)
-  {
+  if (on) {
     item->m_flags.m_value |= flag;
-  }
-  else
-  {
+  } else {
     item->m_flags.m_value &= ~flag;
   }
 }
@@ -169,20 +186,17 @@ void SetFlag(FleetListItem* item, uint32_t flag, bool on)
 
 // ---- Construction ---------------------------------------------------------------------------------------------
 
-FleetWindow::FleetWindow(HINSTANCE instance,
-                         int x,
-                         int y,
-                         CoolWindow* parent,
-                         uint32_t childId,
+FleetWindow::FleetWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId,
                          GameObjNotifier* system)
-: CustomDialogBox(instance, x, y, 0xeb, 0x130, parent, childId, nullptr),
-  m_uiFlags(0)
+    : CustomDialogBox(instance, x, y, 0xeb, 0x130, parent, childId, nullptr)
+    , m_uiFlags(0)
 {
   CoolWindow::m_style |= kClipChildrenStyle;
   CoolGameWindow::m_flags |= kGameWindowDraggable;
   ObjectKey key;
-  if (system)
+  if (system) {
     system->GetKey(&key);
+  }
   m_systemKey = key;
   m_galaxy = static_cast<GalaxyWindow*>(parent);
   m_ownTabs = nullptr;
@@ -197,12 +211,12 @@ FleetWindow::FleetWindow(HINSTANCE instance,
   m_shipFont = nullptr;
   m_dc = nullptr;
   m_gokres = FindResourceModule(kGokresSlot);
-  if (!m_gokres)
-  {
+  if (!m_gokres) {
     char* dllLocation = GetDllLocation();
     m_gokres = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
 }
 
@@ -217,24 +231,33 @@ FleetWindow::~FleetWindow()
   delete m_shipItems;
   DeleteBitmap(m_headerActive);
   DeleteBitmap(m_headerInactive);
-  if (m_selectionLabel)
-  {
+  if (m_selectionLabel) {
     m_selectionLabel->~CoolLabel();
     ::operator delete(m_selectionLabel);
   }
   DeleteBitmap(m_infoBackdropOwn);
   DeleteBitmap(m_infoBackdropOther);
-  if (m_dc)
-    DeleteDC(m_dc);
-  if (m_pen)
-    DeleteObject(m_pen);
+  if (m_dc) {
+    reb::compat::DeleteDC(m_dc);
+  }
+  if (m_pen) {
+    reb::compat::DeleteObject(m_pen);
+  }
+}
+
+GameObjNotifier* FleetWindow::GetSystem()
+{
+  GameObjNotifier* system = GetObjectInFamilies_90_98(AppGetSide(), &m_systemKey);
+  if (!system) {
+    PostCloseRequest();
+  }
+  return system;
 }
 
 namespace
 {
 
-struct KindTab
-{
+struct KindTab {
   int x;
   uint32_t id;
   uint32_t normal;
@@ -247,20 +270,18 @@ struct KindTab
 
 void AddKindTab(FleetWindow* window, HMODULE art, CoolTabControl* tabs, const KindTab& tab)
 {
-  CoolStrobeButton* button =
-    NewButton(art, tab.x, 0, 0x1f, 0x1c, tabs, tab.id, tab.normal, tab.pressed, tabs->m_background, 0, 0);
+  CoolStrobeButton* button
+      = NewButton(art, tab.x, 0, 0x1f, 0x1c, tabs, tab.id, tab.normal, tab.pressed, tabs->m_background, 0, 0);
   button->LoadStateBitmap(4, tab.stateFour);
-  if (tab.stateTwo != 0)
+  if (tab.stateTwo != 0) {
     button->LoadStateBitmap(2, tab.stateTwo);
+  }
   button->Create(0);
   const ResourceStringId tip = StringId(tab.tooltip);
-  if (tab.addTabFirst)
-  {
+  if (tab.addTabFirst) {
     tabs->AddTab(button, 0, 0);
     window->AddToolFromString(button, &tip);
-  }
-  else
-  {
+  } else {
     window->AddToolFromString(button, &tip);
     tabs->AddTab(button, 0, 0);
   }
@@ -270,9 +291,10 @@ void AddKindTab(FleetWindow* window, HMODULE art, CoolTabControl* tabs, const Ki
 
 void FleetWindow::OnCreate1()
 {
-  GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
-  if (!system)
+  GameObjNotifier* system = GetSystem();
+  if (!system) {
     return;
+  }
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   DibBitmap* shape = LoadBitmap(art, 0x2a12);
   m_controlSide = static_cast<int>(system->ControlSide());
@@ -281,13 +303,13 @@ void FleetWindow::OnCreate1()
   m_systemKey = systemKey;
   SetDragMode(kDragOutline);
   SetDragLimits(m_galaxy->m_panelArea, nullptr);
-  HDC dc = GetDC(m_hwnd);
+  HDC dc = reb::compat::GetDC(m_hwnd);
   m_galaxySide = m_galaxy->m_side;
   m_viewSide = (m_galaxy->m_side != 1) + 1;
   m_fleetItems = NewOrNull<CoolListItemList>(4);
   m_shipItems = NewOrNull<CoolListItemList>(4);
-  auto* background =
-    NewOrNull<DibBitmap>(static_cast<LONG>(shape->Width()), static_cast<LONG>(shape->Height()), shape, dc);
+  auto* background
+      = NewOrNull<DibBitmap>(static_cast<LONG>(shape->Width()), static_cast<LONG>(shape->Height()), shape, dc);
   shape->Blit(background, 0, 0, 0, 0, 0, 0);
   AddOverlay(background, kBackgroundOverlayId);
   DeleteBitmap(shape);
@@ -305,39 +327,40 @@ void FleetWindow::OnCreate1()
   m_otherTabs->m_style = m_ownTabs->m_style & ~kHiddenStyle;
   m_otherTabs->Create(0);
   m_selectionLabel = NewOrNull<CoolLabel>(static_cast<const char*>(nullptr), 100, 0x1d, 0x80, 0x19, 0u, 0x13u);
-  m_selectionLabel->SetFont(5);
+  m_compactLabels = EnhancementsEnabled();
+  m_selectionLabel->SetFont(m_compactLabels ? strategy_ui::kEtaFontSlot : 5);
   m_selectionLabel->SetColor(0xffffff, nullptr);
 
   const KindTab ownTabs[] = {
-    {1, kPageShips, uint32_t(skin + 0x28a9), uint32_t(skin + 0x28b0), uint32_t(skin + 0x28b0), 0, 0x3823, false},
-    {0x21, kPageFighters, uint32_t(skin + 0x28aa), uint32_t(skin + 0x28b1), uint32_t(skin + 0x28b1),
-     uint32_t(skin + 0x28ad), 0x3820, false},
-    {0x41, kPageTroops, uint32_t(skin + 0x28ab), uint32_t(skin + 0x28b2), uint32_t(skin + 0x28b2),
-     uint32_t(skin + 0x28ae), 0x3821, true},
-    {0x61, kPagePersonnel, uint32_t(skin + 0x28ac), uint32_t(skin + 0x28b3), uint32_t(skin + 0x28b3),
-     uint32_t(skin + 0x28af), 0x3822, false},
+      {1, kPageShips, uint32_t(skin + 0x28a9), uint32_t(skin + 0x28b0), uint32_t(skin + 0x28b0), 0, 0x3823, false},
+      {0x21, kPageFighters, uint32_t(skin + 0x28aa), uint32_t(skin + 0x28b1), uint32_t(skin + 0x28b1),
+       uint32_t(skin + 0x28ad), 0x3820, false},
+      {0x41, kPageTroops, uint32_t(skin + 0x28ab), uint32_t(skin + 0x28b2), uint32_t(skin + 0x28b2),
+       uint32_t(skin + 0x28ae), 0x3821, true},
+      {0x61, kPagePersonnel, uint32_t(skin + 0x28ac), uint32_t(skin + 0x28b3), uint32_t(skin + 0x28b3),
+       uint32_t(skin + 0x28af), 0x3822, false},
   };
   const KindTab otherTabs[] = {
-    {1, kPageShips, uint32_t(0x28db - skin), uint32_t(0x28e2 - skin), uint32_t(0x28e2 - skin), 0, 0x3823, false},
-    {0x21, kPageFighters, uint32_t(0x28dc - skin), uint32_t(0x28e3 - skin), uint32_t(0x28e3 - skin),
-     uint32_t(0x28df - skin), 0x3820, false},
-    {0x41, kPageTroops, uint32_t(0x28dd - skin), uint32_t(0x28e4 - skin), uint32_t(0x28e4 - skin),
-     uint32_t(0x28e0 - skin), 0x3821, false},
-    {0x61, kPagePersonnel, uint32_t(0x28de - skin), uint32_t(0x28e5 - skin), uint32_t(0x28e5 - skin),
-     uint32_t(0x28e1 - skin), 0x3822, false},
+      {1, kPageShips, uint32_t(0x28db - skin), uint32_t(0x28e2 - skin), uint32_t(0x28e2 - skin), 0, 0x3823, false},
+      {0x21, kPageFighters, uint32_t(0x28dc - skin), uint32_t(0x28e3 - skin), uint32_t(0x28e3 - skin),
+       uint32_t(0x28df - skin), 0x3820, false},
+      {0x41, kPageTroops, uint32_t(0x28dd - skin), uint32_t(0x28e4 - skin), uint32_t(0x28e4 - skin),
+       uint32_t(0x28e0 - skin), 0x3821, false},
+      {0x61, kPagePersonnel, uint32_t(0x28de - skin), uint32_t(0x28e5 - skin), uint32_t(0x28e5 - skin),
+       uint32_t(0x28e1 - skin), 0x3822, false},
   };
-  for (const KindTab& tab : ownTabs)
+  for (const KindTab& tab : ownTabs) {
     AddKindTab(this, art, m_ownTabs, tab);
-  for (const KindTab& tab : otherTabs)
+  }
+  for (const KindTab& tab : otherTabs) {
     AddKindTab(this, art, m_otherTabs, tab);
+  }
 
   int titleLeft = 2;
-  if (DibBitmap* sectorShape = LoadBitmap(art, 0x27e1))
-  {
+  if (DibBitmap* sectorShape = LoadBitmap(art, 0x27e1)) {
     CoolStrobeButton* sector = NewButton(art, 3, 3, sectorShape->Width(), sectorShape->Height(), this, kSectorId,
                                          0x27e1, 0x27e0, m_paintBackground, 0, 1);
-    if (sector)
-    {
+    if (sector) {
       sector->SetStateFlags(0x80);
       sector->Create(0);
       m_buttons.Insert(sector);
@@ -353,23 +376,21 @@ void FleetWindow::OnCreate1()
   m_titleLabel->SetColor(0x2000000, nullptr);
   m_titleLabel->Measure(dc);
   m_titleRect.bottom = m_titleRect.top + m_titleLabel->m_rect.bottom - m_titleLabel->m_rect.top;
-  m_fleetFont = CoolGetFont(10);
-  m_shipFont = CoolGetFont(10);
-  m_pen = CreatePen(kConnectorPenStyle, 1, 0x2ffffff);
+  m_fleetFont = CoolGetFont(m_compactLabels ? strategy_ui::kEtaFontSlot : kOriginalFontSlot);
+  m_shipFont = CoolGetFont(m_compactLabels ? strategy_ui::kEtaFontSlot : kOriginalFontSlot);
+  m_pen = reb::compat::CreatePen(kConnectorPenStyle, 1, 0x2ffffff);
 
   DibBitmap* closeShape = LoadBitmap(art, 0x277c);
   CoolStrobeButton* close = NewButton(art, m_width - closeShape->Width() - 3, 3, closeShape->Width(),
                                       closeShape->Height(), this, kCloseId, 0x277c, 0x277d, m_paintBackground, 0, 1);
-  if (close)
-  {
+  if (close) {
     close->SetStateFlags(0x80);
     close->Create(0);
     m_buttons.Insert(close);
   }
   DeleteBitmap(closeShape);
   DibBitmap* sideShape = LoadBitmap(art, 0x280d);
-  if (sideShape && close)
-  {
+  if (sideShape && close) {
     CoolStrobeButton* side = NewButton(art, close->m_x - sideShape->Width(), 3, sideShape->Width(), sideShape->Height(),
                                        this, kSideId, 0x280d, 0x280e, m_paintBackground, 0, 1);
     side->SetStateFlags(0x80);
@@ -378,52 +399,56 @@ void FleetWindow::OnCreate1()
     DeleteBitmap(sideShape);
   }
 
-  if (m_viewSide == 1)
-  {
+  if (m_viewSide == 1) {
     m_headerActive = LoadBitmap(art, 0x27d9, kHeaderKind);
     m_headerInactive = LoadBitmap(art, 0x283e, kHeaderKind);
     m_controlSide = 2;
-  }
-  else
-  {
+  } else {
     m_controlSide = 1;
     m_headerActive = LoadBitmap(art, 0x283b, kHeaderKind);
     m_headerInactive = LoadBitmap(art, 0x27d8, kHeaderKind);
   }
 
-  m_fleetList = NewOrNull<CoolDragList>(art, 4, 0x1d, 0x5b, 0x10a, this, paint, kFleetListId, 0x5b, 0x32, 7, 0x299a, 0,
+  m_fleetList = NewOrNull<CoolDragList>(art, 4, 0x1d, 0x5b, 0x10a, this, paint, kFleetListId, 0x5b, RowHeight(), 7, 0x299a, 0,
                                         0, 0, 1, nullptr);
-  if (m_fleetList)
-  {
+  if (m_fleetList) {
     m_fleetList->SetDragTarget(m_galaxy->m_hwnd);
     m_fleetList->Create(0);
     m_fleetList->SetSelectedTextColor(0xffffff);
     m_fleetList->SetTextColor(0xffffff);
     m_fleetList->SetItemList(m_fleetItems);
     m_fleetList->Refresh();
-    m_fleetList->SetFont(10);
-    m_fleetList->m_textFormat = 0x20;
+    m_fleetList->SetFont(m_compactLabels ? kCompactUnitFontSlot : kOriginalFontSlot);
+    m_fleetList->m_textFormat = m_compactLabels ? DT_LEFT | DT_BOTTOM : DT_SINGLELINE;
     m_fleetList->m_textOffsetX = 8;
-    m_fleetList->m_textOffsetY = 3;
+    m_fleetList->m_textOffsetY = m_compactLabels ? -8 : 3;
     m_fleetList->CreateVerticalScrollBar(art, m_fleetList, 7, 0x29cb, 0x10a, 0, 0x10a, 0, nullptr);
   }
-  m_shipList = NewOrNull<CoolDragList>(art, 0x65, 0x7f, 0x85, 0xa4, this, paint, kShipListId, 0x7d, 0x32, 0, 0, 0, 0, 0,
+  m_shipList = NewOrNull<CoolDragList>(art, 0x65, 0x7f, 0x85, 0xa4, this, paint, kShipListId, 0x7d, m_compactLabels ? kUnitRowHeight : kOriginalRowHeight, 0, 0, 0, 0, 0,
                                        1, nullptr);
-  if (m_shipList)
-  {
+  if (m_shipList) {
     m_shipList->SetDragTarget(m_galaxy->m_hwnd);
     m_shipList->Create(0);
     m_shipList->SetSelectedTextColor(0xffffff);
     m_shipList->SetTextColor(0xffffff);
     m_shipList->SetItemList(m_shipItems);
-    m_shipList->SetFont(10);
-    m_shipList->m_textFormat = 0x29;
+    if (m_compactLabels) {
+      m_shipList->SetFont(kCompactUnitFontSlot);
+      m_shipList->m_textFormat = DT_CENTER;
+      m_shipList->SelectCurrentFont(dc);
+      TEXTMETRICA unitTextMetrics{};
+      reb::compat::GetTextMetricsA(dc, &unitTextMetrics);
+      m_shipList->RestoreFont(dc);
+      m_shipList->m_textOffsetY = kUnitRowHeight - 2 * unitTextMetrics.tmHeight - 3;
+    } else {
+      m_shipList->SetFont(kOriginalFontSlot);
+      m_shipList->m_textFormat = DT_CENTER | DT_BOTTOM | DT_SINGLELINE;
+    }
     m_shipList->CreateVerticalScrollBar(art, m_shipList, 7, 0x29cb, 0xa4, 0, 0xa4, 0, nullptr);
   }
   SyncFleetRows();
-  ReleaseDC(m_hwnd, dc);
-  if ((m_galaxy->m_mouseMode & 4) == 0)
-  {
+  reb::compat::ReleaseDC(m_hwnd, dc);
+  if ((m_galaxy->m_mouseMode & 4) == 0) {
     SoundRequest request(0, 0, 0, 0, 0, 0);
     request.m_kind = 1;
     request.m_soundId = kOpenSound;
@@ -437,88 +462,81 @@ void FleetWindow::OnCreate1()
 LRESULT FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   HWND hwnd = m_hwnd;
-  if (message < 8)
-  {
-    if (message == WM_SETFOCUS)
-    {
-      if (!m_renameField)
-      {
-        SetFocus(m_fleetList->m_hwnd);
-      }
-      else
-      {
-        SetFocus(m_renameField->m_hwnd);
+  if (message < 8) {
+    if (message == WM_SETFOCUS) {
+      if (!m_renameField) {
+        reb::compat::SetFocus(m_fleetList->m_hwnd);
+      } else {
+        reb::compat::SetFocus(m_renameField->m_hwnd);
       }
       return 0;
     }
-    if (message == WM_CREATE)
-    {
-      HDC windowDc = GetDC(hwnd);
-      m_dc = CreateCompatibleDC(windowDc);
-      ReleaseDC(hwnd, windowDc);
+    if (message == WM_CREATE) {
+      HDC windowDc = reb::compat::GetDC(hwnd);
+      m_dc = reb::compat::CreateCompatibleDC(windowDc);
+      reb::compat::ReleaseDC(hwnd, windowDc);
       CustomDialogBox::WindowProc(WM_CREATE, wParam, lParam);
-      PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(hwnd), 0);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(hwnd), 0);
       return 0;
     }
     return CustomDialogBox::WindowProc(message, wParam, lParam);
   }
-  if (message > WM_COMMAND)
-  {
-    if (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN)
-    {
-      PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(hwnd), 0);
-    }
-    else if (message == kRedrawHeaderMessage)
-    {
-      InvalidateRect(hwnd, &m_titleRect, 0);
+  if (message > WM_COMMAND) {
+    if (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN) {
+      reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(hwnd), 0);
+    } else if (message == kRedrawHeaderMessage) {
+      reb::compat::InvalidateRect(hwnd, &m_titleRect, 0);
       return 0;
     }
     return CustomDialogBox::WindowProc(message, wParam, lParam);
   }
-  if (message == WM_COMMAND)
+  if (message == WM_COMMAND) {
     return OnWmCommand(WM_COMMAND, wParam, lParam);
-  if (message != WM_PAINT)
+  }
+  if (message != WM_PAINT) {
     return CustomDialogBox::WindowProc(message, wParam, lParam);
+  }
 
   PAINTSTRUCT paint;
-  HDC dc = BeginPaint(hwnd, &paint);
+  HDC dc = reb::compat::BeginPaint(hwnd, &paint);
   DibBitmap* header = hwnd == m_galaxy->m_activeChild ? m_headerActive : m_headerInactive;
   header->Blit(m_paintBackground, 2, 2, 0, 0, m_clientWidth - 4, 0x12);
-  SelectPalette(dc, g_palette, 0);
+  reb::compat::SelectPalette(dc, g_palette, 0);
   DrawBackground(dc);
   DibBitmap* info = nullptr;
-  if ((m_uiFlags.m_value & kFleetOwnSelected) != 0)
-  {
+  if ((m_uiFlags.m_value & kFleetOwnSelected) != 0) {
     info = m_infoBackdropOwn;
-  }
-  else if ((m_uiFlags.m_value & kFleetOtherSelected) != 0)
-  {
+  } else if ((m_uiFlags.m_value & kFleetOtherSelected) != 0) {
     info = m_infoBackdropOther;
   }
-  if (info)
+  if (info) {
     info->DrawToDc(dc, 0x40, 0xcc0020, 0x61, 0x1d, 0, 0, 0, 0);
-  if (m_infoBitmap)
+  }
+  if (m_infoBitmap) {
     m_infoBitmap->DrawToDc(dc, 0x40, 0xcc0020, 100, 0x2a, 0, 0, 0, 0);
-  if (m_titleLabel)
+  }
+  if (m_titleLabel) {
     m_titleLabel->Draw(dc);
-  if (m_selectionLabel)
+  }
+  if (m_selectionLabel) {
     m_selectionLabel->Draw(dc);
-  EndPaint(hwnd, &paint);
+  }
+  reb::compat::EndPaint(hwnd, &paint);
   return 0;
 }
 
 LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
 {
   HWND galaxyWindow = m_galaxy->m_hwnd;
-  GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
-  if (!system)
+  GameObjNotifier* system = GetSystem();
+  if (!system) {
     return 0;
+  }
   LRESULT result = 0;
   const uint32_t code = static_cast<uint32_t>(wParam) >> 16;
-  switch (static_cast<uint32_t>(wParam) & 0xffff)
-  {
+  switch (static_cast<uint32_t>(wParam) & 0xffff) {
     case kSideId:
-      PostMessageA(galaxyWindow, kCommandMessage, (m_childId & 0xffff) | (kRedrawHeaderCommand << 16), 0);
+      reb::compat::PostMessageA(galaxyWindow, kCommandMessage, (m_childId & 0xffff) | (kRedrawHeaderCommand << 16), 0);
       break;
     case kCloseId:
       PostCloseRequest();
@@ -529,43 +547,41 @@ LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
     case kOwnTabsId:
     case kOtherTabsId:
       m_page = static_cast<int>(code);
-      PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       UpdateShipList();
       break;
     case kShipListId:
       m_uiFlags.m_value |= kFleetShipListActive;
-      if (code == kDragListDropped)
-      {
-        PostMessageA(m_galaxy->m_hwnd, kCommandMessage, (m_childId & 0xffff) | (code << 16), lParam);
-      }
-      else if (code == kDragListSelectionChanged)
-      {
-        PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      if (code == kDragListDropped) {
+        reb::compat::PostMessageA(m_galaxy->m_hwnd, kCommandMessage, (m_childId & 0xffff) | (code << 16), lParam);
+      } else if (code == kDragListSelectionChanged) {
+        reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       }
       break;
     case kFleetListId:
       m_uiFlags.m_value &= ~kFleetShipListActive;
-      if (code == kDragListDropped)
-      {
-        PostMessageA(m_galaxy->m_hwnd, kCommandMessage, (m_childId & 0xffff) | (code << 16), lParam);
+      if (code == kDragListDropped) {
+        reb::compat::PostMessageA(m_galaxy->m_hwnd, kCommandMessage, (m_childId & 0xffff) | (code << 16), lParam);
         return result;
       }
-      if (code != kDragListSelectionChanged)
-      {
-        if (code != kDragListActivated)
+      if (code != kDragListSelectionChanged) {
+        if (code != kDragListActivated) {
           return 0;
+        }
         auto position = m_fleetItems->Entries().begin();
-        while (position != m_fleetItems->Entries().end())
-        {
+        while (position != m_fleetItems->Entries().end()) {
           auto current = position++;
           auto* row = static_cast<FleetListItem*>((*current).get());
-          if ((row->m_flags.m_value & (kFleetItemFleet | kFleetItemHidden)) != kFleetItemFleet)
+          if ((row->m_flags.m_value & (kFleetItemFleet | kFleetItemHidden)) != kFleetItemFleet) {
             continue;
-          if ((row->m_state.m_value & kListItemSelected) == 0)
+          }
+          if ((row->m_state.m_value & kListItemSelected) == 0) {
             continue;
+          }
           GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &row->m_key);
-          if (!fleet)
+          if (!fleet) {
             continue;
+          }
           row->m_flags.m_value ^= kFleetItemExpanded;
           auto rowPosition = m_fleetItems->PositionOf(row);
           SyncShipRows(fleet, &rowPosition);
@@ -573,15 +589,15 @@ LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
         }
         return result;
       }
-      PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       UpdateShipList();
       break;
     case kSectorId:
-      if (m_galaxy)
-      {
+      if (m_galaxy) {
         ObjectKey sectorKey;
-        if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey) != 0)
+        if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey) != 0) {
           m_galaxy->OpenSectorWindow(&sectorKey);
+        }
       }
       break;
   }
@@ -590,12 +606,9 @@ LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
 
 int FleetWindow::OnRightButtonUp(int x, int y, CoolWindow* sender)
 {
-  if (sender->m_childId == kShipListId)
-  {
+  if (sender->m_childId == kShipListId) {
     m_uiFlags.m_value |= kFleetShipListActive;
-  }
-  else if (sender->m_childId == kFleetListId)
-  {
+  } else if (sender->m_childId == kFleetListId) {
     m_uiFlags.m_value &= ~kFleetShipListActive;
   }
   return CustomDialogBox::OnRightButtonUp(x, y, sender);
@@ -603,8 +616,7 @@ int FleetWindow::OnRightButtonUp(int x, int y, CoolWindow* sender)
 
 void FleetWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  if (key != VK_ESCAPE)
-  {
+  if (key != VK_ESCAPE) {
     m_parent->WindowProc(WM_KEYDOWN, key, lParam);
     return;
   }
@@ -634,8 +646,7 @@ void FleetWindow::LoadState(istream* in)
 
 void FleetWindow::RefreshIfNeeded()
 {
-  if ((m_uiFlags.m_value & kFleetNeedsRefresh) != 0)
-  {
+  if ((m_uiFlags.m_value & kFleetNeedsRefresh) != 0) {
     m_uiFlags.m_value &= ~kFleetNeedsRefresh;
     SyncFleetRows();
   }
@@ -646,51 +657,53 @@ namespace
 
 bool ChangesFleetRows(const ObjectKey* key)
 {
-  return FamilyIn(*key, 0x14, 0x20) || FamilyIn(*key, 8, 0x10) || FamilyIn(*key, 0x10, 0x14) ||
-         FamilyIn(*key, 0x30, 0x40);
+  return FamilyIn(*key, 0x14, 0x20) || FamilyIn(*key, 8, 0x10) || FamilyIn(*key, 0x10, 0x14)
+         || FamilyIn(*key, 0x30, 0x40);
 }
 
 } // namespace
 
 void FleetWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier*, const ObjectKey*, GameObjNotifier*)
 {
-  if (ChangesFleetRows(key))
+  if (ChangesFleetRows(key)) {
     m_uiFlags.m_value |= kFleetNeedsRefresh;
+  }
 }
 
 void FleetWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier*)
 {
-  if (ChangesFleetRows(key))
+  if (ChangesFleetRows(key)) {
     m_uiFlags.m_value |= kFleetNeedsRefresh;
+  }
 }
 
 void FleetWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier*)
 {
-  if (ChangesFleetRows(key))
+  if (ChangesFleetRows(key)) {
     m_uiFlags.m_value |= kFleetNeedsRefresh;
+  }
 }
 
 void FleetWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* source)
 {
   out->Clear();
   CoolListItemList* items = nullptr;
-  if (source == m_fleetList || (!source && (m_uiFlags.m_value & kFleetShipListActive) == 0))
-  {
+  if (source == m_fleetList || (!source && (m_uiFlags.m_value & kFleetShipListActive) == 0)) {
     items = m_fleetList->m_items;
-  }
-  else if (source == m_shipList || (!source && (m_uiFlags.m_value & kFleetShipListActive) != 0))
-  {
+  } else if (source == m_shipList || (!source && (m_uiFlags.m_value & kFleetShipListActive) != 0)) {
     items = m_shipList->m_items;
   }
-  if (!items)
+  if (!items) {
     return;
-  for (const auto& ownedRow : items->Entries())
-  {
+  }
+  for (const auto& ownedRow : items->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
-    if ((row->m_state.m_value & kListItemSelected) == 0)
+    }
+    if ((row->m_state.m_value & kListItemSelected) == 0) {
       continue;
+    }
     out->Add(NewOrNull<ObjectKeyValueNode>(row->m_key, 0));
   }
 }
@@ -699,30 +712,30 @@ ObjectKey FleetWindow::GetKeyAt(int x, int y)
 {
   ObjectKey result = m_systemKey;
   CoolListItem* item;
-  if (x < 4 || x >= 0x60 || y < 0x1d || y >= 0x128)
-  {
-    if (x < 0x65 || x >= 0xeb || y < 0x7f || y >= 0x124)
+  if (x < 4 || x >= 0x60 || y < 0x1d || y >= 0x128) {
+    if (x < 0x65 || x >= 0xeb || y < 0x7f || y >= 0x124) {
       return result;
+    }
     POINTS inList = {static_cast<SHORT>(x - 0x65), static_cast<SHORT>(y - 0x7f)};
     item = m_shipList->HitTest(m_shipList->ClientToList(inList));
-    if (!item)
-    {
+    if (!item) {
       CoolListItemList selection(1);
       CoolListItem* row = nullptr;
       m_fleetList->CopySelectionTo(&selection);
-      if (selection.First())
+      if (selection.First()) {
         row = m_fleetItems->FindById(static_cast<CoolListItem*>(selection.First())->m_id);
-      if (row)
+      }
+      if (row) {
         result = static_cast<FleetListItem*>(row)->m_key;
+      }
       return result;
     }
-  }
-  else
-  {
+  } else {
     POINTS inList = {static_cast<SHORT>(x - 4), static_cast<SHORT>(y - 0x1d)};
     item = m_fleetList->HitTest(m_fleetList->ClientToList(inList));
-    if (!item)
+    if (!item) {
       return result;
+    }
   }
   result = static_cast<FleetListItem*>(item)->m_key;
   return result;
@@ -731,47 +744,44 @@ ObjectKey FleetWindow::GetKeyAt(int x, int y)
 ObjectKey FleetWindow::GetDropKeyAt(int x, int y)
 {
   ObjectKey result;
-  if (m_fleetItems->Entries().empty())
+  if (m_fleetItems->Entries().empty()) {
     result = m_systemKey;
+  }
   bool nothingOwn = true;
   bool haveSelectedOwn = false;
-  for (const auto& ownedRow : m_fleetItems->Entries())
-  {
+  for (const auto& ownedRow : m_fleetItems->Entries()) {
     auto* item = static_cast<FleetListItem*>(ownedRow.get());
-    if (item->m_flags.m_value & kFleetItemHidden)
+    if (item->m_flags.m_value & kFleetItemHidden) {
       continue;
+    }
     nothingOwn = nothingOwn && (item->m_flags.m_value & kFleetItemOwn) == 0;
-    if ((item->m_state.m_value & kListItemSelected) != 0 && (item->m_flags.m_value & kFleetItemOwn) != 0)
-    {
-      if (!haveSelectedOwn)
-      {
+    if ((item->m_state.m_value & kListItemSelected) != 0 && (item->m_flags.m_value & kFleetItemOwn) != 0) {
+      if (!haveSelectedOwn) {
         result = item->m_key;
         haveSelectedOwn = true;
-      }
-      else
-      {
+      } else {
         result = ObjectKey();
       }
     }
   }
-  if (nothingOwn)
+  if (nothingOwn) {
     result = m_systemKey;
+  }
   CoolListItem* hit;
-  if (x < 4 || x >= 0x60 || y < 0x1d || y >= 0x128)
-  {
-    if (x < 0x65 || x >= 0xeb || y < 0x7f || y >= 0x124 || m_page != kPageShips)
+  if (x < 4 || x >= 0x60 || y < 0x1d || y >= 0x128) {
+    if (x < 0x65 || x >= 0xeb || y < 0x7f || y >= 0x124 || m_page != kPageShips) {
       return result;
+    }
     POINTS inList = {static_cast<SHORT>(x - 0x65), static_cast<SHORT>(y - 0x7f)};
     hit = m_shipList->HitTest(m_shipList->ClientToList(inList));
-  }
-  else
-  {
+  } else {
     result = m_systemKey;
     POINTS inList = {static_cast<SHORT>(x - 4), static_cast<SHORT>(y - 0x1d)};
     hit = m_fleetList->HitTest(m_fleetList->ClientToList(inList));
   }
-  if (hit)
+  if (hit) {
     result = static_cast<FleetListItem*>(hit)->m_key;
+  }
   return result;
 }
 
@@ -781,21 +791,16 @@ RECT* FleetWindow::GetRenameRect(RECT* out)
   CustomDialogBox::GetRenameRect(&rect);
   CoolListItemList* items;
   CoolDragList* list;
-  if ((m_uiFlags.m_value & kFleetShipListActive) == 0)
-  {
+  if ((m_uiFlags.m_value & kFleetShipListActive) == 0) {
     items = m_fleetItems;
     list = m_fleetList;
-  }
-  else
-  {
+  } else {
     items = m_shipItems;
     list = m_shipList;
   }
-  for (const auto& ownedRow : items->Entries())
-  {
+  for (const auto& ownedRow : items->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if ((row->m_flags.m_value & kFleetItemHidden) == 0 && (row->m_state.m_value & kListItemSelected) != 0)
-    {
+    if ((row->m_flags.m_value & kFleetItemHidden) == 0 && (row->m_state.m_value & kListItemSelected) != 0) {
       const RECT textRect = list->GetItemTextRect(row);
       rect.left = textRect.left + list->m_x;
       rect.top = textRect.top + list->m_y;
@@ -813,42 +818,37 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key)
   GameObjNotifier* ship = nullptr;
   GameObjNotifier* fleet = nullptr;
   GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, key);
-  if (FamilyIn(*key, 0x14, 0x1c))
-  {
+  if (FamilyIn(*key, 0x14, 0x1c)) {
     ship = object;
-    if (object)
+    if (object) {
       fleet = object->m_parent;
-  }
-  else if (FamilyIn(*key, 8, 0x10))
-  {
+    }
+  } else if (FamilyIn(*key, 8, 0x10)) {
     fleet = object;
-  }
-  else if (object)
-  {
+  } else if (object) {
     ship = object->m_parent;
-    if (ship)
+    if (ship) {
       fleet = ship->m_parent;
+    }
   }
   FleetListItem* row = nullptr;
-  if (fleet)
-  {
+  if (fleet) {
     m_uiFlags.m_value &= ~kFleetShipListActive;
     ObjectKey fleetKey;
     fleet->GetKey(&fleetKey);
     row = static_cast<FleetListItem*>(m_fleetItems->FindById(fleetKey.Id()));
-    if (row)
-    {
+    if (row) {
       row->m_state.m_value |= kListItemSelected;
       m_fleetList->Refresh();
     }
   }
-  if (!row || !ship)
+  if (!row || !ship) {
     return;
+  }
   CoolTabControl* tabs;
   int page;
   const int viewSide = ViewSideOf(m_galaxy->m_side);
-  if (ship != object)
-  {
+  if (ship != object) {
     m_uiFlags.m_value &= ~kFleetShipListActive;
     row->m_flags.m_value ^= kFleetItemExpanded;
     auto position = m_fleetItems->PositionOf(row);
@@ -856,25 +856,16 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key)
     m_fleetList->Refresh();
     m_uiFlags.m_value |= kFleetShipListActive;
     tabs = static_cast<int>(fleet->ControlSide()) == viewSide ? m_ownTabs : m_otherTabs;
-    if (FamilyIn(*key, 0x1c, 0x20))
-    {
+    if (FamilyIn(*key, 0x1c, 0x20)) {
       page = kPageFighters;
-    }
-    else if (FamilyIn(*key, 0x10, 0x14))
-    {
+    } else if (FamilyIn(*key, 0x10, 0x14)) {
       page = kPageTroops;
-    }
-    else if (FamilyIn(*key, 0x30, 0x40))
-    {
+    } else if (FamilyIn(*key, 0x30, 0x40)) {
       page = kPagePersonnel;
-    }
-    else
-    {
+    } else {
       return;
     }
-  }
-  else
-  {
+  } else {
     m_uiFlags.m_value |= kFleetShipListActive;
     page = kPageShips;
     tabs = static_cast<int>(fleet->ControlSide()) == viewSide ? m_ownTabs : m_otherTabs;
@@ -884,20 +875,21 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key)
 
 int FleetWindow::GetMinimizedIconBitmapId()
 {
-  GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
-  if (!system)
+  GameObjNotifier* system = GetSystem();
+  if (!system) {
     return 0;
-  auto side = static_cast<uint32_t>(ViewSideOf(m_galaxy->m_side));
-  if (CountFleets(static_cast<GameObj*>(system), side, 3) == 0)
-  {
-    side = static_cast<uint32_t>(m_galaxy->m_side == 1 ? 2 : (m_galaxy->m_side == 2 ? 1 : 0));
-    if (CountFleets(static_cast<GameObj*>(system), side, 3) == 0)
-      side = system->ControlSide();
   }
-  if (side != 1)
-  {
-    if (side != 2)
+  auto side = static_cast<uint32_t>(ViewSideOf(m_galaxy->m_side));
+  if (CountFleets(static_cast<GameObj*>(system), side, 3) == 0) {
+    side = static_cast<uint32_t>(m_galaxy->m_side == 1 ? 2 : (m_galaxy->m_side == 2 ? 1 : 0));
+    if (CountFleets(static_cast<GameObj*>(system), side, 3) == 0) {
+      side = system->ControlSide();
+    }
+  }
+  if (side != 1) {
+    if (side != 2) {
       return 0x2d12;
+    }
     return 0x2d11;
   }
   return 0x2d10;
@@ -907,9 +899,10 @@ int FleetWindow::GetMinimizedIconBitmapId()
 
 void FleetWindow::SyncFleetRows()
 {
-  GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
-  if (!system)
+  GameObjNotifier* system = GetSystem();
+  if (!system) {
     return;
+  }
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   FleetIterator fleets(system, 3);
   auto position = m_fleetItems->Entries().begin();
@@ -920,39 +913,29 @@ void FleetWindow::SyncFleetRows()
   systemNode->AddId(m_childId);
   m_objects.Add(systemNode, 0);
   fleets.Begin();
-  if (!fleets.Current())
-  {
+  if (!fleets.Current()) {
     m_controlSide = static_cast<int>(system->ControlSide());
-  }
-  else
-  {
+  } else {
     m_controlSide = 2 - (m_viewSide != 1);
-    do
-    {
+    do {
       GameObjNotifier* fleet = fleets.Current();
-      if (static_cast<int>(fleet->ControlSide()) == m_viewSide)
+      if (static_cast<int>(fleet->ControlSide()) == m_viewSide) {
         m_controlSide = m_viewSide;
-      if (position == m_fleetItems->Entries().end())
-      {
+      }
+      if (position == m_fleetItems->Entries().end()) {
         AddFleetRow(fleet, &position);
         fleets.Advance();
-      }
-      else
-      {
+      } else {
         ObjectKey fleetKey;
         fleet->GetKey(&fleetKey);
         const uint32_t rowKey = static_cast<FleetListItem*>((*position).get())->m_key.m_value;
-        if (fleetKey.m_value < rowKey)
-        {
+        if (fleetKey.m_value < rowKey) {
           AddFleetRow(fleet, &position);
           fleets.Advance();
-        }
-        else
-        {
+        } else {
           ObjectKey sameKey;
           fleet->GetKey(&sameKey);
-          if (rowKey == sameKey.m_value)
-          {
+          if (rowKey == sameKey.m_value) {
             auto* node = NewOrNull<ObjectKeyIdNode>();
             ObjectKey nodeKey;
             fleet->GetKey(&nodeKey);
@@ -961,60 +944,55 @@ void FleetWindow::SyncFleetRows()
             m_objects.Add(node, 0);
             SyncShipRows(fleet, &position);
             fleets.Advance();
-          }
-          else
-          {
+          } else {
             ObjectKey laterKey;
             fleet->GetKey(&laterKey);
-            if (rowKey < laterKey.m_value)
+            if (rowKey < laterKey.m_value) {
               RemoveRows(&position);
+            }
           }
         }
       }
     } while (fleets.Current());
   }
-  while (position != m_fleetItems->Entries().end())
+  while (position != m_fleetItems->Entries().end()) {
     RemoveRows(&position);
-  if (m_controlSide != previousSide)
-  {
+  }
+  if (m_controlSide != previousSide) {
     DeleteBitmap(m_headerActive);
     DeleteBitmap(m_headerInactive);
-    if (m_controlSide == 1)
-    {
+    if (m_controlSide == 1) {
       m_headerActive = LoadBitmap(art, 0x283b, kHeaderKind);
       m_headerInactive = LoadBitmap(art, 0x27d8, kHeaderKind);
-    }
-    else if (m_controlSide == 2)
-    {
+    } else if (m_controlSide == 2) {
       m_headerActive = LoadBitmap(art, 0x27d9, kHeaderKind);
       m_headerInactive = LoadBitmap(art, 0x283e, kHeaderKind);
-    }
-    else
-    {
+    } else {
       m_headerActive = LoadBitmap(art, 0x283f, kHeaderKind);
       m_headerInactive = LoadBitmap(art, 0x2840, kHeaderKind);
     }
-    if (m_titleLabel)
+    if (m_titleLabel) {
       m_titleLabel->SetColor(0, nullptr);
-    InvalidateRect(m_hwnd, &m_titleRect, 0);
+    }
+    reb::compat::InvalidateRect(m_hwnd, &m_titleRect, 0);
   }
-  if (m_fleetList)
+  if (m_fleetList) {
     m_fleetList->Refresh();
+  }
   UpdateShipList();
 }
 
 void FleetWindow::RemoveRows(RowIterator* position)
 {
   auto next = *position;
-  while (next != m_fleetItems->Entries().end())
-  {
+  while (next != m_fleetItems->Entries().end()) {
     auto current = next++;
     auto* row = static_cast<FleetListItem*>((*current).get());
-    if (m_fleetItems->Remove(row))
+    if (m_fleetItems->Remove(row)) {
       delete row;
-    if (next != m_fleetItems->Entries().end() &&
-        (static_cast<FleetListItem*>((*next).get())->m_flags.m_value & kFleetItemFleet) == 0)
-    {
+    }
+    if (next != m_fleetItems->Entries().end()
+        && (static_cast<FleetListItem*>((*next).get())->m_flags.m_value & kFleetItemFleet) == 0) {
       continue;
     }
     break;
@@ -1034,75 +1012,64 @@ void FleetWindow::AddFleetRow(GameObjNotifier* fleet, RowIterator* position)
   ObjectKey rowKey;
   fleet->GetKey(&rowKey);
   auto* item = NewOrNull<FleetListItem>(&rowKey);
-  auto* image = NewOrNull<DibBitmap>(kRowWidth, kRowHeight, m_paintBackground, m_dc);
-  if (image->DibSectionHandle() != nullptr)
-  {
+  auto* image = NewOrNull<DibBitmap>(kRowWidth, RowHeight(), m_paintBackground, m_dc);
+  if (image->DibSectionHandle() != nullptr) {
     int skin = 0;
     DibBitmap* frame;
     DibBitmap* selectedFrame;
-    if (fleet->ControlSide() == 1)
-    {
+    if (fleet->ControlSide() == 1) {
       frame = LoadBitmap(art, 0x28a0);
       selectedFrame = LoadBitmap(art, 0x28a1);
-    }
-    else
-    {
+    } else {
       skin = kSkinStep;
       frame = LoadBitmap(art, 0x28d2);
       selectedFrame = LoadBitmap(art, 0x28d3);
     }
     const uint8_t colorKey = frame->m_colorKey;
     image->FillRect(0, 0, image->Width(), image->Height(), colorKey);
-    HGDIOBJ previousBitmap = SelectObject(m_dc, image->DibSectionHandle());
-    HPALETTE previousPalette = SelectPalette(m_dc, g_palette, 0);
-    HGDIOBJ previousPen = SelectObject(m_dc, m_pen);
-    HGDIOBJ previousFont = SelectObject(m_dc, m_fleetFont);
-    if ((StateFlags(fleet) & kStateEnroute) != 0)
-    {
+    HGDIOBJ previousBitmap = reb::compat::SelectObject(m_dc, image->DibSectionHandle());
+    HPALETTE previousPalette = reb::compat::SelectPalette(m_dc, g_palette, 0);
+    HGDIOBJ previousPen = reb::compat::SelectObject(m_dc, m_pen);
+    HGDIOBJ previousFont = reb::compat::SelectObject(m_dc, m_fleetFont);
+    if ((StateFlags(fleet) & kStateEnroute) != 0) {
       DibBitmap* badge = LoadBitmap(art, skin + 0x28b7);
       badge->DrawKeyed(image, 5, 5);
       DeleteBitmap(badge);
     }
-    if ((StateFlags(fleet) & kStateHasOrders) != 0)
-    {
+    if ((StateFlags(fleet) & kStateHasOrders) != 0) {
       DibBitmap* badge = LoadBitmap(art, skin + 0x28b8);
       badge->DrawKeyed(image, 5, 5);
       DeleteBitmap(badge);
     }
-    if (frame)
-    {
+    if (frame) {
       frame->DrawKeyed(image, 5, 5);
       DeleteBitmap(frame);
     }
-    item->m_flags.m_value = fleet->ControlSide() == static_cast<uint32_t>(m_viewSide) ?
-                              item->m_flags.m_value | kFleetItemOwn :
-                              item->m_flags.m_value & ~kFleetItemOwn;
-    Polyline(m_dc, RowLine(kLineFleetToShip), 2);
-    item->m_text = NameOf(fleet);
-    SelectPalette(m_dc, previousPalette, 0);
-    SelectObject(m_dc, previousPen);
-    SelectObject(m_dc, previousBitmap);
-    SelectObject(m_dc, previousFont);
-    auto* selected =
-      NewOrNull<DibBitmap>(static_cast<LONG>(image->Width()), static_cast<LONG>(image->Height()), image, m_dc);
+    item->m_flags.m_value = fleet->ControlSide() == static_cast<uint32_t>(m_viewSide)
+                                ? item->m_flags.m_value | kFleetItemOwn
+                                : item->m_flags.m_value & ~kFleetItemOwn;
+    reb::compat::Polyline(m_dc, RowLine(kLineFleetToShip, RowHeight()).data(), 2);
+    item->m_text = RowName(fleet, m_compactLabels);
+    reb::compat::SelectPalette(m_dc, previousPalette, 0);
+    reb::compat::SelectObject(m_dc, previousPen);
+    reb::compat::SelectObject(m_dc, previousBitmap);
+    reb::compat::SelectObject(m_dc, previousFont);
+    auto* selected
+        = NewOrNull<DibBitmap>(static_cast<LONG>(image->Width()), static_cast<LONG>(image->Height()), image, m_dc);
     image->Blit(selected, 0, 0, 0, 0, 0, 0);
     selectedFrame->DrawKeyed(selected, 0, 0);
     DeleteBitmap(selectedFrame);
     item->SetImages(image, selected);
   }
   item->m_flags.m_value = (item->m_flags.m_value & ~kFleetItemExpanded) | kFleetItemFleet;
-  FleetListItem* anchor =
-    *position == m_fleetItems->Entries().end() ? nullptr : static_cast<FleetListItem*>((*position)->get());
-  if (!anchor)
-  {
-    if (!m_fleetItems->Insert(item))
-    {
+  FleetListItem* anchor
+      = *position == m_fleetItems->Entries().end() ? nullptr : static_cast<FleetListItem*>((*position)->get());
+  if (!anchor) {
+    if (!m_fleetItems->Insert(item)) {
       delete item;
       return;
     }
-  }
-  else if (!m_fleetItems->InsertBefore(item, anchor))
-  {
+  } else if (!m_fleetItems->InsertBefore(item, anchor)) {
     delete item;
     return;
   }
@@ -1122,42 +1089,37 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, RowIterator* position)
   DibBitmap* marker = LoadBitmap(art, ((fleetFlags & 0xc0) != 0x40 ? kSkinStep : 0) + 0x28a1);
   DibBitmap* fleetImage = fleetRow->m_image;
   DibBitmap* fleetSelected = fleetRow->m_selectedImage;
-  auto* scratch = NewOrNull<DibBitmap>(kRowWidth, kRowHeight, m_paintBackground, m_dc);
-  scratch->FillRect(0, 0, kRowWidth, kRowHeight, 0);
-  HGDIOBJ previousBitmap = SelectObject(m_dc, scratch->DibSectionHandle());
-  HPALETTE previousPalette = SelectPalette(m_dc, g_palette, 0);
-  HGDIOBJ previousPen = SelectObject(m_dc, m_pen);
-  SelectObject(m_dc, m_shipFont);
-  fleetRow->m_text = NameOf(fleet);
-  if (!expanded)
-  {
-    fleetImage->FillRect(0, 0, 3, kRowHeight, fleetImage->m_colorKey);
-    fleetSelected->FillRect(0, 0, 3, kRowHeight, fleetImage->m_colorKey);
-  }
-  else
-  {
-    SelectObject(m_dc, m_pen);
-    Polyline(m_dc, RowLine(kLineDown), 2);
+  auto* scratch = NewOrNull<DibBitmap>(kRowWidth, RowHeight(), m_paintBackground, m_dc);
+  scratch->FillRect(0, 0, kRowWidth, RowHeight(), 0);
+  HGDIOBJ previousBitmap = reb::compat::SelectObject(m_dc, scratch->DibSectionHandle());
+  HPALETTE previousPalette = reb::compat::SelectPalette(m_dc, g_palette, 0);
+  HGDIOBJ previousPen = reb::compat::SelectObject(m_dc, m_pen);
+  reb::compat::SelectObject(m_dc, m_shipFont);
+  fleetRow->m_text = RowName(fleet, m_compactLabels);
+  if (!expanded) {
+    fleetImage->FillRect(0, 0, 3, RowHeight(), fleetImage->m_colorKey);
+    fleetSelected->FillRect(0, 0, 3, RowHeight(), fleetImage->m_colorKey);
+  } else {
+    reb::compat::SelectObject(m_dc, m_pen);
+    reb::compat::Polyline(m_dc, RowLine(kLineDown, RowHeight()).data(), 2);
     scratch->DrawKeyed(fleetImage, 0, 0);
     scratch->DrawKeyed(fleetSelected, 0, 0);
   }
   ships.Begin();
   *position = std::next(*position);
 
-  auto drawThroughLine = [&](FleetListItem* row)
-  {
+  auto drawThroughLine = [&](FleetListItem* row) {
     DibBitmap* image = row->m_image;
     DibBitmap* selected = row->m_selectedImage;
-    scratch->FillRect(0, 0, kRowWidth, kRowHeight, 0);
-    SelectObject(m_dc, scratch->DibSectionHandle());
-    SelectObject(m_dc, m_pen);
-    Polyline(m_dc, RowLine(kLineThrough), 2);
+    scratch->FillRect(0, 0, kRowWidth, RowHeight(), 0);
+    reb::compat::SelectObject(m_dc, scratch->DibSectionHandle());
+    reb::compat::SelectObject(m_dc, m_pen);
+    reb::compat::Polyline(m_dc, RowLine(kLineThrough, RowHeight()).data(), 2);
     scratch->DrawKeyed(image, 0, 0);
     scratch->DrawKeyed(selected, 0, 0);
   };
 
-  while (ships.Current())
-  {
+  while (ships.Current()) {
     uint32_t shipContents = 0;
     bool needNewRow = false;
     auto* node = NewOrNull<ObjectKeyIdNode>();
@@ -1166,119 +1128,104 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, RowIterator* position)
     node->m_key = nodeKey;
     node->AddId(m_childId);
     m_objects.Add(node, 0);
-    if (*position == m_fleetItems->Entries().end())
-    {
+    if (*position == m_fleetItems->Entries().end()) {
       needNewRow = true;
-    }
-    else
-    {
+    } else {
       ObjectKey currentKey;
       ships.Current()->GetKey(&currentKey);
       auto* positionedRow = static_cast<FleetListItem*>((*position)->get());
-      if (currentKey.m_value == positionedRow->m_key.m_value)
-      {
-        if (shipRow)
+      if (currentKey.m_value == positionedRow->m_key.m_value) {
+        if (shipRow) {
           drawThroughLine(shipRow);
+        }
         shipRow = positionedRow;
         GameObjNotifier* ship = ships.Current();
         shipContents = FleetContents(ship);
-        if (shipContents != shipRow->m_userData)
-        {
+        if (shipContents != shipRow->m_userData) {
           shipRow->m_userData = shipContents;
           DibBitmap* image = shipRow->m_image;
           DibBitmap* selected = shipRow->m_selectedImage;
           ObjectKey shipKey;
           ship->GetKey(&shipKey);
           DibBitmap* picture = CreateObjectPicture(m_gokres, &shipKey, ship, 0, 1);
-          image->FillRect(0, 0, kRowWidth, kRowHeight, picture->m_colorKey);
+          image->FillRect(0, 0, kRowWidth, RowHeight(), picture->m_colorKey);
           picture->DrawKeyed(image, 5, 0xf);
           DeleteBitmap(picture);
-          scratch->FillRect(0, 0, kRowWidth, kRowHeight, 0);
-          SelectObject(m_dc, scratch->DibSectionHandle());
-          SelectObject(m_dc, m_pen);
-          Polyline(m_dc, RowLine(kLineShipStub), 2);
-          Polyline(m_dc, RowLine(kLineBend), 2);
+          scratch->FillRect(0, 0, kRowWidth, RowHeight(), 0);
+          reb::compat::SelectObject(m_dc, scratch->DibSectionHandle());
+          reb::compat::SelectObject(m_dc, m_pen);
+          reb::compat::Polyline(m_dc, RowLine(kLineShipStub, RowHeight()).data(), 2);
+          reb::compat::Polyline(m_dc, RowLine(kLineBend, RowHeight()).data(), 2);
           scratch->DrawKeyed(image, 0, 0);
           DrawFleetContentIcons(image, static_cast<int>(ship->ControlSide()), shipContents, 1);
           image->Blit(selected, 0, 0, 0, 0, 0, 0);
           marker->DrawKeyed(selected, 0, 0);
         }
-        shipRow->m_text = NameOf(ships.Current());
+        shipRow->m_text = RowName(ships.Current(), m_compactLabels);
         SetFlag(shipRow, kFleetItemHidden, !expanded);
         ++*position;
         ships.Advance();
-      }
-      else if ((positionedRow->m_flags.m_value & kFleetItemFleet) == 0)
-      {
+      } else if ((positionedRow->m_flags.m_value & kFleetItemFleet) == 0) {
         ObjectKey shipKey;
         ships.Current()->GetKey(&shipKey);
         const uint32_t rowKey = positionedRow->m_key.m_value;
-        if (shipKey.m_value < rowKey)
-        {
+        if (shipKey.m_value < rowKey) {
           needNewRow = true;
-        }
-        else
-        {
+        } else {
           ObjectKey laterKey;
           ships.Current()->GetKey(&laterKey);
-          if (rowKey < laterKey.m_value)
-          {
+          if (rowKey < laterKey.m_value) {
             FleetListItem* gone = positionedRow;
             auto following = std::next(*position);
-            if (m_fleetItems->Remove(gone))
+            if (m_fleetItems->Remove(gone)) {
               delete gone;
+            }
             *position = following;
           }
         }
-      }
-      else
-      {
+      } else {
         needNewRow = true;
       }
     }
-    if (needNewRow)
-    {
-      if (shipRow)
+    if (needNewRow) {
+      if (shipRow) {
         drawThroughLine(shipRow);
+      }
       ObjectKey rowKey;
       ships.Current()->GetKey(&rowKey);
       auto* row = NewOrNull<FleetListItem>(&rowKey);
       shipRow = row;
-      auto* image = NewOrNull<DibBitmap>(kRowWidth, kRowHeight, m_paintBackground);
-      auto* selected = NewOrNull<DibBitmap>(kRowWidth, kRowHeight, m_paintBackground);
+      auto* image = NewOrNull<DibBitmap>(kRowWidth, RowHeight(), m_paintBackground);
+      auto* selected = NewOrNull<DibBitmap>(kRowWidth, RowHeight(), m_paintBackground);
       GameObjNotifier* ship = ships.Current();
       shipContents = FleetContents(ship);
       row->m_userData = shipContents;
       ObjectKey pictureKey;
       ship->GetKey(&pictureKey);
       DibBitmap* picture = CreateObjectPicture(m_gokres, &pictureKey, ship, 0, 1);
-      image->FillRect(0, 0, kRowWidth, kRowHeight, picture->m_colorKey);
+      image->FillRect(0, 0, kRowWidth, RowHeight(), picture->m_colorKey);
       picture->DrawKeyed(image, 5, 0xf);
       DeleteBitmap(picture);
       SetFlag(row, kFleetItemOwn, ship->ControlSide() == static_cast<uint32_t>(m_viewSide));
-      scratch->FillRect(0, 0, kRowWidth, kRowHeight, 0);
-      SelectObject(m_dc, scratch->DibSectionHandle());
-      SelectObject(m_dc, m_pen);
-      Polyline(m_dc, RowLine(kLineShipStub), 2);
-      Polyline(m_dc, RowLine(kLineBend), 2);
+      scratch->FillRect(0, 0, kRowWidth, RowHeight(), 0);
+      reb::compat::SelectObject(m_dc, scratch->DibSectionHandle());
+      reb::compat::SelectObject(m_dc, m_pen);
+      reb::compat::Polyline(m_dc, RowLine(kLineShipStub, RowHeight()).data(), 2);
+      reb::compat::Polyline(m_dc, RowLine(kLineBend, RowHeight()).data(), 2);
       scratch->DrawKeyed(image, 0, 0);
       DrawFleetContentIcons(image, static_cast<int>(ship->ControlSide()), shipContents, 1);
-      SetTextColor(m_dc, 0xffffff);
-      row->m_text = NameOf(ships.Current());
+      reb::compat::SetTextColor(m_dc, 0xffffff);
+      row->m_text = RowName(ships.Current(), m_compactLabels);
       image->Blit(selected, 0, 0, 0, 0, 0, 0);
       marker->DrawKeyed(selected, 0, 0);
       SetFlag(row, kFleetItemHidden, !expanded);
       row->SetImages(image, selected);
-      if (*position == m_fleetItems->Entries().end())
-      {
-        if (!m_fleetItems->Insert(row))
-        {
+      if (*position == m_fleetItems->Entries().end()) {
+        if (!m_fleetItems->Insert(row)) {
           delete row;
           shipRow = nullptr;
         }
-      }
-      else if (!m_fleetItems->InsertBefore(row, static_cast<FleetListItem*>((*position)->get())))
-      {
+      } else if (!m_fleetItems->InsertBefore(row, static_cast<FleetListItem*>((*position)->get()))) {
         delete row;
         shipRow = nullptr;
       }
@@ -1287,54 +1234,47 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, RowIterator* position)
     contents |= shipContents;
   }
 
-  if (contents != fleetRow->m_userData)
-  {
+  if (contents != fleetRow->m_userData) {
     fleetRow->m_userData = contents;
     int skin = 0;
     DibBitmap* frame;
     DibBitmap* selectedFrame;
-    if (fleet->ControlSide() == 1)
-    {
+    if (fleet->ControlSide() == 1) {
       frame = LoadBitmap(art, 0x28a0);
       selectedFrame = LoadBitmap(art, 0x28a1);
-    }
-    else
-    {
+    } else {
       skin = kSkinStep;
       selectedFrame = LoadBitmap(art, 0x28d3);
       frame = LoadBitmap(art, 0x28d2);
     }
-    scratch->FillRect(0, 0, kRowWidth, kRowHeight, 0);
+    scratch->FillRect(0, 0, kRowWidth, RowHeight(), 0);
     fleetImage->FillRect(0, 0, fleetImage->Width(), fleetImage->Height(), frame->m_colorKey);
-    SelectObject(m_dc, scratch->DibSectionHandle());
-    SelectObject(m_dc, m_pen);
-    if ((StateFlags(fleet) & kStateEnroute) != 0)
-    {
+    reb::compat::SelectObject(m_dc, scratch->DibSectionHandle());
+    reb::compat::SelectObject(m_dc, m_pen);
+    if ((StateFlags(fleet) & kStateEnroute) != 0) {
       DibBitmap* badge = LoadBitmap(art, skin + 0x28b7);
       badge->DrawKeyed(fleetImage, 5, 5);
       DeleteBitmap(badge);
     }
-    if ((StateFlags(fleet) & kStateHasOrders) != 0)
-    {
+    if ((StateFlags(fleet) & kStateHasOrders) != 0) {
       DibBitmap* badge = LoadBitmap(art, skin + 0x28b8);
       badge->DrawKeyed(fleetImage, 5, 5);
       DeleteBitmap(badge);
     }
-    if (frame)
-    {
+    if (frame) {
       frame->DrawKeyed(fleetImage, 5, 5);
       DeleteBitmap(frame);
     }
-    Polyline(m_dc, RowLine(kLineFleetStub), 2);
+    reb::compat::Polyline(m_dc, RowLine(kLineFleetStub, RowHeight()).data(), 2);
     scratch->DrawKeyed(fleetImage, 0, 0);
     DrawFleetContentIcons(fleetImage, static_cast<int>(fleet->ControlSide()), contents, 1);
     fleetImage->Blit(fleetSelected, 0, 0, 0, 0, 0, 0);
     selectedFrame->DrawKeyed(fleetSelected, 0, 0);
     DeleteBitmap(selectedFrame);
   }
-  SelectObject(m_dc, previousBitmap);
-  SelectObject(m_dc, previousPen);
-  SelectObject(m_dc, previousPalette);
+  reb::compat::SelectObject(m_dc, previousBitmap);
+  reb::compat::SelectObject(m_dc, previousPen);
+  reb::compat::SelectObject(m_dc, previousPalette);
   DeleteBitmap(scratch);
   DeleteBitmap(marker);
 }
@@ -1351,32 +1291,33 @@ void FleetWindow::UpdateShipList()
   m_shipItems->Clear();
   m_primaryTotal = 0;
   m_capacityTotal = 0;
-  for (const auto& ownedRow : m_fleetItems->Entries())
-  {
+  for (const auto& ownedRow : m_fleetItems->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
-    if ((row->m_state.m_value & kListItemSelected) == 0)
+    }
+    if ((row->m_state.m_value & kListItemSelected) == 0) {
       continue;
-    if ((row->m_flags.m_value & kFleetItemOwn) != 0)
+    }
+    if ((row->m_flags.m_value & kFleetItemOwn) != 0) {
       hasOwn = true;
+    }
     selectedCount++;
     last = row;
   }
   FleetListItem* lastOwn = last;
-  for (const auto& ownedRow : m_fleetItems->Entries())
-  {
-    if (!hasOwn)
+  for (const auto& ownedRow : m_fleetItems->Entries()) {
+    if (!hasOwn) {
       break;
+    }
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
+    }
     FleetListItem* keep = lastOwn;
-    if ((row->m_state.m_value & kListItemSelected) != 0)
-    {
+    if ((row->m_state.m_value & kListItemSelected) != 0) {
       keep = row;
-      if ((row->m_flags.m_value & kFleetItemOwn) == 0)
-      {
+      if ((row->m_flags.m_value & kFleetItemOwn) == 0) {
         selectedCount--;
         row->m_state.m_value &= ~kListItemSelected;
         changed = true;
@@ -1386,33 +1327,27 @@ void FleetWindow::UpdateShipList()
     lastOwn = keep;
   }
   last = lastOwn;
-  if (changed)
+  if (changed) {
     m_fleetList->Refresh();
-  if (selectedCount < 2)
-  {
-    if (!last)
-    {
+  }
+  if (selectedCount < 2) {
+    if (!last) {
       m_selectionLabel->SetText(nullptr);
-    }
-    else
-    {
-      if ((last->m_flags.m_value & kFleetItemFleet) == 0)
-      {
-        if ((m_uiFlags.m_value & kFleetShipSelected) == 0)
+    } else {
+      if ((last->m_flags.m_value & kFleetItemFleet) == 0) {
+        if ((m_uiFlags.m_value & kFleetShipSelected) == 0) {
           m_uiFlags.m_value |= kFleetShipSelected;
-      }
-      else if ((m_uiFlags.m_value & kFleetShipSelected) != 0)
-      {
+        }
+      } else if ((m_uiFlags.m_value & kFleetShipSelected) != 0) {
         m_uiFlags.m_value &= ~kFleetShipSelected;
       }
       m_selectionLabel->SetText(last->m_text.c_str());
     }
     m_selectionLabel->Invalidate(m_hwnd, 0);
-  }
-  else
-  {
-    if ((m_uiFlags.m_value & kFleetShipSelected) != 0)
+  } else {
+    if ((m_uiFlags.m_value & kFleetShipSelected) != 0) {
       m_uiFlags.m_value &= ~kFleetShipSelected;
+    }
     m_selectionLabel->SetText(nullptr);
     m_selectionLabel->Invalidate(m_hwnd, 0);
   }
@@ -1420,59 +1355,47 @@ void FleetWindow::UpdateShipList()
   DibBitmap* source;
   int sourceX = 3;
   int sourceY = 0xd;
-  if (!last)
-  {
+  if (!last) {
     source = m_paintBackground;
     sourceX = 100;
     sourceY = 0x2a;
-  }
-  else if ((last->m_flags.m_value & kFleetItemOwn) == 0)
-  {
+  } else if ((last->m_flags.m_value & kFleetItemOwn) == 0) {
     source = m_infoBackdropOther;
-  }
-  else
-  {
+  } else {
     source = m_infoBackdropOwn;
   }
   source->Blit(m_infoBitmap, 0, 0, sourceX, sourceY, 0, 0);
-  InvalidateRect(m_hwnd, &g_fleetInfoRect, 0);
-  if ((m_uiFlags.m_value & kFleetShipSelected) == 0)
-  {
-    if (selectedCount != 0)
-    {
+  reb::compat::InvalidateRect(m_hwnd, &g_fleetInfoRect, 0);
+  if ((m_uiFlags.m_value & kFleetShipSelected) == 0) {
+    if (selectedCount != 0) {
       int skin = SkinOffset(m_viewSide);
-      if (!hasOwn)
+      if (!hasOwn) {
         skin = kSkinStep - skin;
+      }
       DibBitmap* shape = LoadBitmap(art, skin + 0x28b9);
       const int left = (m_infoBitmap->Width() - shape->Width()) / 2;
       GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &last->m_key);
-      if (fleet)
-      {
-        if ((StateFlags(fleet) & kStateEnroute) != 0)
-        {
+      if (fleet) {
+        if ((StateFlags(fleet) & kStateEnroute) != 0) {
           DibBitmap* badge = LoadBitmap(art, skin + 0x28ba);
           badge->DrawKeyed(m_infoBitmap, left, 0);
           DeleteBitmap(badge);
         }
-        if ((StateFlags(fleet) & kStateHasOrders) != 0)
-        {
+        if ((StateFlags(fleet) & kStateHasOrders) != 0) {
           DibBitmap* badge = LoadBitmap(art, skin + 0x28bb);
           badge->DrawKeyed(m_infoBitmap, left, 0);
           DeleteBitmap(badge);
         }
       }
-      if (shape)
-      {
-        if (shape->IsLoaded() != 0)
+      if (shape) {
+        if (shape->IsLoaded() != 0) {
           shape->DrawKeyed(m_infoBitmap, left, 0);
+        }
         DeleteBitmap(shape);
       }
     }
-  }
-  else if (last)
-  {
-    if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxySide, &last->m_key))
-    {
+  } else if (last) {
+    if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxySide, &last->m_key)) {
       ObjectKey key;
       object->GetKey(&key);
       DibBitmap* picture = CreateObjectPicture(m_gokres, &key, object, 1, 1);
@@ -1482,18 +1405,13 @@ void FleetWindow::UpdateShipList()
   }
 
   const COLORREF labelColor = (m_viewSide != 1 ? 0xfe01 : 0) + 0x20000ff;
-  if (!hasOwn)
-  {
-    if (selectedCount < 1)
-    {
+  if (!hasOwn) {
+    if (selectedCount < 1) {
       m_shipList->Hide();
       m_uiFlags.m_value &= ~(kFleetOwnSelected | kFleetOtherSelected);
-    }
-    else
-    {
+    } else {
       m_shipList->Show(kShow);
-      if ((m_uiFlags.m_value & kFleetOtherSelected) == 0)
-      {
+      if ((m_uiFlags.m_value & kFleetOtherSelected) == 0) {
         const uint32_t flags = m_uiFlags.m_value;
         m_uiFlags.m_value = flags | kFleetOtherSelected;
         m_uiFlags.m_value = (flags & ~kFleetOwnSelected) | kFleetOtherSelected;
@@ -1501,12 +1419,9 @@ void FleetWindow::UpdateShipList()
       }
       m_selectionLabel->SetColor(labelColor, nullptr);
     }
-  }
-  else
-  {
+  } else {
     m_shipList->Show(kShow);
-    if ((m_uiFlags.m_value & kFleetOwnSelected) == 0)
-    {
+    if ((m_uiFlags.m_value & kFleetOwnSelected) == 0) {
       const uint32_t flags = m_uiFlags.m_value;
       m_uiFlags.m_value = flags | kFleetOwnSelected;
       m_uiFlags.m_value = (flags & ~kFleetOtherSelected) | kFleetOwnSelected;
@@ -1516,45 +1431,47 @@ void FleetWindow::UpdateShipList()
   }
 
   UpdateTabs();
-  for (const auto& ownedRow : m_fleetItems->Entries())
-  {
+  for (const auto& ownedRow : m_fleetItems->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
-    if ((row->m_state.m_value & kListItemSelected) == 0)
+    }
+    if ((row->m_state.m_value & kListItemSelected) == 0) {
       continue;
-    if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxySide, &row->m_key))
+    }
+    if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxySide, &row->m_key)) {
       AddShipRows(object);
+    }
   }
-  if (m_shipList)
+  if (m_shipList) {
     m_shipList->Refresh();
-  if ((m_page == kPageFighters || m_page == kPageTroops) && selectedCount != 0)
-  {
+  }
+  if ((m_page == kPageFighters || m_page == kPageTroops) && selectedCount != 0) {
     RECT area = {1, 2, 0x7b, 0x2f};
-    HDC windowDc = GetDC(m_hwnd);
-    HDC dc = CreateCompatibleDC(windowDc);
-    ReleaseDC(m_hwnd, windowDc);
-    HGDIOBJ previousBitmap = SelectObject(dc, m_infoBitmap->DibSectionHandle());
-    HPALETTE previousPalette = SelectPalette(dc, g_palette, 0);
-    HGDIOBJ previousFont = SelectObject(dc, CoolGetFont(4));
-    SetBkMode(dc, TRANSPARENT);
-    SetTextColor(dc, 0xffffff);
+    HDC windowDc = reb::compat::GetDC(m_hwnd);
+    HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+    reb::compat::ReleaseDC(m_hwnd, windowDc);
+    HGDIOBJ previousBitmap = reb::compat::SelectObject(dc, m_infoBitmap->DibSectionHandle());
+    HPALETTE previousPalette = reb::compat::SelectPalette(dc, g_palette, 0);
+    HGDIOBJ previousFont = reb::compat::SelectObject(dc, CoolGetFont(4));
+    reb::compat::SetBkMode(dc, TRANSPARENT);
+    reb::compat::SetTextColor(dc, 0xffffff);
     StrStream stream;
     strstream_ctor(&stream, 1);
     ostream_operator_ls_long(stream.Out(), m_primaryTotal);
     ostream_operator_ls_char(stream.Out(), 0);
-    DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE);
+    reb::compat::DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE);
     strstreambuf_freeze(StreambufOf(&stream), 0);
     istream_seekg_pos(stream.In(), 0);
     ostream_seekp_pos(stream.Out(), 0);
     ostream_operator_ls_long(stream.Out(), m_capacityTotal);
     ostream_operator_ls_char(stream.Out(), 0);
-    DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE | DT_RIGHT);
+    reb::compat::DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE | DT_RIGHT);
     strstreambuf_freeze(StreambufOf(&stream), 0);
-    SelectObject(dc, previousBitmap);
-    SelectObject(dc, previousFont);
-    SelectPalette(dc, previousPalette, 0);
-    DeleteDC(dc);
+    reb::compat::SelectObject(dc, previousBitmap);
+    reb::compat::SelectObject(dc, previousFont);
+    reb::compat::SelectPalette(dc, previousPalette, 0);
+    reb::compat::DeleteDC(dc);
     strstream_dtor(stream.Ios());
     ios_dtor(stream.Ios());
   }
@@ -1567,54 +1484,45 @@ void FleetWindow::UpdateTabs()
   int page = m_page;
   CoolTabControl* tabs;
   DibBitmap* backdrop;
-  if ((flags & kFleetOwnSelected) == 0)
-  {
-    if ((flags & kFleetOtherSelected) == 0)
-    {
-      if ((flags & (kFleetOwnTabsShown | kFleetOtherTabsShown)) != 0)
-      {
+  if ((flags & kFleetOwnSelected) == 0) {
+    if ((flags & kFleetOtherSelected) == 0) {
+      if ((flags & (kFleetOwnTabsShown | kFleetOtherTabsShown)) != 0) {
         m_uiFlags.m_value &= ~(kFleetOwnTabsShown | kFleetOtherTabsShown);
         m_ownTabs->Hide();
         m_otherTabs->Hide();
-        InvalidateRect(m_hwnd, nullptr, 0);
+        reb::compat::InvalidateRect(m_hwnd, nullptr, 0);
       }
       return;
     }
-    if ((flags & kFleetOtherTabsShown) == 0)
-    {
+    if ((flags & kFleetOtherTabsShown) == 0) {
       const uint32_t current = m_uiFlags.m_value;
       m_uiFlags.m_value = current | kFleetOtherTabsShown;
       m_uiFlags.m_value = (current & ~kFleetOwnTabsShown) | kFleetOtherTabsShown;
-      InvalidateRect(m_hwnd, nullptr, 0);
+      reb::compat::InvalidateRect(m_hwnd, nullptr, 0);
       m_ownTabs->Hide();
     }
     tabs = m_otherTabs;
     backdrop = m_infoBackdropOther;
-  }
-  else
-  {
-    if ((flags & kFleetOwnTabsShown) == 0)
-    {
+  } else {
+    if ((flags & kFleetOwnTabsShown) == 0) {
       m_uiFlags.m_value = flags | kFleetOwnTabsShown;
       m_uiFlags.m_value = (flags & ~kFleetOtherTabsShown) | kFleetOwnTabsShown;
       m_otherTabs->Hide();
-      InvalidateRect(m_hwnd, nullptr, 0);
+      reb::compat::InvalidateRect(m_hwnd, nullptr, 0);
     }
     tabs = m_ownTabs;
     backdrop = m_infoBackdropOwn;
   }
-  if ((m_uiFlags.m_value & kFleetShipSelected) == 0)
-  {
+  if ((m_uiFlags.m_value & kFleetShipSelected) == 0) {
     auto* shipsTab = static_cast<CoolStrobeButton*>(tabs->m_children.FindById(kPageShips));
     shipsTab->Enable();
     const uint32_t state = shipsTab->GetState();
     shipsTab->SetStateFlags(state & ~2u);
     shipsTab->Show(kShow);
-  }
-  else
-  {
-    if (page == kPageShips)
+  } else {
+    if (page == kPageShips) {
       page = kPageFighters;
+    }
     auto* shipsTab = static_cast<CoolStrobeButton*>(tabs->m_children.FindById(kPageShips));
     shipsTab->SetStateFlags(2);
     shipsTab->Disable();
@@ -1624,34 +1532,31 @@ void FleetWindow::UpdateTabs()
   tabButtons->FindById(static_cast<uint32_t>(page));
   tabs->SelectTab(static_cast<uint32_t>(page), 0);
   m_page = page;
-  for (const auto& ownedRow : m_fleetItems->Entries())
-  {
+  for (const auto& ownedRow : m_fleetItems->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
-    if ((row->m_state.m_value & kListItemSelected) != 0)
+    }
+    if ((row->m_state.m_value & kListItemSelected) != 0) {
       selectedContents |= row->m_userData;
+    }
   }
-  const struct
-  {
+  const struct {
     uint32_t bit;
     uint32_t tab;
-  } kinds[] = {
-    {kContentsFighters, kPageFighters}, {kContentsTroops, kPageTroops}, {kContentsPersonnel, kPagePersonnel}};
-  for (const auto& kind : kinds)
-  {
+  } kinds[]
+      = {{kContentsFighters, kPageFighters}, {kContentsTroops, kPageTroops}, {kContentsPersonnel, kPagePersonnel}};
+  for (const auto& kind : kinds) {
     auto* tab = static_cast<CoolStrobeButton*>(tabButtons->FindById(kind.tab));
-    if ((selectedContents & kind.bit) == 0)
-    {
+    if ((selectedContents & kind.bit) == 0) {
       tab->SetStateFlags(0x40);
-    }
-    else
-    {
+    } else {
       tab->ClearStateFlags(0x40);
     }
   }
-  if (backdrop)
+  if (backdrop) {
     tabs->SetBackground(backdrop, tabs->m_x - 0x61, tabs->m_y - 0x1d);
+  }
   tabs->Show(kShow);
 }
 
@@ -1659,44 +1564,36 @@ void FleetWindow::AddShipRows(GameObjNotifier* object)
 {
   ObjectKey key;
   object->GetKey(&key);
-  if (FamilyIn(key, 8, 0x10))
-  {
+  if (FamilyIn(key, 8, 0x10)) {
     CapShipIterator ships(object, 3);
-    for (ships.Begin(); ships.Current(); ships.Advance())
+    for (ships.Begin(); ships.Current(); ships.Advance()) {
       AddShipRows(ships.Current());
+    }
     return;
   }
   ObjectKey shipKey;
   object->GetKey(&shipKey);
-  if (!FamilyIn(shipKey, 0x14, 0x1c))
+  if (!FamilyIn(shipKey, 0x14, 0x1c)) {
     return;
+  }
   ChildIterator* units = nullptr;
   auto* ship = static_cast<CapShip*>(object);
-  if (m_page == kPageShips)
-  {
+  if (m_page == kPageShips) {
     AddShipRow(object);
-  }
-  else if (m_page == kPageFighters)
-  {
+  } else if (m_page == kPageFighters) {
     units = NewOrNull<FightSquadIterator>(object, 3u);
     m_primaryTotal += ship->CountFighterSquadrons();
     m_capacityTotal += ship->GetFighterCapacity();
-  }
-  else if (m_page == kPageTroops)
-  {
+  } else if (m_page == kPageTroops) {
     units = NewOrNull<TroopRegIterator>(object, 3u);
     m_primaryTotal += ship->CountTroopRegiments();
     m_capacityTotal += ship->GetTroopCapacity();
-  }
-  else
-  {
+  } else {
     units = NewOrNull<RoleIterator>(object, 3u);
   }
-  if (units)
-  {
+  if (units) {
     units->Begin();
-    while (units->Current())
-    {
+    while (units->Current()) {
       AddShipRow(units->Current());
       units->Advance();
     }
@@ -1710,31 +1607,33 @@ void FleetWindow::AddShipRow(GameObjNotifier* object)
   object->GetKey(&key);
   bool found = false;
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-  for (const auto& ownedRow : m_shipItems->Entries())
-  {
+  for (const auto& ownedRow : m_shipItems->Entries()) {
     auto* row = static_cast<FleetListItem*>(ownedRow.get());
-    if (row->m_flags.m_value & kFleetItemHidden)
+    if (row->m_flags.m_value & kFleetItemHidden) {
       continue;
-    if (found)
+    }
+    if (found) {
       return;
+    }
     found = row->m_key.m_value == key.m_value;
   }
-  if (found)
+  if (found) {
     return;
+  }
   int skin = SkinOffset(m_viewSide);
-  if ((m_uiFlags.m_value & kFleetOwnSelected) == 0)
+  if ((m_uiFlags.m_value & kFleetOwnSelected) == 0) {
     skin = kSkinStep - skin;
+  }
   DibBitmap* frame = LoadBitmap(art, skin + 0x28b4);
   auto* item = NewOrNull<FleetListItem>(&key);
-  item->m_text = NameOf(object);
+  item->m_text = RowName(object, m_compactLabels);
   auto* image = NewOrNull<DibBitmap>(0x7d, 0x32, frame);
   auto* selected = NewOrNull<DibBitmap>(0x7d, 0x32, frame);
   DibBitmap* picture = CreateObjectPicture(m_gokres, &key, nullptr, 0, 1);
   image->FillRect(0, 0, image->Width(), image->Height(), picture->m_colorKey);
   picture->Blit(image, 0x1c, 4, 0, 0, 0, 0);
   DeleteBitmap(picture);
-  if (FamilyIn(key, 0x14, 0x1c))
-  {
+  if (FamilyIn(key, 0x14, 0x1c)) {
     const uint32_t contents = FleetContents(object);
     DrawFleetContentIcons(image, static_cast<int>(object->ControlSide()), contents, 0);
   }
@@ -1745,8 +1644,7 @@ void FleetWindow::AddShipRow(GameObjNotifier* object)
   m_shipItems->Insert(item);
   ObjectKey objectKey;
   object->GetKey(&objectKey);
-  if (!m_objects.Find(&objectKey))
-  {
+  if (!m_objects.Find(&objectKey)) {
     auto* node = NewOrNull<ObjectKeyIdNode>();
     ObjectKey nodeKey;
     object->GetKey(&nodeKey);
@@ -1762,19 +1660,25 @@ uint32_t FleetContents(GameObjNotifier* object)
   TroopRegIterator regiments(object, 3);
   RoleIterator roles(object, 3);
   uint32_t contents = squadrons.Begin()->Current() != nullptr;
-  if (regiments.Begin()->Current())
+  if (regiments.Begin()->Current()) {
     contents |= kContentsTroops;
-  if (roles.Begin()->Current())
+  }
+  if (roles.Begin()->Current()) {
     contents |= kContentsPersonnel;
+  }
   const uint32_t state = StateFlags(object);
-  if ((state & kStateEnroute) != 0)
+  if ((state & kStateEnroute) != 0) {
     contents |= kContentsEnroute;
-  if ((state & kStateHasOrders) != 0)
+  }
+  if ((state & kStateHasOrders) != 0) {
     contents |= kContentsOrders;
-  if ((state & kStateCompleted) == 0)
+  }
+  if ((state & kStateCompleted) == 0) {
     contents |= kContentsIncomplete;
-  if (static_cast<GameObj*>(object)->GetTransitSpeed(1) == 0)
+  }
+  if (static_cast<GameObj*>(object)->GetTransitSpeed(1) == 0) {
     contents |= kContentsStationary;
+  }
   return contents;
 }
 
@@ -1783,28 +1687,31 @@ void DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int c
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   const int y = (compact != 0 ? 10 : 0) + 0x17;
   const int skin = SkinOffset(side);
-  const struct
-  {
+  const struct {
     uint32_t bit;
     uint32_t picture;
     int x;
   } icons[] = {{kContentsFighters, 0x28a4, 0x19}, {kContentsTroops, 0x28a5, 0x29}, {kContentsPersonnel, 0x28a6, 0x39}};
-  for (const auto& icon : icons)
-  {
-    if ((contents & icon.bit) == 0)
+  for (const auto& icon : icons) {
+    if ((contents & icon.bit) == 0) {
       continue;
+    }
     DibBitmap* bitmap = LoadBitmap(art, skin + icon.picture);
     bitmap->DrawKeyed(target, icon.x, y);
     DeleteBitmap(bitmap);
   }
-  if ((contents & kContentsStationary) != 0)
-  {
+  if ((contents & kContentsStationary) != 0) {
     DibBitmap* bitmap = LoadBitmap(art, skin + 0x28be);
     bitmap->DrawKeyed(target, 9, y);
     DeleteBitmap(bitmap);
   }
 }
 
-POINT g_fleetRowLines[12] = {{2, 6}, {5, 6}, {2, 6}, {2, 50}, {2, 0}, {2, 50},
-                             {2, 0}, {2, 6}, {2, 6}, {5, 6},  {2, 6}, {6, 6}};
+POINT g_fleetRowLines[12]
+    = {{2, 6}, {5, 6}, {2, 6}, {2, kRowHeight}, {2, 0}, {2, kRowHeight}, {2, 0}, {2, 6}, {2, 6}, {5, 6}, {2, 6}, {6, 6}};
 RECT g_fleetInfoRect = {100, 42, 225, 91};
+
+int FleetWindow::RowHeight() const
+{
+  return m_compactLabels ? kRowHeight : kOriginalRowHeight;
+}

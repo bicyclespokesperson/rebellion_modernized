@@ -1,7 +1,8 @@
 // minwin_impl/gdi: internal model of the 8-bit GDI subset. Logical and device surfaces store palette indices.
 //
-// Surfaces: the one 640x480 screen (window DCs), DIB sections (own colour table, bottom-up unless the height was negative) and
-// device-dependent bitmaps (indices into the system palette). A DC resolves COLORREFs to indices of its surface's colour table.
+// Surfaces: the one 640x480 screen (window DCs), DIB sections (own colour table, bottom-up unless the height was
+// negative) and device-dependent bitmaps (indices into the system palette). A DC resolves COLORREFs to indices of its
+// surface's colour table.
 #pragma once
 #include <stdint.h>
 
@@ -12,53 +13,45 @@
 namespace mwgdi
 {
 
-enum class ObjType : uint32_t
-{
-  Pen = 0x50454e31,
-  Brush,
-  Font,
-  Bitmap,
-  Palette,
-  Dc
-};
+enum class ObjType : uint32_t { Pen = 0x50454e31, Brush, Font, Bitmap, Palette, Dc };
 
-struct Object
-{
+struct Object {
   ObjType type;
   bool stock = false;
   bool deleteRequested = false;
   int selectCount = 0;
-  explicit Object(ObjType t) : type(t)
+  explicit Object(ObjType t)
+      : type(t)
   {
   }
   virtual ~Object() = default;
 };
 
-struct Pen : Object
-{
+struct Pen : Object {
   int style = 0; // PS_SOLID 0, PS_DASH 1, PS_DOT 2, PS_NULL 5
   int width = 1;
   COLORREF color = 0;
-  Pen() : Object(ObjType::Pen)
+  Pen()
+      : Object(ObjType::Pen)
   {
   }
 };
 
-struct Brush : Object
-{
+struct Brush : Object {
   int style = 0; // BS_SOLID 0, BS_NULL 1
   COLORREF color = 0;
-  Brush() : Object(ObjType::Brush)
+  Brush()
+      : Object(ObjType::Brush)
   {
   }
 };
 
-struct Font : Object
-{
+struct Font : Object {
   LOGFONTA lf = {};
   void* textCache = nullptr; // owned by the text module
   void* scaledTextCache[5] = {};
-  Font() : Object(ObjType::Font)
+  Font()
+      : Object(ObjType::Font)
   {
   }
   ~Font() override;
@@ -66,8 +59,7 @@ struct Font : Object
 
 struct Dc;
 
-struct Bitmap : Object
-{
+struct Bitmap : Object {
   int width = 0, height = 0;
   bool isDib = false; // a DIB section: has its own colour table and its bits are visible to the application
   bool bottomUp = false;
@@ -81,25 +73,25 @@ struct Bitmap : Object
   int deviceScale = 1;
   uint64_t deviceScaleEpoch = 0;
   uint64_t deviceRevision = 0;
-  Bitmap() : Object(ObjType::Bitmap)
+  Bitmap()
+      : Object(ObjType::Bitmap)
   {
   }
   ~Bitmap() override;
 };
 
-struct Palette : Object
-{
+struct Palette : Object {
   std::vector<PALETTEENTRY> entries;
   std::vector<uint8_t> toPhysical; // logical index -> system palette index, as of the last Select/Realize
   bool realized = false;
-  Palette() : Object(ObjType::Palette)
+  Palette()
+      : Object(ObjType::Palette)
   {
   }
 };
 
 // A drawing target: rows of palette indices.
-struct Surface
-{
+struct Surface {
   uint8_t* bits = nullptr;
   int width = 0, height = 0;
   int stride = 0;
@@ -112,15 +104,14 @@ struct Surface
   }
 };
 
-struct Dc : Object
-{
+struct Dc : Object {
   bool memory = false;
   bool info = false; // CreateIC: no drawing surface
   HWND window = nullptr;
   Bitmap* bitmap = nullptr; // memory DC: the selected bitmap
   Surface surface;
   int originX = 0, originY = 0; // surface coordinates of the DC's (0,0)
-  std::vector<RECT> clip; // surface coordinates, non-overlapping; empty = nothing visible
+  std::vector<RECT> clip;       // surface coordinates, non-overlapping; empty = nothing visible
   Pen* pen;
   Brush* brush;
   Font* font;
@@ -130,7 +121,8 @@ struct Dc : Object
   int curX = 0, curY = 0;
   bool deviceView = false;
   bool suppressDeviceMirror = false;
-  Dc() : Object(ObjType::Dc)
+  Dc()
+      : Object(ObjType::Dc)
   {
   }
 };
@@ -150,8 +142,7 @@ Pen* StockPen(int which);
 Brush* StockBrush(int which);
 
 // ---- system palette (dc.cpp)
-struct SystemPalette
-{
+struct SystemPalette {
   uint32_t rgb[256];
   uint8_t flags[256];
   bool staticColors = true;
@@ -190,29 +181,20 @@ void ForEachClipped(const Dc* dc, int l, int t, int r, int b, Fn fn)
   r += dc->originX;
   t += dc->originY;
   b += dc->originY;
-  for (const RECT& c : dc->clip)
-  {
+  for (const RECT& c : dc->clip) {
     int x0 = l > c.left ? l : c.left, y0 = t > c.top ? t : c.top;
     int x1 = r < c.right ? r : c.right, y1 = b < c.bottom ? b : c.bottom;
-    if (x0 < x1 && y0 < y1)
+    if (x0 < x1 && y0 < y1) {
       fn(x0, y0, x1, y1);
+    }
   }
 }
 bool BuildColorMap(const uint32_t* srcTable, int srcCount, const Dc* dst, uint8_t map[256]);
 // BitBlt core: `rop` is the full 32-bit ternary raster op. False when the op needs a source and there is none.
 bool BlitRegion(Dc* dst, int dx, int dy, int w, int h, Dc* src, int sx, int sy, DWORD rop);
-int SetDibToDevice(Dc* dc,
-                   int xDest,
-                   int yDest,
-                   int w,
-                   int h,
-                   int xSrc,
-                   int ySrc,
-                   UINT startScan,
-                   UINT cLines,
-                   const uint8_t* bits,
-                   const BITMAPINFO* bmi);
+int SetDibToDevice(Dc* dc, int xDest, int yDest, int w, int h, int xSrc, int ySrc, UINT startScan, UINT cLines,
+                   const uint8_t* bits, const BITMAPINFO* bmi);
 void FillSurfaceRect(Dc* dc, int l, int t, int r, int b, uint8_t value, int rop2); // DC coordinates
-void PlotPixel(Dc* dc, int x, int y, uint8_t value, int rop2); // DC coordinates, clipped
+void PlotPixel(Dc* dc, int x, int y, uint8_t value, int rop2);                     // DC coordinates, clipped
 
 } // namespace mwgdi

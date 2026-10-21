@@ -2,7 +2,8 @@
 
 #include "core/stream_io.h"
 
-SavedGameInfo::SavedGameInfo() : m_name()
+SavedGameInfo::SavedGameInfo()
+    : m_name()
 {
   m_name.clear();
   m_unknown10 = 0;
@@ -13,7 +14,8 @@ SavedGameInfo::SavedGameInfo() : m_name()
   m_unknown24 = 0;
 }
 
-SavedGameInfo::SavedGameInfo(const SavedGameInfo& other) : m_name()
+SavedGameInfo::SavedGameInfo(const SavedGameInfo& other)
+    : m_name()
 {
   {
     std::string name = other.GetName();
@@ -31,8 +33,7 @@ SavedGameInfo::~SavedGameInfo() = default;
 
 SavedGameInfo& SavedGameInfo::operator=(const SavedGameInfo& other)
 {
-  if (this != &other)
-  {
+  if (this != &other) {
     {
       std::string name = other.GetName();
       (m_name = name);

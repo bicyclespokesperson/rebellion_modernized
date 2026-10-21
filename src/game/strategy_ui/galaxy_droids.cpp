@@ -30,8 +30,7 @@ constexpr int kHookFrames = 0xf;
 constexpr int kLeftDroidHookArgument = 0x12;
 constexpr int kRightDroidHookArgument = 5;
 
-struct StageArea
-{
+struct StageArea {
   int m_x;
   int m_y;
   int m_width;
@@ -41,10 +40,11 @@ struct StageArea
 SpriteStage* NewStage(GalaxyWindow* galaxy, const StageArea& area)
 {
   void* memory = ::operator new(sizeof(SpriteStage));
-  if (!memory)
+  if (!memory) {
     return nullptr;
+  }
   return new (memory)
-    SpriteStage(galaxy, galaxy->GetBackground(), area.m_x, area.m_y, area.m_width, area.m_height, kFrameMs);
+      SpriteStage(galaxy, galaxy->GetBackground(), area.m_x, area.m_y, area.m_width, area.m_height, kFrameMs);
 }
 
 SpriteAnimator* NewAnimator(SpriteStage* stage, uint32_t droidId)
@@ -55,12 +55,8 @@ SpriteAnimator* NewAnimator(SpriteStage* stage, uint32_t droidId)
   return animator;
 }
 
-void StartIdleScript(SpriteStage* stage,
-                     SpriteAnimator* animator,
-                     uint32_t droidId,
-                     uint32_t scriptId,
-                     int hookArgument,
-                     void (*hook)(int))
+void StartIdleScript(SpriteStage* stage, SpriteAnimator* animator, uint32_t droidId, uint32_t scriptId,
+                     int hookArgument, void (*hook)(int))
 {
   uint32_t sequence = (kDroidSlot << 16) | scriptId;
   stage->StartAnimator(droidId, &sequence, kScriptStartX, kScriptStartY, 0);
@@ -74,20 +70,18 @@ void GalaxyWindow::CreateDroidAnimations()
 {
   SoundManager::ReleaseAll(1);
   const int earlyGame = static_cast<uint32_t>(GameHookTickCount()) < kEarlyGameTicks ? 1 : 0;
-  if (earlyGame)
+  if (earlyGame) {
     m_mouseMode = kMouseModeRestoring;
+  }
   LoadSideSpriteDlls(m_side, earlyGame);
-  if (m_side == 1)
-  {
+  if (m_side == 1) {
     m_droidStage = NewStage(this, {0x21d + std::max(0, m_clientWidth - 640), 0x151, 0x43, 0x74});
     SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
     StartIdleScript(m_droidStage, left, kLeftDroidId, 0x193, kLeftDroidHookArgument, UiRequestRedraw);
     m_droidStage2 = NewStage(this, {0x13c + MapOffsetX(), 0x19b, 0x2f, 0x45});
     SpriteAnimator* right = NewAnimator(m_droidStage2, kRightDroidId);
     StartIdleScript(m_droidStage2, right, kRightDroidId, 0x192, kRightDroidHookArgument, UiRequestRedrawAlt);
-  }
-  else
-  {
+  } else {
     m_droidStage = NewStage(this, {0, 0x15b, 0x6b, 0x85});
     m_droidStage2 = NewStage(this, {0x12e + MapOffsetX(), 0x191, 0x65, 0x4f});
     SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
@@ -96,8 +90,7 @@ void GalaxyWindow::CreateDroidAnimations()
     StartIdleScript(m_droidStage2, right, kRightDroidId, 0x191, kRightDroidHookArgument, UiRequestRedrawAlt);
   }
 #if defined(REB_MINWIN)
-  if (mw::config::Global().Get("upscale_filter", "sharp") == "sharp")
-  {
+  if (mw::config::Global().Get("upscale_filter", "sharp") == "sharp") {
     m_droidStage->EnableIndexedSpriteFiltering();
     m_droidStage2->EnableIndexedSpriteFiltering();
   }

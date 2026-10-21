@@ -61,15 +61,14 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
 {
   *out = nullptr;
   int result = 1;
-  if (g_setupComplete)
-  {
+  if (g_setupComplete) {
     auto* event = static_cast<KeyedEvent*>(CreateEventById(kind));
     *out = event;
-    if (!event)
+    if (!event) {
       return 0;
+    }
     result = event->m_flag;
-    if (result == 0)
-    {
+    if (result == 0) {
       delete event;
       *out = nullptr;
       return 0;
@@ -79,8 +78,7 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
     gotParent = object->GetParentKey(&parentKey);
     ObjectKey ownerKey;
     result = gotParent != 0 ? object->GetOwnerKey(&ownerKey) : 0;
-    if (result == 0)
-    {
+    if (result == 0) {
       delete event;
       *out = nullptr;
       return 0;
@@ -92,8 +90,7 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
     built->m_context = *ctx;
     built->m_value = static_cast<int>(object->ViewSide());
   }
-  if (result == 0 && *out != nullptr)
-  {
+  if (result == 0 && *out != nullptr) {
     delete *out;
     *out = nullptr;
   }
@@ -103,12 +100,10 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
 int PostSourceEvent(int kind, GameObjNotifier* object, int valueA, int valueB, NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, kFirstSourceEvent, kLastSourceEvent))
-  {
+  if (inBand(kind, kFirstSourceEvent, kLastSourceEvent)) {
     KeyedEvent* event = nullptr;
     result = CreateKeyedEvent(kind, object, ctx, &event);
-    if (result != 0 && event != nullptr)
-    {
+    if (result != 0 && event != nullptr) {
       auto* source = static_cast<SourceEvent*>(event);
       source->m_valueA = valueA;
       source->m_valueB = valueB;
@@ -126,12 +121,10 @@ int PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyConte
 int PostTwoKeyEvent(int kind, GameObjNotifier* object, const ObjectKey* keyC, const ObjectKey* keyD, NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, kFirstTwoKeyEvent, kLastTwoKeyEvent))
-  {
+  if (inBand(kind, kFirstTwoKeyEvent, kLastTwoKeyEvent)) {
     KeyedEvent* event = nullptr;
     result = CreateKeyedEvent(kind, object, ctx, &event);
-    if (result != 0 && event != nullptr)
-    {
+    if (result != 0 && event != nullptr) {
       auto* twoKey = static_cast<TwoKeyEvent*>(event);
       twoKey->m_keyC = *keyC;
       twoKey->m_keyD = *keyD;
@@ -145,21 +138,16 @@ int PostEvent(int kind, GameObjNotifier* object, NotifyContext* ctx)
 {
   EventBase* event = nullptr;
   bool created = false;
-  if (!(kind < kFirstSourceEvent || kind > kLastPlainEvent))
-  {
+  if (!(kind < kFirstSourceEvent || kind > kLastPlainEvent)) {
     event = static_cast<EventBase*>(CreateEventById(kind));
     created = event != nullptr;
   }
   int result = 0;
-  if (created)
-  {
+  if (created) {
     result = event->m_flag;
-    if (result == 0)
-    {
+    if (result == 0) {
       delete event;
-    }
-    else
-    {
+    } else {
       event->m_key = keyOf(object);
       event->m_context = *ctx;
       result = QueueEvent(event);
@@ -174,21 +162,16 @@ int ArmTimer(int kind, GameObjNotifier* object, TrackedStat* stat, NotifyContext
 {
   TimerEvent* timer = nullptr;
   bool created = false;
-  if (!(kind < kFirstTimer || kind > kLastTimer))
-  {
+  if (!(kind < kFirstTimer || kind > kLastTimer)) {
     timer = static_cast<TimerEvent*>(CreateEventById(kind));
     created = timer != nullptr;
   }
   int result = 0;
-  if (created)
-  {
+  if (created) {
     result = timer->m_flag;
-    if (result == 0)
-    {
+    if (result == 0) {
       delete timer;
-    }
-    else
-    {
+    } else {
       timer->m_key = keyOf(object);
       timer->m_spec = *stat;
       timer->m_context = *ctx;
@@ -203,8 +186,9 @@ int ArmTimerAfterSetFlag(int kind, int flag, GameObjNotifier* object, TrackedSta
   const int changesBefore = stat->m_changeCount;
   int result = 1;
   stat->SetFlag(flag);
-  if (stat->m_changeCount != changesBefore && stat->Flag())
+  if (stat->m_changeCount != changesBefore && stat->Flag()) {
     result = ArmTimer(kind, object, stat, ctx);
+  }
   return result;
 }
 
@@ -213,8 +197,9 @@ int ArmTimerAfterSetLevel(int kind, int level, GameObjNotifier* object, TrackedS
   const int changesBefore = stat->m_changeCount;
   int result = 1;
   stat->SetLevel(level);
-  if (stat->m_changeCount != changesBefore && stat->Flag())
+  if (stat->m_changeCount != changesBefore && stat->Flag()) {
     result = ArmTimer(kind, object, stat, ctx);
+  }
   return result;
 }
 
@@ -224,13 +209,11 @@ int CreatePayload(int kind, GameObjNotifier* object, NotifyContext* ctx, KeyedNo
 {
   *out = nullptr;
   int created = 1;
-  if (g_setupComplete)
-  {
+  if (g_setupComplete) {
     auto* payload = static_cast<KeyedNotifPayload*>(CreateKeyedObject(kind));
     created = payload != nullptr;
     *out = payload;
-    if (created)
-    {
+    if (created) {
       payload->m_value18 = static_cast<int>(object->ViewSide());
       payload->m_key = keyOf(object);
       payload->m_value0c = 0;
@@ -244,12 +227,10 @@ int CreatePayload(int kind, GameObjNotifier* object, NotifyContext* ctx, KeyedNo
 int PostPayloadInts(uint32_t kind, GameObjNotifier* object, int valueA, int valueB, NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x100u, 0x242u))
-  {
+  if (inBand(kind, 0x100u, 0x242u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* ints = static_cast<IntPairPayload*>(payload);
       ints->m_valueA = valueA;
       ints->m_valueB = valueB;
@@ -259,21 +240,14 @@ int PostPayloadInts(uint32_t kind, GameObjNotifier* object, int valueA, int valu
   return result;
 }
 
-int PostPayloadFourInts(uint32_t kind,
-                        GameObjNotifier* object,
-                        int valueA,
-                        int valueB,
-                        int valueC,
-                        int valueD,
+int PostPayloadFourInts(uint32_t kind, GameObjNotifier* object, int valueA, int valueB, int valueC, int valueD,
                         NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x600u, 0x621u))
-  {
+  if (inBand(kind, 0x600u, 0x621u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* ints = static_cast<IntQuadPayload*>(payload);
       ints->m_valueA = valueA;
       ints->m_valueB = valueB;
@@ -288,12 +262,10 @@ int PostPayloadFourInts(uint32_t kind,
 int PostPayloadFlag(uint32_t kind, GameObjNotifier* object, int flag, NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x100u, 0x242u))
-  {
+  if (inBand(kind, 0x100u, 0x242u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* ints = static_cast<IntPairPayload*>(payload);
       ints->m_valueA = flag == 0;
       ints->m_valueB = flag;
@@ -303,19 +275,14 @@ int PostPayloadFlag(uint32_t kind, GameObjNotifier* object, int flag, NotifyCont
   return result;
 }
 
-int PostPayloadKeysA(uint32_t kind,
-                     GameObjNotifier* object,
-                     const ObjectKey* keyA,
-                     const ObjectKey* keyB,
+int PostPayloadKeysA(uint32_t kind, GameObjNotifier* object, const ObjectKey* keyA, const ObjectKey* keyB,
                      NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x300u, 0x391u))
-  {
+  if (inBand(kind, 0x300u, 0x391u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* keys = static_cast<KeyPairPayload*>(payload);
       keys->m_keyA = *keyA;
       keys->m_keyB = *keyB;
@@ -325,19 +292,14 @@ int PostPayloadKeysA(uint32_t kind,
   return result;
 }
 
-int PostPayloadKeysB(uint32_t kind,
-                     GameObjNotifier* object,
-                     const ObjectKey* keyA,
-                     const ObjectKey* keyB,
+int PostPayloadKeysB(uint32_t kind, GameObjNotifier* object, const ObjectKey* keyA, const ObjectKey* keyB,
                      NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x400u, 0x421u))
-  {
+  if (inBand(kind, 0x400u, 0x421u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* keys = static_cast<NullableKeyPairPayload*>(payload);
       keys->m_keyA.m_value = keyA->m_value;
       keys->m_keyB.m_value = keyB->m_value;
@@ -347,19 +309,14 @@ int PostPayloadKeysB(uint32_t kind,
   return result;
 }
 
-int PostPayloadStrings(uint32_t kind,
-                       GameObjNotifier* object,
-                       const std::string* textA,
-                       const std::string* textB,
+int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const std::string* textA, const std::string* textB,
                        NotifyContext* ctx)
 {
   int result = 0;
-  if (inBand(kind, 0x500u, 0x541u))
-  {
+  if (inBand(kind, 0x500u, 0x541u)) {
     KeyedNotifPayload* payload = nullptr;
     result = CreatePayload(kind, object, ctx, &payload);
-    if (result != 0 && payload != nullptr)
-    {
+    if (result != 0 && payload != nullptr) {
       auto* strings = static_cast<StringPairPayload*>(payload);
       (strings->m_textA = *textA);
       (strings->m_textB = *textB);

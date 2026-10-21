@@ -12,17 +12,11 @@ class DibBitmap;
 // posts WM_COMMAND (tab id << 16 | control id) to the parent.
 class CoolTabControl : public CoolWindow
 {
-public:
+  public:
   // The background is cut from `parentBackground` at (x, y).
-  CoolTabControl(HINSTANCE instance,
-                 int x,
-                 int y,
-                 int width,
-                 int height,
-                 uint32_t childId,
-                 CoolWindow* parent,
+  CoolTabControl(HINSTANCE instance, int x, int y, int width, int height, uint32_t childId, CoolWindow* parent,
                  DibBitmap* parentBackground); // 0x60d590
-  ~CoolTabControl() override; // 0x60d690 (scalar deleting destructor 0x60d670)
+  ~CoolTabControl() override;                  // 0x60d690 (scalar deleting destructor 0x60d670)
 
   // WM_PAINT draws the background, WM_ERASEBKGND is claimed, WM_COMMAND from a tab selects it.
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // 0x60d860
@@ -37,5 +31,5 @@ public:
   void SetBackground(DibBitmap* source, int x, int y); // 0x60da10
 
   CoolStrobeButton* m_selected; // +0x94
-  DibBitmap* m_background; // +0x98 owned
+  DibBitmap* m_background;      // +0x98 owned
 };

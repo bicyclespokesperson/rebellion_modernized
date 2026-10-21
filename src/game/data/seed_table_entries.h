@@ -7,7 +7,7 @@
 // Entry of SYFCCRTB.DAT / SYFCRMTB.DAT: a game object key (family in the top byte, id in the low 24 bits).
 class SeedTableEntry : public TableEntry
 {
-public:
+  public:
   SeedTableEntry();
   ~SeedTableEntry() override;
   int Write(ostream* out) override;
@@ -26,7 +26,7 @@ public:
 // followed by four groups of (family, id, count), each adding `count` copies of the key.
 class SeedFamilyTableEntry : public TableEntry
 {
-public:
+  public:
   SeedFamilyTableEntry();
   ~SeedFamilyTableEntry() override;
   int Write(ostream* out) override;
@@ -38,7 +38,7 @@ public:
     return m_field24;
   }
 
-  int m_field24; // +0x24
+  int m_field24;         // +0x24
   ObjectRefList m_items; // +0x28
 };
 
@@ -46,7 +46,7 @@ public:
 // threshold of the step, +0x24 the value that applies from it.
 class IntTableEntry : public TableEntry
 {
-public:
+  public:
   IntTableEntry();
   ~IntTableEntry() override;
   int Write(ostream* out) override;

@@ -8,7 +8,8 @@ namespace
 constexpr uint32_t kMasterSideRootId = 3;
 }
 
-SideRoot::SideRoot() : GameObj()
+SideRoot::SideRoot()
+    : GameObj()
 {
   SetId(kMasterSideRootId);
   SetFlag31(GetFlag31());
@@ -43,8 +44,9 @@ int SideRoot::Validate()
 
 int SideRoot::ApplyAll(NotifyContext* ctx)
 {
-  if (IsSideView())
+  if (IsSideView()) {
     return GameObj::ApplyAll(ctx);
+  }
   return 0;
 }
 

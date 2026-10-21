@@ -19,16 +19,21 @@ namespace
 
 uint16_t ForceRankId(uint16_t force)
 {
-  if (force < 10)
+  if (force < 10) {
     return 0x8754;
-  if (force < 0x14)
+  }
+  if (force < 0x14) {
     return 0x8749;
-  if (force < 0x50)
+  }
+  if (force < 0x50) {
     return 0x8750;
-  if (force < 100)
+  }
+  if (force < 100) {
     return 0x8751;
-  if (force < 0x78)
+  }
+  if (force < 0x78) {
     return 0x8752;
+  }
   return 0x8753;
 }
 
@@ -43,12 +48,9 @@ void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListIte
   auto* character = static_cast<Character*>(m_object);
   AddNameRow(1, labels, values);
   AddLabelRow(&text, 0x8724, 2, labels);
-  if (GameObjNotifier* commanded = GetObjectInFamilies_01_ff(m_galaxy->m_side, &character->m_commandingKey))
-  {
+  if (GameObjNotifier* commanded = GetObjectInFamilies_01_ff(m_galaxy->m_side, &character->m_commandingKey)) {
     Append(&text, static_cast<GameObj*>(commanded)->GetName()->c_str());
-  }
-  else
-  {
+  } else {
     SetText(&text, 0x8754);
   }
   AddStatusRow(2, &text, values);
@@ -60,20 +62,13 @@ void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListIte
   static_cast<GameObjRoot*>(m_object)->GetKey(&characterKey);
   GameObjNotifier* mission = GetObjectInFamilies_40_80(m_galaxy->m_side, &characterKey);
   SetText(&text, 0x8748);
-  if ((character->m_stateFlags & 0x10) != 0)
-  {
+  if ((character->m_stateFlags & 0x10) != 0) {
     SetText(&text, 0x8744);
-  }
-  else if ((character->m_flagsAc & 1) != 0)
-  {
+  } else if ((character->m_flagsAc & 1) != 0) {
     SetText(&text, 0x8746);
-  }
-  else if (character->m_injury != 0)
-  {
+  } else if (character->m_injury != 0) {
     SetText(&text, 0x8747);
-  }
-  else if (mission && static_cast<Mission*>(mission)->GetRecordHidden() == 0)
-  {
+  } else if (mission && static_cast<Mission*>(mission)->GetRecordHidden() == 0) {
     SetText(&text, 0x8745);
   }
   AddStatusRow(4, &text, values);

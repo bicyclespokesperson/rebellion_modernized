@@ -7,17 +7,18 @@ namespace
 constexpr uint32_t kUsableFilter = 1;
 }
 
-FleetIterator::FleetIterator(GameObjNotifier* parent) : ChildIterator(parent, &family::kFleets, kUsableFilter)
+FleetIterator::FleetIterator(GameObjNotifier* parent)
+    : ChildIterator(parent, &family::kFleets, kUsableFilter)
 {
 }
 
 FleetIterator::FleetIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kFleets, stateFilter)
+    : ChildIterator(parent, &family::kFleets, stateFilter)
 {
 }
 
 FleetIterator::FleetIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &family::kFleets, stateFilter)
+    : ChildIterator(parent, side, &family::kFleets, stateFilter)
 {
 }
 

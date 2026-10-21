@@ -14,8 +14,7 @@ constexpr uint32_t kInitialWorkTotal = 0x32;
 int createdChanged(ProductionFacility* facility, int newValue, NotifyContext* ctx)
 {
   const int result = facility->ProductionFacility::OnCreatedChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     const IntPair work(kInitialWorkTotal, 0);
     facility->SetWork(&work, ctx);
   }
@@ -31,8 +30,9 @@ int computeDuration(ProductionFacility* facility, const IntPair* work, int modif
 int applyAll(ProductionFacility* facility, NotifyContext* ctx)
 {
   int result = facility->IsSideView();
-  if (result)
+  if (result) {
     result = ProductionFacilityApplyAllBody(facility, ctx);
+  }
   return result;
 }
 
@@ -135,14 +135,13 @@ int CountProductionFacilityType2D(GameObj* parent, uint32_t side, uint32_t filte
 }
 
 ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kType2DFamilies, stateFilter)
+    : ChildIterator(parent, &kType2DFamilies, stateFilter)
 {
 }
 
-ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifier* parent,
-                                                                   uint32_t stateFilter,
+ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifier* parent, uint32_t stateFilter,
                                                                    uint32_t side)
-: ChildIterator(parent, side, &kType2DFamilies, stateFilter)
+    : ChildIterator(parent, side, &kType2DFamilies, stateFilter)
 {
 }
 
@@ -230,14 +229,13 @@ int CountProductionFacilityType2C(GameObj* parent, uint32_t side, uint32_t filte
 }
 
 ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kType2CFamilies, stateFilter)
+    : ChildIterator(parent, &kType2CFamilies, stateFilter)
 {
 }
 
-ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifier* parent,
-                                                                   uint32_t stateFilter,
+ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifier* parent, uint32_t stateFilter,
                                                                    uint32_t side)
-: ChildIterator(parent, side, &kType2CFamilies, stateFilter)
+    : ChildIterator(parent, side, &kType2CFamilies, stateFilter)
 {
 }
 

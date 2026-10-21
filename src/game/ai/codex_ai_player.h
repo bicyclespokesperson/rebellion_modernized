@@ -6,19 +6,25 @@
 // diplomacy and notices under the same information and order budget as Classic.
 class CodexAiPlayer final : public AiPlayer
 {
-public:
+  public:
   CodexAiPlayer() = default;
-  explicit CodexAiPlayer(int side) : AiPlayer(side) {}
+  explicit CodexAiPlayer(int side)
+      : AiPlayer(side)
+  {
+  }
 
-  int GetKind() override { return kPlayerAiCodex; }
+  int GetKind() override
+  {
+    return kPlayerAiCodex;
+  }
   void Read(istream* in) override;
   void Write(ostream* out) override;
   int StepPlayer() override;
 
-protected:
+  protected:
   bool AcceptTaskOrder(OrderBase* order) override;
 
-private:
+  private:
   void PlanCampaign();
   AiFleetEval* ChooseFlagship();
   AiSystemEval* ChooseObjective(AiFleetEval& flagship);

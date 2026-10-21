@@ -9,13 +9,15 @@ int ComputeProcessingDuration(int rate, const IntPair* work, int modifier, int n
 {
   *duration = 0;
   int perCycle = ScalePercent(static_cast<int>(work->m_first), g_gnprtb1000);
-  if (perCycle == 0)
+  if (perCycle == 0) {
     perCycle = 1;
+  }
   const int cycles = DivideRoundUp(static_cast<int>(work->m_second), perCycle);
   *duration = cycles + rate;
   *duration = ScalePercent(cycles + rate, modifier);
-  if (notStartupCycle == 0)
+  if (notStartupCycle == 0) {
     *duration = GameRandom(*duration) + *duration / 2;
+  }
   return 1;
 }
 
@@ -39,10 +41,12 @@ int ComputeDetectionChance(int unused, int a, int b, int* roll, int* chance)
 {
   *roll = 0;
   *chance = 0;
-  if (a != 0 && b != 0)
+  if (a != 0 && b != 0) {
     *chance = b + a + g_gnprtb0E03;
-  if (*chance > 0)
+  }
+  if (*chance > 0) {
     *roll = PercentChance(*chance);
+  }
   return 1;
 }
 

@@ -1,8 +1,8 @@
-# Native Linux build on every push: compiles the whole native configuration (game, port layer, SDL3, FreeType) for x86-64, cross-compiles it
+# Native Linux build, run by hand from the Actions tab (workflow_dispatch only to save Actions minutes): compiles the whole native configuration (game, port layer, SDL3, FreeType) for x86-64, cross-compiles it
 # for aarch64, and runs the unit tests that need no game data. No game data is ever used in CI: the link step (which reads REBEXE.EXE)
 # and the simulation goldens run on a developer machine (docs/native.md).
 name: linux
-on: [push, pull_request]
+on: workflow_dispatch
 
 jobs:
   native:

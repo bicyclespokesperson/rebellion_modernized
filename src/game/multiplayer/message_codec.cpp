@@ -1,172 +1,76 @@
 #include "multiplayer/message_codec.h"
 
-#include <cstring>
-#include <new>
+#include <limits>
+#include <memory>
+#include <span>
+#include <utility>
 
-#include "core/checked_new.h"
-#include "core/iostream_lib.h"
+#include "core/memory_stream.h"
 #include "core/stream_io.h"
 #include "orders/order_base.h"
 
 namespace
 {
-
-constexpr int kInitialCapacity = 10;
-constexpr int kOutputMode = 2;
-
-uint32_t BytesWritten(OStrStream* stream)
-{
-  return iostream_access::WrittenBytes(StreambufOf(stream->Out()));
+constexpr size_t kMaxMessageBytes = 64U * 1024U * 1024U;
 }
 
-} // namespace
+MessageCodec::MessageCodec() = default;
+MessageCodec::~MessageCodec() = default;
 
-MessageCodec::MessageCodec()
-: m_valid(1),
-  m_input(nullptr),
-  m_output(nullptr),
-  m_capacity(0),
-  m_size(0),
-  m_buffer(nullptr)
+void MessageCodec::RefreshView()
 {
-  m_valid = Reserve(kInitialCapacity, 0);
-}
-
-MessageCodec::~MessageCodec()
-{
-  Release();
-}
-
-int MessageCodec::Deserialize(MessageBase** out)
-{
-  *out = nullptr;
-  int found = m_valid;
-  if (found)
-  {
-    ClearIosState(m_input->In());
-    istream_seekg_pos(m_input->In(), 0);
-    int kind;
-    StreamRead32(m_input->In(), &kind);
-    *out = static_cast<MessageBase*>(CreateOrderByKind(kind));
-    found = *out != nullptr;
-    if (found)
-    {
-      (*out)->Read(m_input->In());
-      return found;
-    }
-  }
-  if (*out)
-  {
-    delete *out;
-    *out = nullptr;
-  }
-  return found;
+  m_size = static_cast<uint32_t>(m_bytes.size());
+  m_buffer = m_bytes.empty() ? nullptr : reinterpret_cast<char*>(m_bytes.data());
 }
 
 int MessageCodec::Serialize(MessageBase* message)
 {
-  int ok = message != nullptr;
-  if (ok)
-    ok = m_valid;
-  while (ok)
-  {
-    ClearIosState(m_output->Out());
-    ostream_seekp_pos(m_output->Out(), 0);
-    int kind = message->GetKind();
-    StreamWrite32(m_output->Out(), &kind);
-    message->Write(m_output->Out());
-    m_size = BytesWritten(m_output);
-    ok = m_size != 0;
-    if (!ok)
-      break;
-    const bool filled = m_size == static_cast<uint32_t>(m_capacity);
-    if (filled)
-      ok = Reserve(m_capacity * 2, 0);
-    if (!ok || !filled)
-      break;
-  }
-  return ok;
+  m_bytes.clear();
+  RefreshView();
+  m_valid = 0;
+  if (!message) return 0;
+
+  reb::io::MemoryWriter writer(kMaxMessageBytes);
+  const int kind = message->GetKind();
+  StreamWrite32(writer.Out(), &kind);
+  const bool written = message->Write(writer.Out()) != 0;
+  if (!written || !writer.Good() || writer.Bytes().size() < sizeof(kind)
+      || writer.Bytes().size() > std::numeric_limits<uint32_t>::max()) return 0;
+
+  m_bytes = writer.TakeBytes();
+  RefreshView();
+  m_valid = 1;
+  return 1;
 }
 
 void MessageCodec::SetData(const void* data, uint32_t size)
 {
-  int ok = data != nullptr;
-  if (ok)
-    ok = m_valid;
-  if (ok)
-    ok = Reserve(size, 0);
-  if (ok)
-  {
-    memcpy(m_buffer, data, size);
-    m_size = size;
+  if (!data || size < sizeof(int) || size > kMaxMessageBytes) {
+    m_bytes.clear();
+    RefreshView();
+    m_valid = 0;
+    return;
   }
+  const auto* first = static_cast<const uint8_t*>(data);
+  std::vector<uint8_t> replacement(first, first + size);
+  m_bytes = std::move(replacement);
+  RefreshView();
+  m_valid = 1;
 }
 
-int MessageCodec::Release()
+int MessageCodec::Deserialize(MessageBase** out)
 {
-  if (m_input)
-  {
-    delete m_input;
-    m_input = nullptr;
-  }
-  if (m_output)
-  {
-    delete m_output;
-    m_output = nullptr;
-  }
-  if (m_buffer)
-  {
-    ::operator delete(m_buffer);
-    m_buffer = nullptr;
-  }
+  if (!out) return 0;
+  *out = nullptr;
+  if (!m_valid || m_bytes.size() < sizeof(int)) return 0;
+
+  reb::io::MemoryReader reader{std::span<const uint8_t>(m_bytes)};
+  int kind = 0;
+  StreamRead32(reader.In(), &kind);
+  if (!reader.Good()) return 0;
+
+  std::unique_ptr<MessageBase> message(static_cast<MessageBase*>(CreateOrderByKind(kind)));
+  if (!message || !message->Read(reader.In()) || !reader.Good() || !reader.AtEnd()) return 0;
+  *out = message.release();
   return 1;
-}
-
-int MessageCodec::Reserve(int capacity, int keepContents)
-{
-  int ok = 1;
-  if (capacity <= m_capacity)
-    return ok;
-  char* replacement = static_cast<char*>(::operator new(capacity));
-  bool failed = replacement == nullptr;
-  ok = !failed;
-  if (ok)
-  {
-    if (keepContents)
-    {
-      if (m_size != 0)
-        memcpy(replacement, m_buffer, m_size);
-    }
-    else
-    {
-      m_size = 0;
-    }
-    ok = Release();
-    if (ok)
-    {
-      m_capacity = capacity;
-      m_buffer = replacement;
-      replacement = nullptr;
-    }
-  }
-  if (ok)
-  {
-    m_input = new (std::nothrow) IStrStream();
-    if (m_input)
-      istrstream_ctor_str_len(m_input, m_buffer, m_capacity, 1);
-    failed = m_input == nullptr;
-    ok = !failed;
-    if (ok)
-    {
-      m_output = new (std::nothrow) OStrStream();
-      if (m_output)
-        ostrstream_ctor_buf(m_output, m_buffer, m_capacity, kOutputMode, 1);
-      failed = m_output == nullptr;
-      ok = !failed;
-    }
-  }
-  if (replacement)
-    ::operator delete(replacement);
-  m_valid = ok;
-  return ok;
 }

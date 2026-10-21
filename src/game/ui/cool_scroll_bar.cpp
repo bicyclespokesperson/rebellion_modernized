@@ -15,8 +15,7 @@ constexpr UINT kDragTimerPeriodMs = 50;
 constexpr UINT kPageTimerPeriodMs = 150;
 constexpr UINT kParentClickMessage = 0x40e;
 
-enum ArtRecord
-{
+enum ArtRecord {
   kArtThickness = 0,
   kArtTrackTile = 1,
   kArtBackNormal = 2,
@@ -35,40 +34,18 @@ DibBitmap* LoadArtBitmap(HMODULE module, uint16_t id)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (bitmap)
+  if (bitmap) {
     delete bitmap;
+  }
 }
 
 } // namespace
 
-CoolScrollBar::CoolScrollBar(HINSTANCE instance,
-                             int x,
-                             int y,
-                             int width,
-                             int height,
-                             CoolWindow* parent,
-                             CoolScrollable* owner,
-                             uint16_t artSlot,
-                             uint16_t artId,
-                             int total,
-                             int first,
-                             int last,
+CoolScrollBar::CoolScrollBar(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                             CoolScrollable* owner, uint16_t artSlot, uint16_t artId, int total, int first, int last,
                              uint32_t buttonFlags)
-: CoolWindow(instance,
-             "Scroll Bar",
-             kScrollBarStyle,
-             x,
-             y,
-             width,
-             height,
-             parent,
-             nullptr,
-             static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)),
-             nullptr,
-             nullptr,
-             nullptr,
-             0,
-             0)
+    : CoolWindow(instance, "Scroll Bar", kScrollBarStyle, x, y, width, height, parent, nullptr,
+                 static_cast<HBRUSH>(reb::compat::GetStockObject(BLACK_BRUSH)), nullptr, nullptr, nullptr, 0, 0)
 {
   m_owner = owner;
   m_artSlot = artSlot;
@@ -106,22 +83,22 @@ CoolScrollBar::~CoolScrollBar()
 
 LRESULT CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  switch (message)
-  {
+  switch (message) {
     case WM_PAINT:
-    {
-      HWND hwnd = m_hwnd;
-      PAINTSTRUCT paint;
-      HDC dc = BeginPaint(hwnd, &paint);
-      HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
-      Draw(dc);
-      SelectPalette(dc, previous, FALSE);
-      EndPaint(hwnd, &paint);
-      return 0;
-    }
+      {
+        HWND hwnd = m_hwnd;
+        PAINTSTRUCT paint;
+        HDC dc = reb::compat::BeginPaint(hwnd, &paint);
+        HPALETTE previous = reb::compat::SelectPalette(dc, g_palette, FALSE);
+        Draw(dc);
+        reb::compat::SelectPalette(dc, previous, FALSE);
+        reb::compat::EndPaint(hwnd, &paint);
+        return 0;
+      }
     case WM_CREATE:
-      if (LoadArt() == 0)
+      if (LoadArt() == 0) {
         Refresh();
+      }
       return 0;
     case WM_COMMAND:
       OnCommand(wParam);
@@ -133,7 +110,7 @@ LRESULT CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       return 0;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-      PostMessageA(m_parent->m_hwnd, kParentClickMessage, (message << 16) | (m_childId & 0xffff), lParam);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kParentClickMessage, (message << 16) | (m_childId & 0xffff), lParam);
       OnLButtonDown(static_cast<short>(lParam), static_cast<short>(lParam >> 16));
       return 0;
     case WM_LBUTTONUP:
@@ -144,24 +121,19 @@ LRESULT CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
   }
 }
 
-void CoolScrollBar::CreateArrowButton(CoolWindow*& button,
-                                      HMODULE module,
-                                      uint16_t normalId,
-                                      uint16_t pressedId,
+void CoolScrollBar::CreateArrowButton(CoolWindow*& button, HMODULE module, uint16_t normalId, uint16_t pressedId,
                                       uint32_t childId)
 {
   DibBitmap* image = LoadArtBitmap(module, normalId);
-  if (image)
-  {
+  if (image) {
     void* memory = ::operator new(sizeof(CoolStrobeButton));
     button = memory ? new (memory)
-                        CoolStrobeButton(module, 0, 0, image->Width(), image->Height(), this, childId, normalId,
-                                         pressedId, m_trackTile, kArrowButtonUnknown, m_buttonFlags) :
-                      nullptr;
+                          CoolStrobeButton(module, 0, 0, image->Width(), image->Height(), this, childId, normalId,
+                                           pressedId, m_trackTile, kArrowButtonUnknown, m_buttonFlags)
+                    : nullptr;
     delete image;
   }
-  if (button)
-  {
+  if (button) {
     button->Create(0);
     m_children.Insert(button);
   }
@@ -172,17 +144,16 @@ DWORD CoolScrollBar::LoadArt()
   HMODULE module = FindResourceModule(m_artSlot);
   DWORD error = 0;
   HGLOBAL resource = nullptr;
-  if (module)
-  {
-    HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(m_artId), RT_RCDATA);
-    if (info)
-      resource = LoadResource(module, info);
-    else
+  if (module) {
+    HRSRC info = reb::compat::FindResourceA(module, MAKEINTRESOURCEA(m_artId), RT_RCDATA);
+    if (info) {
+      resource = reb::compat::LoadResource(module, info);
+    } else {
       error = GetLastError();
+    }
   }
-  if (resource)
-  {
-    const auto* art = static_cast<const uint16_t*>(LockResource(resource));
+  if (resource) {
+    const auto* art = static_cast<const uint16_t*>(reb::compat::LockResource(resource));
     m_surface = nullptr;
     m_track = nullptr;
     m_thumb = nullptr;
@@ -194,42 +165,48 @@ DWORD CoolScrollBar::LoadArt()
     CreateArrowButton(m_backButton, module, art[kArtBackNormal], art[kArtBackPressed], kScrollBackButtonId);
     CreateArrowButton(m_forwardButton, module, art[kArtForwardNormal], art[kArtForwardPressed], kScrollForwardButtonId);
   }
-  FreeResource(resource);
+  reb::compat::FreeResource(resource);
   return error;
 }
 
 void CoolScrollBar::SetBackground(DibBitmap* parentImage)
 {
   HMODULE module = FindResourceModule(m_artSlot);
-  if (!parentImage || !module)
+  if (!parentImage || !module) {
     return;
+  }
   DeleteBitmap(m_background);
   m_background = NewOrNull<DibBitmap>(m_width, m_height, parentImage);
-  if (!m_background)
+  if (!m_background) {
     return;
+  }
   POINT origin = {0, 0};
-  if (!m_parent)
+  if (!m_parent) {
     return;
-  MapWindowPoints(m_parent->m_hwnd, m_hwnd, &origin, 1);
+  }
+  reb::compat::MapWindowPoints(m_parent->m_hwnd, m_hwnd, &origin, 1);
   parentImage->Blit(m_background, 0, 0, origin.x, origin.y, m_width, m_height);
   Refresh();
 }
 
 int CoolScrollBar::Scroll(int delta)
 {
-  if (!ScrollBy(delta))
+  if (!ScrollBy(delta)) {
     return 0;
+  }
   RECT client;
-  SetRect(&client, 0, 0, m_width, m_height);
+  reb::compat::SetRect(&client, 0, 0, m_width, m_height);
   RECT track;
   GetTrackRect(&track);
   RECT thumb;
   GetThumbRect(&thumb);
-  InvalidateRect(m_hwnd, nullptr, FALSE);
-  if (!m_surface || !m_track || !m_thumb)
+  reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  if (!m_surface || !m_track || !m_thumb) {
     return 0;
-  if (m_background)
+  }
+  if (m_background) {
     m_background->Blit(m_surface, 0, 0, 0, 0, 0, 0);
+  }
   m_track->Blit(m_surface, track.left, track.top, 0, 0, 0, 0);
   m_thumb->Blit(m_surface, thumb.left, thumb.top, 0, 0, 0, 0);
   return 1;
@@ -244,10 +221,10 @@ void CoolScrollBar::EndDrag()
 {
   HWND hwnd = m_hwnd;
   m_dragging = 0;
-  if (GetCapture() == hwnd)
-    ReleaseCapture();
-  if (m_previousCapture)
-  {
+  if (reb::compat::GetCapture() == hwnd) {
+    reb::compat::ReleaseCapture();
+  }
+  if (m_previousCapture) {
     SetCaptureWindow(m_previousCapture);
     m_previousCapture = nullptr;
   }
@@ -257,58 +234,52 @@ void CoolScrollBar::EndDrag()
 
 void CoolScrollBar::Draw(HDC dc)
 {
-  if (m_surface)
+  if (m_surface) {
     m_surface->DrawToDc(dc, kBitBltMode, SRCCOPY, 0, 0, 0, 0, 0, 0);
+  }
 }
 
 int CoolScrollBar::SetRange(int total)
 {
-  if (total < 1)
+  if (total < 1) {
     return 0;
+  }
   m_total = total;
-  if (!SetVisibleRange(m_first, m_last))
+  if (!SetVisibleRange(m_first, m_last)) {
     return 0;
+  }
   return Refresh();
 }
 
 int CoolScrollBar::SetVisibleRange(int first, int last)
 {
   int result = 1;
-  if (first < last)
-  {
+  if (first < last) {
     const int span = last - first;
-    if (span < m_total)
-    {
-      if (first < 0)
-      {
+    if (span < m_total) {
+      if (first < 0) {
         last = span;
         first = 0;
       }
-      if (last > m_total)
-      {
+      if (last > m_total) {
         m_last = m_total;
         m_first = first + (m_total - last);
-      }
-      else
-      {
+      } else {
         m_first = first;
         m_last = last;
       }
-    }
-    else
-    {
+    } else {
       m_first = 0;
       m_last = m_total;
     }
-  }
-  else
-  {
+  } else {
     result = 0;
   }
-  if (m_first == 0 && m_last == m_total)
+  if (m_first == 0 && m_last == m_total) {
     Hide();
-  else
+  } else {
     Show(SW_SHOW);
+  }
   return result;
 }
 
@@ -318,14 +289,12 @@ int CoolScrollBar::ScrollBy(int delta)
   const int last = m_last + delta;
   m_first = first;
   m_last = last;
-  if (first < 0)
-  {
+  if (first < 0) {
     m_first = 0;
     m_last = last - first;
     return 1;
   }
-  if (last > m_total)
-  {
+  if (last > m_total) {
     m_last = m_total;
     m_first = m_total - last + first;
   }
@@ -335,26 +304,27 @@ int CoolScrollBar::ScrollBy(int delta)
 void CoolScrollBar::StartTimer(UINT id)
 {
   m_timerId = id;
-  if (id == kScrollTimerDrag)
-    SetTimer(m_hwnd, id, kDragTimerPeriodMs, nullptr);
-  else if (id > kScrollTimerDrag && id <= kScrollTimerPageRight)
-    SetTimer(m_hwnd, id, kPageTimerPeriodMs, nullptr);
-  else
-    SetTimer(m_hwnd, id, id, nullptr);
+  if (id == kScrollTimerDrag) {
+    reb::compat::SetTimer(m_hwnd, id, kDragTimerPeriodMs, nullptr);
+  } else if (id > kScrollTimerDrag && id <= kScrollTimerPageRight) {
+    reb::compat::SetTimer(m_hwnd, id, kPageTimerPeriodMs, nullptr);
+  } else {
+    reb::compat::SetTimer(m_hwnd, id, id, nullptr);
+  }
 }
 
 void CoolScrollBar::StopTimer()
 {
-  KillTimer(m_hwnd, m_timerId);
+  reb::compat::KillTimer(m_hwnd, m_timerId);
   m_timerId = 0;
 }
 
 void CoolScrollBar::OnTimer(WPARAM id)
 {
-  if (!m_timerId)
+  if (!m_timerId) {
     return;
-  switch (id)
-  {
+  }
+  switch (id) {
     case kScrollTimerDrag:
       OnDragTimer();
       break;
@@ -395,9 +365,7 @@ RECT* CoolScrollBar::GetThumbRect(RECT* out)
 }
 
 // The remaining defaults are linker-folded with do-nothing / return-zero functions of other classes.
-void CoolScrollBar::OnCommand(WPARAM)
-{
-}
+void CoolScrollBar::OnCommand(WPARAM) {}
 
 int CoolScrollBar::BuildTrack()
 {
@@ -414,26 +382,14 @@ int CoolScrollBar::Layout()
   return 0;
 }
 
-void CoolScrollBar::OnLButtonDown(int, int)
-{
-}
+void CoolScrollBar::OnLButtonDown(int, int) {}
 
-void CoolScrollBar::OnDragTimer()
-{
-}
+void CoolScrollBar::OnDragTimer() {}
 
-void CoolScrollBar::PageBack()
-{
-}
+void CoolScrollBar::PageBack() {}
 
-void CoolScrollBar::PageForward()
-{
-}
+void CoolScrollBar::PageForward() {}
 
-void CoolScrollBar::PageLeft()
-{
-}
+void CoolScrollBar::PageLeft() {}
 
-void CoolScrollBar::PageRight()
-{
-}
+void CoolScrollBar::PageRight() {}

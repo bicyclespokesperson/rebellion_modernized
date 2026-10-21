@@ -1,30 +1,33 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
 
 #include "core/entry_identity.h"
 #include "platform/win32.h"
+#include "port/native/thread_sync.h"
 #include "ui/cool_timer.h"
 
 // Timer object that calls m_callback(m_param) when it fires. Sound buffers embed one but construct it with period 0,
 // so the multimedia timer is never started and OnTick() is never reached.
 class SoundCallbackTimer : public CoolTimer
 {
-public:
+  public:
   SoundCallbackTimer(void (*callback)(void*), void* parameter);
   ~SoundCallbackTimer() override;
   void OnTick() override;
 
   void (*m_callback)(void*); // +0x38
-  void* m_parameter; // +0x3c
+  void* m_parameter;         // +0x3c
 };
 
 // Node of the sound trees: the key at +0x18 is what the tree searches and orders by.
 class KeyedSoundNode : public AvlNode
 {
-public:
-  KeyedSoundNode() : m_key(0)
+  public:
+  KeyedSoundNode()
+      : m_key(0)
   {
   }
 
@@ -34,8 +37,9 @@ public:
 // KeyedSoundNode registry that hands out keys. Keys given to Add() as 0 are assigned m_nextKey.
 class SoundIdTree
 {
-public:
-  SoundIdTree() : m_nextKey(1)
+  public:
+  SoundIdTree()
+      : m_nextKey(1)
   {
   }
   virtual ~SoundIdTree();
@@ -51,16 +55,15 @@ public:
     return m_nodes;
   }
 
-protected:
+  protected:
   uint32_t m_nextKey; // +0x08
   std::map<uint32_t, std::unique_ptr<KeyedSoundNode>> m_nodes;
   bool m_clearing = false;
 };
 
-enum SoundBufferMode : int
-{
+enum SoundBufferMode : int {
   kBufferStreamed = 1, // looping ring buffer topped up from a file by a refill thread
-  kBufferStatic = 2, // whole sound held in the DirectSound buffer
+  kBufferStatic = 2,   // whole sound held in the DirectSound buffer
 };
 
 // One DirectSound secondary buffer playing a SoundSource (keyed by m_key within the source's buffer list). A streamed
@@ -68,7 +71,7 @@ enum SoundBufferMode : int
 // next half from the file.
 class SoundBuffer : public KeyedSoundNode
 {
-public:
+  public:
   // A fresh buffer on `format`: `bufferBytes` long, filled from a sound of `dataLength` bytes.
   SoundBuffer(uint32_t sourceKey, WAVEFORMATEX* format, uint32_t bufferBytes, int mode, uint32_t dataLength);
   // A DuplicateSoundBuffer copy that shares the original's sound data.
@@ -78,9 +81,9 @@ public:
   uint32_t BytesToFill(); // free bytes between the write position and the play cursor
   void SetStream(istream* stream, long loopStart);
   void Refill(istream* in, long loopStart); // streams the next part of the file into the ring buffer
-  void FillFromMemory(const void* data); // copies a whole in-memory sound into the buffer
+  void FillFromMemory(const void* data);    // copies a whole in-memory sound into the buffer
   HRESULT Play(int loop);
-  HRESULT Stop(); // stops and rewinds
+  HRESULT Stop();          // stops and rewinds
   HRESULT StopIfPlaying(); // restores a lost buffer, then stops it if it is playing
   HRESULT SetVolume(LONG volume);
   HRESULT GetStatus(DWORD* status);
@@ -88,35 +91,35 @@ public:
   int QueryNotify(); // IDirectSoundNotify of the buffer; nonzero means unsupported
   HRESULT StartRefillThread();
   void StopRefillThread();
-  static void RefillThread(SoundBuffer* buffer);
+  static void RefillThread(SoundBuffer* buffer, std::shared_ptr<reb::EventSet> events);
 
-  uint32_t m_sourceKey; // +0x1c
-  DSBUFFERDESC1 m_description; // +0x20 (dwSize, dwFlags, dwBufferBytes, dwReserved, lpwfxFormat)
+  uint32_t m_sourceKey;         // +0x1c
+  DSBUFFERDESC1 m_description;  // +0x20 (dwSize, dwFlags, dwBufferBytes, dwReserved, lpwfxFormat)
   IDirectSoundBuffer* m_buffer; // +0x34
   IDirectSoundNotify* m_notify; // +0x38
-  HANDLE m_thread; // +0x3c refill thread
-  HANDLE m_events[3]; // +0x40 half-way, end, stop
-  int m_failed; // +0x4c buffer creation or thread start failed
-  uint32_t m_size; // +0x50 buffer length in bytes
-  int m_mode; // +0x54 SoundBufferMode
-  uint32_t m_writePosition; // +0x58
-  uint32_t m_lockFlags; // +0x5c flags for IDirectSoundBuffer::Lock
-  uint32_t m_totalLength; // +0x60 bytes in the sound
-  uint32_t m_remaining; // +0x64 bytes of the sound not yet copied
-  long m_loopStart; // +0x68 file position the sound restarts from when it loops
-  istream* m_stream; // +0x6c
-  LONG m_refillBusy; // +0x70 interlocked guard against overlapping refills
-  int m_loop; // +0x74
-  int m_wrapped; // +0x78 a non-looping stream reached its end
-  SoundCallbackTimer m_timer; // +0x7c
-  int m_volumeSet; // +0xbc
-  LONG m_volume; // +0xc0
+  reb::TimedThread m_thread;    // refill thread
+  std::shared_ptr<reb::EventSet> m_events = std::make_shared<reb::EventSet>(); // half-way, end, stop
+  int m_failed;                 // +0x4c buffer creation or thread start failed
+  uint32_t m_size;              // +0x50 buffer length in bytes
+  int m_mode;                   // +0x54 SoundBufferMode
+  uint32_t m_writePosition;     // +0x58
+  uint32_t m_lockFlags;         // +0x5c flags for IDirectSoundBuffer::Lock
+  uint32_t m_totalLength;       // +0x60 bytes in the sound
+  uint32_t m_remaining;         // +0x64 bytes of the sound not yet copied
+  long m_loopStart;             // +0x68 file position the sound restarts from when it loops
+  istream* m_stream;            // +0x6c
+  std::atomic<LONG> m_refillBusy;          // +0x70 interlocked guard against overlapping refills
+  int m_loop;                   // +0x74
+  int m_wrapped;                // +0x78 a non-looping stream reached its end
+  SoundCallbackTimer m_timer;   // +0x7c
+  int m_volumeSet;              // +0xbc
+  LONG m_volume;                // +0xc0
 };
 
 // The buffers of one SoundSource, keyed by SoundBuffer::m_key. Key 1 is the original buffer; duplicates start at 2.
 class SoundBufferList : public SoundIdTree
 {
-public:
+  public:
   SoundBufferList();
   ~SoundBufferList() override;
   void Clear() override;

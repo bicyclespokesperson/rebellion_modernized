@@ -9,7 +9,7 @@
 template <class Entry>
 class IdRegistry
 {
-public:
+  public:
   IdRegistry() = default;
   IdRegistry(const IdRegistry&) = delete;
   IdRegistry& operator=(const IdRegistry&) = delete;
@@ -20,8 +20,9 @@ public:
 
   void Clear()
   {
-    if (m_clearing)
+    if (m_clearing) {
       return;
+    }
     m_clearing = true;
     decltype(m_entries) detached;
     m_entries.swap(detached);
@@ -53,11 +54,13 @@ public:
   auto PositionOf(const Entry* entry) const
   {
     auto entries = Entries();
-    if (!entry)
+    if (!entry) {
       return entries.end();
+    }
     const auto found = m_entries.find(entry->m_id);
-    if (found == m_entries.end() || found->second.get() != entry)
+    if (found == m_entries.end() || found->second.get() != entry) {
       return entries.end();
+    }
     return decltype(entries.begin())(found);
   }
   Entry* First() const
@@ -77,18 +80,22 @@ public:
   // Adoption succeeds only for a free ID. Rejected entries remain with the caller.
   uint32_t AddWithId(Entry* entry)
   {
-    if (!entry || m_clearing)
+    if (!entry || m_clearing) {
       return 0;
+    }
     const uint32_t id = entry->m_id == 0 ? m_nextId : entry->m_id;
-    if (!id)
+    if (!id) {
       return 0;
+    }
     auto [position, inserted] = m_entries.try_emplace(id);
-    if (!inserted)
+    if (!inserted) {
       return 0;
+    }
     position->second.reset(entry);
     entry->m_id = id;
-    if (m_nextId != 0 && m_nextId <= id)
+    if (m_nextId != 0 && m_nextId <= id) {
       m_nextId = id + 1;
+    }
     return id;
   }
 
@@ -99,8 +106,9 @@ public:
   }
   bool Remove(Entry* entry)
   {
-    if (!entry || FindById(entry->m_id) != entry)
+    if (!entry || FindById(entry->m_id) != entry) {
       return false;
+    }
     DetachById(entry->m_id);
     return true;
   }
@@ -109,7 +117,7 @@ public:
     auto detached = m_entries.extract(id);
   }
 
-private:
+  private:
   std::map<uint32_t, std::unique_ptr<Entry>> m_entries;
   uint32_t m_nextId = 1;
   bool m_clearing = false;

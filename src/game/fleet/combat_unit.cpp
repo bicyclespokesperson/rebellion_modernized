@@ -8,7 +8,7 @@
 #include "fleet/unit_data_decl.h"
 #include "fleet/unit_view_flags.h"
 
-extern int g_combatUnitEventKindsReady; // 0x6bb358
+extern int g_combatUnitEventKindsReady;     // 0x6bb358
 extern EventKindSet g_combatUnitEventKinds; // 0x6bb350
 
 namespace
@@ -42,8 +42,9 @@ CombatUnit::~CombatUnit() = default;
 int CombatUnit::GetEventKinds(int unused, EventKindSet* out)
 {
   const int ready = EnsureEventKinds();
-  if (ready)
+  if (ready) {
     *out = g_combatUnitEventKinds;
+  }
   return ready;
 }
 
@@ -51,8 +52,9 @@ int CombatUnit::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int ready = EnsureEventKinds();
-  if (ready && g_combatUnitEventKinds.Contains(orderKind))
+  if (ready && g_combatUnitEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return ready;
 }
 
@@ -60,8 +62,9 @@ int CombatUnit::CheckRequestImpl(const ActivityRequest* request, StatusCode* out
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -69,8 +72,9 @@ int CombatUnit::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -87,8 +91,9 @@ int CombatUnit::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* new
 int CombatUnit::OnUsableChanged(int newValue, NotifyContext* ctx)
 {
   int result = Detector::OnUsableChanged(newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateUnderRepair(ctx);
+  }
   return result;
 }
 
@@ -105,40 +110,45 @@ int CombatUnit::OnExistingChanged(int newValue, NotifyContext* ctx)
 int CombatUnit::OnDamagedChanged(int newValue, NotifyContext* ctx)
 {
   int result = Detector::OnDamagedChanged(newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateUnderRepair(ctx);
+  }
   return result;
 }
 
 int CombatUnit::CreateViews(int controlKind, NotifyContext* ctx)
 {
   const int result = GameObj::CreateViews(controlKind, ctx);
-  if (result)
+  if (result) {
     static_cast<CombatUnitData*>(m_data)->m_repairStat.SetLevel(GetRepairLevel());
+  }
   return result;
 }
 
 int CombatUnit::Read(istream* in)
 {
   const int result = Detector::Read(in);
-  if (result)
+  if (result) {
     ReadValue32(in, &m_combatFlags);
+  }
   return result;
 }
 
 int CombatUnit::Write(ostream* out)
 {
   const int result = Detector::Write(out);
-  if (result)
+  if (result) {
     WriteValue32(out, &m_combatFlags);
+  }
   return result;
 }
 
 int CombatUnit::Checksum(Crc32* crc)
 {
   const int result = Detector::Checksum(crc);
-  if (result)
+  if (result) {
     crc->AddInt(m_combatFlags);
+  }
   return result;
 }
 
@@ -150,10 +160,10 @@ int CombatUnit::Validate()
 int CombatUnit::ApplyAll(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
+  if (result) {
     result = Detector::ApplyAll(ctx);
-  if (result && ctx->m_flag04 == kApplyEverything)
-  {
+  }
+  if (result && ctx->m_flag04 == kApplyEverything) {
     ApplyUnderRepair(ctx);
     ApplyFastRepair(ctx);
   }
@@ -240,24 +250,25 @@ int CombatUnit::OnFastRepairChanged(int newValue, NotifyContext* ctx)
 int CombatUnit::OnUnderRepairNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(CombatUnitUnderRepairNotif)", "UnderRepair", value, 0, ctx);
+  }
   return result;
 }
 
 int CombatUnit::OnFastRepairNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(CombatUnitFastRepairNotif)", "FastRepair", value, 0, ctx);
+  }
   return result;
 }
 
 int CombatUnit::SetUnderRepair(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kUnderRepairFlag, on, &m_combatFlags))
-  {
+  if (result && UpdateFlagBit(kUnderRepairFlag, on, &m_combatFlags)) {
     static_cast<CombatUnit*>(GetViewObject(1))->ApplyUnderRepair(ctx);
     static_cast<CombatUnit*>(GetViewObject(2))->ApplyUnderRepair(ctx);
     OnUnderRepairChanged(on, ctx);
@@ -268,8 +279,7 @@ int CombatUnit::SetUnderRepair(int on, NotifyContext* ctx)
 int CombatUnit::SetFastRepair(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kFastRepairFlag, on, &m_combatFlags))
-  {
+  if (result && UpdateFlagBit(kFastRepairFlag, on, &m_combatFlags)) {
     static_cast<CombatUnit*>(GetViewObject(1))->ApplyFastRepair(ctx);
     static_cast<CombatUnit*>(GetViewObject(2))->ApplyFastRepair(ctx);
     OnFastRepairChanged(on, ctx);
@@ -285,30 +295,27 @@ int CombatUnit::UpdateUnderRepair(NotifyContext* ctx)
 
 int CombatUnit::ApplyUnderRepair(NotifyContext* ctx)
 {
-  return fleet::applyFlagToView(this, &CombatUnit::m_combatFlags, kUnderRepairFlag, ctx,
-                                [&](int value)
-                                {
-                                  return OnUnderRepairNotified(value, ctx);
-                                });
+  return fleet::applyFlagToView(this, &CombatUnit::m_combatFlags, kUnderRepairFlag, ctx, [&](int value) {
+    return OnUnderRepairNotified(value, ctx);
+  });
 }
 
 int CombatUnit::ApplyFastRepair(NotifyContext* ctx)
 {
-  return fleet::applyFlagToView(this, &CombatUnit::m_combatFlags, kFastRepairFlag, ctx,
-                                [&](int value)
-                                {
-                                  return OnFastRepairNotified(value, ctx);
-                                });
+  return fleet::applyFlagToView(this, &CombatUnit::m_combatFlags, kFastRepairFlag, ctx, [&](int value) {
+    return OnFastRepairNotified(value, ctx);
+  });
 }
 
 int CombatUnit::EnsureEventKinds()
 {
-  if (g_combatUnitEventKindsReady != 0)
+  if (g_combatUnitEventKindsReady != 0) {
     return 1;
+  }
   g_combatUnitEventKindsReady = 1;
-  return Detector::InitEventKinds(0, &g_combatUnitEventKinds) && g_combatUnitEventKinds.Add(kKindMoveOrder, 1) &&
-         g_combatUnitEventKinds.Add(kKindOrder202, 1) && g_combatUnitEventKinds.Add(kKindOrder204, 1) &&
-         g_combatUnitEventKinds.Add(kKindOrder200, 1);
+  return Detector::InitEventKinds(0, &g_combatUnitEventKinds) && g_combatUnitEventKinds.Add(kKindMoveOrder, 1)
+         && g_combatUnitEventKinds.Add(kKindOrder202, 1) && g_combatUnitEventKinds.Add(kKindOrder204, 1)
+         && g_combatUnitEventKinds.Add(kKindOrder200, 1);
 }
 
 int CombatUnit::InitEventKinds(int unused, EventKindSet* out)

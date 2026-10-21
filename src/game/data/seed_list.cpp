@@ -26,7 +26,8 @@ DatRecord* createRecord(const RecordFamilyRange& range)
 
 // ---- SeedList ----------------------------------------------------------------------------------------------
 
-SeedList::SeedList() : m_range{0, 0}
+SeedList::SeedList()
+    : m_range{0, 0}
 {
 }
 
@@ -44,33 +45,33 @@ uint32_t SeedList::InsertRecord(DatRecord* record)
 
 void SeedList::AddRecord(DatRecord* record)
 {
-  if (record)
+  if (record) {
     InsertRecord(record);
+  }
 }
 
 int SeedList::Read(istream* in)
 {
   m_records.Clear();
   int ok = ReadVersion(in);
-  if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
+  }
   uint32_t count = 0;
   ReadValue32(in, &count);
   ReadValue32(in, &m_range.m_low);
   ReadValue32(in, &m_range.m_high);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  }
+  for (uint32_t index = 0; index < count; ++index) {
     DatRecord* record = createRecord(m_range);
-    if (!record)
-    {
+    if (!record) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
     }
     ok = record->Read(in);
-    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || InsertRecord(record) == 0)
-    {
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || InsertRecord(record) == 0) {
       delete record;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
@@ -82,20 +83,22 @@ int SeedList::Read(istream* in)
 int SeedList::Write(ostream* out)
 {
   int ok = WriteVersion(out);
-  if (!ok)
+  if (!ok) {
     return 0;
-  if (!WriteCount32(out, m_records.Count()))
+  }
+  if (!WriteCount32(out, m_records.Count())) {
     return 0;
+  }
   uint32_t low = m_range.m_low;
   WriteValue32(out, &low);
   uint32_t high = m_range.m_high;
   WriteValue32(out, &high);
-  for (const auto& entry : Records())
-  {
+  for (const auto& entry : Records()) {
     auto* node = entry.get();
     ok = asRecord(node)->Write(out);
-    if (!ok)
+    if (!ok) {
       break;
+    }
   }
   return ok;
 }
@@ -103,17 +106,18 @@ int SeedList::Write(ostream* out)
 int SeedList::Checksum(Crc32* crc)
 {
   int ok = ChecksumVersion(crc);
-  if (!ok)
+  if (!ok) {
     return ok;
+  }
   crc->AddInt(static_cast<int32_t>(m_records.Count()));
   crc->AddInt(m_range.m_low);
   crc->AddInt(m_range.m_high);
-  for (const auto& entry : Records())
-  {
+  for (const auto& entry : Records()) {
     auto* node = entry.get();
     ok = asRecord(node)->Checksum(crc);
-    if (!ok)
+    if (!ok) {
       break;
+    }
   }
   return ok;
 }
@@ -142,20 +146,20 @@ int SeedList::ParseText(istream* in)
   SkipRestOfLine(in, &endOfLine);
 
   SkipTableHeader(in);
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     return ok;
-  do
-  {
+  }
+  do {
     DatRecord* record = createRecord(m_range);
-    if (record)
-    {
+    if (record) {
       record->m_first = recordKey.m_low;
       record->m_second = recordKey.m_high;
       record->m_small2 = textGroup;
-      if (record->Parse(in))
+      if (record->Parse(in)) {
         AddRecord(record);
-      else
+      } else {
         delete record;
+      }
     }
   } while (iostream_access::State(in) == 0);
   return ok;
@@ -187,7 +191,8 @@ int SeedListFile::Load(uint16_t firstId, uint16_t secondId)
 
 // ---- SeedListFileTree --------------------------------------------------------------------------------------
 
-SeedListFileTree::SeedListFileTree() : m_ready(1)
+SeedListFileTree::SeedListFileTree()
+    : m_ready(1)
 {
 }
 
@@ -195,19 +200,20 @@ SeedListFileTree::~SeedListFileTree() = default;
 
 SeedListFile* SeedListFileTree::FindByFamily(uint32_t family)
 {
-  for (const auto& entry : Entries())
-  {
+  for (const auto& entry : Entries()) {
     auto* node = entry.get();
     auto* file = static_cast<SeedListFile*>(static_cast<IdNode*>(node));
-    if (family >= file->m_list.m_range.m_low && family < file->m_list.m_range.m_high)
+    if (family >= file->m_list.m_range.m_low && family < file->m_list.m_range.m_high) {
       return file;
+    }
   }
   return nullptr;
 }
 
 // ---- RecordNameNode ----------------------------------------------------------------------------------------
 
-RecordNameNode::RecordNameNode() : m_key(0)
+RecordNameNode::RecordNameNode()
+    : m_key(0)
 {
   m_ready = 1;
 }
@@ -225,15 +231,20 @@ int RecordNameNode::SetFromRecord(DatRecord* record)
 
 // ---- SeedKeyCountNode --------------------------------------------------------------------------------------
 
-SeedKeyCountNode::SeedKeyCountNode() : m_count(0)
+SeedKeyCountNode::SeedKeyCountNode()
+    : m_count(0)
 {
 }
 
-SeedKeyCountNode::SeedKeyCountNode(const SeedKey& key) : m_key(key), m_count(0)
+SeedKeyCountNode::SeedKeyCountNode(const SeedKey& key)
+    : m_key(key)
+    , m_count(0)
 {
 }
 
-SeedKeyCountNode::SeedKeyCountNode(const SeedKeyCountNode& other) : m_key(other.m_key), m_count(other.m_count)
+SeedKeyCountNode::SeedKeyCountNode(const SeedKeyCountNode& other)
+    : m_key(other.m_key)
+    , m_count(other.m_count)
 {
 }
 
@@ -262,21 +273,24 @@ void SeedKeyCountNode::Save(ostream* out)
 
 void SeedKeyCountNode::Read(istream* in)
 {
-  if (m_key.ReadValue(in))
+  if (m_key.ReadValue(in)) {
     StreamRead32(in, &m_count);
+  }
 }
 
 void SeedKeyCountNode::Write(ostream* out)
 {
-  if (m_key.WriteValue(out))
+  if (m_key.WriteValue(out)) {
     StreamWrite32(out, &m_count);
+  }
 }
 
 int SeedKeyCountNode::Checksum(Crc32* crc)
 {
   const int ok = m_key.AddToChecksum(crc);
-  if (ok)
+  if (ok) {
     crc->AddInt(m_count);
+  }
   return ok;
 }
 

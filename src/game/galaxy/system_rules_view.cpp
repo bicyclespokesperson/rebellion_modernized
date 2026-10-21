@@ -9,8 +9,7 @@ namespace
 
 constexpr int kRangeSlots = 4;
 
-struct ViewSyncPlan
-{
+struct ViewSyncPlan {
   FamilyRange systemChildren[kRangeSlots];
   FamilyRange fleetChildren[1];
   FamilyRange shipChildren[1];
@@ -32,8 +31,7 @@ bool isEmpty(const FamilyRange& range)
 ViewSyncPlan planFor(int mode)
 {
   ViewSyncPlan plan;
-  switch (mode)
-  {
+  switch (mode) {
     case 0:
       break;
     case 1:
@@ -115,10 +113,12 @@ int System::SyncViewForEvent(int mode, int view, NotifyContext* ctx)
 {
   int ok = 1;
   System* target = nullptr;
-  if (view == 1 || view == 2)
+  if (view == 1 || view == 2) {
     target = static_cast<System*>(GetViewObject(view));
-  if (!target)
+  }
+  if (!target) {
     return ok;
+  }
 
   ViewSyncPlan plan = planFor(mode);
   ok = plan.valid;
@@ -126,42 +126,32 @@ int System::SyncViewForEvent(int mode, int view, NotifyContext* ctx)
   phase.m_flag04 = 1;
   phase.m_flag08 = 3;
 
-  if (ok)
-  {
-    if (plan.applyAll)
-    {
+  if (ok) {
+    if (plan.applyAll) {
       ok = target->ApplyAll(&phase) != 0;
-    }
-    else
-    {
-      if (plan.applyVisibility)
-      {
+    } else {
+      if (plan.applyVisibility) {
         const int explored = target->ApplyExplored(&phase);
         const int populated = target->ApplyPopulated(&phase);
         ok = populated && explored;
         const int controlKind = target->ApplyControlKind(&phase);
         ok = controlKind && ok;
       }
-      if (ok)
-      {
-        if (plan.applyControl)
-        {
+      if (ok) {
+        if (plan.applyControl) {
           const int causedKind = target->ApplyLoyaltyCausedCurrentControlKind(&phase);
           const int controlData = target->ApplyControlData(&phase);
           ok = controlData && causedKind;
           const int loyalty = target->ApplyLoyalty(&phase);
           ok = loyalty && ok;
         }
-        if (ok)
-        {
-          if (plan.applyUprising)
-          {
+        if (ok) {
+          if (plan.applyUprising) {
             const int uprising = target->ApplyUprising(&phase);
             const int kind = target->ApplyControlKindUprising(&phase);
             ok = kind && uprising;
           }
-          if (ok && plan.applyResources)
-          {
+          if (ok && plan.applyResources) {
             const int energy = target->ApplyEnergy(&phase);
             const int rawMaterial = target->ApplyRawMaterial(&phase);
             ok = rawMaterial && energy;
@@ -171,29 +161,30 @@ int System::SyncViewForEvent(int mode, int view, NotifyContext* ctx)
     }
   }
 
-  for (auto & i : plan.systemChildren)
-  {
-    if (isEmpty(i))
+  for (auto& i : plan.systemChildren) {
+    if (isEmpty(i)) {
       break;
+    }
     ok = target->UpdateChildren(&i, &phase) && ok;
   }
-  if (plan.applyExtra)
+  if (plan.applyExtra) {
     ok = ReapplySystemCharacterViews(static_cast<GameObj*>(target), &phase) && ok;
+  }
 
-  if (ok)
-  {
+  if (ok) {
     ChildIterator fleets(target, &family::kFleets, kStateAny);
-    for (fleets.Begin(); fleets.Current(); fleets.Advance())
-    {
-      if (ok && !isEmpty(plan.fleetChildren[0]))
+    for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
+      if (ok && !isEmpty(plan.fleetChildren[0])) {
         ok = static_cast<GameObj*>(fleets.Current())->UpdateChildren(&plan.fleetChildren[0], &phase) && ok;
+      }
       ChildIterator ships(fleets.Current(), &family::kCapitalShips, kStateAny);
-      for (ships.Begin(); ships.Current(); ships.Advance())
-      {
-        if (!isEmpty(plan.shipChildren[0]))
+      for (ships.Begin(); ships.Current(); ships.Advance()) {
+        if (!isEmpty(plan.shipChildren[0])) {
           ok = static_cast<GameObj*>(ships.Current())->UpdateChildren(&plan.shipChildren[0], &phase) && ok;
-        if (plan.applyExtra)
+        }
+        if (plan.applyExtra) {
           ok = ReapplySystemCharacterViews(static_cast<GameObj*>(ships.Current()), &phase) && ok;
+        }
       }
     }
   }

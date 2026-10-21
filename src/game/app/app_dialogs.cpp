@@ -2,6 +2,7 @@
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
+#include "ui/resource_dll.h"
 
 namespace
 {
@@ -35,10 +36,18 @@ constexpr RECT kHeadlineArea = {0x2b, 0x19, 0x170, 0x56};
 constexpr RECT kDetailBelowHeadlineArea = {0x2b, 0x57, 0x170, 0x70};
 constexpr RECT kDetailAloneArea = {0x2b, 0x19, 0x170, 0x70};
 
+void DrawLiteralText(HDC dc, const std::string& text, RECT area, UINT format)
+{
+  reb::compat::SetTextColor(dc, kTextColor);
+  reb::compat::SelectObject(dc, CoolGetFont(kTextFontSlot));
+  reb::compat::DrawTextA(dc, text.c_str(), -1, &area, format);
+}
+
 void DeleteAndForgetDialog()
 {
-  if (g_appDialog)
+  if (g_appDialog) {
     delete g_appDialog;
+  }
   g_appDialog = nullptr;
 }
 
@@ -46,35 +55,11 @@ void DeleteAndForgetDialog()
 
 // ---- AppDialog -----------------------------------------------------------------------------------------------
 
-AppDialog::AppDialog(HINSTANCE instance,
-                     int x,
-                     int y,
-                     int width,
-                     int height,
-                     CoolWindow* parent,
-                     uint32_t stringSlot,
-                     uint32_t bitmapSlot,
-                     uint32_t backgroundId,
-                     uint32_t childId,
-                     uint32_t style,
-                     uint32_t flags,
-                     uint32_t message,
-                     uint32_t headlineId,
-                     uint32_t detailId)
-: CoolGameWindow(instance,
-                 x,
-                 y,
-                 width,
-                 height,
-                 parent,
-                 stringSlot,
-                 bitmapSlot,
-                 backgroundId,
-                 childId,
-                 style,
-                 flags,
-                 0,
-                 0)
+AppDialog::AppDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
+                     uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
+                     uint32_t message, uint32_t headlineId, uint32_t detailId)
+    : CoolGameWindow(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
+                     0, 0)
 {
   m_enabled = 1;
   g_appDialogMessage = message;
@@ -94,14 +79,20 @@ void AppDialog::OnCreate1()
 
 void AppDialog::OnCreate2()
 {
-  if (!BeginOffscreen(nullptr))
+  if (!BeginOffscreen(nullptr)) {
     return;
-  if (m_headlineId)
+  }
+  const bool hasHeadline = m_headlineId || !m_headlineText.empty();
+  if (!m_headlineText.empty()) {
+    DrawLiteralText(m_memoryDc, m_headlineText, kHeadlineArea, kHeadlineFormat);
+  } else if (m_headlineId) {
     DrawTextResource(m_headlineId, kHeadlineArea, kTextFontSlot, kTextColor, kHeadlineFormat);
-  if (m_detailId)
-  {
-    const RECT& area = m_headlineId ? kDetailBelowHeadlineArea : kDetailAloneArea;
-    DrawTextResource(m_detailId, area, kTextFontSlot, kTextColor, kDetailFormat);
+  }
+  const RECT& detailArea = hasHeadline ? kDetailBelowHeadlineArea : kDetailAloneArea;
+  if (!m_detailText.empty()) {
+    DrawLiteralText(m_memoryDc, m_detailText, detailArea, kDetailFormat);
+  } else if (m_detailId) {
+    DrawTextResource(m_detailId, detailArea, kTextFontSlot, kTextColor, kDetailFormat);
   }
   EndOffscreen();
 }
@@ -114,8 +105,7 @@ void AppDialog::OnCreate3()
 
 void AppDialog::OnCommand(int a, int, int)
 {
-  switch (static_cast<uint16_t>(a))
-  {
+  switch (static_cast<uint16_t>(a)) {
     case kYesButtonId:
       AppPostDialogResult(1, m_parent);
       break;
@@ -127,10 +117,11 @@ void AppDialog::OnCommand(int a, int, int)
 
 void AppDialog::OnKeyDown(WPARAM key, LPARAM)
 {
-  if (key == VK_RETURN)
+  if (key == VK_RETURN) {
     AppPostDialogResult(1, m_parent);
-  else if (key == VK_ESCAPE)
+  } else if (key == VK_ESCAPE) {
     AppPostDialogResult(0, m_parent);
+  }
 }
 
 int AppDialog::CanOpen()
@@ -140,37 +131,12 @@ int AppDialog::CanOpen()
 
 // ---- AppNoticeDialog -------------------------------------------------------------------------------------------
 
-AppNoticeDialog::AppNoticeDialog(HINSTANCE instance,
-                                 int x,
-                                 int y,
-                                 int width,
-                                 int height,
-                                 CoolWindow* parent,
-                                 uint32_t stringSlot,
-                                 uint32_t bitmapSlot,
-                                 uint32_t backgroundId,
-                                 uint32_t childId,
-                                 uint32_t style,
-                                 uint32_t flags,
-                                 uint32_t message,
-                                 uint32_t headlineId,
-                                 uint32_t detailId,
-                                 uint32_t buttonTooltipId)
-: AppDialog(instance,
-            x,
-            y,
-            width,
-            height,
-            parent,
-            stringSlot,
-            bitmapSlot,
-            backgroundId,
-            childId,
-            style,
-            flags,
-            message,
-            headlineId,
-            detailId)
+AppNoticeDialog::AppNoticeDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                                 uint32_t stringSlot, uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId,
+                                 uint32_t style, uint32_t flags, uint32_t message, uint32_t headlineId,
+                                 uint32_t detailId, uint32_t buttonTooltipId)
+    : AppDialog(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
+                message, headlineId, detailId)
 {
   m_buttonTooltipId = buttonTooltipId;
 }
@@ -185,114 +151,105 @@ void AppNoticeDialog::OnCreate3()
 
 void AppNoticeDialog::OnCommand(int a, int, int)
 {
-  if (static_cast<uint16_t>(a) == kAcknowledgeButtonId)
+  if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) {
     AppPostDialogResult(1, nullptr);
+  }
 }
 
 void AppNoticeDialog::OnKeyDown(WPARAM key, LPARAM)
 {
-  if (key == VK_RETURN)
+  if (key == VK_RETURN) {
     AppPostDialogResult(1, nullptr);
+  }
 }
 
 // ---- AppWaitDialog ---------------------------------------------------------------------------------------------
 
-AppWaitDialog::AppWaitDialog(HINSTANCE instance,
-                             int x,
-                             int y,
-                             int width,
-                             int height,
-                             CoolWindow* parent,
-                             uint32_t stringSlot,
-                             uint32_t bitmapSlot,
-                             uint32_t backgroundId,
-                             uint32_t childId,
-                             uint32_t style,
-                             uint32_t flags,
-                             uint32_t message,
-                             uint32_t headlineId,
-                             uint32_t detailId)
-: AppDialog(instance,
-            x,
-            y,
-            width,
-            height,
-            parent,
-            stringSlot,
-            bitmapSlot,
-            backgroundId,
-            childId,
-            style,
-            flags,
-            message,
-            headlineId,
-            detailId)
+AppWaitDialog::AppWaitDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                             uint32_t stringSlot, uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId,
+                             uint32_t style, uint32_t flags, uint32_t message, uint32_t headlineId, uint32_t detailId)
+    : AppDialog(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
+                message, headlineId, detailId)
 {
 }
 
 AppWaitDialog::~AppWaitDialog() = default;
 
-void AppWaitDialog::OnCreate3()
-{
-}
+void AppWaitDialog::OnCreate3() {}
 
 void AppWaitDialog::OnCommand(int a, int, int)
 {
-  if (static_cast<uint16_t>(a) == kAcknowledgeButtonId)
+  if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) {
     AppPostDialogResult(0, nullptr);
+  }
 }
 
-void AppWaitDialog::OnKeyDown(WPARAM, LPARAM)
-{
-}
+void AppWaitDialog::OnKeyDown(WPARAM, LPARAM) {}
 
 // ---- Factories -------------------------------------------------------------------------------------------------
 
-int ShowAppDialog(uint32_t message, CoolWindow* app, uint32_t headlineId, uint32_t detailId, int, int)
+namespace
 {
-  if (!app || g_appDialog)
+
+int OpenQuestion(uint32_t message, CoolWindow* app, uint32_t headlineId, uint32_t detailId, std::string headline,
+                 std::string detail)
+{
+  if (!app || g_appDialog) {
     return 0;
+  }
   g_appDialog = NewOrNull<AppDialog>(app->m_instance, 0, 0, kDialogWidth, kDialogHeight, app, kResourceSlot,
                                      kResourceSlot, kQuestionBackgroundId, kDialogChildId, kDialogStyle,
                                      kGameWindowPopup, message, headlineId, detailId);
-  if (!g_appDialog)
+  if (!g_appDialog) {
     return 0;
-  if (g_appDialog->CanOpen())
-  {
+  }
+  g_appDialog->m_headlineText = std::move(headline);
+  g_appDialog->m_detailText = std::move(detail);
+  if (g_appDialog->CanOpen()) {
     g_appDialog->Create(0);
     g_appDialog->CenterInParent();
     HWND hwnd = g_appDialog->m_hwnd;
     g_appDialog->ShowAndTrack(SW_SHOW);
-    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
-    SendMessageA(app->m_hwnd, kDialogOpenedMessage, 0, 0);
+    reb::compat::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
+    reb::compat::SendMessageA(app->m_hwnd, kDialogOpenedMessage, 0, 0);
     return 1;
   }
   DeleteAndForgetDialog();
   return 0;
 }
 
-int ShowAppNoticeDialog(uint32_t message,
-                        CoolWindow* app,
-                        uint32_t headlineId,
-                        uint32_t detailId,
-                        uint32_t buttonTooltipId,
-                        int,
-                        int)
+} // namespace
+
+int ShowAppDialog(uint32_t message, CoolWindow* app, uint32_t headlineId, uint32_t detailId, int, int)
 {
-  if (g_appDialog)
+  return OpenQuestion(message, app, headlineId, detailId, {}, {});
+}
+
+int ShowAppDialogText(uint32_t message, CoolWindow* app, uint32_t headlineId, uint32_t detailId, std::string headline,
+                      std::string detail)
+{
+  return OpenQuestion(message, app, headlineId, detailId, std::move(headline), std::move(detail));
+}
+
+int ShowAppNoticeDialog(uint32_t message, CoolWindow* app, uint32_t headlineId, uint32_t detailId,
+                        uint32_t buttonTooltipId, int, int)
+{
+  if (g_appDialog) {
     DestroyAppDialog();
-  if (!app)
+  }
+  if (!app) {
     return 0;
+  }
   g_appDialog = NewOrNull<AppNoticeDialog>(app->m_instance, 0, 0, kDialogWidth, kDialogHeight, app, kResourceSlot,
                                            kResourceSlot, kNoticeBackgroundId, kDialogChildId, kDialogStyle,
                                            kGameWindowPopup, message, headlineId, detailId, buttonTooltipId);
-  if (!g_appDialog)
+  if (!g_appDialog) {
     return 0;
-  if (g_appDialog->CanOpen())
-  {
+  }
+  if (g_appDialog->CanOpen()) {
     g_appDialog->Create(0);
     g_appDialog->CenterInParent();
-    SetWindowPos(g_appDialog->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    reb::compat::SetWindowPos(g_appDialog->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     g_appDialog->ShowAndTrack(SW_SHOW);
     return 1;
   }
@@ -302,20 +259,22 @@ int ShowAppNoticeDialog(uint32_t message,
 
 int ShowAppWaitDialog(CoolWindow* app, uint32_t headlineId, uint32_t detailId, int, int)
 {
-  if (g_appDialog)
+  if (g_appDialog) {
     DestroyAppDialog();
-  if (!app)
+  }
+  if (!app) {
     return 0;
+  }
   g_appDialog = NewOrNull<AppWaitDialog>(app->m_instance, 0, 0, kDialogWidth, kDialogHeight, app, kResourceSlot,
                                          kResourceSlot, kWaitBackgroundId, kDialogChildId, kDialogStyle,
                                          kGameWindowPopup, kWaitMessage, headlineId, detailId);
-  if (!g_appDialog)
+  if (!g_appDialog) {
     return 0;
-  if (g_appDialog->CanOpen())
-  {
+  }
+  if (g_appDialog->CanOpen()) {
     g_appDialog->Create(0);
     g_appDialog->CenterInParent();
-    SetWindowPos(g_appDialog->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    reb::compat::SetWindowPos(g_appDialog->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     g_appDialog->ShowAndTrack(SW_SHOW);
     return 1;
   }
@@ -325,18 +284,20 @@ int ShowAppWaitDialog(CoolWindow* app, uint32_t headlineId, uint32_t detailId, i
 
 int DestroyAppDialog()
 {
-  if (!g_appDialog)
+  if (!g_appDialog) {
     return 0;
+  }
   g_appDialogMessage = 0;
-  DestroyWindow(g_appDialog->m_hwnd);
+  reb::compat::DestroyWindow(g_appDialog->m_hwnd);
   DeleteAndForgetDialog();
   return 1;
 }
 
 void CenterAppDialog()
 {
-  if (g_appDialog)
+  if (g_appDialog) {
     g_appDialog->CenterInParent();
+  }
 }
 
 AppDialog* g_appDialog{};

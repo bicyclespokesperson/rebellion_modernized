@@ -32,8 +32,7 @@ const char* ItemText(const CoolListItem* item)
 
 void CopyItems(CoolListItemList* target, CoolListItemList* source)
 {
-  for (const auto& entry : source->Entries())
-  {
+  for (const auto& entry : source->Entries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
     target->Insert(NewOrNull<CoolListItem>(*item));
   }
@@ -42,13 +41,11 @@ void CopyItems(CoolListItemList* target, CoolListItemList* source)
 void PumpWhileMouseHeld()
 {
   MSG message;
-  while ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 || GetCapture())
-  {
-    if (PeekMessageA(&message, nullptr, 0, 0, PM_NOREMOVE))
-    {
-      GetMessageA(&message, nullptr, 0, 0);
-      TranslateMessage(&message);
-      DispatchMessageA(&message);
+  while ((reb::compat::GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 || reb::compat::GetCapture()) {
+    if (reb::compat::PeekMessageA(&message, nullptr, 0, 0, PM_NOREMOVE)) {
+      reb::compat::GetMessageA(&message, nullptr, 0, 0);
+      reb::compat::TranslateMessage(&message);
+      reb::compat::DispatchMessageA(&message);
     }
   }
 }
@@ -69,46 +66,24 @@ POINT UnpackPoint(LPARAM lParam)
 // Hands a mouse message to `target` (the window under `screenPoint`) if it is a child of `hwnd`.
 void ForwardToChild(HWND hwnd, HWND target, POINT screenPoint, UINT message, WPARAM wParam)
 {
-  if (!target || target == hwnd || !IsChild(hwnd, target))
+  if (!target || target == hwnd || !reb::compat::IsChild(hwnd, target)) {
     return;
-  ScreenToClient(target, &screenPoint);
-  SendMessageA(target, message, wParam, PackPoint(screenPoint));
+  }
+  reb::compat::ScreenToClient(target, &screenPoint);
+  reb::compat::SendMessageA(target, message, wParam, PackPoint(screenPoint));
 }
 
 } // namespace
 
 // ---- CoolSelectionBox ------------------------------------------------------------------------------------------
 
-CoolSelectionBox::CoolSelectionBox(HINSTANCE instance,
-                                   CoolWindow* parent,
-                                   int x,
-                                   int y,
-                                   int width,
-                                   int height,
-                                   int visibleRows,
-                                   CoolListItemList* items,
-                                   DibBitmap* backdrop,
-                                   uint16_t buttonBitmapId,
-                                   uint16_t buttonPressedBitmapId,
-                                   uint16_t scrollResourceSlot,
-                                   uint16_t scrollResourceId,
-                                   int sortMode)
-: CoolWindow(instance,
-             "CoolSelectionBoxClass",
-             kSelectionBoxStyle,
-             x,
-             y,
-             width,
-             height,
-             parent,
-             nullptr,
-             static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)),
-             nullptr,
-             nullptr,
-             nullptr,
-             0,
-             0),
-  m_items(sortMode)
+CoolSelectionBox::CoolSelectionBox(HINSTANCE instance, CoolWindow* parent, int x, int y, int width, int height,
+                                   int visibleRows, CoolListItemList* items, DibBitmap* backdrop,
+                                   uint16_t buttonBitmapId, uint16_t buttonPressedBitmapId, uint16_t scrollResourceSlot,
+                                   uint16_t scrollResourceId, int sortMode)
+    : CoolWindow(instance, "CoolSelectionBoxClass", kSelectionBoxStyle, x, y, width, height, parent, nullptr,
+                 static_cast<HBRUSH>(reb::compat::GetStockObject(BLACK_BRUSH)), nullptr, nullptr, nullptr, 0, 0)
+    , m_items(sortMode)
 {
   m_textColor = kWhite;
   m_textFormat = DT_SINGLELINE | DT_VCENTER;
@@ -117,7 +92,7 @@ CoolSelectionBox::CoolSelectionBox(HINSTANCE instance,
   m_textOffsetY = 0;
   m_rowHeight = height;
   m_visibleRows = visibleRows;
-  m_borderPen = static_cast<HPEN>(GetStockObject(WHITE_PEN));
+  m_borderPen = static_cast<HPEN>(reb::compat::GetStockObject(WHITE_PEN));
   m_scrollResourceSlot = scrollResourceSlot;
   m_buttonBitmapId = buttonBitmapId;
   m_dropDownShade = LightGreyColor;
@@ -127,20 +102,18 @@ CoolSelectionBox::CoolSelectionBox(HINSTANCE instance,
   m_scrollResourceId = scrollResourceId;
   m_image = nullptr;
   m_backdrop = backdrop;
-  if (backdrop)
-  {
-    HDC dc = GetDC(parent->m_hwnd);
+  if (backdrop) {
+    HDC dc = reb::compat::GetDC(parent->m_hwnd);
     m_image = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), m_backdrop, dc);
-    ReleaseDC(parent->m_hwnd, dc);
+    reb::compat::ReleaseDC(parent->m_hwnd, dc);
   }
   m_dropDownTile = nullptr;
   m_screenLeft = 0;
-  m_screenRight = GetSystemMetrics(SM_CXFULLSCREEN);
+  m_screenRight = reb::compat::GetSystemMetrics(SM_CXFULLSCREEN);
   m_screenTop = 0;
-  m_screenBottom = GetSystemMetrics(SM_CYFULLSCREEN);
+  m_screenBottom = reb::compat::GetSystemMetrics(SM_CYFULLSCREEN);
   m_sortMode = sortMode;
-  if (items)
-  {
+  if (items) {
     CopyItems(&m_items, items);
     m_current = m_items.First();
   }
@@ -148,23 +121,25 @@ CoolSelectionBox::CoolSelectionBox(HINSTANCE instance,
 
 CoolSelectionBox::~CoolSelectionBox()
 {
-  if (m_dropDown)
-  {
+  if (m_dropDown) {
     m_dropDown->DestroyNativeWindow();
     delete m_dropDown;
     m_dropDown = nullptr;
   }
-  if (m_borderPen)
-    DeleteObject(m_borderPen);
-  if (m_image)
+  if (m_borderPen) {
+    reb::compat::DeleteObject(m_borderPen);
+  }
+  if (m_image) {
     delete m_image;
-  if (m_dropDownTile)
+  }
+  if (m_dropDownTile) {
     delete m_dropDownTile;
+  }
 }
 
 void CoolSelectionBox::PressButton()
 {
-  PostMessageA(m_hwnd, WM_COMMAND, kButtonId, 0);
+  reb::compat::PostMessageA(m_hwnd, WM_COMMAND, kButtonId, 0);
 }
 
 CoolListItem* CoolSelectionBox::GetSelection()
@@ -174,21 +149,19 @@ CoolListItem* CoolSelectionBox::GetSelection()
 
 CoolListItem* CoolSelectionBox::Select(uint32_t id)
 {
-  if (m_current && id != 0 && m_current->m_id != id)
-  {
+  if (m_current && id != 0 && m_current->m_id != id) {
     m_current = nullptr;
-    for (const auto& entry : m_items.Entries())
-    {
+    for (const auto& entry : m_items.Entries()) {
       auto* item = static_cast<CoolListItem*>(entry.get());
-      if (item->m_id == id)
-      {
+      if (item->m_id == id) {
         m_current = item;
         break;
       }
     }
-    InvalidateRect(m_hwnd, nullptr, FALSE);
-    if (m_parent)
-      PostMessageA(m_parent->m_hwnd, WM_COMMAND, kSelectionChanged, 0);
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+    if (m_parent) {
+      reb::compat::PostMessageA(m_parent->m_hwnd, WM_COMMAND, kSelectionChanged, 0);
+    }
   }
   CloseDropDown();
   return m_current;
@@ -197,8 +170,9 @@ CoolListItem* CoolSelectionBox::Select(uint32_t id)
 void CoolSelectionBox::SetItems(CoolListItemList* items)
 {
   m_items.Clear();
-  if (m_dropDown)
+  if (m_dropDown) {
     CloseDropDown();
+  }
   CopyItems(&m_items, items);
   m_current = m_items.First();
 }
@@ -206,86 +180,82 @@ void CoolSelectionBox::SetItems(CoolListItemList* items)
 void CoolSelectionBox::OpenDropDown()
 {
   POINT origin = {0, 0};
-  if (m_dropDown)
+  if (m_dropDown) {
     return;
-  ClientToScreen(m_hwnd, &origin);
+  }
+  reb::compat::ClientToScreen(m_hwnd, &origin);
   int height = m_rowHeight * m_visibleRows + kDropDownFrame;
   int top = m_clientHeight + origin.y;
-  if (height + top > m_screenBottom)
-  {
+  if (height + top > m_screenBottom) {
     top = origin.y - height;
-    if (top < m_screenTop)
-    {
+    if (top < m_screenTop) {
       height = origin.y - m_screenTop;
       top = m_screenTop;
     }
   }
   m_dropDown = NewOrNull<CoolSelectionDropDown>(m_instance, this, static_cast<int>(origin.x), top, m_clientWidth,
                                                 height, m_borderPen);
-  if (!m_dropDown)
+  if (!m_dropDown) {
     return;
+  }
   m_dropDown->m_childId = kDropDownId;
   m_dropDown->m_sortMode = m_sortMode;
   m_dropDown->Create(1);
-  InvalidateRect(m_dropDown->m_hwnd, nullptr, FALSE);
+  reb::compat::InvalidateRect(m_dropDown->m_hwnd, nullptr, FALSE);
 }
 
 void CoolSelectionBox::CloseDropDown()
 {
-  if (!m_dropDown || g_selectionBoxClosing)
+  if (!m_dropDown || g_selectionBoxClosing) {
     return;
+  }
   g_selectionBoxClosing = 1;
   m_dropDown->DestroyNativeWindow();
   delete m_dropDown;
   m_dropDown = nullptr;
   g_selectionBoxClosing = 0;
-  SetFocus(m_hwnd);
+  reb::compat::SetFocus(m_hwnd);
 }
 
 int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
 {
-  switch (key)
-  {
+  switch (key) {
     case VK_RETURN:
     case VK_ESCAPE:
-      if (!m_dropDown)
+      if (!m_dropDown) {
         return 0;
+      }
       CloseDropDown();
       return 1;
     case VK_UP:
-      if (!m_dropDown)
-      {
-        PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
+      if (!m_dropDown) {
+        reb::compat::PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
         return 1;
       }
-      if (m_current)
-      {
+      if (m_current) {
         auto position = m_items.PositionOf(m_current);
-        if (position != m_items.Entries().begin())
-        {
+        if (position != m_items.Entries().begin()) {
           --position;
           m_current = static_cast<CoolListItem*>((*position).get());
-        }
-        else
+        } else {
           m_current = m_items.First();
-      }
-      else
+        }
+      } else {
         m_current = m_items.First();
+      }
       break;
     case VK_DOWN:
-      if (!m_dropDown)
-      {
-        PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
+      if (!m_dropDown) {
+        reb::compat::PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
         return 1;
       }
-      if (m_current)
-      {
+      if (m_current) {
         auto position = m_items.PositionOf(m_current);
-        if (position != m_items.Entries().end())
-        {
+        if (position != m_items.Entries().end()) {
           ++position;
-          if (position != m_items.Entries().end())
+          if (position != m_items.Entries().end()) {
             m_current = static_cast<CoolListItem*>((*position).get());
+          }
         }
       }
       break;
@@ -298,77 +268,79 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
 
 LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  switch (message)
-  {
+  switch (message) {
     case WM_CREATE:
-    {
-      HINSTANCE instance = m_instance;
-      if (m_buttonBitmapId == 0)
+      {
+        HINSTANCE instance = m_instance;
+        if (m_buttonBitmapId == 0) {
+          return 0;
+        }
+        auto* picture = NewOrNull<DibBitmap>(instance, static_cast<uint32_t>(m_buttonBitmapId),
+                                             static_cast<uint32_t>(kDibResource));
+        if (!picture) {
+          return -1;
+        }
+        const int x = m_clientWidth - picture->Width();
+        const int width = picture->Width();
+        const int height = picture->Height();
+        const int y = (m_clientHeight - height) / 2;
+        if (picture) {
+          delete picture;
+        }
+        auto* button = NewOrNull<CoolStrobeButton>(instance, x, y, width, height, this, kButtonId, m_buttonBitmapId,
+                                                   m_buttonPressedBitmapId, m_image, 0, 0);
+        if (!button) {
+          return -1;
+        }
+        button->Create(0);
+        m_children.Insert(button);
         return 0;
-      auto* picture =
-        NewOrNull<DibBitmap>(instance, static_cast<uint32_t>(m_buttonBitmapId), static_cast<uint32_t>(kDibResource));
-      if (!picture)
-        return -1;
-      const int x = m_clientWidth - picture->Width();
-      const int width = picture->Width();
-      const int height = picture->Height();
-      const int y = (m_clientHeight - height) / 2;
-      if (picture)
-        delete picture;
-      auto* button = NewOrNull<CoolStrobeButton>(instance, x, y, width, height, this, kButtonId,
-                                                             m_buttonBitmapId, m_buttonPressedBitmapId, m_image, 0, 0);
-      if (!button)
-        return -1;
-      button->Create(0);
-      m_children.Insert(button);
-      return 0;
-    }
+      }
     case WM_DESTROY:
       CloseDropDown();
-      return DefWindowProcA(m_hwnd, WM_DESTROY, wParam, lParam);
+      return reb::compat::DefWindowProcA(m_hwnd, WM_DESTROY, wParam, lParam);
     case WM_PAINT:
-    {
-      HWND hwnd = m_hwnd;
-      PAINTSTRUCT paint;
-      HDC dc = BeginPaint(hwnd, &paint);
-      if (m_image)
       {
-        HPALETTE palette = g_palette;
-        HDC memoryDc = CreateCompatibleDC(dc);
-        HGDIOBJ previousBitmap = SelectObject(memoryDc, m_image->DibSectionHandle());
-        HPALETTE previousMemoryPalette = SelectPalette(memoryDc, palette, FALSE);
-        HPALETTE previousPalette = SelectPalette(dc, palette, FALSE);
-        m_backdrop->Blit(m_image, 0, 0, m_x, m_y, m_clientWidth, m_clientHeight);
-        if (m_current)
-        {
-          if (DibBitmap* picture = m_current->CurrentImage())
-            picture->DrawKeyed(m_image, 0, 0);
-          if (ItemText(m_current))
-          {
-            RECT area = {0, 0, m_clientWidth, m_clientHeight};
-            SelectCurrentFont(memoryDc);
-            SetBkMode(memoryDc, TRANSPARENT);
-            SetTextColor(memoryDc, m_textColor);
-            area.left += m_current->m_textOffsetX + m_textOffsetX;
-            area.top += m_current->m_textOffsetY + m_textOffsetY;
-            area.right += m_current->m_textOffsetX + m_textOffsetX;
-            area.bottom += m_current->m_textOffsetY + m_textOffsetY;
-            DrawTextA(memoryDc, ItemText(m_current), -1, &area, m_textFormat);
-            RestoreFont(memoryDc);
+        HWND hwnd = m_hwnd;
+        PAINTSTRUCT paint;
+        HDC dc = reb::compat::BeginPaint(hwnd, &paint);
+        if (m_image) {
+          HPALETTE palette = g_palette;
+          HDC memoryDc = reb::compat::CreateCompatibleDC(dc);
+          HGDIOBJ previousBitmap = reb::compat::SelectObject(memoryDc, m_image->DibSectionHandle());
+          HPALETTE previousMemoryPalette = reb::compat::SelectPalette(memoryDc, palette, FALSE);
+          HPALETTE previousPalette = reb::compat::SelectPalette(dc, palette, FALSE);
+          m_backdrop->Blit(m_image, 0, 0, m_x, m_y, m_clientWidth, m_clientHeight);
+          if (m_current) {
+            if (DibBitmap* picture = m_current->CurrentImage()) {
+              picture->DrawKeyed(m_image, 0, 0);
+            }
+            if (ItemText(m_current)) {
+              RECT area = {0, 0, m_clientWidth, m_clientHeight};
+              SelectCurrentFont(memoryDc);
+              reb::compat::SetBkMode(memoryDc, TRANSPARENT);
+              reb::compat::SetTextColor(memoryDc, m_textColor);
+              area.left += m_current->m_textOffsetX + m_textOffsetX;
+              area.top += m_current->m_textOffsetY + m_textOffsetY;
+              area.right += m_current->m_textOffsetX + m_textOffsetX;
+              area.bottom += m_current->m_textOffsetY + m_textOffsetY;
+              reb::compat::DrawTextA(memoryDc, ItemText(m_current), -1, &area, m_textFormat);
+              RestoreFont(memoryDc);
+            }
           }
+          reb::compat::BitBlt(dc, 0, 0, m_clientWidth, m_clientHeight, memoryDc, 0, 0, SRCCOPY);
+          reb::compat::SelectPalette(dc, previousPalette, FALSE);
+          reb::compat::SelectPalette(memoryDc, previousMemoryPalette, FALSE);
+          reb::compat::SelectObject(memoryDc, previousBitmap);
+          reb::compat::DeleteDC(memoryDc);
         }
-        BitBlt(dc, 0, 0, m_clientWidth, m_clientHeight, memoryDc, 0, 0, SRCCOPY);
-        SelectPalette(dc, previousPalette, FALSE);
-        SelectPalette(memoryDc, previousMemoryPalette, FALSE);
-        SelectObject(memoryDc, previousBitmap);
-        DeleteDC(memoryDc);
+        reb::compat::EndPaint(hwnd, &paint);
+        return 0;
       }
-      EndPaint(hwnd, &paint);
-      return 0;
-    }
     case WM_SHOWWINDOW:
-      if (wParam == 0)
+      if (wParam == 0) {
         CloseDropDown();
+      }
       return 0;
     case WM_MOUSEACTIVATE:
       return MA_ACTIVATE;
@@ -378,21 +350,20 @@ LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       return m_parent->WindowProc(message, wParam, lParam);
     case WM_KEYUP:
     case WM_SYSKEYUP:
-      if (HandleKeyUp(wParam, lParam))
+      if (HandleKeyUp(wParam, lParam)) {
         return 0;
+      }
       return m_parent->WindowProc(message, wParam, lParam);
     case WM_COMMAND:
-      switch (wParam & 0xffff)
-      {
+      switch (wParam & 0xffff) {
         case kButtonId:
-          PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
+          reb::compat::PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
           break;
         case kDropDownId:
           CloseDropDown();
           break;
         case kOpenCommand:
-          if (m_dropDown)
-          {
+          if (m_dropDown) {
             CloseDropDown();
             break;
           }
@@ -404,8 +375,9 @@ LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     case kCaptureLost:
-      if (static_cast<uint16_t>(wParam) == kDropDownId && !IsChild(m_hwnd, reinterpret_cast<HWND>(lParam)))
+      if (static_cast<uint16_t>(wParam) == kDropDownId && !reb::compat::IsChild(m_hwnd, reinterpret_cast<HWND>(lParam))) {
         CloseDropDown();
+      }
       return 0;
     default:
       return CoolWindow::WindowProc(message, wParam, lParam);
@@ -414,14 +386,9 @@ LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 // ---- CoolSelectionDropDown --------------------------------------------------------------------------------------
 
-CoolSelectionDropDown::CoolSelectionDropDown(HINSTANCE instance,
-                                             CoolSelectionBox* owner,
-                                             int x,
-                                             int y,
-                                             int width,
-                                             int height,
-                                             HPEN borderPen)
-: GameWindowObject(instance, x, y, width, height, nullptr, nullptr, 0)
+CoolSelectionDropDown::CoolSelectionDropDown(HINSTANCE instance, CoolSelectionBox* owner, int x, int y, int width,
+                                             int height, HPEN borderPen)
+    : GameWindowObject(instance, x, y, width, height, nullptr, nullptr, 0)
 {
   m_pen = borderPen;
   m_owner = owner;
@@ -434,15 +401,15 @@ CoolSelectionDropDown::CoolSelectionDropDown(HINSTANCE instance,
 
 CoolSelectionDropDown::~CoolSelectionDropDown()
 {
-  if (m_list)
+  if (m_list) {
     delete m_list;
+  }
 }
 
 void CoolSelectionDropDown::SyncSelection()
 {
   CoolListItem* current = m_owner->GetSelection();
-  if (m_list && current)
-  {
+  if (m_list && current) {
     m_list->SelectById(current->m_id, 1);
     m_list->ScrollIntoView(current->m_id);
   }
@@ -451,182 +418,182 @@ void CoolSelectionDropDown::SyncSelection()
 void CoolSelectionDropDown::BuildBackground()
 {
   HWND hwnd = m_hwnd;
-  HDC dc = GetDC(hwnd);
+  HDC dc = reb::compat::GetDC(hwnd);
   HPALETTE palette = g_palette;
-  m_image =
-    NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight), m_owner->m_image, dc);
-  if (!dc || !m_image)
-  {
+  m_image
+      = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight), m_owner->m_image, dc);
+  if (!dc || !m_image) {
     delete m_image;
     m_image = nullptr;
-    if (dc)
-      ReleaseDC(hwnd, dc);
+    if (dc) {
+      reb::compat::ReleaseDC(hwnd, dc);
+    }
     return;
   }
-  HGDIOBJ hollowBrush = GetStockObject(NULL_BRUSH);
-  HDC memoryDc = CreateCompatibleDC(dc);
-  if (!memoryDc)
-  {
+  HGDIOBJ hollowBrush = reb::compat::GetStockObject(NULL_BRUSH);
+  HDC memoryDc = reb::compat::CreateCompatibleDC(dc);
+  if (!memoryDc) {
     delete m_image;
     m_image = nullptr;
-    ReleaseDC(hwnd, dc);
+    reb::compat::ReleaseDC(hwnd, dc);
     return;
   }
-  HGDIOBJ previousBitmap = SelectObject(memoryDc, m_image->DibSectionHandle());
-  HPALETTE previousMemoryPalette = SelectPalette(memoryDc, palette, FALSE);
-  HPALETTE previousPalette = SelectPalette(dc, palette, FALSE);
-  if (m_image)
-  {
-    BitBlt(memoryDc, 0, 0, m_clientWidth, m_clientHeight, dc, 0, 0, SRCCOPY);
-    if (m_shade)
-    {
+  HGDIOBJ previousBitmap = reb::compat::SelectObject(memoryDc, m_image->DibSectionHandle());
+  HPALETTE previousMemoryPalette = reb::compat::SelectPalette(memoryDc, palette, FALSE);
+  HPALETTE previousPalette = reb::compat::SelectPalette(dc, palette, FALSE);
+  if (m_image) {
+    reb::compat::BitBlt(memoryDc, 0, 0, m_clientWidth, m_clientHeight, dc, 0, 0, SRCCOPY);
+    if (m_shade) {
       uint8_t* table = m_image->BuildRemapTable(m_shade);
-      if (table)
-      {
+      if (table) {
         m_image->ApplyRemapTable(0, 0, static_cast<int16_t>(m_clientWidth), static_cast<int16_t>(m_clientHeight));
         m_image->SetRemapTable(nullptr);
         operator delete(table);
       }
-    }
-    else if (DibBitmap* tile = m_owner->m_dropDownTile)
-    {
-      if (tile->Height() == m_clientHeight)
-      {
-        for (int x = 0; x < m_clientWidth; x += tile->Width())
+    } else if (DibBitmap* tile = m_owner->m_dropDownTile) {
+      if (tile->Height() == m_clientHeight) {
+        for (int x = 0; x < m_clientWidth; x += tile->Width()) {
           tile->Blit(m_image, x, 0, 0, 0, 0, 0);
-      }
-      else
-      {
-        for (int y = 0; y < m_clientHeight; y += tile->Height())
+        }
+      } else {
+        for (int y = 0; y < m_clientHeight; y += tile->Height()) {
           tile->Blit(m_image, 0, y, 0, 0, 0, 0);
+        }
       }
     }
     // The frame pen is swapped with the DC's pen, so m_pen ends up holding the pen it replaced.
-    m_pen = SelectObject(memoryDc, m_pen);
-    HGDIOBJ previousBrush = SelectObject(memoryDc, hollowBrush);
-    Rectangle(memoryDc, 0, 0, m_clientWidth - 1, m_clientHeight - 1);
-    SelectObject(memoryDc, previousBrush);
-    SelectObject(memoryDc, m_pen);
-    SelectPalette(dc, previousPalette, FALSE);
-    SelectPalette(memoryDc, previousMemoryPalette, FALSE);
-    SelectObject(memoryDc, previousBitmap);
-    DeleteDC(memoryDc);
+    m_pen = reb::compat::SelectObject(memoryDc, m_pen);
+    HGDIOBJ previousBrush = reb::compat::SelectObject(memoryDc, hollowBrush);
+    reb::compat::Rectangle(memoryDc, 0, 0, m_clientWidth - 1, m_clientHeight - 1);
+    reb::compat::SelectObject(memoryDc, previousBrush);
+    reb::compat::SelectObject(memoryDc, m_pen);
+    reb::compat::SelectPalette(dc, previousPalette, FALSE);
+    reb::compat::SelectPalette(memoryDc, previousMemoryPalette, FALSE);
+    reb::compat::SelectObject(memoryDc, previousBitmap);
+    reb::compat::DeleteDC(memoryDc);
     SetBackground(m_image, 0, 0);
     m_image = nullptr;
   }
-  ReleaseDC(hwnd, dc);
+  reb::compat::ReleaseDC(hwnd, dc);
 }
 
 LRESULT CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  switch (message)
-  {
+  switch (message) {
     case WM_CREATE:
-    {
-      HWND hwnd = m_hwnd;
-      HINSTANCE instance = m_instance;
-      SetCapture(hwnd);
-      GetCapture();
-      BuildBackground();
-      if (!GetBackground())
-        return -1;
-      const int width = m_clientWidth - kDropDownFrame;
-      m_list =
-        NewOrNull<CoolDragList>(instance, kListInset, kListInset, width, m_clientHeight - kDropDownFrame, this,
-                                GetBackground(), kListId, width, m_owner->m_rowHeight, 0, 0, 0, 0, 0, 1, nullptr);
-      if (!m_list)
-        return -1;
-      m_list->SetSortMode(m_sortMode);
-      if (!m_list->Create(0))
-        return -1;
-      m_list->CreateVerticalScrollBar(instance, m_list, m_owner->m_scrollResourceSlot, m_owner->m_scrollResourceId,
-                                      m_clientHeight, 0, m_clientHeight, 1, m_list->m_background);
-      m_list->m_textOffsetX = m_owner->m_textOffsetX;
-      m_list->m_textOffsetY = m_owner->m_textOffsetY;
-      m_list->m_textFormat = m_owner->m_textFormat;
-      m_list->SetSelectedTextColor(m_owner->m_textColor);
-      m_list->SetTextColor(m_owner->m_textColor);
-      m_list->m_options.m_value = kDropDownListOptions;
-      m_list->m_hoverTextColor = kWhite;
-      m_list->m_fillColor = m_owner->m_listFillColor;
-      m_list->SetItemList(&m_owner->m_items);
-      m_list->Refresh();
-      if (m_owner->m_current)
-        m_list->ScrollIntoView(m_owner->m_current->m_id);
-      SetParent(hwnd, g_app ? g_app->m_hwnd : nullptr);
-      GetCapture();
-      return 0;
-    }
-    case WM_DESTROY:
-      if (GetCapture() == m_hwnd)
-        ReleaseCapture();
-      return DefWindowProcA(m_hwnd, WM_DESTROY, wParam, lParam);
-    case WM_PAINT:
-    {
-      HWND hwnd = m_hwnd;
-      PAINTSTRUCT paint;
-      Draw(BeginPaint(hwnd, &paint));
-      EndPaint(hwnd, &paint);
-      return 0;
-    }
-    case WM_COMMAND:
-    {
-      const auto command = static_cast<uint32_t>(wParam);
-      if ((command & 0xffff) != kListId || (command >> 16) != kSelectionChanged)
-        return 0;
-      CoolListItem* item = nullptr;
-      for (const auto& entry : m_list->m_items->Entries())
       {
-        auto* candidate = static_cast<CoolListItem*>(entry.get());
-        if (candidate->m_state.m_value & kListItemSelected)
-        {
-          item = candidate;
-          break;
+        HWND hwnd = m_hwnd;
+        HINSTANCE instance = m_instance;
+        reb::compat::SetCapture(hwnd);
+        reb::compat::GetCapture();
+        BuildBackground();
+        if (!GetBackground()) {
+          return -1;
         }
+        const int width = m_clientWidth - kDropDownFrame;
+        m_list
+            = NewOrNull<CoolDragList>(instance, kListInset, kListInset, width, m_clientHeight - kDropDownFrame, this,
+                                      GetBackground(), kListId, width, m_owner->m_rowHeight, 0, 0, 0, 0, 0, 1, nullptr);
+        if (!m_list) {
+          return -1;
+        }
+        m_list->SetSortMode(m_sortMode);
+        if (!m_list->Create(0)) {
+          return -1;
+        }
+        m_list->CreateVerticalScrollBar(instance, m_list, m_owner->m_scrollResourceSlot, m_owner->m_scrollResourceId,
+                                        m_clientHeight, 0, m_clientHeight, 1, m_list->m_background);
+        m_list->m_textOffsetX = m_owner->m_textOffsetX;
+        m_list->m_textOffsetY = m_owner->m_textOffsetY;
+        m_list->m_textFormat = m_owner->m_textFormat;
+        m_list->SetSelectedTextColor(m_owner->m_textColor);
+        m_list->SetTextColor(m_owner->m_textColor);
+        m_list->m_options.m_value = kDropDownListOptions;
+        m_list->m_hoverTextColor = kWhite;
+        m_list->m_fillColor = m_owner->m_listFillColor;
+        m_list->SetItemList(&m_owner->m_items);
+        m_list->Refresh();
+        if (m_owner->m_current) {
+          m_list->ScrollIntoView(m_owner->m_current->m_id);
+        }
+        reb::compat::SetParent(hwnd, g_app ? g_app->m_hwnd : nullptr);
+        reb::compat::GetCapture();
+        return 0;
       }
-      if (item)
-        m_owner->Select(item->m_id);
-      return 0;
-    }
+    case WM_DESTROY:
+      if (reb::compat::GetCapture() == m_hwnd) {
+        reb::compat::ReleaseCapture();
+      }
+      return reb::compat::DefWindowProcA(m_hwnd, WM_DESTROY, wParam, lParam);
+    case WM_PAINT:
+      {
+        HWND hwnd = m_hwnd;
+        PAINTSTRUCT paint;
+        Draw(reb::compat::BeginPaint(hwnd, &paint));
+        reb::compat::EndPaint(hwnd, &paint);
+        return 0;
+      }
+    case WM_COMMAND:
+      {
+        const auto command = static_cast<uint32_t>(wParam);
+        if ((command & 0xffff) != kListId || (command >> 16) != kSelectionChanged) {
+          return 0;
+        }
+        CoolListItem* item = nullptr;
+        for (const auto& entry : m_list->m_items->Entries()) {
+          auto* candidate = static_cast<CoolListItem*>(entry.get());
+          if (candidate->m_state.m_value & kListItemSelected) {
+            item = candidate;
+            break;
+          }
+        }
+        if (item) {
+          m_owner->Select(item->m_id);
+        }
+        return 0;
+      }
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-    {
-      // Copied first: the WM_COMMAND below closes the drop-down, which destroys this object.
-      HWND hwnd = m_hwnd;
-      POINT point = UnpackPoint(lParam);
-      const POINT client = point;
-      ClientToScreen(hwnd, &point);
-      HWND target = WindowFromPoint(point);
-      if (client.x < 0 || client.x > m_clientWidth || client.y < 0 || client.y > m_clientHeight)
-        SendMessageA(m_owner->m_hwnd, WM_COMMAND, m_childId, 0);
-      ForwardToChild(hwnd, target, point, message, wParam);
-      return 0;
-    }
+      {
+        // Copied first: the WM_COMMAND below closes the drop-down, which destroys this object.
+        HWND hwnd = m_hwnd;
+        POINT point = UnpackPoint(lParam);
+        const POINT client = point;
+        reb::compat::ClientToScreen(hwnd, &point);
+        HWND target = reb::compat::WindowFromPoint(point);
+        if (client.x < 0 || client.x > m_clientWidth || client.y < 0 || client.y > m_clientHeight) {
+          reb::compat::SendMessageA(m_owner->m_hwnd, WM_COMMAND, m_childId, 0);
+        }
+        ForwardToChild(hwnd, target, point, message, wParam);
+        return 0;
+      }
     case WM_MOUSEMOVE:
     case WM_LBUTTONUP:
     case WM_LBUTTONDBLCLK:
     case WM_RBUTTONUP:
-    {
-      POINT point = UnpackPoint(lParam);
-      ClientToScreen(m_hwnd, &point);
-      HWND target = WindowFromPoint(point);
-      if (message == WM_LBUTTONUP)
-        GetCapture();
-      ForwardToChild(m_hwnd, target, point, message, wParam);
-      return 0;
-    }
-    case WM_CAPTURECHANGED:
-    {
-      HWND hwnd = m_hwnd;
-      GetCapture();
-      HWND newCapture = reinterpret_cast<HWND>(lParam);
-      if (newCapture == hwnd || IsChild(hwnd, newCapture) || !newCapture)
+      {
+        POINT point = UnpackPoint(lParam);
+        reb::compat::ClientToScreen(m_hwnd, &point);
+        HWND target = reb::compat::WindowFromPoint(point);
+        if (message == WM_LBUTTONUP) {
+          reb::compat::GetCapture();
+        }
+        ForwardToChild(m_hwnd, target, point, message, wParam);
         return 0;
-      SendMessageA(m_owner->m_hwnd, kCaptureLost, m_childId & 0xffff, lParam);
-      return 0;
-    }
+      }
+    case WM_CAPTURECHANGED:
+      {
+        HWND hwnd = m_hwnd;
+        reb::compat::GetCapture();
+        HWND newCapture = reinterpret_cast<HWND>(lParam);
+        if (newCapture == hwnd || reb::compat::IsChild(hwnd, newCapture) || !newCapture) {
+          return 0;
+        }
+        reb::compat::SendMessageA(m_owner->m_hwnd, kCaptureLost, m_childId & 0xffff, lParam);
+        return 0;
+      }
     default:
-      return DefWindowProcA(m_hwnd, message, wParam, lParam);
+      return reb::compat::DefWindowProcA(m_hwnd, message, wParam, lParam);
   }
 }
 

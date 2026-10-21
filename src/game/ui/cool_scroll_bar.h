@@ -8,9 +8,8 @@ class CoolScrollable;
 class DibBitmap;
 
 // Ids of the auto-repeat timers (WM_TIMER) a scroll bar runs while the mouse button is held.
-enum CoolScrollTimer : UINT
-{
-  kScrollTimerDrag = 1000, // thumb drag, every 50 ms
+enum CoolScrollTimer : UINT {
+  kScrollTimerDrag = 1000,     // thumb drag, every 50 ms
   kScrollTimerPageBack = 1001, // the others every 150 ms
   kScrollTimerPageForward = 1002,
   kScrollTimerPageLeft = 1003,
@@ -29,39 +28,29 @@ constexpr uint32_t kScrollForwardButtonId = 101;
 // the drawing are virtuals the two derived bars supply.
 class CoolScrollBar : public CoolWindow
 {
-public:
-  CoolScrollBar(HINSTANCE instance,
-                int x,
-                int y,
-                int width,
-                int height,
-                CoolWindow* parent,
-                CoolScrollable* owner,
-                uint16_t artSlot,
-                uint16_t artId,
-                int total,
-                int first,
-                int last,
+  public:
+  CoolScrollBar(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, CoolScrollable* owner,
+                uint16_t artSlot, uint16_t artId, int total, int first, int last,
                 uint32_t buttonFlags); // 0x60aa70
-  ~CoolScrollBar() override; // 0x60ab80 (scalar deleting destructor 0x60ab60)
+  ~CoolScrollBar() override;           // 0x60ab80 (scalar deleting destructor 0x60ab60)
 
   // Slot 5: WM_CREATE loads the artwork (LoadArt) and lays the bar out; WM_PAINT draws m_surface; WM_COMMAND
   // goes to OnCommand, WM_TIMER to OnTimer; a left click is posted to the parent as message 0x40e
   // (wParam = message << 16 | child id) before OnLButtonDown; WM_LBUTTONUP ends the drag.
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // 0x60aca0
 
-  virtual void OnCommand(WPARAM id); // slot 9, 0x5ae1e0: does nothing (arrow buttons)
-  virtual int Layout(); // slot 10, 0x6158b0: returns 0; sizes the bar, moves the buttons
-  virtual RECT* GetThumbRect(RECT* out); // slot 11, 0x60b4d0: empty rectangle; returns `out`
-  virtual RECT* GetTrackRect(RECT* out); // slot 12, 0x60b4d0: empty rectangle; returns `out`
-  virtual int BuildThumb(); // slot 13, 0x6158b0: returns 0
-  virtual int BuildTrack(); // slot 14, 0x6158b0: returns 0; builds m_surface/m_track/m_thumb
+  virtual void OnCommand(WPARAM id);        // slot 9, 0x5ae1e0: does nothing (arrow buttons)
+  virtual int Layout();                     // slot 10, 0x6158b0: returns 0; sizes the bar, moves the buttons
+  virtual RECT* GetThumbRect(RECT* out);    // slot 11, 0x60b4d0: empty rectangle; returns `out`
+  virtual RECT* GetTrackRect(RECT* out);    // slot 12, 0x60b4d0: empty rectangle; returns `out`
+  virtual int BuildThumb();                 // slot 13, 0x6158b0: returns 0
+  virtual int BuildTrack();                 // slot 14, 0x6158b0: returns 0; builds m_surface/m_track/m_thumb
   virtual void OnLButtonDown(int x, int y); // slot 15, 0x403ef0: does nothing
-  virtual void OnDragTimer(); // slot 16, 0x619730: does nothing
-  virtual void PageBack(); // slot 17, 0x619730
-  virtual void PageForward(); // slot 18, 0x619730
-  virtual void PageLeft(); // slot 19, 0x619730
-  virtual void PageRight(); // slot 20, 0x619730
+  virtual void OnDragTimer();               // slot 16, 0x619730: does nothing
+  virtual void PageBack();                  // slot 17, 0x619730
+  virtual void PageForward();               // slot 18, 0x619730
+  virtual void PageLeft();                  // slot 19, 0x619730
+  virtual void PageRight();                 // slot 20, 0x619730
 
   // Loads the artwork and creates the arrow buttons; returns GetLastError() when the record is missing.
   DWORD LoadArt(); // 0x60af70
@@ -70,45 +59,45 @@ public:
   // ScrollBy(delta), then redraws background, track and thumb into m_surface; 1 if drawn.
   int Scroll(int delta); // 0x60b3d0
   // Layout, then BuildTrack if that succeeded; returns BuildTrack's result (0 otherwise).
-  int Refresh(); // 0x60b4b0
-  void EndDrag(); // 0x60b500: WM_LBUTTONUP
+  int Refresh();     // 0x60b4b0
+  void EndDrag();    // 0x60b500: WM_LBUTTONUP
   void Draw(HDC dc); // 0x60b560
   // Sets m_total (ignored unless positive), re-clamps the visible range and refreshes.
   int SetRange(int total); // 0x60b590
   // Clamps [first, last) into [0, m_total); hides the bar when everything is visible. 0 if first >= last.
   int SetVisibleRange(int first, int last); // 0x60b5d0
   // Moves the visible range by `delta`, keeping it inside [0, m_total); returns 1.
-  int ScrollBy(int delta); // 0x60b660
+  int ScrollBy(int delta);  // 0x60b660
   void StartTimer(UINT id); // 0x60b6d0: CoolScrollTimer
-  void StopTimer(); // 0x60b730
-  void OnTimer(WPARAM id); // 0x60b750
+  void StopTimer();         // 0x60b730
+  void OnTimer(WPARAM id);  // 0x60b750
 
-  UINT m_timerId; // +0x94 running CoolScrollTimer, 0 if none
-  CoolScrollable* m_owner; // +0x98 the scrolled control
-  int m_dragging; // +0x9c
-  int m_dragX; // +0xa0
-  int m_dragY; // +0xa4
-  int m_dragOffset; // +0xa8
-  uint16_t m_thickness; // +0xac art record [0]
-  uint16_t m_padAe; // +0xae
-  HWND m_previousCapture; // +0xb0 restored by EndDrag
-  DibBitmap* m_trackTile; // +0xb4 art [1]; owned
-  DibBitmap* m_thumbTop; // +0xb8 art [6]; owned
-  DibBitmap* m_thumbMiddle; // +0xbc art [7]; owned
-  DibBitmap* m_thumbBottom; // +0xc0 art [8]; owned
-  DibBitmap* m_surface; // +0xc4 what WM_PAINT shows; owned
-  DibBitmap* m_background; // +0xc8 parent image under the bar; owned
-  DibBitmap* m_track; // +0xcc owned
-  DibBitmap* m_thumb; // +0xd0 owned
-  CoolWindow* m_backButton; // +0xd4 CoolStrobeButton, a child (kScrollBackButtonId)
+  UINT m_timerId;              // +0x94 running CoolScrollTimer, 0 if none
+  CoolScrollable* m_owner;     // +0x98 the scrolled control
+  int m_dragging;              // +0x9c
+  int m_dragX;                 // +0xa0
+  int m_dragY;                 // +0xa4
+  int m_dragOffset;            // +0xa8
+  uint16_t m_thickness;        // +0xac art record [0]
+  uint16_t m_padAe;            // +0xae
+  HWND m_previousCapture;      // +0xb0 restored by EndDrag
+  DibBitmap* m_trackTile;      // +0xb4 art [1]; owned
+  DibBitmap* m_thumbTop;       // +0xb8 art [6]; owned
+  DibBitmap* m_thumbMiddle;    // +0xbc art [7]; owned
+  DibBitmap* m_thumbBottom;    // +0xc0 art [8]; owned
+  DibBitmap* m_surface;        // +0xc4 what WM_PAINT shows; owned
+  DibBitmap* m_background;     // +0xc8 parent image under the bar; owned
+  DibBitmap* m_track;          // +0xcc owned
+  DibBitmap* m_thumb;          // +0xd0 owned
+  CoolWindow* m_backButton;    // +0xd4 CoolStrobeButton, a child (kScrollBackButtonId)
   CoolWindow* m_forwardButton; // +0xd8 CoolStrobeButton, a child (kScrollForwardButtonId)
-  int m_total; // +0xdc
-  int m_first; // +0xe0
-  int m_last; // +0xe4
-  uint16_t m_artSlot; // +0xe8 resource DLL slot of the artwork
-  uint16_t m_artId; // +0xea RT_RCDATA id of the art record
-  uint32_t m_buttonFlags; // +0xec passed on to the arrow buttons
+  int m_total;                 // +0xdc
+  int m_first;                 // +0xe0
+  int m_last;                  // +0xe4
+  uint16_t m_artSlot;          // +0xe8 resource DLL slot of the artwork
+  uint16_t m_artId;            // +0xea RT_RCDATA id of the art record
+  uint32_t m_buttonFlags;      // +0xec passed on to the arrow buttons
 
-private:
+  private:
   void CreateArrowButton(CoolWindow*& button, HMODULE module, uint16_t normalId, uint16_t pressedId, uint32_t childId);
 };

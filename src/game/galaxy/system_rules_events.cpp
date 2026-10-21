@@ -12,20 +12,19 @@ using namespace system_rules;
 int System::EndUprisingIfQuelled(NotifyContext* ctx)
 {
   int result = 1;
-  if (m_flags & system_flag::kUprising)
-  {
+  if (m_flags & system_flag::kUprising) {
     const uint32_t side = ControlSide();
     const int player = PlayerSide(side);
-    if (player != 0)
-    {
+    if (player != 0) {
       ChildIterator troops(this, &family::kTroopRegiments, kStateUsable);
       const int troopCount = troops.Count();
       const uint32_t flags = GameObjRoot::m_flags;
       const int deathStar = (m_flags >> 11) & 1;
       const int share = this->System::GetLoyaltyFor(player);
       const int strength = ComputeRemainingSupport((flags >> 6) & 3, share, deathStar, 1, 0, troopCount);
-      if (strength >= 0)
+      if (strength >= 0) {
         result = SetUprising(0, ctx);
+      }
     }
   }
   return result;
@@ -34,12 +33,10 @@ int System::EndUprisingIfQuelled(NotifyContext* ctx)
 int System::AdjustLoyalty(int delta, int side, NotifyContext* ctx)
 {
   int result = 1;
-  if (side >= 1 && side <= 3 && (m_flags & system_flag::kPopulated))
-  {
+  if (side >= 1 && side <= 3 && (m_flags & system_flag::kPopulated)) {
     const int player = PlayerSide(side);
     result = 0;
-    if (player != 0)
-    {
+    if (player != 0) {
       const int shift = DampenFavourableShift(delta, player, (m_flags >> 11) & 1);
       const int target = ClampPercent(this->System::GetLoyaltyFor(player) + shift);
       result = this->System::SetLoyaltyFor(target, player, ctx) != 0;
@@ -50,35 +47,39 @@ int System::AdjustLoyalty(int delta, int side, NotifyContext* ctx)
 
 int System::EndUprising(NotifyContext* ctx)
 {
-  if ((m_flags >> 2) & 1)
+  if ((m_flags >> 2) & 1) {
     return SetUprising(0, ctx);
+  }
   return 0;
 }
 
 int System::AdjustLoyaltyForUprising(NotifyContext* ctx)
 {
-  if ((m_flags >> 2) & 1)
+  if ((m_flags >> 2) & 1) {
     return AdjustLoyalty(g_gnprtb1E11, ControlSide(), ctx);
+  }
   return 0;
 }
 
 void System::AdjustLoyaltyForAssault(NotifyContext* ctx)
 {
-  if (((m_flags >> 8) & 1) && ControlSide() == 2 && !(m_flags & system_flag::kUprising))
+  if (((m_flags >> 8) & 1) && ControlSide() == 2 && !(m_flags & system_flag::kUprising)) {
     AdjustLoyalty(g_gnprtb1E0B, ControlSide(), ctx);
+  }
 }
 
 void System::AdjustLoyaltyForBlockade(NotifyContext* ctx)
 {
   uint32_t flag = 0;
   int blockaded = 0;
-  if ((m_flags >> 5) & 1)
+  if ((m_flags >> 5) & 1) {
     blockaded = this->System::IsBlockaderMoreLoyal(&flag);
-  if (blockaded)
-  {
+  }
+  if (blockaded) {
     uint32_t blockaderSide;
-    if (this->System::GetBlockadingSide(&blockaderSide))
+    if (this->System::GetBlockadingSide(&blockaderSide)) {
       AdjustLoyalty(flag ? g_gnprtb1E0D : g_gnprtb1E0F, blockaderSide, ctx);
+    }
   }
 }
 
@@ -93,16 +94,15 @@ int System::PulseUprisingIncident(NotifyContext* ctx)
 int System::RollInformantIncident(NotifyContext* ctx)
 {
   int result = 0;
-  if (ControlSide() != 3)
-  {
+  if (ControlSide() != 3) {
     int occurs = 0;
     result = RollFailure(this->System::GetLoyaltyFor(ControlSide()), &occurs);
-    if (result && occurs)
-    {
+    if (result && occurs) {
       const int raised = SetInformantIncident(1, ctx);
       const int cleared = SetInformantIncident(0, ctx);
-      if (cleared && raised)
+      if (cleared && raised) {
         return 1;
+      }
       result = 0;
     }
   }
@@ -118,15 +118,15 @@ int System::RollResourceIncident(NotifyContext* ctx)
   ChildIterator facilities(this, ControlSide(), &family::kFacilities, kStateUsable);
   const int facilityCount = facilities.HasCurrent();
   int result = ApplyRandomCounterShift(&rawMaterial, &energy, siteCount, facilityCount);
-  if (result && (m_rawMaterial != rawMaterial || m_energy != energy))
-  {
+  if (result && (m_rawMaterial != rawMaterial || m_energy != energy)) {
     SetResourceIncident(1, ctx);
     const int rawResult = SetRawMaterial(rawMaterial, ctx);
     const int energyResult = SetEnergy(energy, ctx);
     const int resourcesOk = energyResult && rawResult;
     const int cleared = SetResourceIncident(0, ctx);
-    if (cleared && resourcesOk)
+    if (cleared && resourcesOk) {
       return 1;
+    }
     result = 0;
   }
   return result;
@@ -134,12 +134,12 @@ int System::RollResourceIncident(NotifyContext* ctx)
 
 int System::PulseDisasterIncident(NotifyContext* ctx)
 {
-  if (m_energy != 0 || m_rawMaterial != 0)
-  {
+  if (m_energy != 0 || m_rawMaterial != 0) {
     const int raised = SetDisasterIncident(1, ctx);
     const int cleared = SetDisasterIncident(0, ctx);
-    if (cleared && raised)
+    if (cleared && raised) {
       return 1;
+    }
     return 0;
   }
   return 1;
@@ -163,31 +163,35 @@ bool isSideNumber(int side)
 int System::SetData48(int value, int side)
 {
   const bool valid = isSideNumber(side);
-  if (valid)
+  if (valid) {
     dataOf(this)->m_word48[side - 1] = value;
+  }
   return valid;
 }
 
 int System::SetData54(int value, int side)
 {
   const bool valid = isSideNumber(side);
-  if (valid)
+  if (valid) {
     dataOf(this)->m_word54[side - 1] = value;
+  }
   return valid;
 }
 
 int System::SetData60(int side)
 {
   const bool store = isSideNumber(side) && side != 3;
-  if (store)
+  if (store) {
     dataOf(this)->m_word60 = side;
+  }
   return store;
 }
 
 int System::SetData64(int side)
 {
-  if (!isSideNumber(side) && side != 0)
+  if (!isSideNumber(side) && side != 0) {
     return 0;
+  }
   dataOf(this)->m_word64 = side;
   return 1;
 }
@@ -195,8 +199,9 @@ int System::SetData64(int side)
 int System::SetData68(int value, int side)
 {
   const bool valid = isSideNumber(side);
-  if (valid)
+  if (valid) {
     dataOf(this)->m_word68[side - 1] = value;
+  }
   return valid;
 }
 
@@ -246,12 +251,13 @@ int System::ResolveUprisingTurn(NotifyContext* ctx)
 {
   const uint32_t side = ControlSide();
   int player;
-  if (side == 1)
+  if (side == 1) {
     player = 1;
-  else if (side == 2)
+  } else if (side == 2) {
     player = 2;
-  else
+  } else {
     return 1;
+  }
   SetInformantIncident(1, ctx);
   SetInformantIncident(0, ctx);
   int firstEvent = 0;
@@ -271,69 +277,66 @@ int System::ResolveUprisingTurn(NotifyContext* ctx)
 int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx)
 {
   int result = 1;
-  switch (event)
-  {
+  switch (event) {
     case 0:
       break;
     case 1:
-    {
-      ChildIterator facilities(this, side, &family::kFacilities, kStateUsable);
-      result = SelectRandomChild(&facilities);
-      if (result && facilities.Current())
-        result = static_cast<GameObj*>(facilities.Current())->ChangeDestroyedReason(8, ctx);
-      break;
-    }
+      {
+        ChildIterator facilities(this, side, &family::kFacilities, kStateUsable);
+        result = SelectRandomChild(&facilities);
+        if (result && facilities.Current()) {
+          result = static_cast<GameObj*>(facilities.Current())->ChangeDestroyedReason(8, ctx);
+        }
+        break;
+      }
     case 2:
-    {
-      ChildIterator troops(this, side, &family::kTroopRegiments, kStateUsable);
-      result = SelectRandomChild(&troops);
-      if (result && troops.Current())
-        result = static_cast<GameObj*>(troops.Current())->ChangeDestroyedReason(8, ctx);
-      break;
-    }
+      {
+        ChildIterator troops(this, side, &family::kTroopRegiments, kStateUsable);
+        result = SelectRandomChild(&troops);
+        if (result && troops.Current()) {
+          result = static_cast<GameObj*>(troops.Current())->ChangeDestroyedReason(8, ctx);
+        }
+        break;
+      }
     case 3:
     case 4:
-    {
-      const uint32_t wantedCaptured = event == 4;
-      ChildIterator characters(this, side, &family::kCharacters, kStateUsable);
-      int matching = 0;
-      characters.Begin();
-      while (characters.Current())
       {
-        matching += (static_cast<Character*>(characters.Current())->m_flagsAc & 1) == wantedCaptured;
-        characters.Advance();
-      }
-      if (matching != 0)
-      {
-        const int skip = GameRandom(matching - 1);
+        const uint32_t wantedCaptured = event == 4;
+        ChildIterator characters(this, side, &family::kCharacters, kStateUsable);
+        int matching = 0;
         characters.Begin();
-        uint32_t flags = 0;
-        int passed = 0;
-        for (; characters.Current() && passed < skip; passed += (flags & 1) == wantedCaptured)
-        {
-          flags = static_cast<Character*>(characters.Current())->m_flagsAc;
+        while (characters.Current()) {
+          matching += (static_cast<Character*>(characters.Current())->m_flagsAc & 1) == wantedCaptured;
           characters.Advance();
         }
-        result = characters.Current() != nullptr;
+        if (matching != 0) {
+          const int skip = GameRandom(matching - 1);
+          characters.Begin();
+          uint32_t flags = 0;
+          int passed = 0;
+          for (; characters.Current() && passed < skip; passed += (flags & 1) == wantedCaptured) {
+            flags = static_cast<Character*>(characters.Current())->m_flagsAc;
+            characters.Advance();
+          }
+          result = characters.Current() != nullptr;
+        }
+        if (result && characters.Current()) {
+          auto* chosen = static_cast<Character*>(characters.Current());
+          result = event == 3 ? chosen->RollAndApplyInjury(ctx) : chosen->EscapeCaptivity(ctx);
+        }
+        break;
       }
-      if (result && characters.Current())
-      {
-        auto* chosen = static_cast<Character*>(characters.Current());
-        result = event == 3 ? chosen->RollAndApplyInjury(ctx) : chosen->EscapeCaptivity(ctx);
-      }
-      break;
-    }
     case 5:
-    {
-      ChildIterator characters(this, side, &family::kCharacters, kStateUsable);
-      for (characters.Begin(); characters.Current(); characters.Advance())
       {
-        auto* character = static_cast<Character*>(characters.Current());
-        if (character->m_flagsAc & 1)
-          result = character->EscapeCaptivity(ctx);
+        ChildIterator characters(this, side, &family::kCharacters, kStateUsable);
+        for (characters.Begin(); characters.Current(); characters.Advance()) {
+          auto* character = static_cast<Character*>(characters.Current());
+          if (character->m_flagsAc & 1) {
+            result = character->EscapeCaptivity(ctx);
+          }
+        }
+        break;
       }
-      break;
-    }
     default:
       result = 0;
   }
@@ -342,15 +345,15 @@ int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx)
 
 int System::RollAndSyncEvent(NotifyContext* ctx)
 {
-  if (IsMasterView() && ControlSide() != 3)
-  {
+  if (IsMasterView() && ControlSide() != 3) {
     int event = 0;
     const int rolled = ::RollInformantIncident(&event);
     const uint32_t side = ControlSide();
     const int view = side == 1 ? 2 : 1;
     const int synced = SyncViewForEvent(event, view, ctx);
-    if (synced && rolled)
+    if (synced && rolled) {
       return 1;
+    }
   }
   return 0;
 }

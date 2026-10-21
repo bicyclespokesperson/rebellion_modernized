@@ -23,6 +23,7 @@
 #include "strategy_ui/report_window.h"
 #include "strategy_ui/vote_window.h"
 #include "ui/cool_game_window.h"
+#include "ui/cool_app.h"
 #include "ui/cool_list_item.h"
 #include "ui/cool_window.h"
 #include "ui/custom_dialog_box.h"
@@ -36,6 +37,7 @@ namespace
 constexpr UINT kSkipInvisible = 1;
 constexpr uint32_t kMouseModeNormal = 1;
 constexpr uint32_t kMouseModeTargeting = 2;
+constexpr int kDisplayOff = 0x80;
 constexpr uint32_t kBitmapSlot = 7;
 constexpr uint32_t kTypeMask = 0x3f;
 constexpr uint32_t kSectorWindowType = 1;
@@ -109,27 +111,25 @@ void PlaySpriteSound(uint32_t soundId)
 
 void ShowUnminimizedChildren(GalaxyWindow* galaxy)
 {
-  for (const auto& ownedNode : galaxy->m_children.Entries())
-  {
+  for (const auto& ownedNode : galaxy->m_children.Entries()) {
     auto* node = ownedNode.get();
     auto* child = static_cast<CoolWindow*>(node);
-    if (galaxy->FindMinimizedSlot(child->m_childId) == 0)
+    if (galaxy->FindMinimizedSlot(child->m_childId) == 0) {
       child->Show(5);
+    }
   }
 }
 
 HWND DescendToChildAt(HWND start, POINT* point)
 {
   HWND window = start;
-  HWND child = ChildWindowFromPointEx(window, *point, kSkipInvisible);
+  HWND child = reb::compat::ChildWindowFromPointEx(window, *point, kSkipInvisible);
   HWND previous = window;
-  if (child != window)
-  {
-    do
-    {
+  if (child != window) {
+    do {
       window = child;
-      MapWindowPoints(previous, window, point, 1);
-      child = ChildWindowFromPointEx(window, *point, kSkipInvisible);
+      reb::compat::MapWindowPoints(previous, window, point, 1);
+      child = reb::compat::ChildWindowFromPointEx(window, *point, kSkipInvisible);
       previous = window;
     } while (child != window);
   }
@@ -152,19 +152,21 @@ void ResolveSystemOf(GameObjNotifier* object, ObjectKey* key)
 {
   ObjectKey systemKey;
   bool found = false;
-  do
-  {
-    if (found)
+  do {
+    if (found) {
       break;
+    }
     ObjectKey objectKey;
     GetObjectKey(object, &objectKey);
     systemKey = objectKey;
-    if (systemKey.Family() >= 0x90 && systemKey.Family() < 0x98)
+    if (systemKey.Family() >= 0x90 && systemKey.Family() < 0x98) {
       found = true;
+    }
     object = object->m_parent;
   } while (object);
-  if (found)
+  if (found) {
     *key = systemKey;
+  }
 }
 
 } // namespace
@@ -175,57 +177,66 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
 {
   const bool blocked = InputBlocked();
   const uint32_t command = static_cast<uint32_t>(wParam) & 0xffff;
-  switch (command)
-  {
+  switch (command) {
     case kGalaxySystemFinder:
-      if (!blocked)
+      if (!blocked) {
         OpenSystemFinder();
+      }
       return 0;
     case kGalaxyFleetFinder:
-      if (!blocked)
+      if (!blocked) {
         OpenFleetFinder();
+      }
       return 0;
     case kGalaxyPersonnelFinder:
-      if (!blocked)
+      if (!blocked) {
         OpenPersonnelFinder();
+      }
       return 0;
     case kGalaxyTroopFinder:
-      if (!blocked)
+      if (!blocked) {
         OpenTroopFinder();
+      }
       return 0;
     case kGalaxyEncyclopedia:
-    {
-      ObjectKey object;
-      NullableKey type;
-      type.m_value = 0;
-      if (!blocked)
-        OpenEncyclopedia(&object, &type);
-      return 0;
-    }
+      {
+        ObjectKey object;
+        NullableKey type;
+        type.m_value = 0;
+        if (!blocked) {
+          OpenEncyclopedia(&object, &type);
+        }
+        return 0;
+      }
     case kGalaxyGidButton:
-      if (!blocked)
+      if (!blocked) {
         ToggleGidMenu();
+      }
       return 0;
     case kGalaxyGameControls:
-      if (!blocked)
+      if (!blocked) {
         m_optionsRequested = 1;
+      }
       return 0;
     case kGalaxyRestoreGidLegend:
-    {
-      if (m_displayMode == 0x92 || m_displayMode == 0x93)
+      {
+        if (m_displayMode == 0x92 || m_displayMode == 0x93) {
+          return 0;
+        }
+        if (blocked) {
+          return 0;
+        }
+        if (!m_gidLegend) {
+          return 0;
+        }
+        RECT iconFrame = FrameOf(m_gidLegendIcon);
+        RECT legendFrame = FrameOf(m_gidLegend);
+        AnimateZoomRect(m_hwnd, &legendFrame, &iconFrame);
+        m_gidLegend->ShowAndTrack(5);
+        reb::compat::BringWindowToTop(m_gidLegend->m_hwnd);
+        m_gidLegendIcon->Hide();
         return 0;
-      if (blocked)
-        return 0;
-      if (!m_gidLegend)
-        return 0;
-      RECT iconFrame = FrameOf(m_gidLegendIcon);
-      RECT legendFrame = FrameOf(m_gidLegend);
-      AnimateZoomRect(m_hwnd, &legendFrame, &iconFrame);
-      m_gidLegend->ShowAndTrack(5);
-      BringWindowToTop(m_gidLegend->m_hwnd);
-      m_gidLegendIcon->Hide();
-      return 0;
-    }
+      }
     case 0x136:
       OpenMessageIndex(1, 0x7a);
       return 0;
@@ -254,38 +265,38 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
       OpenMessageIndex(1, 0x81);
       return 0;
     case kGalaxySetDisplayMode:
-    {
-      if (m_gidMenu)
       {
-        RECT menuFrame = FrameOf(m_gidMenu);
-        RECT buttonFrame = FrameOf(m_consoleButtons[5]);
-        AnimateZoomRect(m_hwnd, &buttonFrame, &menuFrame);
+        if (m_gidMenu) {
+          RECT menuFrame = FrameOf(m_gidMenu);
+          RECT buttonFrame = FrameOf(m_consoleButtons[5]);
+          AnimateZoomRect(m_hwnd, &buttonFrame, &menuFrame);
+        }
+        const int mode = HighWord(wParam);
+        SetDisplayMode(mode, reinterpret_cast<const std::set<uint32_t>*>(lParam));
+        ShowDisplayLegend(mode);
+        for (const auto& ownedNode : m_children.Entries()) {
+          auto* node = ownedNode.get();
+          auto* child = static_cast<CoolWindow*>(node);
+          if (FindMinimizedSlot(child->m_childId) == 0) {
+            child->Show(5);
+          }
+        }
+        return 0;
       }
-      const int mode = HighWord(wParam);
-      SetDisplayMode(mode, reinterpret_cast<const std::set<uint32_t>*>(lParam));
-      ShowDisplayLegend(mode);
-      for (const auto& ownedNode : m_children.Entries())
-      {
-        auto* node = ownedNode.get();
-        auto* child = static_cast<CoolWindow*>(node);
-        if (FindMinimizedSlot(child->m_childId) == 0)
-          child->Show(5);
-      }
-      return 0;
-    }
     case kGalaxyHelp:
       AppShowHelp();
       return 0;
     case kGalaxyCancelTargeting:
-      if (m_unknownAc)
+      if (m_unknownAc) {
         return 0;
-      if (m_mouseMode == kMouseModeTargeting)
-      {
+      }
+      if (m_mouseMode == kMouseModeTargeting) {
         delete static_cast<PlayerMessage*>(m_pendingCommand);
         m_pendingCommand = nullptr;
         m_mouseMode = kMouseModeNormal;
-        if (GetCapture() == m_hwnd)
-          ReleaseCapture();
+        if (reb::compat::GetCapture() == m_hwnd) {
+          reb::compat::ReleaseCapture();
+        }
       }
       AppSetState(0xb);
       return 0;
@@ -293,18 +304,17 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
       break;
   }
   CoolWindow* child = m_children.FindById(command);
-  if (!child)
+  if (!child) {
     return 0;
-  const uint32_t notification = static_cast<uint32_t>(wParam) >> 16;
-  if (notification == 0x29a)
-  {
-    OnChildDropped(child, lParam);
   }
-  else if (notification == 0x466)
-  {
+  const uint32_t notification = static_cast<uint32_t>(wParam) >> 16;
+  if (notification == 0x29a) {
+    OnChildDropped(child, lParam);
+  } else if (notification == 0x466) {
     MinimizeChildWindow(child);
-    if (m_activeChild == child->m_hwnd)
-      SendMessageA(m_hwnd, kGalaxyActivateChild, 0, 0);
+    if (m_activeChild == child->m_hwnd) {
+      reb::compat::SendMessageA(m_hwnd, kGalaxyActivateChild, 0, 0);
+    }
   }
   return 0;
 }
@@ -312,8 +322,7 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
 void GalaxyWindow::ToggleGidMenu()
 {
   RECT buttonFrame = FrameOf(m_consoleButtons[5]);
-  if (m_gidLegend && IsWindowVisible(m_gidLegend->m_hwnd))
-  {
+  if (m_gidLegend && reb::compat::IsWindowVisible(m_gidLegend->m_hwnd)) {
     RECT iconFrame = FrameOf(m_gidLegendIcon);
     RECT legendFrame;
     legendFrame.left = m_gidLegend->m_x;
@@ -324,15 +333,15 @@ void GalaxyWindow::ToggleGidMenu()
     m_gidLegend->Hide();
     m_gidLegendIcon->Show(5);
   }
-  for (const auto& ownedNode : m_children.Entries())
+  for (const auto& ownedNode : m_children.Entries()) {
     static_cast<CoolWindow*>(ownedNode.get())->Hide();
-  if (!m_gidMenu)
-  {
+  }
+  if (!m_gidMenu) {
     void* memory = ::operator new(sizeof(GidMenuWindow));
     const int menuX = m_side == 2 ? 0x1a4 : 0x172;
     m_gidMenu = memory ? new (memory) GidMenuWindow(m_instance, menuX, 0xe9, kSpeedMenuWidth, kSpeedMenuWidth, m_side,
-                                                    this, kGidMenuId, GetBackground()) :
-                         nullptr;
+                                                    this, kGidMenuId, GetBackground())
+                       : nullptr;
     m_gidMenu->Create(0);
   }
   RECT menuFrame = FrameOf(m_gidMenu);
@@ -346,61 +355,57 @@ void GalaxyWindow::OnChildDropped(CoolWindow* source, LPARAM cursor)
   ObjectKeyValueSet dragged;
   sourceWindow->GetSelection(&dragged, nullptr);
   POINT inGalaxy = {LowWord(cursor), HighWord(cursor)};
-  ScreenToClient(m_hwnd, &inGalaxy);
-  HWND targetHwnd = ChildWindowFromPointEx(m_hwnd, inGalaxy, kSkipInvisible);
+  reb::compat::ScreenToClient(m_hwnd, &inGalaxy);
+  HWND targetHwnd = reb::compat::ChildWindowFromPointEx(m_hwnd, inGalaxy, kSkipInvisible);
   CoolWindow* found = m_children.FindByHwnd(targetHwnd);
-  if (targetHwnd && found)
-  {
+  if (targetHwnd && found) {
     POINT inTarget = {LowWord(cursor), HighWord(cursor)};
-    ScreenToClient(targetHwnd, &inTarget);
+    reb::compat::ScreenToClient(targetHwnd, &inTarget);
     auto* target = static_cast<CustomDialogBox*>(found);
     const ObjectKey hitKey = target->GetKeyAt(inTarget.x, inTarget.y);
     ObjectKey dropKey = target->GetDropKeyAt(inTarget.x, inTarget.y);
-    if (hitKey.Id() != 0 || dropKey.Id() != 0)
-    {
-      const int command = ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) + kTargetCommandMove;
-      switch (source->m_childId & kTypeMask)
-      {
+    if (hitKey.Id() != 0 || dropKey.Id() != 0) {
+      const int command = ((reb::compat::GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) + kTargetCommandMove;
+      switch (source->m_childId & kTypeMask) {
         case kSectorWindowType:
-        {
-          ObjectKeyValueSet movable;
-          ObjectKeyValueSet others;
-          while (ObjectKeyNode* first = dragged.First())
           {
-            ObjectKey firstKey;
-            first->GetKey(&firstKey);
-            auto* node = static_cast<ObjectKeyValueNode*>(dragged.Detach(&firstKey));
-            if (node->m_value & 4)
-            {
-              void* memory = ::operator new(sizeof(ObjectKeyValueNode));
-              ObjectKey nodeKey;
-              node->GetKey(&nodeKey);
-              movable.Add(memory ? new (memory) ObjectKeyValueNode(nodeKey, 4) : nullptr);
+            ObjectKeyValueSet movable;
+            ObjectKeyValueSet others;
+            while (ObjectKeyNode* first = dragged.First()) {
+              ObjectKey firstKey;
+              first->GetKey(&firstKey);
+              auto* node = static_cast<ObjectKeyValueNode*>(dragged.Detach(&firstKey));
+              if (node->m_value & 4) {
+                void* memory = ::operator new(sizeof(ObjectKeyValueNode));
+                ObjectKey nodeKey;
+                node->GetKey(&nodeKey);
+                movable.Add(memory ? new (memory) ObjectKeyValueNode(nodeKey, 4) : nullptr);
+              }
+              node->m_value &= ~4;
+              if (node->m_value != 0) {
+                others.Add(node);
+              } else {
+                delete node;
+              }
             }
-            node->m_value &= ~4;
-            if (node->m_value != 0)
-            {
-              others.Add(node);
+            if (others.First() && dropKey.IsSet()) {
+              UiHumanCommand(command, &others, &dropKey, nullptr);
             }
-            else
-            {
-              delete node;
+            if (movable.First() && dropKey.IsSet()) {
+              UiHumanCommand(kTargetCommandSelect, &movable, &dropKey, nullptr);
             }
+            break;
           }
-          if (others.First() && dropKey.IsSet())
-            UiHumanCommand(command, &others, &dropKey, nullptr);
-          if (movable.First() && dropKey.IsSet())
-            UiHumanCommand(kTargetCommandSelect, &movable, &dropKey, nullptr);
-          break;
-        }
         case 4:
         case 10:
-          if (dropKey.IsSet())
+          if (dropKey.IsSet()) {
             UiHumanCommand(command, &dragged, &dropKey, nullptr);
+          }
           break;
         case 9:
-          if (dropKey.IsSet())
+          if (dropKey.IsSet()) {
             UiHumanCommand(kTargetCommandSelect, &dragged, &dropKey, nullptr);
+          }
           break;
         default:
           break;
@@ -414,34 +419,33 @@ void GalaxyWindow::OnChildDropped(CoolWindow* source, LPARAM cursor)
 
 LRESULT GalaxyWindow::OnLeftButtonUp(WPARAM keys, LPARAM position)
 {
-  if (InputBlocked())
+  if (InputBlocked()) {
     return 0;
+  }
   POINT cursor = {LowWord(position), HighWord(position)};
-  if (m_mouseMode == kMouseModeNormal)
-  {
-    if (m_gidMenu && IsWindowVisible(m_gidMenu->m_hwnd))
-    {
+  if (m_mouseMode == kMouseModeNormal) {
+    if (m_gidMenu && reb::compat::IsWindowVisible(m_gidMenu->m_hwnd)) {
       PlaySpriteSound(kGidSound);
       m_gidMenu->Hide();
       ShowUnminimizedChildren(this);
     }
-    if (m_hoveredSector)
-    {
-      if (m_gidLegend && IsWindowVisible(m_gidLegend->m_hwnd))
-      {
-        PostMessageA(m_hwnd, kGalaxyCloseChild, m_gidLegend->m_childId, 0);
+    if (m_hoveredSector) {
+      if (m_gidLegend && reb::compat::IsWindowVisible(m_gidLegend->m_hwnd)) {
+        reb::compat::PostMessageA(m_hwnd, kGalaxyCloseChild, m_gidLegend->m_childId, 0);
       }
       ObjectKey sector;
       m_hoveredSector->GetKey(&sector);
       OpenSectorWindow(&sector);
       return 0;
     }
-    if (m_droidStage2->HitTest(cursor.x, cursor.y))
+    if (m_droidStage2->HitTest(cursor.x, cursor.y)) {
       OpenMessageIndex(1, 0x79);
+    }
     return 0;
   }
-  if (m_mouseMode != kMouseModeTargeting)
+  if (m_mouseMode != kMouseModeTargeting) {
     return 0;
+  }
   CompleteTargeting(keys, position);
   return 0;
 }
@@ -450,76 +454,74 @@ void GalaxyWindow::CompleteTargeting(WPARAM keys, LPARAM position)
 {
   POINT cursor = {LowWord(position), HighWord(position)};
   const bool shift = (keys & MK_SHIFT) != 0;
-  HWND hit = ChildWindowFromPointEx(m_hwnd, cursor, kSkipInvisible);
+  HWND hit = reb::compat::ChildWindowFromPointEx(m_hwnd, cursor, kSkipInvisible);
   CoolWindow* target = m_children.FindByHwnd(hit);
-  bool proceed = true;
-  if (!target)
-  {
-    target = m_children.FindByHwnd(GetParent(hit));
-    if (!target && !shift)
-      proceed = false;
+  ObjectKey mapTarget;
+  if (hit == m_hwnd && !shift && m_displayMode != kDisplayOff) {
+    for (const auto& entry : m_systemItems.Entries()) {
+      auto* system = static_cast<ObjectListItem*>(entry.get());
+      const bool visible = (system->m_state.m_value & 0x80) ? m_gidIcons != nullptr
+          : system->m_image != nullptr || ((system->m_state.m_value & 8) && m_gidIcons2);
+      if (visible && reb::compat::PtInRect(&system->m_rect, cursor)) {
+        system->GetKey(&mapTarget);
+        break;
+      }
+    }
   }
-  if (proceed)
-  {
-    MapWindowPoints(m_hwnd, hit, &cursor, 1);
-    if (shift)
-    {
+  bool proceed = true;
+  if (!target) {
+    target = m_children.FindByHwnd(reb::compat::GetParent(hit));
+    if (!target && !shift && !mapTarget.IsSet()) {
+      proceed = false;
+    }
+  }
+  if (proceed) {
+    reb::compat::MapWindowPoints(m_hwnd, hit, &cursor, 1);
+    if (shift) {
       HWND receiver = DescendToChildAt(hit, &cursor);
       m_mouseMode = kMouseModeNormal;
       const auto packed = static_cast<LPARAM>((cursor.y & 0xffff) << 16 | (cursor.x & 0xffff));
-      SendMessageA(receiver, WM_LBUTTONDOWN, 0, packed);
-      SendMessageA(receiver, WM_LBUTTONUP, 0, packed);
+      reb::compat::SendMessageA(receiver, WM_LBUTTONDOWN, 0, packed);
+      reb::compat::SendMessageA(receiver, WM_LBUTTONUP, 0, packed);
       m_mouseMode = kMouseModeTargeting;
       SetCaptureWindow(m_hwnd);
-    }
-    else
-    {
+    } else {
       m_currentCursor = m_normalCursor;
-      ObjectKey key;
+      ObjectKey key(mapTarget);
       auto* pending = static_cast<OrderBase*>(m_pendingCommand);
       auto* dialog = static_cast<CustomDialogBox*>(target);
-      if (!pending)
-      {
-        key = dialog->GetDropKeyAt(cursor.x, cursor.y);
-      }
-      else
-      {
-        const int kind = pending->GetKind();
-        if (kind == kTargetCommandMove || kind == kTargetCommandSelect || kind == kTargetCommandMoveAlternate)
-        {
+      if (!key.IsSet()) {
+        if (!pending) {
           key = dialog->GetDropKeyAt(cursor.x, cursor.y);
-        }
-        else
-        {
-          key = dialog->GetKeyAt(cursor.x, cursor.y);
+        } else {
+          const int kind = pending->GetKind();
+          if (kind == kTargetCommandMove || kind == kTargetCommandSelect || kind == kTargetCommandMoveAlternate) {
+            key = dialog->GetDropKeyAt(cursor.x, cursor.y);
+          } else {
+            key = dialog->GetKeyAt(cursor.x, cursor.y);
+          }
         }
       }
-      if (!pending)
-      {
+      if (!pending) {
         UiHumanAdvisorNotify(&key);
-      }
-      else if (key.Id() != 0)
-      {
-        switch (pending->GetKind())
-        {
+      } else if (key.Id() != 0) {
+        switch (pending->GetKind()) {
           case kTargetCommandMove:
           case kTargetCommandMoveAlternate:
           case kTargetCommandSelect:
-            if (key.IsSet())
-            {
+            if (key.IsSet()) {
               pending->SetTarget(&key);
-              UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(pending), 0);
+              UiHumanReceiveMessage(static_cast<PlayerMessage*>(pending), 0);
               m_pendingCommand = nullptr;
             }
             break;
           case kTargetCommandMission:
-            if (key.IsSet())
-            {
-              if (pending->GetTeam()->Find(&key))
-              {
+            if (key.IsSet()) {
+              if (pending->GetTeam()->Find(&key)) {
                 GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &key);
-                if (object)
+                if (object) {
                   ResolveSystemOf(object, &key);
+                }
               }
               pending->SetTarget(&key);
               IssueTargetedCommand(pending);
@@ -534,37 +536,38 @@ void GalaxyWindow::CompleteTargeting(WPARAM keys, LPARAM position)
       }
     }
   }
-  if (proceed && shift)
+  if (proceed && shift) {
     return;
+  }
   delete static_cast<PlayerMessage*>(m_pendingCommand);
   m_pendingCommand = nullptr;
   m_mouseMode = kMouseModeNormal;
-  if (GetCapture() == m_hwnd)
-    ReleaseCapture();
+  if (reb::compat::GetCapture() == m_hwnd) {
+    reb::compat::ReleaseCapture();
+  }
 }
 
 LRESULT GalaxyWindow::OnLeftDoubleClick(WPARAM keys, LPARAM position)
 {
   (void)keys;
-  if (InputBlocked())
+  if (InputBlocked()) {
     return 0;
+  }
   POINT cursor = {LowWord(position), HighWord(position)};
-  if (m_mouseMode == kMouseModeTargeting)
-  {
+  if (m_mouseMode == kMouseModeTargeting) {
     HWND receiver = DescendToChildAt(m_hwnd, &cursor);
     m_mouseMode = kMouseModeNormal;
-    SendMessageA(receiver, WM_LBUTTONDBLCLK, 0, static_cast<LPARAM>((cursor.y & 0xffff) << 16 | (cursor.x & 0xffff)));
+    reb::compat::SendMessageA(receiver, WM_LBUTTONDBLCLK, 0, static_cast<LPARAM>((cursor.y & 0xffff) << 16 | (cursor.x & 0xffff)));
     m_mouseMode = kMouseModeTargeting;
     SetCaptureWindow(m_hwnd);
     return 0;
   }
   bool restored = false;
-  for (int i = 0; i < 12; ++i)
-  {
-    if (restored)
+  for (int i = 0; i < 12; ++i) {
+    if (restored) {
       return 0;
-    if (PtInRect(&m_minimized[i].m_area, cursor))
-    {
+    }
+    if (reb::compat::PtInRect(&m_minimized[i].m_area, cursor)) {
       RestoreMinimizedWindow(i + 1);
       restored = true;
     }
@@ -575,34 +578,31 @@ LRESULT GalaxyWindow::OnLeftDoubleClick(WPARAM keys, LPARAM position)
 LRESULT GalaxyWindow::OnRightButtonUp(WPARAM keys, LPARAM position)
 {
   (void)keys;
-  if (InputBlocked())
+  if (InputBlocked()) {
     return 0;
+  }
   const int x = LowWordSigned(position);
   const int y = HighWordSigned(position);
   RECT speedArea;
-  if (m_side == 1)
-  {
-    SetRect(&speedArea, 0x67, 0x15, 0xb9, 0x21);
-  }
-  else
-  {
-    SetRect(&speedArea, 499, 0x13, 0x244, 0x1f);
+  if (m_side == 1) {
+    reb::compat::SetRect(&speedArea, 0x67, 0x15, 0xb9, 0x21);
+  } else {
+    reb::compat::SetRect(&speedArea, 499, 0x13, 0x244, 0x1f);
   }
   speedArea.left += MapOffsetX();
   speedArea.right += MapOffsetX();
-  if (uint32_t kind = m_droidStage->HitTest(x, y))
-  {
+  if (uint32_t kind = m_droidStage->HitTest(x, y)) {
     ShowObjectMenu(x, y, kind);
     return 0;
   }
-  if (uint32_t kind = m_droidStage2->HitTest(x, y))
-  {
+  if (uint32_t kind = m_droidStage2->HitTest(x, y)) {
     ShowObjectMenu(x, y, kind);
     return 0;
   }
   POINT point = {x, y};
-  if (!PtInRect(&speedArea, point))
+  if (!reb::compat::PtInRect(&speedArea, point)) {
     return 0;
+  }
   ShowSpeedMenu(x, y);
   return 0;
 }
@@ -614,14 +614,12 @@ void GalaxyWindow::OnCloseChild(WPARAM childId)
   bool destroy = true;
   m_openWindowIds.erase(static_cast<uint32_t>(childId));
   uint32_t soundId = 0;
-  switch (childId & kTypeMask)
-  {
+  switch (childId & kTypeMask) {
     case kSectorWindowType:
       soundId = kSectorCloseSound;
       break;
     case kLegendWindowType:
-      if (m_gidLegend)
-      {
+      if (m_gidLegend) {
         RECT iconFrame = FrameOf(m_gidLegendIcon);
         RECT legendFrame = FrameOf(m_gidLegend);
         AnimateZoomRect(m_hwnd, &iconFrame, &legendFrame);
@@ -639,128 +637,119 @@ void GalaxyWindow::OnCloseChild(WPARAM childId)
     default:
       break;
   }
-  if (soundId != 0)
+  if (soundId != 0) {
     PlaySpriteSound(soundId);
-  if (destroy)
-  {
+  }
+  if (destroy) {
     DestroyChildById(static_cast<uint32_t>(childId));
-    PostMessageA(m_hwnd, kGalaxyActivateChild, 0, 0);
+    reb::compat::PostMessageA(m_hwnd, kGalaxyActivateChild, 0, 0);
   }
 }
 
 void GalaxyWindow::OnActivateChild(WPARAM window)
 {
   HWND popup = CurrentPopupHwnd();
-  PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
+  reb::compat::PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
   HWND target = popup ? popup : reinterpret_cast<HWND>(window);
   CoolWindow* targetWindow = m_children.FindByHwnd(target);
-  if (m_activeChild == target)
-  {
-    if (!target)
-      SetFocus(m_hwnd);
+  if (m_activeChild == target) {
+    if (!target) {
+      reb::compat::SetFocus(m_hwnd);
+    }
     return;
   }
-  if (targetWindow)
-  {
-    if (m_mouseMode & 4)
+  if (targetWindow) {
+    if (m_mouseMode & 4) {
       return;
-    if (FindMinimizedSlot(targetWindow->m_childId) != 0)
+    }
+    if (FindMinimizedSlot(targetWindow->m_childId) != 0) {
       return;
-  }
-  if (IsWindow(m_activeChild))
-  {
-    PostMessageA(m_activeChild, kGalaxyActivateChild, reinterpret_cast<WPARAM>(m_activeChild),
-                 reinterpret_cast<LPARAM>(target));
-  }
-  if (target)
-  {
-    m_previousActiveChild = m_activeChild;
-    m_activeChild = target;
-  }
-  else
-  {
-    m_activeChild = GetWindow(m_hwnd, GW_CHILD);
-    bool found = false;
-    while (m_activeChild && !found)
-    {
-      CoolWindow* candidate = m_children.FindByHwnd(m_activeChild);
-      if (candidate && m_openWindowIds.contains(candidate->m_childId) && FindMinimizedSlot(candidate->m_childId) == 0)
-      {
-        found = true;
-      }
-      if (!found)
-        m_activeChild = GetWindow(m_activeChild, GW_HWNDNEXT);
     }
   }
-  if (!m_activeChild)
-  {
-    SetFocus(m_hwnd);
+  if (reb::compat::IsWindow(m_activeChild)) {
+    reb::compat::PostMessageA(m_activeChild, kGalaxyActivateChild, reinterpret_cast<WPARAM>(m_activeChild),
+                 reinterpret_cast<LPARAM>(target));
+  }
+  if (target) {
+    m_previousActiveChild = m_activeChild;
+    m_activeChild = target;
+  } else {
+    m_activeChild = reb::compat::GetWindow(m_hwnd, GW_CHILD);
+    bool found = false;
+    while (m_activeChild && !found) {
+      CoolWindow* candidate = m_children.FindByHwnd(m_activeChild);
+      if (candidate && m_openWindowIds.contains(candidate->m_childId) && FindMinimizedSlot(candidate->m_childId) == 0) {
+        found = true;
+      }
+      if (!found) {
+        m_activeChild = reb::compat::GetWindow(m_activeChild, GW_HWNDNEXT);
+      }
+    }
+  }
+  if (!m_activeChild) {
+    reb::compat::SetFocus(m_hwnd);
     return;
   }
-  PostMessageA(m_activeChild, kGalaxyActivateChild, 0, reinterpret_cast<LPARAM>(m_activeChild));
-  ShowWindow(m_activeChild, SW_SHOW);
-  BringWindowToTop(m_activeChild);
-  SetFocus(m_activeChild);
+  reb::compat::PostMessageA(m_activeChild, kGalaxyActivateChild, 0, reinterpret_cast<LPARAM>(m_activeChild));
+  reb::compat::ShowWindow(m_activeChild, SW_SHOW);
+  reb::compat::BringWindowToTop(m_activeChild);
+  reb::compat::SetFocus(m_activeChild);
 }
 
 CoolWindow* GalaxyWindow::CreateModalWindow(WPARAM wParam, LPARAM lParam)
 {
   CoolWindow* window = nullptr;
-  switch (wParam & kTypeMask)
-  {
+  switch (wParam & kTypeMask) {
     case kVoteWindowType:
-    {
-      m_optionsRequested = 0;
-      void* memory = ::operator new(sizeof(VoteWindow));
-      window = memory ?
-                 new (memory)
-                   VoteWindow(m_instance, this, static_cast<uint32_t>(wParam), reinterpret_cast<Notice2*>(lParam)) :
-                 nullptr;
-      break;
-    }
+      {
+        m_optionsRequested = 0;
+        void* memory = ::operator new(sizeof(VoteWindow));
+        window = memory ? new (memory) VoteWindow(m_instance, this, static_cast<uint32_t>(wParam),
+                                                  reinterpret_cast<Notice2*>(lParam))
+                        : nullptr;
+        break;
+      }
     case kMessageIndexWindowType:
-    {
-      int tab = 1;
-      int kind = 0x79;
-      if (lParam != 0)
       {
-        tab = LowWord(lParam);
-        kind = HighWord(lParam);
+        int tab = 1;
+        int kind = 0x79;
+        if (lParam != 0) {
+          tab = LowWord(lParam);
+          kind = HighWord(lParam);
+        }
+        OpenMessageIndex(tab, kind);
+        break;
       }
-      OpenMessageIndex(tab, kind);
-      break;
-    }
     case kOrderConfirmWindowType:
-    {
-      void* memory = ::operator new(sizeof(OrderConfirmWindow));
-      window = memory ? new (memory) OrderConfirmWindow(m_instance, this, static_cast<uint32_t>(wParam),
-                                                        reinterpret_cast<Notice8*>(lParam)) :
-                        nullptr;
-      break;
-    }
-    case kObjectStatusWindowType:
-    {
-      auto* key = reinterpret_cast<ObjectKey*>(lParam);
-      if (GetObjectInFamilies_01_ff(m_side, key) || !key->IsSet())
       {
-        void* memory = ::operator new(sizeof(ObjectStatusWindow));
-        window =
-          memory ? new (memory) ObjectStatusWindow(m_instance, this, static_cast<uint32_t>(wParam), key) : nullptr;
+        void* memory = ::operator new(sizeof(OrderConfirmWindow));
+        window = memory ? new (memory) OrderConfirmWindow(m_instance, this, static_cast<uint32_t>(wParam),
+                                                          reinterpret_cast<Notice8*>(lParam))
+                        : nullptr;
+        break;
       }
-      if (key)
-        ::operator delete(key);
-      break;
-    }
+    case kObjectStatusWindowType:
+      {
+        auto* key = reinterpret_cast<ObjectKey*>(lParam);
+        if (GetObjectInFamilies_01_ff(m_side, key) || !key->IsSet()) {
+          void* memory = ::operator new(sizeof(ObjectStatusWindow));
+          window = memory ? new (memory) ObjectStatusWindow(m_instance, this, static_cast<uint32_t>(wParam), key)
+                          : nullptr;
+        }
+        if (key) {
+          ::operator delete(key);
+        }
+        break;
+      }
     case kReportWindowType:
-    {
-      void* memory = ::operator new(sizeof(ReportWindow));
-      auto* notice = reinterpret_cast<UiNotice*>(lParam);
-      window = memory ?
-                 new (memory)
-                   ReportWindow(m_instance, this, static_cast<uint32_t>(wParam), static_cast<UiTextNotice*>(notice)) :
-                 nullptr;
-      break;
-    }
+      {
+        void* memory = ::operator new(sizeof(ReportWindow));
+        auto* notice = reinterpret_cast<UiNotice*>(lParam);
+        window = memory ? new (memory) ReportWindow(m_instance, this, static_cast<uint32_t>(wParam),
+                                                    static_cast<UiTextNotice*>(notice))
+                        : nullptr;
+        break;
+      }
     default:
       break;
   }
@@ -769,44 +758,45 @@ CoolWindow* GalaxyWindow::CreateModalWindow(WPARAM wParam, LPARAM lParam)
 
 LRESULT GalaxyWindow::OnModalRequest(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (InputBlocked())
+  if (InputBlocked()) {
     return 0;
-  PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
-  if (m_gidMenu)
+  }
+  reb::compat::PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
+  if (m_gidMenu) {
     m_gidMenu->Hide();
-  if (!DismissPopup())
-  {
-    do
-    {
+  }
+  if (!DismissPopup()) {
+    do {
       m_inModalLoop = 1;
       MSG pending;
-      while (PeekMessageA(&pending, nullptr, 0, 0, PM_NOREMOVE))
-      {
-        if (pending.message == WM_QUIT)
+      while (reb::compat::PeekMessageA(&pending, nullptr, 0, 0, PM_NOREMOVE)) {
+        if (pending.message == WM_QUIT) {
           return 0;
-        if (pending.hwnd == m_hwnd && pending.message == WM_DESTROY)
+        }
+        if (pending.hwnd == m_hwnd && pending.message == WM_DESTROY) {
           return 0;
-        GetMessageA(&pending, nullptr, 0, 0);
-        TranslateMessage(&pending);
-        DispatchMessageA(&pending);
+        }
+        reb::compat::GetMessageA(&pending, nullptr, 0, 0);
+        if (g_app && !g_app->FilterMessage(&pending)) {
+          continue;
+        }
+        reb::compat::TranslateMessage(&pending);
+        reb::compat::DispatchMessageA(&pending);
       }
       int stepped = 1;
-      if (!g_galaxyWindow)
+      if (!g_galaxyWindow) {
         return 0;
+      }
       g_galaxyWindow->TickIdleAnimations();
       AppStepGame(&stepped);
     } while (!DismissPopup());
   }
   m_inModalLoop = 0;
   SetCaptureWindow(m_hwnd);
-  if (message != kGalaxyOpenModal)
-  {
-    if (wParam == 0)
-    {
+  if (message != kGalaxyOpenModal) {
+    if (wParam == 0) {
       AppSetState(static_cast<int>(lParam));
-    }
-    else if (wParam == 1)
-    {
+    } else if (wParam == 1) {
       SoundManager::Shutdown(0);
       const auto* record = reinterpret_cast<const UiKeyNotice*>(lParam);
       AppPlayMovie(record->m_value, &record->m_text1, nullptr);
@@ -814,14 +804,13 @@ LRESULT GalaxyWindow::OnModalRequest(UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
   }
   CoolWindow* window = CreateModalWindow(wParam, lParam);
-  ReleaseCapture();
-  if (window)
-  {
+  reb::compat::ReleaseCapture();
+  if (window) {
     window->m_style &= ~kWindowVisibleStyle;
     window->Create(0);
     window->Show(5);
     m_children.Insert(window);
-    SetFocus(window->m_hwnd);
+    reb::compat::SetFocus(window->m_hwnd);
   }
   return 0;
 }
@@ -835,94 +824,93 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
   UiHumanRefreshMenus(&commands, 0);
   ObjectKeyValueSet selection;
   ObjectKey target;
-  PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
+  reb::compat::PostMessageA(m_hwnd, kGalaxyClosePopups, 0, 0);
   const bool idle = m_mouseMode == kMouseModeNormal;
-  auto issue = [&](int kind)
-  {
-    if (noPopup && idle && CommandAvailable(&commands, kind))
+  auto issue = [&](int kind) {
+    if (noPopup && idle && CommandAvailable(&commands, kind)) {
       UiHumanCommand(kind, &selection, &target, nullptr);
+    }
   };
-  switch (static_cast<uint32_t>(wParam) & 0xffff)
-  {
+  switch (static_cast<uint32_t>(wParam) & 0xffff) {
     case 0xbb9:
-      if (noPopup)
-      {
-        for (const auto& ownedNode : m_children.Entries())
-        {
+      if (noPopup) {
+        for (const auto& ownedNode : m_children.Entries()) {
           auto* node = ownedNode.get();
           auto* child = static_cast<CoolWindow*>(node);
-          if (FindMinimizedSlot(child->m_childId) == 0)
+          if (FindMinimizedSlot(child->m_childId) == 0) {
             static_cast<CoolGameWindow*>(child)->PostCloseRequest();
+          }
         }
       }
       break;
     case 0xbba:
-      if (m_speed == 1)
+      if (m_speed == 1) {
         UiHumanCommand(0x22, &selection, &target, nullptr);
-      else if (m_speed == 2)
+      } else if (m_speed == 2) {
         UiHumanCommand(0x23, &selection, &target, nullptr);
-      else if (m_speed == 3)
+      } else if (m_speed == 3) {
         UiHumanCommand(0x24, &selection, &target, nullptr);
+      }
       break;
     case 0xbbb:
-      if (m_speed == 2)
+      if (m_speed == 2) {
         UiHumanCommand(0x21, &selection, &target, nullptr);
-      else if (m_speed == 3)
+      } else if (m_speed == 3) {
         UiHumanCommand(0x22, &selection, &target, nullptr);
-      else if (m_speed == 4)
+      } else if (m_speed == 4) {
         UiHumanCommand(0x23, &selection, &target, nullptr);
+      }
       break;
     case 0xbbc:
-      if (m_speed != 0)
+      if (m_speed != 0) {
         UiHumanCommand(0x20, &selection, &target, nullptr);
+      }
       break;
     case 0xbbd:
-      if (noPopup && AppGetGameType() != 1)
+      if (noPopup && AppGetGameType() != 1) {
         OpenMessageIndex(0x68, 0x79);
+      }
       break;
     case 0xbbe:
-    {
-      CoolWindow* messages = m_children.FindById(kMessageIndexTypeId);
-      if (!messages)
-        messages = m_children.FindById(kOtherMessageWindowId);
-      if (messages)
-        PostMessageA(messages->m_hwnd, kGalaxyAccelerator, 0xbbe, 0);
-      break;
-    }
-    case 0xbbf:
-      if (noPopup)
       {
+        CoolWindow* messages = m_children.FindById(kMessageIndexTypeId);
+        if (!messages) {
+          messages = m_children.FindById(kOtherMessageWindowId);
+        }
+        if (messages) {
+          reb::compat::PostMessageA(messages->m_hwnd, kGalaxyAccelerator, 0xbbe, 0);
+        }
+        break;
+      }
+    case 0xbbf:
+      if (noPopup) {
         CoolWindow* active = m_children.FindByHwnd(m_activeChild);
-        if (active)
-        {
+        if (active) {
           static_cast<CustomDialogBox*>(active)->GetSelection(&selection, nullptr);
-          if (selection.Count() == 1)
-          {
+          if (selection.Count() == 1) {
             EventKindSet available;
             UiBuildAvailableOrders(AppGetSide(), &selection, &available);
-            if (CommandAvailable(&available, 0x103))
+            if (CommandAvailable(&available, 0x103)) {
               UiHumanCommand(0x103, &selection, &target, nullptr);
+            }
           }
         }
       }
       break;
     case 0xbc0:
-      if (noPopup)
-      {
+      if (noPopup) {
         CoolWindow* active = m_children.FindByHwnd(m_activeChild);
-        if (active)
-        {
+        if (active) {
           static_cast<CustomDialogBox*>(active)->GetSelection(&selection, nullptr);
-          if (ObjectKeyNode* first = selection.First())
-          {
+          if (ObjectKeyNode* first = selection.First()) {
             ObjectKey firstKey;
             first->GetKey(&firstKey);
-            if (firstKey.Family() >= 0x30 && firstKey.Family() < 0x40)
-            {
+            if (firstKey.Family() >= 0x30 && firstKey.Family() < 0x40) {
               EventKindSet available;
               UiBuildAvailableOrders(AppGetSide(), &selection, &available);
-              if (CommandAvailable(&available, 0x240))
+              if (CommandAvailable(&available, 0x240)) {
                 UiHumanCommand(0x240, &selection, &target, nullptr);
+              }
             }
           }
         }
@@ -981,11 +969,11 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
       break;
     case 0xbd3:
     case 0xbd4:
-      if (IsWindow(m_activeChild) && IsWindowVisible(m_activeChild) && noPopup)
-      {
+      if (reb::compat::IsWindow(m_activeChild) && reb::compat::IsWindowVisible(m_activeChild) && noPopup) {
         CoolWindow* active = m_children.FindByHwnd(m_activeChild);
-        if (active && m_openWindowIds.contains(active->m_childId))
+        if (active && m_openWindowIds.contains(active->m_childId)) {
           ActivateNextOpenWindow(active->m_childId, (wParam & 0xffff) == 0xbd4);
+        }
       }
       break;
     case 0xbd5:
@@ -1005,31 +993,34 @@ void GalaxyWindow::ActivateNextOpenWindow(uint32_t currentId, bool backwards)
   bool wrapped = false;
   uint32_t found = 0;
   auto position = m_openWindowIds.find(currentId);
-  do
-  {
-    if (position == m_openWindowIds.end())
+  do {
+    if (position == m_openWindowIds.end()) {
       break;
-    if (forwards)
+    }
+    if (forwards) {
       position = std::next(position);
-    else if (position == m_openWindowIds.begin())
+    } else if (position == m_openWindowIds.begin()) {
       position = m_openWindowIds.end();
-    else
+    } else {
       position = std::prev(position);
-    if (position == m_openWindowIds.end())
-    {
-      if (wrapped || m_openWindowIds.empty())
+    }
+    if (position == m_openWindowIds.end()) {
+      if (wrapped || m_openWindowIds.empty()) {
         break;
+      }
       position = forwards ? m_openWindowIds.begin() : std::prev(m_openWindowIds.end());
       wrapped = true;
     }
     const uint32_t candidateId = *position;
-    if ((candidateId & kOpenIdMask) != kSectorWindowType && FindMinimizedSlot(candidateId) == 0)
+    if ((candidateId & kOpenIdMask) != kSectorWindowType && FindMinimizedSlot(candidateId) == 0) {
       found = candidateId;
+    }
   } while (!found);
-  if (!found)
+  if (!found) {
     return;
+  }
   CoolWindow* window = m_children.FindById(found);
-  SendMessageA(m_hwnd, kGalaxyActivateChild, reinterpret_cast<WPARAM>(window->m_hwnd), 0);
+  reb::compat::SendMessageA(m_hwnd, kGalaxyActivateChild, reinterpret_cast<WPARAM>(window->m_hwnd), 0);
 }
 
 MenuItemList g_menuRoot{};

@@ -8,16 +8,18 @@ namespace
 {
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void Write(std::vector<uint8_t>& bytes, size_t offset, uint64_t value, size_t count = 4)
 {
-  for (size_t i = 0; i < count; ++i)
+  for (size_t i = 0; i < count; ++i) {
     bytes[offset + i] = static_cast<uint8_t>(value >> (i * 8));
+  }
 }
-}
+} // namespace
 
 int main()
 {
@@ -33,13 +35,18 @@ int main()
   Write(valid, 24, fingerprint, 8);
   reb::hd::IndexedAsset result;
   Require(reb::hd::DecodeAsset(valid, fingerprint, 2, 3, 2, result));
-  Require(result.scale == 4 && result.pixels.size() == 96);
+  Require(result.scale == 4 && result.pixels.size() == 96 && !result.keyedByDetailPixel);
+  valid[6] = '2';
+  Require(reb::hd::DecodeAsset(valid, fingerprint, 2, 3, 2, result));
+  Require(result.keyedByDetailPixel);
+  valid[6] = '1';
   Require(!reb::hd::DecodeAsset(valid, fingerprint + 1, 2, 3, 2, result));
   Require(result.scale == 0 && result.pixels.empty());
   Require(!reb::hd::DecodeAsset(valid, fingerprint, 3, 2, 2, result));
   Require(!reb::hd::DecodeAsset(valid, fingerprint, 2, 3, 1, result));
-  for (size_t length = 0; length < valid.size(); ++length)
+  for (size_t length = 0; length < valid.size(); ++length) {
     Require(!reb::hd::DecodeAsset(std::span(valid).first(length), fingerprint, 2, 3, 2, result));
+  }
   auto invalid = valid;
   invalid.push_back(0);
   Require(!reb::hd::DecodeAsset(invalid, fingerprint, 2, 3, 2, result));

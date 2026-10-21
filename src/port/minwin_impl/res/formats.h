@@ -11,13 +11,12 @@
 namespace mw::res
 {
 
-// RT_STRING: strings are stored 16 per block, block number (id / 16) + 1, each as u16 length + UTF-16. The result is the
-// Windows-1252 text (code points above 0xFF become '?'), what LoadStringA returns.
+// RT_STRING: strings are stored 16 per block, block number (id / 16) + 1, each as u16 length + UTF-16. The result is
+// the Windows-1252 text (code points above 0xFF become '?'), what LoadStringA returns.
 bool LoadStringText(const Module& module, uint32_t id, std::string* out);
 
 // A 32-bit RGBA image with a hotspot; row 0 is the top.
-struct Image
-{
+struct Image {
   int width = 0, height = 0;
   int hotX = 0, hotY = 0;
   std::vector<uint8_t> rgba; // width * height * 4, R G B A
@@ -29,8 +28,7 @@ bool LoadIconImage(const Module& module, const ResId& name, Image* out, int pref
 // Decode a DIB with an AND mask appended (icon / cursor image data, height field doubled) or without (a plain bitmap).
 bool DecodeDibToRgba(const uint8_t* dib, size_t size, bool hasMask, Image* out);
 
-struct Accelerator
-{
+struct Accelerator {
   uint8_t flags; // FVIRTKEY 1, FSHIFT 4, FCONTROL 8, FALT 0x10
   uint16_t key;
   uint16_t command;
@@ -38,16 +36,16 @@ struct Accelerator
 bool LoadAcceleratorTable(const Module& module, const ResId& name, std::vector<Accelerator>* out);
 
 // RT_VERSION blocks: VS_VERSIONINFO tree.
-struct VersionBlock
-{
+struct VersionBlock {
   std::string key;
   const uint8_t* value = nullptr; // points into the raw data
-  uint32_t valueLength = 0; // in characters for text values, bytes for binary
+  uint32_t valueLength = 0;       // in characters for text values, bytes for binary
   bool isText = false;
   std::vector<VersionBlock> children;
 };
 bool ParseVersionInfo(const uint8_t* data, size_t size, VersionBlock* root);
-// "\\" -> the VS_FIXEDFILEINFO, "\\VarFileInfo\\Translation" -> the language/codepage pairs, "\\StringFileInfo\\040904b0\\FileVersion"...
+// "\\" -> the VS_FIXEDFILEINFO, "\\VarFileInfo\\Translation" -> the language/codepage pairs,
+// "\\StringFileInfo\\040904b0\\FileVersion"...
 const VersionBlock* QueryVersionBlock(const VersionBlock& root, const std::string& path);
 
 // The Win32 VerLanguageName table for the common language ids.

@@ -1,5 +1,6 @@
 // MultiPlayerWindow, part 2: the controls and what each page shows and hides.
 #include <cstring>
+#include <string_view>
 
 #include "app/app_control_cmds.h"
 #include "app/rebapp_globals.h"
@@ -11,16 +12,16 @@
 #include "multiplayer/message_codec.h"
 #include "multiplayer/multiplayer_window.h"
 #include "orders/order_base.h"
-#include "tactical/comm2.h"
+#include "multiplayer/comm_helpers.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_string_field.h"
 #include "ui/text_scroll_field.h"
 
-extern const RECT g_rectProviderList; // 0x658668
+extern const RECT g_rectProviderList;     // 0x658668
 extern uint32_t g_lobbyProviderItemWidth; // 0x6b1244
-extern int g_flowRangeSpan; // 0x6b1240 width of the session list items (computed by 0x40d780)
+extern int g_flowRangeSpan;               // 0x6b1240 width of the session list items (computed by 0x40d780)
 
 namespace
 {
@@ -43,29 +44,27 @@ constexpr int kStateMainMenu = 3;
 constexpr int kStateLobbyLaunched = 0xe;
 constexpr int kNotCreated = 0x11;
 constexpr int kSlotsInTable = 5;
-constexpr char kCancelTrace[] = "MultiPlayerWindow::DoCancelMultiPlayer(): About to call PlayerQuitSession()!\n";
-constexpr char kSetupTrace[] =
-  "MultiPlayerWindow::DoCommand(): MP_BCKGND_GAME_SETUP : About to call PlayerQuitSession()!\n";
-constexpr char kStatusMarker[] = "\x17"
-                                 "4";
-constexpr char kLineEnd[] = "\n";
-constexpr char kSideA[] = "\x17"
-                          "10";
-constexpr char kSideB[] = "\x17"
-                          "11";
-constexpr char kSize1[] = "\x17"
-                          "20";
-constexpr char kSize2[] = "\x17"
-                          "21";
-constexpr char kSize3[] = "\x17"
-                          "22";
-constexpr char kType1[] = "\x17"
-                          "30";
-constexpr char kType2[] = "\x17"
-                          "31";
+constexpr std::string_view kSetupTrace
+    = "MultiPlayerWindow::DoCommand(): MP_BCKGND_GAME_SETUP : About to call PlayerQuitSession()!\n";
+constexpr std::string_view kStatusMarker = "\x17"
+                                           "4";
+constexpr std::string_view kLineEnd = "\n";
+constexpr std::string_view kSideA = "\x17"
+                                    "10";
+constexpr std::string_view kSideB = "\x17"
+                                    "11";
+constexpr std::string_view kSize1 = "\x17"
+                                    "20";
+constexpr std::string_view kSize2 = "\x17"
+                                    "21";
+constexpr std::string_view kSize3 = "\x17"
+                                    "22";
+constexpr std::string_view kType1 = "\x17"
+                                    "30";
+constexpr std::string_view kType2 = "\x17"
+                                    "31";
 
-struct ButtonSpec
-{
+struct ButtonSpec {
   int x;
   int y;
   uint32_t normalId;
@@ -81,56 +80,57 @@ struct ButtonSpec
 };
 
 constexpr ButtonSpec kButtons[] = {
-  {0x1b5, 0x1ba, 0x2797, 0x2798, 0x67, 0x1102, 0, 0, 0, 0, 0, 0},
-  {0x122, 0x1ba, 0x2794, 0x2795, 0x65, 0x1101, 0, 0, 0, 0, 0, 0},
-  {0x8d, 0x1ba, 0x2791, 0x2792, 100, 0x1100, 0, 0, 0, 0, 0, 0},
-  {0x122, 0x1ba, 0x279a, 0x279b, 0x66, 0x1103, 0, 0, 0, 0, 0, 0},
-  {0x1f6, 199, 0x279d, 0x279e, 0x6f, 0x1104, 0, 0, 0, 0, 0, 0},
-  {0x8b, 0x139, 0x27a3, 0x27a4, 0x68, 0, 0x1109, 0, 0x200ff00, 0x20000ff, 0, 0},
-  {0x15a, 0x139, 0x27a3, 0x27a4, 0x69, 0, 0x1108, 0, 0x200ff00, 0x20000ff, 0, 0},
-  {0x1b8, 0x47, 0x2785, 0x2786, 0x6a, 0x1161, 0, 0, 0, 0, 0, 0},
-  {0x185, 0x47, 0x2782, 0x2783, 0x6b, 0x1160, 0, 0, 0, 0, 0, 0},
-  {0x185, 0x85, 0x2788, 0x2789, 0x6c, 0x100f, 0, 0, 0, 0, 0, 0},
-  {0x1b8, 0x85, 0x278b, 0x278c, 0x6d, 0x100e, 0, 0, 0, 0, 0, 0},
-  {0x1eb, 0x85, 0x278e, 0x278f, 0x6e, 0x100d, 0, 0, 0, 0, 0, 0},
-  {0x8e, 0xcd, 0x27a0, 0x27a1, 0x70, 0, 0, 0, 0, 0, 0, 0},
-  {0x13e, 0xcd, 0x27a0, 0x27a1, 0x71, 0, 0, 0, 0, 0, 0, 0},
+    {0x1b5, 0x1ba, 0x2797, 0x2798, 0x67, 0x1102, 0, 0, 0, 0, 0, 0},
+    {0x122, 0x1ba, 0x2794, 0x2795, 0x65, 0x1101, 0, 0, 0, 0, 0, 0},
+    {0x8d, 0x1ba, 0x2791, 0x2792, 100, 0x1100, 0, 0, 0, 0, 0, 0},
+    {0x122, 0x1ba, 0x279a, 0x279b, 0x66, 0x1103, 0, 0, 0, 0, 0, 0},
+    {0x1f6, 199, 0x279d, 0x279e, 0x6f, 0x1104, 0, 0, 0, 0, 0, 0},
+    {0x8b, 0x139, 0x27a3, 0x27a4, 0x68, 0, 0x1109, 0, 0x200ff00, 0x20000ff, 0, 0},
+    {0x15a, 0x139, 0x27a3, 0x27a4, 0x69, 0, 0x1108, 0, 0x200ff00, 0x20000ff, 0, 0},
+    {0x1b8, 0x47, 0x2785, 0x2786, 0x6a, 0x1161, 0, 0, 0, 0, 0, 0},
+    {0x185, 0x47, 0x2782, 0x2783, 0x6b, 0x1160, 0, 0, 0, 0, 0, 0},
+    {0x185, 0x85, 0x2788, 0x2789, 0x6c, 0x100f, 0, 0, 0, 0, 0, 0},
+    {0x1b8, 0x85, 0x278b, 0x278c, 0x6d, 0x100e, 0, 0, 0, 0, 0, 0},
+    {0x1eb, 0x85, 0x278e, 0x278f, 0x6e, 0x100d, 0, 0, 0, 0, 0, 0},
+    {0x8e, 0xcd, 0x27a0, 0x27a1, 0x70, 0, 0, 0, 0, 0, 0, 0},
+    {0x13e, 0xcd, 0x27a0, 0x27a1, 0x71, 0, 0, 0, 0, 0, 0, 0},
 };
 
 constexpr uint32_t kButtonChildIds[] = {100, 0x65, 0x66, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71};
 
 CoolStrobeButton* MultiPlayerWindow::* const kButtonMembers[] = {
-  &MultiPlayerWindow::m_backButton,     &MultiPlayerWindow::m_nextButton,     &MultiPlayerWindow::m_startButton,
-  &MultiPlayerWindow::m_joinModeButton, &MultiPlayerWindow::m_hostModeButton, &MultiPlayerWindow::m_sideButtonA,
-  &MultiPlayerWindow::m_sideButtonB,    &MultiPlayerWindow::m_sizeButton1,    &MultiPlayerWindow::m_sizeButton2,
-  &MultiPlayerWindow::m_sizeButton3,    &MultiPlayerWindow::m_loadButton,     &MultiPlayerWindow::m_typeButton1,
-  &MultiPlayerWindow::m_typeButton2,
+    &MultiPlayerWindow::m_backButton,     &MultiPlayerWindow::m_nextButton,     &MultiPlayerWindow::m_startButton,
+    &MultiPlayerWindow::m_joinModeButton, &MultiPlayerWindow::m_hostModeButton, &MultiPlayerWindow::m_sideButtonA,
+    &MultiPlayerWindow::m_sideButtonB,    &MultiPlayerWindow::m_sizeButton1,    &MultiPlayerWindow::m_sizeButton2,
+    &MultiPlayerWindow::m_sizeButton3,    &MultiPlayerWindow::m_loadButton,     &MultiPlayerWindow::m_typeButton1,
+    &MultiPlayerWindow::m_typeButton2,
 };
 
-struct StateBitmap
-{
+struct StateBitmap {
   CoolStrobeButton* MultiPlayerWindow::* button;
   int state;
   uint32_t bitmapId;
 };
 
 constexpr StateBitmap kStateBitmaps[] = {
-  {&MultiPlayerWindow::m_hostModeButton, 4, 0x27a4}, {&MultiPlayerWindow::m_joinModeButton, 4, 0x27a4},
-  {&MultiPlayerWindow::m_sideButtonA, 4, 0x2786},    {&MultiPlayerWindow::m_sideButtonB, 4, 0x2783},
-  {&MultiPlayerWindow::m_sizeButton1, 4, 0x2789},    {&MultiPlayerWindow::m_sizeButton2, 4, 0x278c},
-  {&MultiPlayerWindow::m_sizeButton3, 4, 0x278f},    {&MultiPlayerWindow::m_typeButton1, 4, 0x27a1},
-  {&MultiPlayerWindow::m_typeButton2, 4, 0x27a1},    {&MultiPlayerWindow::m_sideButtonA, 2, 0x2787},
-  {&MultiPlayerWindow::m_sideButtonB, 2, 0x2784},    {&MultiPlayerWindow::m_sizeButton1, 2, 0x278a},
-  {&MultiPlayerWindow::m_sizeButton2, 2, 0x278d},    {&MultiPlayerWindow::m_sizeButton3, 2, 0x2790},
-  {&MultiPlayerWindow::m_backButton, 2, 0x2793},     {&MultiPlayerWindow::m_loadButton, 2, 0x279f},
-  {&MultiPlayerWindow::m_nextButton, 2, 0x2796},     {&MultiPlayerWindow::m_startButton, 2, 0x279c},
+    {&MultiPlayerWindow::m_hostModeButton, 4, 0x27a4}, {&MultiPlayerWindow::m_joinModeButton, 4, 0x27a4},
+    {&MultiPlayerWindow::m_sideButtonA, 4, 0x2786},    {&MultiPlayerWindow::m_sideButtonB, 4, 0x2783},
+    {&MultiPlayerWindow::m_sizeButton1, 4, 0x2789},    {&MultiPlayerWindow::m_sizeButton2, 4, 0x278c},
+    {&MultiPlayerWindow::m_sizeButton3, 4, 0x278f},    {&MultiPlayerWindow::m_typeButton1, 4, 0x27a1},
+    {&MultiPlayerWindow::m_typeButton2, 4, 0x27a1},    {&MultiPlayerWindow::m_sideButtonA, 2, 0x2787},
+    {&MultiPlayerWindow::m_sideButtonB, 2, 0x2784},    {&MultiPlayerWindow::m_sizeButton1, 2, 0x278a},
+    {&MultiPlayerWindow::m_sizeButton2, 2, 0x278d},    {&MultiPlayerWindow::m_sizeButton3, 2, 0x2790},
+    {&MultiPlayerWindow::m_backButton, 2, 0x2793},     {&MultiPlayerWindow::m_loadButton, 2, 0x279f},
+    {&MultiPlayerWindow::m_nextButton, 2, 0x2796},     {&MultiPlayerWindow::m_startButton, 2, 0x279c},
 };
 
 bool AllButtonsExist(const MultiPlayerWindow* window)
 {
-  for (auto member : kButtonMembers)
-    if (!(window->*member))
+  for (auto member : kButtonMembers) {
+    if (!(window->*member)) {
       return false;
+    }
+  }
   return true;
 }
 
@@ -143,26 +143,26 @@ bool SameGuid(const GUID& a, const GUID& b)
 
 void DeleteProviderData(CoolDragList* list)
 {
-  for (const auto& ownedItem : list->m_items->Entries())
-  {
+  for (const auto& ownedItem : list->m_items->Entries()) {
     auto* item = static_cast<CoolListItem*>(ownedItem.get());
-    if (item->m_userPointer)
+    if (item->m_userPointer) {
       delete reinterpret_cast<ServiceProviderInfo*>(item->m_userPointer);
+    }
   }
 }
 
 void DeleteSessionData(CoolDragList* list)
 {
-  for (const auto& ownedItem : list->m_items->Entries())
-  {
+  for (const auto& ownedItem : list->m_items->Entries()) {
     auto* item = static_cast<CoolListItem*>(ownedItem.get());
-    if (item->m_userPointer)
+    if (item->m_userPointer) {
       delete reinterpret_cast<SessionInfo*>(item->m_userPointer);
+    }
   }
 }
 
-CoolDragList*
-CreateList(MultiPlayerWindow* window, const RECT& area, uint32_t overlayId, uint32_t childId, int itemWidth)
+CoolDragList* CreateList(MultiPlayerWindow* window, const RECT& area, uint32_t overlayId, uint32_t childId,
+                         int itemWidth)
 {
   DibBitmap* backdrop = window->FindOverlayBitmap(overlayId);
   HMODULE module = CoolAppGetResourceModule(window->m_bitmapSlot);
@@ -180,14 +180,15 @@ void FinishList(MultiPlayerWindow* window, CoolDragList* list)
                                 list->m_clientHeight, 0, list->m_clientHeight, 1, nullptr);
 }
 
-CoolStringField*
-CreateField(MultiPlayerWindow* window, uint32_t overlayId, int x, int y, int width, int height, uint32_t childId)
+CoolStringField* CreateField(MultiPlayerWindow* window, uint32_t overlayId, int x, int y, int width, int height,
+                             uint32_t childId)
 {
   DibBitmap* backdrop = window->FindOverlayBitmap(overlayId);
   HMODULE module = CoolAppGetResourceModule(window->m_bitmapSlot);
   auto* field = NewOrNull<CoolStringField>(module, x, y, width, height, window, backdrop, 0);
-  if (!field)
+  if (!field) {
     return nullptr;
+  }
   field->m_childId = childId;
   field->SetFont(kFieldFont);
   field->m_shadowOffset = 0;
@@ -199,13 +200,10 @@ CreateField(MultiPlayerWindow* window, uint32_t overlayId, int x, int y, int wid
 
 void SetCheckedPair(CoolStrobeButton* first, CoolStrobeButton* second, bool firstChecked)
 {
-  if (firstChecked)
-  {
+  if (firstChecked) {
     first->SetStateFlags(kButtonChecked);
     second->ClearStateFlags(kButtonChecked);
-  }
-  else
-  {
+  } else {
     first->ClearStateFlags(kButtonChecked);
     second->SetStateFlags(kButtonChecked);
   }
@@ -217,30 +215,26 @@ void SetCheckedPair(CoolStrobeButton* first, CoolStrobeButton* second, bool firs
 
 void MultiPlayerWindow::OnCreate3()
 {
-  if (m_paintBackground)
-  {
-    HDC dc = GetDC(m_hwnd);
+  if (m_paintBackground) {
+    HDC dc = reb::compat::GetDC(m_hwnd);
     HPALETTE palette = m_paintBackground->CreatePaletteFromColorTable();
     SetIdentityPalette(dc, palette);
-    ReleaseDC(m_hwnd, dc);
+    reb::compat::ReleaseDC(m_hwnd, dc);
   }
-  m_providerList =
-    CreateList(this, g_rectProviderList, kLobbyPageProvider, kLobbyChildProviderList, g_lobbyProviderItemWidth);
-  if (m_providerList)
-  {
+  m_providerList
+      = CreateList(this, g_rectProviderList, kLobbyPageProvider, kLobbyChildProviderList, g_lobbyProviderItemWidth);
+  if (m_providerList) {
     FinishList(this, m_providerList);
     FillProviderList();
   }
   m_sessionList = CreateList(this, g_rectSessionList, kLobbyPageJoin, kLobbyChildSessionList, g_flowRangeSpan);
-  if (m_sessionList)
-  {
+  if (m_sessionList) {
     FinishList(this, m_sessionList);
     m_sessionList->RemoveAll();
   }
   std::string name;
   m_hostNameField = CreateField(this, kLobbyPageHost, 0x7c, 0x91, 0x86, 0x11, 200);
-  if (m_hostNameField)
-  {
+  if (m_hostNameField) {
     m_hostNameField->SetMaxLength(kNameMaxLength);
     std::string defaultName;
     GetDefaultPlayerName(&defaultName);
@@ -248,8 +242,7 @@ void MultiPlayerWindow::OnCreate3()
     m_hostNameField->SetText(name.c_str());
   }
   m_gameNameField = CreateField(this, kLobbyPageHost, 0x7c, 0x12e, 0x86, 0x11, 0xca);
-  if (m_gameNameField)
-  {
+  if (m_gameNameField) {
     m_gameNameField->SetMaxLength(kNameMaxLength);
     std::string defaultName;
     GetDefaultGameName(&defaultName);
@@ -257,8 +250,7 @@ void MultiPlayerWindow::OnCreate3()
     m_gameNameField->SetText(name.c_str());
   }
   m_joinNameField = CreateField(this, kLobbyPageJoin, 0x7c, 0x91, 0x86, 0x11, 0xc9);
-  if (m_joinNameField)
-  {
+  if (m_joinNameField) {
     m_joinNameField->SetMaxLength(kNameMaxLength);
     std::string defaultName;
     GetDefaultPlayerName(&defaultName);
@@ -266,48 +258,44 @@ void MultiPlayerWindow::OnCreate3()
     m_joinNameField->SetText(name.c_str());
   }
   m_chatInput = CreateField(this, kLobbyPageSetup, 0xd9, 0x107, 0x142, 0x15, 0xcb);
-  if (m_chatInput)
-  {
+  if (m_chatInput) {
     m_chatInput->SetMaxLength(kChatMaxLength);
     m_chatInput->Clear();
   }
   DibBitmap* chatBackdrop = FindOverlayBitmap(kLobbyPageSetup);
   HMODULE module = CoolAppGetResourceModule(m_bitmapSlot);
   m_chatLog = NewOrNull<TextScrollField>(module, 0x8f, 0x126, 0x18c, 0x47, this, chatBackdrop, 0);
-  if (m_chatLog)
-  {
+  if (m_chatLog) {
     m_chatLog->m_scrollBarId = kScrollBarId;
     m_chatLog->m_scrollBarSlot = static_cast<uint16_t>(m_bitmapSlot);
     m_chatLog->Create(0);
     m_chatLog->m_textColor = kTextColor;
-    InvalidateRect(m_chatLog->m_hwnd, nullptr, FALSE);
+    reb::compat::InvalidateRect(m_chatLog->m_hwnd, nullptr, FALSE);
   }
-  for (const ButtonSpec& spec : kButtons)
-  {
+  for (const ButtonSpec& spec : kButtons) {
     AddButton(spec.x, spec.y, spec.normalId, spec.pressedId, spec.childId, spec.tooltipId, spec.labelStringId,
               spec.fontSlot, spec.color, spec.pressedColor, spec.repeatRate, spec.pixelHit);
   }
-  for (size_t index = 0; index < sizeof(kButtonChildIds) / sizeof(kButtonChildIds[0]); ++index)
+  for (size_t index = 0; index < sizeof(kButtonChildIds) / sizeof(kButtonChildIds[0]); ++index) {
     this->*kButtonMembers[index] = static_cast<CoolStrobeButton*>(FindChild(kButtonChildIds[index]));
-  if (AllButtonsExist(this))
-  {
-    for (const StateBitmap& bitmap : kStateBitmaps)
+  }
+  if (AllButtonsExist(this)) {
+    for (const StateBitmap& bitmap : kStateBitmaps) {
       (this->*bitmap.button)->LoadStateBitmap(bitmap.state, bitmap.bitmapId);
+    }
   }
   const int host = m_isHost;
   AppSetUnknown138(host);
   m_isHost = host;
-  if (m_hostModeButton && m_joinModeButton)
+  if (m_hostModeButton && m_joinModeButton) {
     SetCheckedPair(m_hostModeButton, m_joinModeButton, host != 0);
+  }
   SetGameType(m_gameType, 1, 0);
   SetSide(m_side, 1, 0);
   SetGalaxySize(m_galaxySize, 1, 0);
-  if (CommLaunchedFromLobby() == 0)
-  {
+  if (CommLaunchedFromLobby() == 0) {
     ReturnToProviderPage();
-  }
-  else
-  {
+  } else {
     ShowSetupPage();
   }
   m_ready = 1;
@@ -317,52 +305,50 @@ void MultiPlayerWindow::OnCreate3()
 
 void MultiPlayerWindow::FillProviderList()
 {
-  if (!m_providerList)
+  if (!m_providerList) {
     return;
+  }
   DeleteProviderData(m_providerList);
   m_providerList->RemoveAll();
   ServiceProviderList* providers = CommEnumerateServiceProviders();
-  for (const auto& ownedNode : providers->Entries())
-  {
+  for (const auto& ownedNode : providers->Entries()) {
     auto* node = static_cast<ServiceProviderInfo*>(ownedNode.get());
     auto* copy = NewOrNull<ServiceProviderInfo>(*node);
     m_providerList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
   }
-  if (CoolListItem* first = m_providerList->FirstItem())
+  if (CoolListItem* first = m_providerList->FirstItem()) {
     m_providerList->SelectById(first->m_id, 1);
+  }
 }
 
 int MultiPlayerWindow::RefreshSessionList()
 {
   int status = kNotCreated;
-  if (!m_sessionList || m_selectedSession)
+  if (!m_sessionList || m_selectedSession) {
     return status;
+  }
   SessionList* sessions = CommGetSessionList(0, &status);
-  if (status != 0)
-  {
+  if (status != 0) {
     ReturnToProviderPage();
     return status;
   }
-  if (SessionListUpToDate(sessions) == 0)
+  if (SessionListUpToDate(sessions) == 0) {
     return status;
+  }
   DeleteSessionData(m_sessionList);
   m_sessionList->RemoveAll();
-  for (const auto& ownedNode : sessions->Entries())
-  {
+  for (const auto& ownedNode : sessions->Entries()) {
     auto* node = static_cast<SessionInfo*>(ownedNode.get());
     auto* copy = NewOrNull<SessionInfo>(*node);
     m_sessionList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
   }
-  if (CoolListItem* first = m_sessionList->FirstItem())
+  if (CoolListItem* first = m_sessionList->FirstItem()) {
     m_sessionList->SelectById(first->m_id, 1);
-  if (m_nextButton)
-  {
-    if (!m_sessionList->FirstItem())
-    {
+  }
+  if (m_nextButton) {
+    if (!m_sessionList->FirstItem()) {
       m_nextButton->Disable();
-    }
-    else
-    {
+    } else {
       m_nextButton->Enable();
     }
   }
@@ -372,20 +358,22 @@ int MultiPlayerWindow::RefreshSessionList()
 int MultiPlayerWindow::SessionListUpToDate(SessionList* sessions)
 {
   int differs = 0;
-  if (!sessions || !m_sessionList)
+  if (!sessions || !m_sessionList) {
     return differs;
-  if (static_cast<uint32_t>(sessions->Count()) != static_cast<uint32_t>(m_sessionList->m_items->Count()))
+  }
+  if (static_cast<uint32_t>(sessions->Count()) != static_cast<uint32_t>(m_sessionList->m_items->Count())) {
     return 1;
-  for (const auto& ownedNode : sessions->Entries())
-  {
-    if (differs)
+  }
+  for (const auto& ownedNode : sessions->Entries()) {
+    if (differs) {
       break;
+    }
     auto* node = static_cast<SessionInfo*>(ownedNode.get());
     int found = 0;
-    for (const auto& ownedItem : m_sessionList->m_items->Entries())
-    {
-      if (found)
+    for (const auto& ownedItem : m_sessionList->m_items->Entries()) {
+      if (found) {
         break;
+      }
       auto* item = static_cast<CoolListItem*>(ownedItem.get());
       const auto* known = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
       found = SameGuid(known->m_instance, node->m_instance);
@@ -397,17 +385,16 @@ int MultiPlayerWindow::SessionListUpToDate(SessionList* sessions)
 
 void MultiPlayerWindow::RememberSelectedProvider()
 {
-  if (m_selectedProvider)
-  {
+  if (m_selectedProvider) {
     delete m_selectedProvider;
     m_selectedProvider = nullptr;
   }
-  if (!m_providerList)
+  if (!m_providerList) {
     return;
+  }
   CoolListItemList selection(1);
   m_providerList->CopySelectionTo(&selection);
-  if (auto* item = static_cast<CoolListItem*>(selection.First()))
-  {
+  if (auto* item = static_cast<CoolListItem*>(selection.First())) {
     const auto* source = reinterpret_cast<const ServiceProviderInfo*>(item->m_userPointer);
     m_selectedProvider = NewOrNull<ServiceProviderInfo>(*source);
   }
@@ -415,17 +402,16 @@ void MultiPlayerWindow::RememberSelectedProvider()
 
 void MultiPlayerWindow::RememberSelectedSession()
 {
-  if (m_selectedSession)
-  {
+  if (m_selectedSession) {
     delete m_selectedSession;
     m_selectedSession = nullptr;
   }
-  if (!m_sessionList)
+  if (!m_sessionList) {
     return;
+  }
   CoolListItemList selection(1);
   m_sessionList->CopySelectionTo(&selection);
-  if (auto* item = static_cast<CoolListItem*>(selection.First()))
-  {
+  if (auto* item = static_cast<CoolListItem*>(selection.First())) {
     const auto* source = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
     m_selectedSession = NewOrNull<SessionInfo>(*source);
   }
@@ -435,8 +421,7 @@ void MultiPlayerWindow::RememberSelectedSession()
 
 void MultiPlayerWindow::HideControls()
 {
-  if (AllButtonsExist(this))
-  {
+  if (AllButtonsExist(this)) {
     m_backButton->Enable();
     m_nextButton->Enable();
     m_nextButton->Hide();
@@ -452,41 +437,44 @@ void MultiPlayerWindow::HideControls()
     m_typeButton1->Hide();
     m_typeButton2->Hide();
   }
-  if (m_gameNameField)
+  if (m_gameNameField) {
     m_gameNameField->Hide();
-  if (m_hostNameField)
+  }
+  if (m_hostNameField) {
     m_hostNameField->Hide();
-  if (m_joinNameField)
+  }
+  if (m_joinNameField) {
     m_joinNameField->Hide();
-  if (m_chatInput)
+  }
+  if (m_chatInput) {
     m_chatInput->Hide();
-  if (m_chatLog)
+  }
+  if (m_chatLog) {
     m_chatLog->Hide();
-  if (m_providerList)
+  }
+  if (m_providerList) {
     m_providerList->Hide();
-  if (m_sessionList)
+  }
+  if (m_sessionList) {
     m_sessionList->Hide();
+  }
 }
 
 void MultiPlayerWindow::SetGameType(int type, int force, int apply)
 {
-  if (m_gameType == type && force == 0)
+  if (m_gameType == type && force == 0) {
     return;
+  }
   CoolStrobeButton* first = m_typeButton1;
   m_gameType = type;
-  if (first && m_typeButton2)
-  {
-    if (type == 1)
-    {
+  if (first && m_typeButton2) {
+    if (type == 1) {
       SetCheckedPair(first, m_typeButton2, true);
-    }
-    else if (type == 2)
-    {
+    } else if (type == 2) {
       SetCheckedPair(first, m_typeButton2, false);
     }
   }
-  if (apply != 0)
-  {
+  if (apply != 0) {
     AnnounceSettings();
     SendSettings(0);
   }
@@ -494,25 +482,21 @@ void MultiPlayerWindow::SetGameType(int type, int force, int apply)
 
 void MultiPlayerWindow::SetSide(int side, int force, int apply)
 {
-  if (m_side == side && force == 0)
+  if (m_side == side && force == 0) {
     return;
+  }
   CoolStrobeButton* first = m_sideButtonA;
   m_side = side;
-  if (first && m_sideButtonB)
-  {
-    if (side == 1)
-    {
+  if (first && m_sideButtonB) {
+    if (side == 1) {
       first->ClearStateFlags(kButtonChecked);
       m_sideButtonB->SetStateFlags(kButtonChecked);
-    }
-    else
-    {
+    } else {
       first->SetStateFlags(kButtonChecked);
       m_sideButtonB->ClearStateFlags(kButtonChecked);
     }
   }
-  if (apply != 0)
-  {
+  if (apply != 0) {
     AnnounceSettings();
     SendSettings(0);
   }
@@ -520,33 +504,27 @@ void MultiPlayerWindow::SetSide(int side, int force, int apply)
 
 void MultiPlayerWindow::SetGalaxySize(int size, int force, int apply)
 {
-  if (size == m_galaxySize && force == 0)
+  if (size == m_galaxySize && force == 0) {
     return;
+  }
   CoolStrobeButton* first = m_sizeButton1;
   m_galaxySize = size;
-  if (first && m_sizeButton2 && m_sizeButton3)
-  {
-    if (size == 1)
-    {
+  if (first && m_sizeButton2 && m_sizeButton3) {
+    if (size == 1) {
       first->SetStateFlags(kButtonChecked);
       m_sizeButton2->ClearStateFlags(kButtonChecked);
       m_sizeButton3->ClearStateFlags(kButtonChecked);
-    }
-    else if (size == 2)
-    {
+    } else if (size == 2) {
       first->ClearStateFlags(kButtonChecked);
       m_sizeButton2->SetStateFlags(kButtonChecked);
       m_sizeButton3->ClearStateFlags(kButtonChecked);
-    }
-    else if (size == 3)
-    {
+    } else if (size == 3) {
       first->ClearStateFlags(kButtonChecked);
       m_sizeButton2->ClearStateFlags(kButtonChecked);
       m_sizeButton3->SetStateFlags(kButtonChecked);
     }
   }
-  if (apply != 0)
-  {
+  if (apply != 0) {
     AnnounceSettings();
     SendSettings(0);
   }
@@ -554,10 +532,10 @@ void MultiPlayerWindow::SetGalaxySize(int size, int force, int apply)
 
 void MultiPlayerWindow::ShowSetupButtons(int show)
 {
-  if (!AllButtonsExist(this))
+  if (!AllButtonsExist(this)) {
     return;
-  if (show != 0)
-  {
+  }
+  if (show != 0) {
     m_sideButtonA->Enable();
     m_sideButtonB->Enable();
     m_sizeButton1->Enable();
@@ -582,36 +560,39 @@ void MultiPlayerWindow::ShowSetupButtons(int show)
 
 void MultiPlayerWindow::UpdateStartButtons()
 {
-  if (!m_loadButton || !m_startButton)
+  if (!m_loadButton || !m_startButton) {
     return;
+  }
   const uint32_t playerCount = CommGetPlayerCount();
-  if (m_isHost == 0)
+  if (m_isHost == 0) {
     return;
-  if (playerCount == 2)
-  {
+  }
+  if (playerCount == 2) {
     const int loadDisabled = m_loadButton->HasStateFlags(kButtonDisabled);
     const int startDisabled = m_startButton->HasStateFlags(kButtonDisabled);
-    if (!loadDisabled && !startDisabled)
+    if (!loadDisabled && !startDisabled) {
       return;
+    }
     bool matched = false;
-    for (int slot = 1; slot <= 6 && !matched; ++slot)
-    {
-      if (AppGetSavedGameType(slot, 1) != 2)
+    for (int slot = 1; slot <= 6 && !matched; ++slot) {
+      if (AppGetSavedGameType(slot, 1) != 2) {
         continue;
+      }
       const uint32_t saved = GetSlotSaveId(slot);
       const uint32_t announced = g_lobbySlotTable[slot];
-      if (saved != 0 && announced != 0)
+      if (saved != 0 && announced != 0) {
         matched = saved == announced;
+      }
     }
-    if (matched)
+    if (matched) {
       m_loadButton->Enable();
+    }
     m_startButton->Enable();
     return;
   }
   const int loadDisabled = m_loadButton->HasStateFlags(kButtonDisabled);
   const int startDisabled = m_startButton->HasStateFlags(kButtonDisabled);
-  if (!loadDisabled || !startDisabled)
-  {
+  if (!loadDisabled || !startDisabled) {
     m_loadButton->Disable();
     m_startButton->Disable();
   }
@@ -623,70 +604,72 @@ void MultiPlayerWindow::ReturnToProviderPage()
 {
   m_closing = 1;
   HideControls();
-  KillTimer(m_hwnd, kLobbyTimerSessions);
-  CommTrace(kCancelTrace);
+  reb::compat::KillTimer(m_hwnd, kLobbyTimerSessions);
+  CommTrace(kCancelMultiPlayerTrace);
   CommSendPlayerQuit();
   CommTrace(kSetupTrace);
   CommCleanUp();
   OnCreate1();
   m_page = kLobbyPageProvider;
   SetPaintBackgroundById(kLobbyPageProvider);
-  if (!AllButtonsExist(this))
+  if (!AllButtonsExist(this)) {
     return;
+  }
   m_backButton->Disable();
   m_nextButton->Show(kShowCommand);
   m_joinModeButton->Show(kShowCommand);
   m_hostModeButton->Show(kShowCommand);
-  if (m_providerList)
+  if (m_providerList) {
     m_providerList->Show(kShowCommand);
-  if (!m_providerList->FirstItem())
+  }
+  if (!m_providerList->FirstItem()) {
     m_nextButton->Disable();
+  }
 }
 
 void MultiPlayerWindow::ShowJoinPage()
 {
-  if (CommOpenProvider(m_selectedProvider) != 0)
-  {
+  if (CommOpenProvider(m_selectedProvider) != 0) {
     AppShowNoticeDialog(kNoticeProviderFailed, 0x1208, 0x1207, 0x190f, 500, 0x50);
     ReturnToProviderPage();
     return;
   }
-  if (m_selectedSession)
-  {
+  if (m_selectedSession) {
     delete m_selectedSession;
     m_selectedSession = nullptr;
   }
-  SetCursor(LoadCursorA(nullptr, IDC_WAIT));
+  reb::compat::SetCursor(reb::compat::LoadCursorA(nullptr, IDC_WAIT));
   const int status = RefreshSessionList();
-  if (status != 0)
-  {
-    SetCursor(LoadCursorA(nullptr, IDC_ARROW));
+  if (status != 0) {
+    reb::compat::SetCursor(reb::compat::LoadCursorA(nullptr, IDC_ARROW));
     ReturnToProviderPage();
     return;
   }
-  SetTimer(m_hwnd, kLobbyTimerSessions, kSessionTimerMs, nullptr);
-  SetCursor(LoadCursorA(nullptr, IDC_ARROW));
+  reb::compat::SetTimer(m_hwnd, kLobbyTimerSessions, kSessionTimerMs, nullptr);
+  reb::compat::SetCursor(reb::compat::LoadCursorA(nullptr, IDC_ARROW));
   HideControls();
   m_page = kLobbyPageJoin;
   SetPaintBackgroundById(kLobbyPageJoin);
-  if (m_nextButton)
-  {
-    if (!m_sessionList->FirstItem())
+  if (m_nextButton) {
+    if (!m_sessionList->FirstItem()) {
       m_nextButton->Disable();
+    }
     m_nextButton->Show(kShowCommand);
   }
-  if (m_sessionList)
+  if (m_sessionList) {
     m_sessionList->Show(kShowCommand);
-  if (m_joinNameField)
+  }
+  if (m_joinNameField) {
     m_joinNameField->Show(kShowCommand);
-  if (m_joinNameField)
-    SetFocus(m_joinNameField->m_hwnd);
+  }
+  if (m_joinNameField) {
+    reb::compat::SetFocus(m_joinNameField->m_hwnd);
+  }
 }
 
 void MultiPlayerWindow::ShowHostPage()
 {
-  if (CommOpenProvider(m_selectedProvider) != 0)
-  {
+  if (CommOpenProvider(m_selectedProvider) != 0) {
     AppShowNoticeDialog(kNoticeProviderFailed, 0x1208, 0x1207, 0x190f, 500, 0x50);
     ReturnToProviderPage();
     return;
@@ -694,74 +677,66 @@ void MultiPlayerWindow::ShowHostPage()
   HideControls();
   m_page = kLobbyPageHost;
   SetPaintBackgroundById(kLobbyPageHost);
-  if (m_nextButton)
+  if (m_nextButton) {
     m_nextButton->Show(kShowCommand);
-  if (m_gameNameField)
+  }
+  if (m_gameNameField) {
     m_gameNameField->Show(kShowCommand);
-  if (m_gameNameField)
-    SetFocus(m_gameNameField->m_hwnd);
-  if (m_hostNameField)
+  }
+  if (m_gameNameField) {
+    reb::compat::SetFocus(m_gameNameField->m_hwnd);
+  }
+  if (m_hostNameField) {
     m_hostNameField->Show(kShowCommand);
-  if (m_hostNameField)
-    SetFocus(m_hostNameField->m_hwnd);
+  }
+  if (m_hostNameField) {
+    reb::compat::SetFocus(m_hostNameField->m_hwnd);
+  }
 }
 
 void MultiPlayerWindow::ShowSetupPage()
 {
   g_lobbyFlags = 0;
   int result = 0;
-  KillTimer(m_hwnd, kLobbyTimerSessions);
-  if (CommLaunchedFromLobby() == 0)
-  {
+  reb::compat::KillTimer(m_hwnd, kLobbyTimerSessions);
+  if (CommLaunchedFromLobby() == 0) {
     const std::string* nameSource = nullptr;
-    if (m_isHost != 0)
-    {
+    if (m_isHost != 0) {
       std::string gameName = m_gameNameField ? m_gameNameField->m_text : std::string();
-      if (gameName.empty())
+      if (gameName.empty()) {
         GetDefaultGameName(&gameName);
+      }
       result = CommHostNewSession(gameName.c_str());
       nameSource = m_hostNameField ? &m_hostNameField->m_text : nullptr;
-    }
-    else
-    {
+    } else {
       RememberSelectedSession();
       result = CommJoinSession(m_selectedSession);
       nameSource = m_joinNameField ? &m_joinNameField->m_text : nullptr;
     }
     CommSetPlayerName(nameSource ? *nameSource : std::string());
   }
-  if (result != 0)
-  {
-    if (m_isHost == 0)
-    {
+  if (result != 0) {
+    if (m_isHost == 0) {
       ShowJoinPage();
-    }
-    else
-    {
+    } else {
       ShowHostPage();
     }
     return;
   }
-  if (m_isHost != 0)
-  {
+  if (m_isHost != 0) {
     ShowSetupButtons(1);
     UpdateStartButtons();
-  }
-  else
-  {
+  } else {
     ShowSetupButtons(0);
     {
       std::string marker(kStatusMarker);
       PrintChatLine(&marker);
     }
     auto* slots = NewOrNull<MpSlotTableMsg>();
-    if (slots)
-    {
-      for (int slot = 1; slot < 6; ++slot)
-      {
+    if (slots) {
+      for (int slot = 1; slot < 6; ++slot) {
         uint32_t value = 0;
-        if (slot < 7)
-        {
+        if (slot < 7) {
           SavedGameInfo header = AppReadSaveHeader(slot, 1);
           value = static_cast<uint32_t>(header.m_unknown24);
         }
@@ -773,14 +748,10 @@ void MultiPlayerWindow::ShowSetupPage()
   HideControls();
   m_page = kLobbyPageSetup;
   SetPaintBackgroundById(kLobbyPageSetup);
-  if (AllButtonsExist(this))
-  {
-    if (CommLaunchedFromLobby() == 0)
-    {
+  if (AllButtonsExist(this)) {
+    if (CommLaunchedFromLobby() == 0) {
       m_backButton->Enable();
-    }
-    else
-    {
+    } else {
       m_backButton->Disable();
     }
     m_startButton->Show(kShowCommand);
@@ -793,17 +764,15 @@ void MultiPlayerWindow::ShowSetupPage()
     m_typeButton1->Show(kShowCommand);
     m_typeButton2->Show(kShowCommand);
   }
-  if (m_chatInput)
-  {
+  if (m_chatInput) {
     m_chatInput->Show(kShowCommand);
-    SetFocus(m_chatInput->m_hwnd);
+    reb::compat::SetFocus(m_chatInput->m_hwnd);
   }
-  if (m_chatLog)
-  {
+  if (m_chatLog) {
     m_chatLog->ClearText();
     m_chatLog->Show(kShowCommand);
   }
-  SetTimer(m_hwnd, kLobbyTimerNetwork, kNetworkTimerMs, nullptr);
+  reb::compat::SetTimer(m_hwnd, kLobbyTimerNetwork, kNetworkTimerMs, nullptr);
 }
 
 // ---- default names ----------------------------------------------------------------------------------------------
@@ -815,8 +784,9 @@ std::string* MultiPlayerWindow::GetDefaultPlayerName(std::string* out)
   (name = LoadStringResource(&prefix));
   char buffer[256];
   DWORD size = 0xff;
-  if (GetUserNameA(buffer, &size))
+  if (reb::compat::GetUserNameA(buffer, &size)) {
     name = buffer;
+  }
   new (out) std::string(name);
   return out;
 }
@@ -826,10 +796,6 @@ std::string* MultiPlayerWindow::GetDefaultGameName(std::string* out)
   ResourceStringId prefix = {0x1110, static_cast<int16_t>(m_stringSlot)};
   std::string name;
   (name = LoadStringResource(&prefix));
-  char buffer[256];
-  DWORD size = 0xff;
-  if (GetComputerNameA(buffer, &size))
-    name = buffer;
   new (out) std::string(name);
   return out;
 }

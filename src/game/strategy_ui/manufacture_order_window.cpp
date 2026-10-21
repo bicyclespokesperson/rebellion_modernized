@@ -30,7 +30,7 @@
 #include "ui/resource_dll.h"
 
 extern const char* g_gokresDllName; // 0x6a8708 "gokres.dll"
-extern const char* g_spaceString; // 0x6a7f40 " "
+extern const char* g_spaceString;   // 0x6a7f40 " "
 
 namespace
 {
@@ -49,8 +49,7 @@ constexpr UINT kQuantityEntered = 0x407;
 constexpr UINT kQuantityEdited = 0x408;
 constexpr int kSelectionChangedCommand = 0x29b;
 
-enum Command : int
-{
+enum Command : int {
   kCloseButton = 100,
   kOkButton = 0x65,
   kCancelButton = 0x66,
@@ -82,8 +81,7 @@ bool IsTroopFamily(uint32_t family)
 
 void DeleteLabel(CoolLabel* label)
 {
-  if (label)
-  {
+  if (label) {
     label->~CoolLabel();
     operator delete(label);
   }
@@ -91,15 +89,15 @@ void DeleteLabel(CoolLabel* label)
 
 void DrawIfPresent(CoolLabel* label, HDC dc)
 {
-  if (label)
+  if (label) {
     label->Draw(dc);
+  }
 }
 
 CoolLabel* NewSpaceLabel(int x, int y, int width, int height, UINT drawFlags, int fontSlot)
 {
   auto* label = NewOrNull<CoolLabel>(static_cast<const char*>(g_spaceString), x, y, width, height, drawFlags, 3u);
-  if (label)
-  {
+  if (label) {
     label->SetFont(fontSlot);
     label->SetColor(kWhite, nullptr);
   }
@@ -119,36 +117,14 @@ void SetLabelText(CoolLabel* label, HWND hwnd, const std::string& text)
 
 } // namespace
 
-ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
-                                               int x,
-                                               int y,
-                                               int width,
-                                               int height,
-                                               CoolWindow* parent,
-                                               uint32_t stringSlot,
-                                               uint32_t bitmapSlot,
-                                               uint32_t backgroundId,
-                                               uint32_t childId,
-                                               uint32_t style,
-                                               uint32_t flags,
-                                               ManufactureOrderBase* order,
-                                               uint32_t unused)
-: CoolGameWindow(instance,
-                 x,
-                 y,
-                 width,
-                 height,
-                 parent,
-                 stringSlot,
-                 bitmapSlot,
-                 backgroundId,
-                 childId,
-                 style,
-                 flags,
-                 0,
-                 0),
-  m_choices(1),
-  m_remembered{0}
+ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y, int width, int height,
+                                               CoolWindow* parent, uint32_t stringSlot, uint32_t bitmapSlot,
+                                               uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
+                                               ManufactureOrderBase* order, uint32_t unused)
+    : CoolGameWindow(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
+                     0, 0)
+    , m_choices(1)
+    , m_remembered{0}
 {
   m_order = order;
   m_style = kStyleChild;
@@ -164,22 +140,22 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
   const int side = AppGetSide();
   GameObjNotifier* sideObject = GetSideObject(side, side);
   m_gokres = FindResourceModule(kGokresSlot);
-  if (!m_gokres)
-  {
+  if (!m_gokres) {
     char* dllLocation = GetDllLocation();
     m_gokres = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
-  if (!sideObject)
+  if (!sideObject) {
     return;
+  }
 
   ObjectNameList names;
   m_order->FillChoices(&names);
   CoolAppGetResourceModule(kSpriteSlot);
   uint32_t nextItemId = 0;
-  for (const auto& ownedNode : names.Entries())
-  {
+  for (const auto& ownedNode : names.Entries()) {
     auto* node = ownedNode.get();
     auto* nameNode = static_cast<ObjectNameNode*>(node);
     std::string name;
@@ -188,11 +164,12 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
     GetObjectNameNodeKey(nameNode, &typeKey);
     auto* keyCopy = NewOrNull<ObjectKey>(typeKey);
     CoolListItem* item = nullptr;
-    if (void* memory = ::operator new(sizeof(CoolListItem)))
+    if (void* memory = ::operator new(sizeof(CoolListItem))) {
       item = new (memory) CoolListItem(++nextItemId);
-    if (item)
-    {
-      DatRecord* record = FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(&typeKey)));
+    }
+    if (item) {
+      const NullableKey typeLookupKey{typeKey.m_value};
+      DatRecord* record = FindDataRecord(AsLookupKey(&typeLookupKey));
       const uint32_t pictureId = record->m_small & 0xfff;
       auto* picture = NewOrNull<DibBitmap>(m_gokres, pictureId, kBitmapKind);
       auto* normal = NewOrNull<DibBitmap>(kPictureWidth, kPictureHeight, picture);
@@ -219,17 +196,19 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
 
 ManufactureOrderWindow::~ManufactureOrderWindow()
 {
-  for (const auto& ownedNode : m_choices.Entries())
-  {
+  for (const auto& ownedNode : m_choices.Entries()) {
     auto* item = static_cast<CoolListItem*>(ownedNode.get());
-    if (item->m_userPointer)
+    if (item->m_userPointer) {
       operator delete(reinterpret_cast<void*>(item->m_userPointer));
+    }
   }
-  ReleaseCapture();
-  if (m_selector)
+  reb::compat::ReleaseCapture();
+  if (m_selector) {
     delete m_selector;
-  if (m_quantityField)
+  }
+  if (m_quantityField) {
     delete m_quantityField;
+  }
   DeleteLabel(m_unitLabelA);
   DeleteLabel(m_unitLabelB);
   DeleteLabel(m_costLabelA);
@@ -238,18 +217,20 @@ ManufactureOrderWindow::~ManufactureOrderWindow()
 
 int ManufactureOrderWindow::Open(ManufactureOrderBase* order, uint32_t unused)
 {
-  if (!g_app)
+  if (!g_app) {
     return 0;
+  }
   auto* main = static_cast<GalaxyWindow*>(static_cast<RebellionApplication*>(g_app)->m_activeWindow);
-  if (!main || !order)
+  if (!main || !order) {
     return 0;
-  auto* window = NewOrNull<ManufactureOrderWindow>(main->m_instance, 0, 0, 0xd2, 0x105, main, 2u, 7u,
-                                                                     0x2a30u, 0x62u, 0u, 5u, order, unused);
+  }
+  auto* window = NewOrNull<ManufactureOrderWindow>(main->m_instance, 0, 0, 0xd2, 0x105, main, 2u, 7u, 0x2a30u, 0x62u,
+                                                   0u, 5u, order, unused);
   g_manufactureOrderWindow = window;
-  if (!window)
+  if (!window) {
     return 0;
-  if (window->CanOpen())
-  {
+  }
+  if (window->CanOpen()) {
     window->m_style = kStyleChild;
     window->Create(0);
     window->CenterIn(main->m_panelArea.left, main->m_panelArea.top, main->m_panelArea.right, main->m_panelArea.bottom);
@@ -268,10 +249,9 @@ void ManufactureOrderWindow::OnCreate1()
 {
   HMODULE module = CoolAppGetResourceModule(kSpriteSlot);
   m_selector = NewOrNull<CoolSelectionBox>(
-    module, this, 6, 0x16, kPictureWidth, kPictureHeight, 2, &m_choices, GetPaintBackgroundIfOwned(),
-    static_cast<uint16_t>(0), static_cast<uint16_t>(0), static_cast<uint16_t>(7), static_cast<uint16_t>(0x299a), 2);
-  if (m_selector)
-  {
+      module, this, 6, 0x16, kPictureWidth, kPictureHeight, 2, &m_choices, GetPaintBackgroundIfOwned(),
+      static_cast<uint16_t>(0), static_cast<uint16_t>(0), static_cast<uint16_t>(7), static_cast<uint16_t>(0x299a), 2);
+  if (m_selector) {
     m_selector->Create(0);
     m_selector->m_textFormat = 0x101;
     m_selector->SetFont(10);
@@ -280,36 +260,28 @@ void ManufactureOrderWindow::OnCreate1()
     m_selector->m_rowHeight = 0x46;
     m_selector->m_textColor = kWhite;
     const NullableKey none = {0};
-    if (CoolListItem* first = m_choices.First())
-    {
+    if (CoolListItem* first = m_choices.First()) {
       const uint32_t family = reinterpret_cast<ObjectKey*>(first->m_userPointer)->Family();
       const NullableKey* remember = nullptr;
-      if (IsFacilityFamily(family) && g_lastFacilityType.m_value != none.m_value)
-      {
+      if (IsFacilityFamily(family) && g_lastFacilityType.m_value != none.m_value) {
         remember = &g_lastFacilityType;
-      }
-      else if (!IsFacilityFamily(family) || g_lastFacilityType.m_value == none.m_value)
-      {
-        if (IsShipFamily(family))
-        {
-          if (g_lastShipType.m_value != none.m_value)
+      } else if (!IsFacilityFamily(family) || g_lastFacilityType.m_value == none.m_value) {
+        if (IsShipFamily(family)) {
+          if (g_lastShipType.m_value != none.m_value) {
             remember = &g_lastShipType;
-        }
-        else if (IsTroopFamily(family) && g_lastTroopType.m_value != none.m_value)
-        {
+          }
+        } else if (IsTroopFamily(family) && g_lastTroopType.m_value != none.m_value) {
           remember = &g_lastTroopType;
         }
       }
-      if (remember)
+      if (remember) {
         m_remembered.m_value = remember->m_value;
-      if (m_remembered.m_value != none.m_value)
-      {
+      }
+      if (m_remembered.m_value != none.m_value) {
         const uint16_t wanted = FindDataRecord(AsLookupKey(&m_remembered))->m_small;
-        for (const auto& ownedItem : m_choices.Entries())
-        {
+        for (const auto& ownedItem : m_choices.Entries()) {
           auto* item = static_cast<CoolListItem*>(ownedItem.get());
-          if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userPointer)))->m_small)
-          {
+          if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userPointer)))->m_small) {
             m_selector->Select(item->m_id);
             break;
           }
@@ -324,12 +296,11 @@ void ManufactureOrderWindow::OnCreate1()
   m_unitLabelB = NewSpaceLabel(0x8c, 0xa5, 0x3c, 0xf, 0x26, 10);
   ShowUnitLabels(0, 0, 0);
   void* fieldMemory = ::operator new(sizeof(CoolStringField));
-  m_quantityField = fieldMemory ?
-                      new (fieldMemory)
-                        CoolStringField(m_instance, 0x8d, 0xc4, 0x2d, 0x11, this, GetPaintBackgroundIfOwned(), 0u) :
-                      nullptr;
-  if (m_quantityField)
-  {
+  m_quantityField = fieldMemory
+                        ? new (fieldMemory)
+                              CoolStringField(m_instance, 0x8d, 0xc4, 0x2d, 0x11, this, GetPaintBackgroundIfOwned(), 0u)
+                        : nullptr;
+  if (m_quantityField) {
     m_quantityField->m_childId = kQuantityFieldId;
     m_quantityField->SetFont(4);
     m_quantityField->m_shadowOffset = 0;
@@ -339,15 +310,16 @@ void ManufactureOrderWindow::OnCreate1()
     m_quantityField->SetMaxLength(0x19);
     UpdateQuantityField();
     AddToolFromResource(m_quantityField, 0x190c);
-    SetFocus(m_quantityField->m_hwnd);
+    reb::compat::SetFocus(m_quantityField->m_hwnd);
   }
   RefreshTotals();
 }
 
 void ManufactureOrderWindow::OnCreate2()
 {
-  if (!BeginOffscreen(nullptr))
+  if (!BeginOffscreen(nullptr)) {
     return;
+  }
   DrawResourceBitmap(2, 2, AppGetSide() == 1 ? 0x2a31 : 0x2a32);
   DrawTextResource(0x3810, RECT{2, 2, 0xcc, 0x10}, 5, 0x2000000, 0x21);
   DrawTextResource(0x3811, RECT{0x14, 0xc4, 0x8a, 0xd3}, 4, 0x2f0fbff, 0x22);
@@ -361,8 +333,7 @@ void ManufactureOrderWindow::OnCreate3()
   AddCloseButton(0x277c, 0x277d, kCloseButton, 0x1903);
   AddButton(0x4f, 0x5a, 0x296e, 0x296f, kSelectorButton, 0x1906, 0, 0, 0, 0, 0, 0);
   AddButton(0x49, 0xe0, 0x2962, 0x2963, kOkButton, 0x1909, 0, 0, 0, 0, 0, 0);
-  if (auto* ok = static_cast<CoolStrobeButton*>(FindChild(kOkButton)))
-  {
+  if (auto* ok = static_cast<CoolStrobeButton*>(FindChild(kOkButton))) {
     ok->LoadStateBitmap(kButtonDisabled, 0x2d64);
     ok->LoadStateBitmap(kButtonChecked, 0x2d64);
   }
@@ -375,19 +346,17 @@ void ManufactureOrderWindow::OnCreate3()
 
 LRESULT ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (message == kQuantityEntered)
-  {
-    if (wParam == m_quantityField->m_childId)
-    {
+  if (message == kQuantityEntered) {
+    if (wParam == m_quantityField->m_childId) {
       SendOrder();
       PostCloseRequest();
     }
     return 0;
   }
-  if (message == kQuantityEdited)
-  {
-    if (wParam == m_quantityField->m_childId)
+  if (message == kQuantityEdited) {
+    if (wParam == m_quantityField->m_childId) {
       RefreshTotals();
+    }
     return 0;
   }
   return CoolGameWindow::WindowProc(message, wParam, lParam);
@@ -396,19 +365,17 @@ LRESULT ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
 void ManufactureOrderWindow::OnCommand(int a, int b, int c)
 {
   const uint32_t command = static_cast<uint32_t>(a) & 0xffff;
-  if (command >= 0x29c)
+  if (command >= 0x29c) {
     return;
-  if (command == kSelectionChangedCommand)
-  {
+  }
+  if (command == kSelectionChangedCommand) {
     RefreshTotals();
     return;
   }
-  switch (command)
-  {
+  switch (command) {
     case kCloseButton:
     case kCancelButton:
-      if (m_order)
-      {
+      if (m_order) {
         delete m_order;
         m_order = nullptr;
       }
@@ -419,8 +386,7 @@ void ManufactureOrderWindow::OnCommand(int a, int b, int c)
       PostCloseRequest();
       return;
     case kInfoButton:
-      if (CoolListItem* selection = m_selector->GetSelection())
-      {
+      if (CoolListItem* selection = m_selector->GetSelection()) {
         ObjectKey none;
         UiOpenEncyclopedia(&none, reinterpret_cast<const NullableKey*>(selection->m_userPointer));
       }
@@ -432,16 +398,16 @@ void ManufactureOrderWindow::OnCommand(int a, int b, int c)
       DecrementQuantity();
       return;
     case kSelectorButton:
-      if (m_selector)
+      if (m_selector) {
         m_selector->PressButton();
+      }
       return;
   }
 }
 
 void ManufactureOrderWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  switch (key)
-  {
+  switch (key) {
     case VK_RETURN:
       SendOrder();
       PostCloseRequest();
@@ -466,44 +432,37 @@ int ManufactureOrderWindow::CanOpen()
 void ManufactureOrderWindow::SendOrder()
 {
   CoolListItem* selection = m_selector->GetSelection();
-  if (!m_order || !selection)
+  if (!m_order || !selection) {
     return;
+  }
   auto* type = reinterpret_cast<ObjectKey*>(selection->m_userPointer);
   ReadQuantityField();
-  if (m_quantity < 1)
-  {
+  if (m_quantity < 1) {
     m_quantity = 1;
-  }
-  else if (m_quantity > kMaxQuantity)
-  {
+  } else if (m_quantity > kMaxQuantity) {
     m_quantity = kMaxQuantity;
   }
   m_order->m_count = m_quantity;
   m_order->m_item.m_value = type->m_value;
   const uint32_t family = type->Family();
   NullableKey* last = nullptr;
-  if (IsFacilityFamily(family))
-  {
+  if (IsFacilityFamily(family)) {
     last = &g_lastFacilityType;
-  }
-  else if (IsShipFamily(family))
-  {
+  } else if (IsShipFamily(family)) {
     last = &g_lastShipType;
-  }
-  else if (IsTroopFamily(family))
-  {
+  } else if (IsTroopFamily(family)) {
     last = &g_lastTroopType;
   }
-  if (last)
+  if (last) {
     last->m_value = type->m_value;
-  UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_order), 0);
+  }
+  UiHumanReceiveMessage(static_cast<PlayerMessage*>(m_order), 0);
 }
 
 void ManufactureOrderWindow::IncrementQuantity()
 {
   ReadQuantityField();
-  if (m_quantity < kMaxQuantity)
-  {
+  if (m_quantity < kMaxQuantity) {
     ++m_quantity;
     UpdateQuantityField();
     RefreshTotals();
@@ -513,8 +472,7 @@ void ManufactureOrderWindow::IncrementQuantity()
 void ManufactureOrderWindow::DecrementQuantity()
 {
   ReadQuantityField();
-  if (m_quantity > 1)
-  {
+  if (m_quantity > 1) {
     --m_quantity;
     UpdateQuantityField();
     RefreshTotals();
@@ -535,13 +493,13 @@ void ManufactureOrderWindow::UpdateQuantityField()
 void ManufactureOrderWindow::ReadQuantityField()
 {
   m_quantity = atoi(m_quantityField->m_text.c_str());
-  if (m_quantity < 1)
-  {
+  if (m_quantity < 1) {
     m_quantity = 1;
     return;
   }
-  if (m_quantity > kMaxQuantity)
+  if (m_quantity > kMaxQuantity) {
     m_quantity = kMaxQuantity;
+  }
 }
 
 void ManufactureOrderWindow::DrawOverlay(HDC dc)
@@ -557,30 +515,22 @@ void ManufactureOrderWindow::ShowCostLabels(int ok, int cost, int available)
   HWND hwnd = m_hwnd;
   const int shownCost = ClampTotal(cost);
   available = ClampTotal(available);
-  if (m_costLabelA)
-  {
+  if (m_costLabelA) {
     std::string text;
-    if (ok == 0)
-    {
+    if (ok == 0) {
       ResourceStringId id = kUnavailableText;
       text = LoadStringResource(&id);
-    }
-    else
-    {
+    } else {
       text.append(std::to_string(static_cast<long>(shownCost)));
     }
     SetLabelText(m_costLabelA, hwnd, text);
   }
-  if (m_costLabelB)
-  {
+  if (m_costLabelB) {
     std::string text;
-    if (ok == 0)
-    {
+    if (ok == 0) {
       ResourceStringId id = kUnavailableText;
       text = LoadStringResource(&id);
-    }
-    else
-    {
+    } else {
       text.append(std::to_string(static_cast<long>(available)));
     }
     SetLabelText(m_costLabelB, hwnd, text);
@@ -592,32 +542,24 @@ void ManufactureOrderWindow::ShowUnitLabels(int ok, int cost, int available)
   HWND hwnd = m_hwnd;
   const int shownCost = ClampTotal(cost);
   available = ClampTotal(available);
-  if (m_unitLabelA)
-  {
+  if (m_unitLabelA) {
     std::string text;
-    if (ok == 0)
-    {
+    if (ok == 0) {
       ResourceStringId id = kUnavailableText;
       text = LoadStringResource(&id);
-    }
-    else
-    {
+    } else {
       ResourceStringId id = kUnitSuffixText;
       std::string suffixResource = LoadStringResource(&id);
       text += std::to_string(static_cast<long>(shownCost)) + suffixResource;
     }
     SetLabelText(m_unitLabelA, hwnd, text);
   }
-  if (m_unitLabelB)
-  {
+  if (m_unitLabelB) {
     std::string text;
-    if (ok == 0)
-    {
+    if (ok == 0) {
       ResourceStringId id = kUnavailableText;
       text = LoadStringResource(&id);
-    }
-    else
-    {
+    } else {
       ResourceStringId id = kUnitSuffixText;
       std::string suffixResource = LoadStringResource(&id);
       text += std::to_string(static_cast<long>(available)) + suffixResource;
@@ -629,16 +571,16 @@ void ManufactureOrderWindow::ShowUnitLabels(int ok, int cost, int available)
 void ManufactureOrderWindow::RefreshTotals()
 {
   CoolListItem* selection = m_selector->GetSelection();
-  if (!selection)
+  if (!selection) {
     return;
+  }
   auto* type = reinterpret_cast<ObjectKey*>(selection->m_userPointer);
   int totalA = 0;
   int totalB = 0;
   int largestA = 0;
   int largestB = 0;
   StatusCode status(1, 1);
-  if (m_order && type)
-  {
+  if (m_order && type) {
     ReadQuantityField();
     m_order->m_count = m_quantity;
     m_order->m_item.m_value = type->m_value;
@@ -647,12 +589,12 @@ void ManufactureOrderWindow::RefreshTotals()
   const int ok = status.m_second == static_cast<uint32_t>(-1);
   ShowUnitLabels(ok, largestA, largestB);
   ShowCostLabels(ok, totalB, totalA);
-  if (CoolWindow* ok_button = FindChild(kOkButton))
-  {
-    if (ok)
+  if (CoolWindow* ok_button = FindChild(kOkButton)) {
+    if (ok) {
       ok_button->Enable();
-    else
+    } else {
       ok_button->Disable();
+    }
   }
 }
 

@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionSabotageEventKindsReady; // 0x6bb920
+extern int g_missionSabotageEventKindsReady;     // 0x6bb920
 extern EventKindSet g_missionSabotageEventKinds; // 0x6bb928
 
 namespace
@@ -58,20 +58,15 @@ int MissionSabotage::CheckTarget(MissionCheckArgs* check, StatusCode* status, in
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
   const int result = MissionObjectTargetBase::CheckTarget(check, status, out);
-  if (check->m_flag04 && check->m_flag0c)
-  {
-    if (result && status->m_second == static_cast<uint32_t>(mission_status::kOk))
-    {
-      if (FamilyInRange(check->m_target->GetFamily(), kDeathStars))
-      {
+  if (check->m_flag04 && check->m_flag0c) {
+    if (result && status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
+      if (FamilyInRange(check->m_target->GetFamily(), kDeathStars)) {
         *status = StatusCode(kStatusCategoryOrder, kStatusTargetIsDeathStar);
         *out = -1;
       }
     }
-    if (result && status->m_second == static_cast<uint32_t>(mission_status::kOk))
-    {
-      if (FamilyInRange(check->m_target->GetFamily(), family::kCharacters))
-      {
+    if (result && status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
+      if (FamilyInRange(check->m_target->GetFamily(), family::kCharacters)) {
         *status = StatusCode(kStatusCategoryOrder, kStatusTargetIsCharacter);
         *out = -1;
       }
@@ -102,13 +97,15 @@ int MissionSabotage::ApplyPersonResult(GameObj* person, int roll, int* out, Noti
 {
   int ok = 1;
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return ok;
+  }
   *out = 1;
   ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
   Role* role = static_cast<Role*>(person);
-  if (!role->IsCharacter())
+  if (!role->IsCharacter()) {
     return ok;
+  }
   ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1815, ctx) && ok;
   ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb1816, ctx) && ok;
   return ok;
@@ -117,22 +114,22 @@ int MissionSabotage::ApplyPersonResult(GameObj* person, int roll, int* out, Noti
 int MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx)
 {
   int ok = 1;
-  if (mission->m_taskStatus == 0)
+  if (mission->m_taskStatus == 0) {
     ok = mission->SetTaskStatus(2, ctx) != 0;
-  if (mission->m_taskStatus == kTaskSucceeded)
-  {
+  }
+  if (mission->m_taskStatus == kTaskSucceeded) {
     GameObj* origin = nullptr;
     ok = mission->GetObjectiveObject(&origin) && ok;
-    if (origin)
+    if (origin) {
       ok = origin->ChangeDestroyedReason(6, ctx) && ok;
+    }
   }
   return ok;
 }
 
 int MissionSabotage::BuildEventKinds()
 {
-  if (!g_missionSabotageEventKindsReady)
-  {
+  if (!g_missionSabotageEventKindsReady) {
     g_missionSabotageEventKindsReady = 1;
     return MissionObjectTargetBase::InitEventKinds(0, &g_missionSabotageEventKinds);
   }

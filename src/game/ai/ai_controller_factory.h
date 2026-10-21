@@ -4,8 +4,7 @@
 
 class PlayerController;
 
-struct AiControllerDefinition
-{
+struct AiControllerDefinition {
   int kind;
   const char* name;
   const char* displayName;

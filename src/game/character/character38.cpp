@@ -4,7 +4,7 @@
 #include "core/checked_new.h"
 #include "data/gnprtb.h"
 
-extern int g_character38EventKindsReady; // 0x6bb9e0
+extern int g_character38EventKindsReady;     // 0x6bb9e0
 extern EventKindSet g_character38EventKinds; // 0x6bb9d8
 
 namespace
@@ -49,16 +49,18 @@ int Character38::Validate()
 int Character38::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return CharacterLeafApplyAll(this, ctx);
+  }
   return isSideView;
 }
 
 int Character38::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_character38EventKinds;
+  }
   return result;
 }
 
@@ -66,8 +68,9 @@ int Character38::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_character38EventKinds.Contains(orderKind))
+  if (result && g_character38EventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -101,8 +104,7 @@ int Character38::OnInjuryChanged(int oldValue, int newValue, NotifyContext* ctx)
 int Character38::BuildEventKinds()
 {
   int result = 1;
-  if (!g_character38EventKindsReady)
-  {
+  if (!g_character38EventKindsReady) {
     g_character38EventKindsReady = 1;
     result = Character::InitEventKinds(0, &g_character38EventKinds);
   }

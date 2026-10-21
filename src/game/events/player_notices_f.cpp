@@ -17,14 +17,16 @@
 
 // ---- Notice19 (kind 19) ----
 
-Notice19::Notice19() : UiTextNotice()
+Notice19::Notice19()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f68 = 0;
   m_unk40 = 0;
 }
 
-Notice19::Notice19(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice19::Notice19(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -46,36 +48,31 @@ UiNotice* Notice19::CreateEmptyNotice()
 
 void Notice19::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x340)
-  {
+  if (kind != 0x340) {
     UiNotice::OnMessage(kind, a, b);
     return;
   }
   GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, reinterpret_cast<const ObjectKey*>(b));
   m_key = ObjectKey(*reinterpret_cast<const ObjectKey*>(b));
-  if (first && system)
-  {
-    if (m_f68 == 0)
-    {
+  if (first && system) {
+    if (m_f68 == 0) {
       m_unk40 = 1;
       m_f68 = 1;
       ExpandMessageTemplate(&m_text0, 0x70a8, notice::nameOf(first), notice::nameOf(system), nullptr, nullptr);
       ExpandMessageTemplate(&m_text1, 0x70a9, notice::nameOf(first), notice::nameOf(system), nullptr, nullptr);
       m_unk28 = 0x10;
-      if (m_owner == 1)
-      {
+      if (m_owner == 1) {
         m_picture[1] = 0x407;
         m_sound[0] = 0x460;
-      }
-      else
-      {
+      } else {
         m_picture[1] = 0x406;
         m_sound[0] = 0x45f;
       }
     }
-    if (m_unk40 != 0)
+    if (m_unk40 != 0) {
       ExpandMessageTemplate(&m_text1, 0x70aa, notice::nameOf(first), notice::nameOf(system), nullptr, nullptr);
+    }
   }
 }
 
@@ -93,12 +90,14 @@ void Notice19::Write(ostream* out)
 
 // ---- Notice7 (kind 7) ----
 
-Notice7::Notice7() : UiTextNotice()
+Notice7::Notice7()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
 }
 
-Notice7::Notice7(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice7::Notice7(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -115,62 +114,54 @@ UiNotice* Notice7::CreateEmptyNotice()
 void Notice7::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
   bool sideMatch = false;
-  if (kind != 0x14e)
+  if (kind != 0x14e) {
     return;
+  }
   const auto* key = reinterpret_cast<const ObjectKey*>(a);
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, key);
   GameObjNotifier* other = nullptr;
   GameObjNotifier* fleet = nullptr;
   m_key = ObjectKey(*key);
-  if (!system || b == 0)
-  {
+  if (!system || b == 0) {
     m_unk40 = 0;
-  }
-  else
-  {
+  } else {
     FleetIterator it(system);
     it.Begin();
     fleet = it.Current();
-    if (!fleet)
+    if (!fleet) {
       m_unk40 = 0;
+    }
     uint32_t controller = system->ControlSide();
-    if (controller == 1)
-    {
+    if (controller == 1) {
       other = GetSideObject(m_owner, 2);
       sideMatch = m_owner == 1;
       m_picture[1] = 0x404;
-    }
-    else if (controller == 2)
-    {
+    } else if (controller == 2) {
       other = GetSideObject(m_owner, 1);
       sideMatch = m_owner == 2;
       m_picture[1] = 0x403;
-    }
-    else
-    {
+    } else {
       sideMatch = false;
       other = nullptr;
       m_unk40 = 0;
     }
-    if ((static_cast<System*>(system)->m_flags & 0x4000) == 0)
+    if ((static_cast<System*>(system)->m_flags & 0x4000) == 0) {
       m_unk40 = 1;
-    else
+    } else {
       m_unk40 = 0;
+    }
   }
-  if (!other)
+  if (!other) {
     m_unk40 = 0;
-  if (m_unk40 != 0)
-  {
+  }
+  if (m_unk40 != 0) {
     m_sound[0] = 0x45e;
-    if (sideMatch)
-    {
+    if (sideMatch) {
       ExpandMessageTemplate(&m_text0, 0x70a2, notice::nameOf(system), nullptr, nullptr, nullptr);
       ExpandMessageTemplate(&m_text1, 0x70a3, notice::nameOf(other), notice::nameOf(system), notice::nameOf(fleet),
                             nullptr);
       m_unk28 = 0xe;
-    }
-    else
-    {
+    } else {
       ExpandMessageTemplate(&m_text0, 0x70a0, notice::nameOf(system), nullptr, nullptr, nullptr);
       ExpandMessageTemplate(&m_text1, 0x70a1, notice::nameOf(other), notice::nameOf(system), notice::nameOf(fleet),
                             nullptr);

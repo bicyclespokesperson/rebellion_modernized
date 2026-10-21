@@ -8,8 +8,9 @@ namespace
 {
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void VerifyCommandsAndOrientations()
@@ -34,14 +35,13 @@ void VerifySkippedPixelsAndMalformedStreams()
   Require((pixels == std::vector<uint8_t>{0, 6, 0, 0, 0, 0, 0, 0}));
 
   for (const std::vector<uint8_t>& invalid : {
-         std::vector<uint8_t>{1}, // truncated pair
-         std::vector<uint8_t>{0, 2, 1}, // truncated delta
-         std::vector<uint8_t>{0, 3, 1, 2}, // truncated odd absolute run/pad
-         std::vector<uint8_t>{5, 1, 0, 1}, // run crosses row
-         std::vector<uint8_t>{0, 2, 1, 2, 0, 1}, // delta outside image
-         std::vector<uint8_t>{0, 0}, // missing bitmap end
-       })
-  {
+           std::vector<uint8_t>{1},                // truncated pair
+           std::vector<uint8_t>{0, 2, 1},          // truncated delta
+           std::vector<uint8_t>{0, 3, 1, 2},       // truncated odd absolute run/pad
+           std::vector<uint8_t>{5, 1, 0, 1},       // run crosses row
+           std::vector<uint8_t>{0, 2, 1, 2, 0, 1}, // delta outside image
+           std::vector<uint8_t>{0, 0},             // missing bitmap end
+       }) {
     Require(!DecodeRle8(invalid, 4, 2, false, pixels));
     Require(pixels.empty());
   }

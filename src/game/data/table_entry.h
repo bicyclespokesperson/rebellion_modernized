@@ -14,7 +14,7 @@ class Crc32;
 // text-format counterpart of the common part.
 class TableEntry : public IdNode
 {
-public:
+  public:
   TableEntry();
   ~TableEntry() override;
   virtual int Write(ostream* out) = 0;

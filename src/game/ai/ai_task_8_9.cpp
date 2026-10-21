@@ -20,9 +20,12 @@ bool IsSectorKey(const ObjectKey& key)
 
 } // namespace
 
-// ---- type 8 -------------------------------------------------------------------------------------------------------------
+// ---- type 8
+// -------------------------------------------------------------------------------------------------------------
 
-AiTask8::AiTask8(int view) : AiStagedTask(8, view), m_selector()
+AiTask8::AiTask8(int view)
+    : AiStagedTask(8, view)
+    , m_selector()
 {
   m_recordId = 0;
   m_recordCursor = 0;
@@ -58,41 +61,39 @@ OrderBase* AiTask8::Step()
 OrderBase* AiTask8::StepRun()
 {
   int done = 1;
-  switch (m_step)
-  {
+  switch (m_step) {
     case 1:
       PrepareRecords();
       m_step = 2;
       return nullptr;
     case 2:
-      if (NextRecord() != 0)
-      {
+      if (NextRecord() != 0) {
         m_step = 3;
         return nullptr;
       }
       break;
     case 3:
-      if (ChooseSector() != 0)
-      {
+      if (ChooseSector() != 0) {
         m_step = 4;
         return nullptr;
       }
       break;
     case 4:
-    {
-      OrderBase* order = RunRecord(&done);
-      if (order)
       {
-        if (done == 0)
-          ++m_priority;
+        OrderBase* order = RunRecord(&done);
+        if (order) {
+          if (done == 0) {
+            ++m_priority;
+          }
+          m_finished = 1;
+        }
+        if (done == 0) {
+          return order;
+        }
+        m_step = 0;
         m_finished = 1;
-      }
-      if (done == 0)
         return order;
-      m_step = 0;
-      m_finished = 1;
-      return order;
-    }
+      }
     default:
       m_step = 1;
       return nullptr;
@@ -106,19 +107,17 @@ void AiTask8::PrepareRecords()
 {
   bool anyWithDemand = false;
   AiSideController* owner = m_owner;
-  if (owner->Stat(0x204) < 0)
-  {
-    for (const auto& entry : owner->m_systemRecords.Entries())
-    {
+  if (owner->Stat(0x204) < 0) {
+    for (const auto& entry : owner->m_systemRecords.Entries()) {
       auto* node = entry.get();
-      if ((static_cast<AiSystemRecord*>(node)->m_flagsA.m_value & kRecordHasNoDemandFlag) == 0)
+      if ((static_cast<AiSystemRecord*>(node)->m_flagsA.m_value & kRecordHasNoDemandFlag) == 0) {
         anyWithDemand = true;
+      }
     }
-    if (!anyWithDemand)
+    if (!anyWithDemand) {
       m_owner->m_systemRecords.CreateRecord();
-  }
-  else if (0 < owner->Stat(0x204))
-  {
+    }
+  } else if (0 < owner->Stat(0x204)) {
     owner->m_systemRecords.DeleteFirstIdle();
   }
 }
@@ -127,11 +126,9 @@ int AiTask8::NextRecord()
 {
   int found = 0;
   auto* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_recordCursor));
-  if (!record)
-  {
+  if (!record) {
     record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.First());
-    if (!record)
-    {
+    if (!record) {
       m_recordId = 0;
       m_recordCursor = 0;
       return found;
@@ -141,8 +138,9 @@ int AiTask8::NextRecord()
   m_recordId = record->m_id;
   auto position = m_owner->m_systemRecords.PositionOf(record);
   ++position;
-  m_recordCursor =
-    position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>((*position).get())->m_id;
+  m_recordCursor = position == m_owner->m_systemRecords.Entries().end()
+                       ? 0
+                       : static_cast<AiSystemRecord*>((*position).get())->m_id;
   return found;
 }
 
@@ -153,49 +151,45 @@ int AiTask8::ChooseSector()
   ObjectKey scratch;
   AiSideController* owner = m_owner;
   auto* record = static_cast<AiSystemRecord*>(owner->m_systemRecords.FindById(m_recordId));
-  if (!record)
+  if (!record) {
     return result;
+  }
 
-  if (IsSectorKey(record->m_sectorKey))
-  {
+  if (IsSectorKey(record->m_sectorKey)) {
     AiSectorEval* eval = owner->m_sectors.FindEval(record->m_sectorKey);
-    if (eval && eval->Stat(kSectorRecordClaimStat) == 0 && eval->m_x38 == static_cast<int>(record->m_id))
+    if (eval && eval->Stat(kSectorRecordClaimStat) == 0 && eval->m_x38 == static_cast<int>(record->m_id)) {
       result = 1;
-    if (result == 0)
-    {
+    }
+    if (result == 0) {
       m_selector.Add(owner->RankSectorsByDistance(&record->m_sectorKey, 0, 0, 0x10000, 0, 0, 0, 2));
       picked = *m_selector.PickBest(&scratch);
       m_selector.Reset();
       record->Reset();
-      if (IsSectorKey(picked))
-      {
+      if (IsSectorKey(picked)) {
         record->SetSector(&picked);
         result = 1;
       }
     }
   }
-  if (result == 0)
-  {
+  if (result == 0) {
     m_selector.Add(owner->RankSectorsRandomly(0, 0, 0x8010000, 0, 0, 0, 2));
     picked = *m_selector.PickBest(&scratch);
     m_selector.Reset();
-    if (IsSectorKey(picked))
-    {
+    if (IsSectorKey(picked)) {
       record->SetSector(&picked);
       result = 1;
     }
-    if (result == 0)
-    {
+    if (result == 0) {
       m_selector.Add(owner->RankSectorsRandomly(0, 0, 0x10000, 0, 0, 0, 2));
       picked = *m_selector.PickBest(&scratch);
       m_selector.Reset();
-      if (IsSectorKey(picked))
-      {
+      if (IsSectorKey(picked)) {
         record->SetSector(&picked);
         result = 1;
       }
-      if (result == 0)
+      if (result == 0) {
         return 0;
+      }
     }
   }
   return record->UpdatePosture();
@@ -206,14 +200,18 @@ OrderBase* AiTask8::RunRecord(int* done)
   OrderBase* order = nullptr;
   *done = 1;
   auto* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_recordId));
-  if (record)
+  if (record) {
     order = record->Step(done);
+  }
   return order;
 }
 
-// ---- type 9 -------------------------------------------------------------------------------------------------------------
+// ---- type 9
+// -------------------------------------------------------------------------------------------------------------
 
-AiTask9::AiTask9(int view) : AiStagedTask(9, view), m_selector()
+AiTask9::AiTask9(int view)
+    : AiStagedTask(9, view)
+    , m_selector()
 {
   m_recordId = 0;
   m_recordCursor = 0;
@@ -250,10 +248,8 @@ OrderBase* AiTask9::StepRun()
 {
   OrderBase* order = nullptr;
   int done = 1;
-  if (m_step == 2)
-  {
-    if (NextRecord() != 0)
-    {
+  if (m_step == 2) {
+    if (NextRecord() != 0) {
       m_step = 3;
       return nullptr;
     }
@@ -261,20 +257,18 @@ OrderBase* AiTask9::StepRun()
     m_finished = 1;
     return nullptr;
   }
-  if (m_step != 3)
-  {
+  if (m_step != 3) {
     m_step = 2;
     return nullptr;
   }
   order = RunRecord(&done);
-  if (order)
-  {
-    if (done == 0)
+  if (order) {
+    if (done == 0) {
       ++m_priority;
+    }
     m_finished = 1;
   }
-  if (done != 0)
-  {
+  if (done != 0) {
     m_step = 0;
     m_finished = 1;
   }
@@ -285,11 +279,9 @@ int AiTask9::NextRecord()
 {
   int found = 0;
   auto* record = static_cast<AiTaskRecord*>(m_owner->m_tasks.FindById(m_recordCursor));
-  if (!record)
-  {
+  if (!record) {
     record = static_cast<AiTaskRecord*>(m_owner->m_tasks.First());
-    if (!record)
-    {
+    if (!record) {
       m_recordId = 0;
       m_recordCursor = 0;
       return found;
@@ -299,8 +291,8 @@ int AiTask9::NextRecord()
   m_recordId = record->m_id;
   auto position = m_owner->m_tasks.PositionOf(record);
   ++position;
-  m_recordCursor =
-    position == m_owner->m_tasks.Entries().end() ? 0 : static_cast<AiTaskRecord*>((*position).get())->m_id;
+  m_recordCursor
+      = position == m_owner->m_tasks.Entries().end() ? 0 : static_cast<AiTaskRecord*>((*position).get())->m_id;
   return found;
 }
 
@@ -309,7 +301,8 @@ OrderBase* AiTask9::RunRecord(int* done)
   OrderBase* order = nullptr;
   *done = 1;
   auto* record = static_cast<AiTaskRecord*>(m_owner->m_tasks.FindById(m_recordId));
-  if (record)
+  if (record) {
     order = record->Step(done);
+  }
   return order;
 }

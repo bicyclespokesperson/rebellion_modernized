@@ -59,17 +59,19 @@ void TakeCharacter(AiAgentBase* agent, AiCharacterRecord* character, const Objec
 // Drops the agent's character if it no longer belongs to the agent; returns the record while it still does.
 AiCharacterRecord* CurrentCharacter(AiAgentBase* agent)
 {
-  if (!IsCharacterKey(agent->m_characterKey))
+  if (!IsCharacterKey(agent->m_characterKey)) {
     return nullptr;
+  }
   return FindCharacter(agent, agent->m_characterKey);
 }
 
 } // namespace
 
-// ---- kind 6 -----------------------------------------------------------------------------------------------------------
+// ---- kind 6
+// -----------------------------------------------------------------------------------------------------------
 
 AiAgentKind6::AiAgentKind6(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiAgentSimple(view, owner, characters)
+    : AiAgentSimple(view, owner, characters)
 {
 }
 
@@ -83,24 +85,23 @@ int AiAgentKind6::GetCountSlot()
 void AiAgentKind6::Prepare()
 {
   m_flags.m_value &= ~kAgentHasTarget;
-  if (IsSystemKey(m_targetKey))
-  {
+  if (IsSystemKey(m_targetKey)) {
     AiSystemEval* system = m_owner->m_systems.FindEval(m_targetKey);
-    if (system)
-    {
-      if ((system->m_flags30.m_value & 0x40000000) == 0 || (system->m_flags30.m_value & 1) == 0)
+    if (system) {
+      if ((system->m_flags30.m_value & 0x40000000) == 0 || (system->m_flags30.m_value & 1) == 0) {
         ReleaseHook();
-      else
+      } else {
         m_flags.m_value |= kAgentHasTarget;
+      }
     }
   }
-  if ((m_flags.m_value & kAgentHasTarget) == 0)
-  {
+  if ((m_flags.m_value & kAgentHasTarget) == 0) {
     ObjectKey scratch;
     m_targetKey.Reset();
     m_targetKey = *ChooseTarget(&scratch);
-    if (IsSystemKey(m_targetKey))
+    if (IsSystemKey(m_targetKey)) {
       m_flags.m_value |= kAgentHasTarget;
+    }
   }
 }
 
@@ -109,44 +110,33 @@ int AiAgentKind6::Evaluate()
   ObjectKey picked;
   ObjectKey scratch;
   m_flags.m_value &= ~kAgentHasCharacter;
-  if (AiCharacterRecord* character = CurrentCharacter(this))
-  {
-    if (character->m_agentId == static_cast<int>(m_id))
-    {
+  if (AiCharacterRecord* character = CurrentCharacter(this)) {
+    if (character->m_agentId == static_cast<int>(m_id)) {
       const uint32_t flags = character->m_flags.m_value;
-      if ((flags & kCharacterBusy) == 0 && (flags & 0x400) != 0)
-      {
+      if ((flags & kCharacterBusy) == 0 && (flags & 0x400) != 0) {
         m_flags.m_value |= kAgentHasCharacter;
-      }
-      else
-      {
+      } else {
         GiveBackCharacter(character);
         m_characterKey.Reset();
         ReleaseHook();
       }
-    }
-    else
-    {
+    } else {
       m_characterKey.Reset();
     }
   }
-  if ((m_flags.m_value & kAgentHasCharacter) == 0)
-  {
+  if ((m_flags.m_value & kAgentHasCharacter) == 0) {
     AiSystemEval* system = m_owner->m_systems.FindEval(m_targetKey);
-    if (!system || (system->m_flags30.m_value & 1) == 0)
-    {
+    if (!system || (system->m_flags30.m_value & 1) == 0) {
       m_targetKey.Reset();
-    }
-    else
-    {
+    } else {
       m_selector.Add(m_characters->RankByValue(0x402, 0, 0x74000f1, 0, 6, 0, 10000, 1));
       picked = *m_selector.PickBest(&scratch);
       m_selector.Reset();
-      if (IsCharacterKey(picked))
-      {
+      if (IsCharacterKey(picked)) {
         AiCharacterRecord* character = FindCharacter(this, picked);
-        if (character && CanReach(&picked) != 0)
+        if (character && CanReach(&picked) != 0) {
           TakeCharacter(this, character, picked, 0);
+        }
       }
     }
   }
@@ -167,10 +157,11 @@ ObjectKey* AiAgentKind6::ChooseTarget(ObjectKey* out)
   return out;
 }
 
-// ---- kind 1 -----------------------------------------------------------------------------------------------------------
+// ---- kind 1
+// -----------------------------------------------------------------------------------------------------------
 
 AiAgentKind1::AiAgentKind1(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiAgentSimple(view, owner, characters)
+    : AiAgentSimple(view, owner, characters)
 {
 }
 
@@ -184,31 +175,31 @@ int AiAgentKind1::GetCountSlot()
 void AiAgentKind1::ReleaseHook()
 {
   AiSystemEval* system = m_owner->FindSystemEval(&m_targetKey);
-  if (system)
+  if (system) {
     system->m_flags30.m_value &= 0xdfffffff;
+  }
 }
 
 void AiAgentKind1::Prepare()
 {
   m_flags.m_value &= ~kAgentHasTarget;
-  if (IsSystemKey(m_targetKey))
-  {
+  if (IsSystemKey(m_targetKey)) {
     AiSystemEval* system = m_owner->m_systems.FindEval(m_targetKey);
-    if (system)
-    {
-      if ((system->m_flags30.m_value & 0x10000000) == 0)
+    if (system) {
+      if ((system->m_flags30.m_value & 0x10000000) == 0) {
         ReleaseHook();
-      else
+      } else {
         m_flags.m_value |= kAgentHasTarget;
+      }
     }
   }
-  if ((m_flags.m_value & kAgentHasTarget) == 0)
-  {
+  if ((m_flags.m_value & kAgentHasTarget) == 0) {
     ObjectKey scratch;
     m_targetKey.Reset();
     m_targetKey = *ChooseTarget(&scratch);
-    if (IsSystemKey(m_targetKey))
+    if (IsSystemKey(m_targetKey)) {
       m_flags.m_value |= kAgentHasTarget;
+    }
   }
 }
 
@@ -217,43 +208,30 @@ int AiAgentKind1::Evaluate()
   ObjectKey picked;
   ObjectKey scratch;
   m_flags.m_value &= ~kAgentHasCharacter;
-  if (AiCharacterRecord* character = CurrentCharacter(this))
-  {
-    if (character->m_agentId == static_cast<int>(m_id))
-    {
-      if ((character->m_flags.m_value & kCharacterBusy) == 0)
-      {
+  if (AiCharacterRecord* character = CurrentCharacter(this)) {
+    if (character->m_agentId == static_cast<int>(m_id)) {
+      if ((character->m_flags.m_value & kCharacterBusy) == 0) {
         m_flags.m_value |= kAgentHasCharacter;
-      }
-      else
-      {
+      } else {
         GiveBackCharacter(character);
         m_characterKey.Reset();
         ReleaseHook();
       }
-    }
-    else
-    {
+    } else {
       m_characterKey.Reset();
     }
   }
-  if ((m_flags.m_value & kAgentHasCharacter) == 0)
-  {
+  if ((m_flags.m_value & kAgentHasCharacter) == 0) {
     AiSystemEval* system = m_owner->m_systems.FindEval(m_targetKey);
-    if (!system || (system->m_flags30.m_value & 0x20000000) != 0)
-    {
+    if (!system || (system->m_flags30.m_value & 0x20000000) != 0) {
       m_targetKey.Reset();
-    }
-    else
-    {
+    } else {
       m_selector.Add(m_characters->RankByValue(kCharacterAssignable, 0x4000000, 0x4f4000f1, 0, 6, 0x32, 10000, 1));
       m_selector.Add(m_characters->RankByDistance(&m_targetKey, kCharacterAssignable, 0x4000000, 0x4f4000f1, 0, 2));
       picked = *m_selector.PickBest(&scratch);
-      while (IsCharacterKey(picked) && (m_flags.m_value & kAgentHasCharacter) == 0)
-      {
+      while (IsCharacterKey(picked) && (m_flags.m_value & kAgentHasCharacter) == 0) {
         AiCharacterRecord* character = FindCharacter(this, picked);
-        if (character && CanReach(&picked) != 0)
-        {
+        if (character && CanReach(&picked) != 0) {
           TakeCharacter(this, character, picked, 0);
           system->m_flags30.m_value |= 0x20000000;
         }
@@ -275,8 +253,7 @@ ObjectKey* AiAgentKind1::ChooseTarget(ObjectKey* out)
   m_selector.Add(m_owner->RankSystemsOfSector(&chosen, 0x80000000, 0, 0x10000000, 0, 0, 0x20000000, 0x21, 1));
   chosen = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!IsSystemKey(chosen))
-  {
+  if (!IsSystemKey(chosen)) {
     m_selector.Add(m_owner->RankSectors(0, 0, 0x10000000, 0, 0, 0, 0x26, 1));
     chosen = *m_selector.PickBest(&scratch);
     m_selector.Reset();
@@ -288,10 +265,11 @@ ObjectKey* AiAgentKind1::ChooseTarget(ObjectKey* out)
   return out;
 }
 
-// ---- the targeted kinds ------------------------------------------------------------------------------------------------
+// ---- the targeted kinds
+// ------------------------------------------------------------------------------------------------
 
 AiAgentKind5::AiAgentKind5(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiAgentTargeted(view, owner, characters)
+    : AiAgentTargeted(view, owner, characters)
 {
   m_x50 = 0x2000000;
 }
@@ -304,7 +282,7 @@ int AiAgentKind5::GetOrderKind()
 }
 
 AiAgentKind3::AiAgentKind3(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiAgentTargeted(view, owner, characters)
+    : AiAgentTargeted(view, owner, characters)
 {
   m_x50 = 0x1000000;
 }
@@ -317,7 +295,7 @@ int AiAgentKind3::GetOrderKind()
 }
 
 AiAgentKind4::AiAgentKind4(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiAgentTargeted(view, owner, characters)
+    : AiAgentTargeted(view, owner, characters)
 {
   m_x50 = 0x4000000;
 }
@@ -338,60 +316,53 @@ int AiAgentKind4::Evaluate()
   ObjectKey scratch;
   m_flags.m_value &= 0xffffffe2;
   bool decided = false;
-  if (AiCharacterRecord* character = CurrentCharacter(this))
-  {
-    if (character->m_agentId == static_cast<int>(m_id))
-    {
-      if ((character->m_flags.m_value & kCharacterBusy) == 0)
-      {
+  if (AiCharacterRecord* character = CurrentCharacter(this)) {
+    if (character->m_agentId == static_cast<int>(m_id)) {
+      if ((character->m_flags.m_value & kCharacterBusy) == 0) {
         m_flags.m_value |= kAgentHasCharacter;
-        if (character->m_location.m_value == m_targetKey.m_value)
-        {
+        if (character->m_location.m_value == m_targetKey.m_value) {
           const uint32_t flags = m_flags.m_value;
           m_flags.m_value = flags | 8;
-          if ((character->m_flags.m_value & 0x7000000) != 0)
+          if ((character->m_flags.m_value & 0x7000000) != 0) {
             m_flags.m_value = flags | 0xc;
+          }
         }
         decided = true;
-      }
-      else
-      {
+      } else {
         GiveBackCharacter(character);
       }
     }
-    if (!decided)
+    if (!decided) {
       m_characterKey.Reset();
+    }
   }
-  if ((m_flags.m_value & kAgentHasCharacter) == 0)
-  {
+  if ((m_flags.m_value & kAgentHasCharacter) == 0) {
     auto* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_systemRecordId));
-    if (record)
-    {
+    if (record) {
       sectorKey = record->m_sectorKey;
       m_selector.Add(m_characters->RankByValue(kCharacterAssignable, m_x50, 0x474000f1, 0, 6, 0x32, 10000, 1));
-      if (IsSystemKey(m_homeKey))
-      {
+      if (IsSystemKey(m_homeKey)) {
         systemKey = m_homeKey;
-      }
-      else
-      {
+      } else {
         auto* sector = static_cast<AiSectorEval*>(m_owner->m_sectors.Find(&sectorKey));
-        if (sector)
+        if (sector) {
           systemKey = *sector->GetSystemKey(&scratch, 0);
+        }
       }
       m_selector.Add(m_characters->RankByDistance(&systemKey, kCharacterAssignable, m_x50, 0x474000f1, 0, 2));
       picked = *m_selector.PickBest(&scratch);
-      while (IsCharacterKey(picked) && (m_flags.m_value & kAgentHasCharacter) == 0)
-      {
+      while (IsCharacterKey(picked) && (m_flags.m_value & kAgentHasCharacter) == 0) {
         AiCharacterRecord* character = FindCharacter(this, picked);
-        if (character && CanReach(&picked) != 0)
+        if (character && CanReach(&picked) != 0) {
           TakeCharacter(this, character, picked, m_assignment);
+        }
         picked = *m_selector.PickBest(&scratch);
       }
       m_selector.Reset();
     }
-    if ((m_flags.m_value & kAgentHasCharacter) == 0)
+    if ((m_flags.m_value & kAgentHasCharacter) == 0) {
       return 0;
+    }
   }
   result = 1;
   return result;

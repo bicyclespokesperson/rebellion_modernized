@@ -4,8 +4,7 @@
 #include "core/stream_io.h"
 
 // Error code of the last file/resource helper call below (g_fileError).
-enum FileError : int
-{
+enum FileError : int {
   kFileOk = 0,
   kFileNoName = 1,
   kFileOpenFailed = 2,

@@ -12,7 +12,8 @@ using events::kStatusOk;
 using events::succeeded;
 using events::succeedWithoutChecks;
 
-Event301::Event301() : SourceEvent()
+Event301::Event301()
+    : SourceEvent()
 {
 }
 
@@ -47,7 +48,8 @@ Event301* CreateEvent301()
   return NewOrNull<Event301>();
 }
 
-Event31d::Event31d() : SourceEvent()
+Event31d::Event31d()
+    : SourceEvent()
 {
 }
 
@@ -82,7 +84,8 @@ Event31d* CreateEvent31d()
   return NewOrNull<Event31d>();
 }
 
-Event300::Event300() : SourceEvent()
+Event300::Event300()
+    : SourceEvent()
 {
 }
 
@@ -117,7 +120,8 @@ Event300* CreateEvent300()
   return NewOrNull<Event300>();
 }
 
-Event308::Event308() : SourceEvent()
+Event308::Event308()
+    : SourceEvent()
 {
 }
 
@@ -152,7 +156,8 @@ Event308* CreateEvent308()
   return NewOrNull<Event308>();
 }
 
-Event306::Event306() : SourceEvent()
+Event306::Event306()
+    : SourceEvent()
 {
 }
 
@@ -187,7 +192,8 @@ Event306* CreateEvent306()
   return NewOrNull<Event306>();
 }
 
-Event316::Event316() : SourceEvent()
+Event316::Event316()
+    : SourceEvent()
 {
 }
 
@@ -222,7 +228,8 @@ Event316* CreateEvent316()
   return NewOrNull<Event316>();
 }
 
-Event307::Event307() : SourceEvent()
+Event307::Event307()
+    : SourceEvent()
 {
 }
 
@@ -257,7 +264,8 @@ Event307* CreateEvent307()
   return NewOrNull<Event307>();
 }
 
-Event302::Event302() : SourceEvent()
+Event302::Event302()
+    : SourceEvent()
 {
 }
 
@@ -292,7 +300,8 @@ Event302* CreateEvent302()
   return NewOrNull<Event302>();
 }
 
-Event318::Event318() : SourceEvent()
+Event318::Event318()
+    : SourceEvent()
 {
 }
 
@@ -327,7 +336,8 @@ Event318* CreateEvent318()
   return NewOrNull<Event318>();
 }
 
-Event315::Event315() : SourceEvent()
+Event315::Event315()
+    : SourceEvent()
 {
 }
 
@@ -362,7 +372,8 @@ Event315* CreateEvent315()
   return NewOrNull<Event315>();
 }
 
-Event30a::Event30a() : SourceEvent()
+Event30a::Event30a()
+    : SourceEvent()
 {
 }
 
@@ -397,7 +408,8 @@ Event30a* CreateEvent30a()
   return NewOrNull<Event30a>();
 }
 
-Event320::Event320() : TwoKeyEvent()
+Event320::Event320()
+    : TwoKeyEvent()
 {
 }
 
@@ -432,7 +444,8 @@ Event320* CreateEvent320()
   return NewOrNull<Event320>();
 }
 
-Event313::Event313() : SourceEvent()
+Event313::Event313()
+    : SourceEvent()
 {
 }
 
@@ -459,8 +472,9 @@ int Event313::Execute()
 {
   NotifyContext ctx(m_context);
   GameObjNotifier* manager = GetGameRootMember_b8();
-  if (manager)
+  if (manager) {
     static_cast<MissionMgr*>(manager)->MissionMgr::RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
+  }
   return 0;
 }
 
@@ -469,7 +483,8 @@ Event313* CreateEvent313()
   return NewOrNull<Event313>();
 }
 
-Event31a::Event31a() : SourceEvent()
+Event31a::Event31a()
+    : SourceEvent()
 {
 }
 
@@ -495,8 +510,9 @@ int Event31a::CheckValid(StatusCode* status)
 int Event31a::Execute()
 {
   auto* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&m_key));
-  if (object)
+  if (object) {
     DeleteObjectViews(object);
+  }
   return 0;
 }
 
@@ -505,7 +521,8 @@ Event31a* CreateEvent31a()
   return NewOrNull<Event31a>();
 }
 
-Event317::Event317() : SourceEvent()
+Event317::Event317()
+    : SourceEvent()
 {
 }
 
@@ -533,19 +550,16 @@ int Event317::Execute()
   StatusCode status(kStatusCategory, kStatusOk);
   GameObjNotifier* owner = nullptr;
   int ok = CheckValid(&status);
-  if (ok && succeeded(status))
-  {
+  if (ok && succeeded(status)) {
     const StatusCode missing(kStatusCategory, kStatusMissingTarget);
     ok = ResolveMasterInFamilies_30_3c(&m_key, &owner, &missing, &status);
   }
   CharacterMgr* manager = nullptr;
-  if (ok && succeeded(status))
-  {
+  if (ok && succeeded(status)) {
     manager = GetCharacterManager();
     ok = manager != nullptr;
   }
-  if (ok && succeeded(status))
-  {
+  if (ok && succeeded(status)) {
     NotifyContext ctx(m_context);
     manager->RollCaptiveEscape(static_cast<Character*>(owner), m_valueB, &ctx);
   }

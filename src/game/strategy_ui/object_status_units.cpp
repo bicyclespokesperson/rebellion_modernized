@@ -141,8 +141,7 @@ void ObjectStatusWindow::FillFacilityPage(CoolListItemList* labels, CoolListItem
 
   auto* facility = static_cast<DefenseFacility*>(m_object);
   const uint32_t family = m_key.Family();
-  if (family >= 0x22 && family < 0x28)
-  {
+  if (family >= 0x22 && family < 0x28) {
     AddLabelRow(&text, 0x8659, row + 4, labels);
     {
       const uint32_t subtrahend = facility->GetAttackStrengthLoss();
@@ -178,16 +177,11 @@ void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemLis
   AddLabelRow(&text, 0x8666, 3, labels);
   const uint32_t state = static_cast<GameObj*>(m_object)->m_stateFlags;
   uint16_t stateId;
-  if ((state & 0x10) != 0)
-  {
+  if ((state & 0x10) != 0) {
     stateId = 0x8744;
-  }
-  else if ((state & 4) != 0)
-  {
+  } else if ((state & 4) != 0) {
     stateId = 0x8748;
-  }
-  else
-  {
+  } else {
     stateId = 0x8771;
   }
   SetText(&text, stateId);
@@ -243,20 +237,13 @@ void ObjectStatusWindow::FillSpecialForcesPage(CoolListItemList* labels, CoolLis
   AddLabelRow(&text, 0x8666, 3, labels);
   const ObjectKey unset;
   uint16_t stateId;
-  if ((forces->m_stateFlags & 0x10) != 0)
-  {
+  if ((forces->m_stateFlags & 0x10) != 0) {
     stateId = 0x8744;
-  }
-  else if (forces->m_missionKey.m_value != unset.m_value)
-  {
+  } else if (forces->m_missionKey.m_value != unset.m_value) {
     stateId = 0x8745;
-  }
-  else if ((forces->m_stateFlags & 4) != 0)
-  {
+  } else if ((forces->m_stateFlags & 4) != 0) {
     stateId = 0x8748;
-  }
-  else
-  {
+  } else {
     stateId = 0x8757;
   }
   SetText(&text, stateId);
@@ -295,19 +282,19 @@ void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemL
   int memberCount = 0;
   int flaggedCount = 0;
   GameObjNotifier* firstMember = nullptr;
-  for (GameObjNotifier* member = GetFirstObjectInFamilies_30_40(m_galaxy->m_side); member;)
-  {
+  for (GameObjNotifier* member = GetFirstObjectInFamilies_30_40(m_galaxy->m_side); member;) {
     ObjectKey missionKey;
     GetObjectKey(m_object, &missionKey);
     ObjectKey memberKey;
     static_cast<GameObjRoot*>(member)->GetKey(&memberKey);
-    if (memberKey.m_value == missionKey.m_value)
-    {
-      if (!firstMember)
+    if (memberKey.m_value == missionKey.m_value) {
+      if (!firstMember) {
         firstMember = member;
+      }
       ++memberCount;
-      if (static_cast<Role*>(member)->m_flags78 & 1)
+      if (static_cast<Role*>(member)->m_flags78 & 1) {
         ++flaggedCount;
+      }
     }
     const FamilyRange characters(0x30, 0x40);
     member = static_cast<GameObj*>(member)->FindNextSibling(&characters, 1);
@@ -317,33 +304,26 @@ void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemL
   AddStatusRow(2, &text, labels);
   ObjectKey target;
   const uint32_t side = m_galaxy->m_side == 1 ? 1 : (m_galaxy->m_side == 2 ? 2 : 0);
-  if (firstMember)
-  {
-    if (((static_cast<GameObjRoot*>(firstMember)->m_flags >> 6) & 3) == side)
-    {
+  if (firstMember) {
+    if (((static_cast<GameObjRoot*>(firstMember)->m_flags >> 6) & 3) == side) {
       target = static_cast<Mission*>(m_object)->m_objectiveKey;
-    }
-    else
-    {
+    } else {
       ObjectKey memberKey;
       static_cast<GameObjRoot*>(firstMember)->GetKey(&memberKey);
-      if (memberKey.Family() >= 0x50 && memberKey.Family() < 0x60)
-      {
+      if (memberKey.Family() >= 0x50 && memberKey.Family() < 0x60) {
         ObjectKey owner;
         static_cast<GameObjRoot*>(firstMember)->GetOwnerKey(&owner);
-        if (owner.Family() >= 0x90 && owner.Family() < 0x98)
+        if (owner.Family() >= 0x90 && owner.Family() < 0x98) {
           target = owner;
+        }
       }
     }
   }
   GameObjNotifier* location = target.IsSet() ? GetObjectInFamilies_01_ff(m_galaxy->m_side, &target) : nullptr;
   text.clear();
-  if (!location)
-  {
+  if (!location) {
     SetText(&text, 0x8527);
-  }
-  else
-  {
+  } else {
     Append(&text, static_cast<GameObj*>(location)->GetName()->c_str());
   }
   AddStatusRow(2, &text, values);
@@ -361,23 +341,15 @@ void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemL
 namespace
 {
 
-void AddCharacterNameRow(std::string* text,
-                         uint16_t labelId,
-                         int row,
-                         System* system,
-                         int commandKind,
-                         CoolListItemList* labels,
-                         CoolListItemList* values)
+void AddCharacterNameRow(std::string* text, uint16_t labelId, int row, System* system, int commandKind,
+                         CoolListItemList* labels, CoolListItemList* values)
 {
   AddLabelRow(text, labelId, row, labels);
   GameObjNotifier* character = nullptr;
   system->FindCharacterByCommandKind(commandKind, &character);
-  if (!character)
-  {
+  if (!character) {
     SetText(text, 0x8762);
-  }
-  else
-  {
+  } else {
     Append(text, static_cast<GameObj*>(character)->GetName()->c_str());
   }
   AddStatusRow(row, text, values);
@@ -385,8 +357,7 @@ void AddCharacterNameRow(std::string* text,
 
 using UnitCounter = int (*)(GameObj* parent, uint32_t side, uint32_t filter);
 
-struct CountRow
-{
+struct CountRow {
   uint16_t m_labelId;
   UnitCounter m_count;
 };
@@ -415,8 +386,7 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
   text.append(std::to_string(static_cast<unsigned long>(system->GetLoyaltyFor(2))));
   AddStatusRow(6, &text, values);
 
-  for (int row = 7; row <= 8; ++row)
-  {
+  for (int row = 7; row <= 8; ++row) {
     AddLabelRow(&text, row == 7 ? 0x8686 : 0x8687, row, labels);
     text.append(std::to_string(static_cast<long>(system->m_energy)));
     const int allocated = system->m_energyAllocated;
@@ -429,18 +399,17 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
   AddStatusRow(9, &text, values);
 
   static constexpr CountRow kBuildingRows[] = {
-    {0x8689, CountProductionFacilityType2C},
-    {0x8690, CountProductionFacilityType2D},
-    {0x8691, CountManufacturingFacility28Children},
-    {0x8692, CountManufacturingFacility29Children},
-    {0x8693, CountManufacturingFacility2AChildren},
-    {0x8694, CountDefenseFacilities24},
-    {0x8695, CountDefenseFacilities},
-    {0x8696, CountDefenseFacilities25},
+      {0x8689, CountProductionFacilityType2C},
+      {0x8690, CountProductionFacilityType2D},
+      {0x8691, CountManufacturingFacility28Children},
+      {0x8692, CountManufacturingFacility29Children},
+      {0x8693, CountManufacturingFacility2AChildren},
+      {0x8694, CountDefenseFacilities24},
+      {0x8695, CountDefenseFacilities},
+      {0x8696, CountDefenseFacilities25},
   };
   int row = 10;
-  for (const CountRow& entry : kBuildingRows)
-  {
+  for (const CountRow& entry : kBuildingRows) {
     AddLabelRow(&text, entry.m_labelId, row, labels);
     text.append(std::to_string(static_cast<unsigned long>(entry.m_count(system, side, 3))));
     AddStatusRow(row, &text, values);
@@ -470,7 +439,7 @@ void ObjectStatusWindow::FillProductionFacilityPage(CoolListItemList* labels, Co
   AddStatusRows(row + 1, labels, values);
   AddCombatValueRow(row + 2, labels, values);
   AddLabelRow(&text, 0x8701, row + 3, labels);
-  text.append(std::to_string(static_cast<unsigned long>(static_cast<Mission*>(m_object)->GetRecordHidden())));
+  text.append(std::to_string(static_cast<unsigned long>(static_cast<Facility*>(m_object)->GetRecordField5c())));
   AddStatusRow(row + 3, &text, values);
   AddLabelRow(&text, 0x8658, row + 4, labels);
   {

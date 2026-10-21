@@ -70,29 +70,31 @@ bool rangeWithin(const FamilyRange* range, const FamilyRange& outer)
 
 int System::SetRecord(DatRecord* record)
 {
-  if (!record)
+  if (!record) {
     return 0;
+  }
   const int familyMatches = AssignRecord(record);
-  if (familyMatches)
+  if (familyMatches) {
     SetId(record->m_id);
+  }
   return familyMatches;
 }
 
 System::System()
-: GameObj(),
-  m_loyalty(50),
-  m_energy(0),
-  m_energyAllocated(0),
-  m_rawMaterial(0),
-  m_rawMaterialAllocated(0),
-  m_smugglingPercent(0),
-  m_productionModifier(100),
-  m_troopRegWithdrawPercent(100),
-  m_controlBits(0),
-  m_troopRegSurplus(0),
-  m_troopRegRequired(0),
-  m_controlData(),
-  m_flags(0)
+    : GameObj()
+    , m_loyalty(50)
+    , m_energy(0)
+    , m_energyAllocated(0)
+    , m_rawMaterial(0)
+    , m_rawMaterialAllocated(0)
+    , m_smugglingPercent(0)
+    , m_productionModifier(100)
+    , m_troopRegWithdrawPercent(100)
+    , m_controlBits(0)
+    , m_troopRegSurplus(0)
+    , m_troopRegRequired(0)
+    , m_controlData()
+    , m_flags(0)
 {
   SetFlag31(GetFlag31() != 0);
 }
@@ -106,8 +108,9 @@ int System::GetEventKinds(int type, EventKindSet* out)
   BuildEventKinds();
   EventKindSet* kinds = nullptr;
   const int result = SelectEventKinds(static_cast<uint32_t>(type), &kinds);
-  if (result)
+  if (result) {
     *out = *kinds;
+  }
   return result;
 }
 
@@ -117,16 +120,16 @@ int System::CheckOrder(int type, int orderKind, StatusCode* out)
   BuildEventKinds();
   EventKindSet* kinds = nullptr;
   const int result = SelectEventKinds(static_cast<uint32_t>(type), &kinds);
-  if (result && kinds->Contains(orderKind))
+  if (result && kinds->Contains(orderKind)) {
     setStatus(out, kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
 int System::CheckSameControl(GameObj* other, StatusCode* out)
 {
-  if (!(m_flags & system_flag::kPopulated) && ControlSide() == kControlSideNeutral &&
-      familyIn(other->GetFamily(), kTroopRange))
-  {
+  if (!(m_flags & system_flag::kPopulated) && ControlSide() == kControlSideNeutral
+      && familyIn(other->GetFamily(), kTroopRange)) {
     setStatus(out, kStatusCategory, kStatusOk);
     return 1;
   }
@@ -143,87 +146,75 @@ int System::CheckIncomingUnitOrder(int sideA, int sideB, int kind, intptr_t rang
   const bool characterOrder = kind == kOrderCharacterKind && rangeWithin(range, kCharacterRange);
   const bool characterOrder2 = kind == kOrderCharacterKind2 && rangeWithin(range, kCharacterRange);
 
-  if (statusIsOk(out) && (m_stateFlags & kDestroyedState) && !fleetMove && !characterOrder)
+  if (statusIsOk(out) && (m_stateFlags & kDestroyedState) && !fleetMove && !characterOrder) {
     setStatus(out, kStatusCategory, kStatusDestroyed);
+  }
   int result = 1;
-  if (statusIsOk(out))
-  {
+  if (statusIsOk(out)) {
     result = CheckControlAndState(this, static_cast<uint32_t>(sideA), static_cast<uint32_t>(sideB), 1, 1, out);
-    if (result != 0 && !statusIsOk(out))
-    {
-      if (fleetMove || characterOrder)
+    if (result != 0 && !statusIsOk(out)) {
+      if (fleetMove || characterOrder) {
         setStatus(out, kStatusCategory, kStatusOk);
-      if (troopMove && (m_flags & system_flag::kExplored) && ControlSide() == kControlSideNeutral &&
-          !(m_flags & system_flag::kPopulated))
+      }
+      if (troopMove && (m_flags & system_flag::kExplored) && ControlSide() == kControlSideNeutral
+          && !(m_flags & system_flag::kPopulated)) {
         setStatus(out, kStatusCategory, kStatusOk);
+      }
     }
   }
-  if (result != 0 && statusIsOk(out) && (m_flags & system_flag::kBlockade))
-  {
+  if (result != 0 && statusIsOk(out) && (m_flags & system_flag::kBlockade)) {
     setStatus(out, kStatusSystemCategory, 4);
-    if (fleetMove || characterOrder || characterOrder2 || kind == kOrderAssaultKind)
+    if (fleetMove || characterOrder || characterOrder2 || kind == kOrderAssaultKind) {
       setStatus(out, kStatusCategory, kStatusOk);
+    }
   }
   return result;
 }
 
 // How many more units of the requested family range fit here (*remaining) and which of the two limits applies.
-int System::GetIncomingUnitCapacity(const FamilyRange* range,
-                      int stateFilter,
-                      int* allowed,
-                      int* unlimited,
-                      int* remaining,
-                      StatusCode* out)
+int System::GetIncomingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited,
+                                    int* remaining, StatusCode* out)
 {
   *allowed = 1;
   *unlimited = 1;
   *remaining = 0;
   setStatus(out, kStatusCategory, kStatusOk);
-  if (rangeWithin(range, kFacilityRange))
-  {
+  if (rangeWithin(range, kFacilityRange)) {
     const bool kindA = rangeWithin(range, kFacilityKindARange);
     *unlimited = 0;
-    if (kindA)
-    {
+    if (kindA) {
       ChildIterator facilities(this, &kFacilityKindARange, static_cast<uint32_t>(stateFilter));
       *remaining = m_rawMaterial - facilities.Count();
       setStatus(out, kStatusSystemCategory, kStatusNoSlotFacility);
-    }
-    else
-    {
+    } else {
       ChildIterator facilities(this, &kFacilityRange, static_cast<uint32_t>(stateFilter));
       *remaining = m_energy - facilities.Count();
       setStatus(out, kStatusSystemCategory, kStatusNoSlotEnergy);
     }
     return 1;
   }
-  const bool supported = rangeWithin(range, kTroopRange) || rangeWithin(range, kFighterRange) ||
-                         rangeWithin(range, kFleetRange) || rangeWithin(range, kManagerRange) ||
-                         rangeWithin(range, kCharacterRange) || rangeWithin(range, kMissionRange);
-  if (supported)
+  const bool supported = rangeWithin(range, kTroopRange) || rangeWithin(range, kFighterRange)
+                         || rangeWithin(range, kFleetRange) || rangeWithin(range, kManagerRange)
+                         || rangeWithin(range, kCharacterRange) || rangeWithin(range, kMissionRange);
+  if (supported) {
     *unlimited = 1;
-  else
+  } else {
     *allowed = 0;
+  }
   return 1;
 }
 
-int System::GetOutgoingUnitCapacity(const FamilyRange* range,
-                      int stateFilter,
-                      int* allowed,
-                      int* unlimited,
-                      int* remaining,
-                      StatusCode* out)
+int System::GetOutgoingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited,
+                                    int* remaining, StatusCode* out)
 {
   *allowed = 1;
   *unlimited = 1;
   *remaining = 0;
   setStatus(out, kStatusCategory, kStatusOk);
-  if (rangeWithin(range, kDeathStarRange))
-  {
+  if (rangeWithin(range, kDeathStarRange)) {
     int deathStars = 0;
     ChildIterator fleets(this, &kFleetRange, static_cast<uint32_t>(stateFilter));
-    for (fleets.Begin(); fleets.Current(); fleets.Advance())
-    {
+    for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
       ChildIterator ships(fleets.Current(), &kDeathStarRange, static_cast<uint32_t>(stateFilter));
       deathStars += ships.Count();
     }
@@ -238,19 +229,19 @@ int System::GetOutgoingUnitCapacity(const FamilyRange* range,
 int System::CheckAssaultEnabled(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
-  if (statusIsOk(out))
-  {
-    if (m_stateFlags & kDestroyedState)
+  if (statusIsOk(out)) {
+    if (m_stateFlags & kDestroyedState) {
       setStatus(out, kStatusCategory, kStatusDestroyed);
-    if (statusIsOk(out))
-    {
-      if (!(m_flags & system_flag::kBlockade))
+    }
+    if (statusIsOk(out)) {
+      if (!(m_flags & system_flag::kBlockade)) {
         setStatus(out, kStatusSystemCategory, kStatusNoBlockade);
-      if (statusIsOk(out))
-      {
+      }
+      if (statusIsOk(out)) {
         ChildIterator facilities(this, &kFacilityKindBRange, 1);
-        if (GetParameter1E03() <= facilities.Count())
+        if (GetParameter1E03() <= facilities.Count()) {
           setStatus(out, kStatusSystemCategory, kStatusNoCapacity);
+        }
       }
     }
   }
@@ -261,16 +252,18 @@ int System::CheckAssaultValid(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   const int result = CheckAssaultEnabled(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
 int System::CheckBombardEnabled(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
-  if (statusIsOk(out) && (m_stateFlags & kDestroyedState))
+  if (statusIsOk(out) && (m_stateFlags & kDestroyedState)) {
     setStatus(out, kStatusCategory, kStatusDestroyed);
+  }
   return 1;
 }
 
@@ -278,8 +271,9 @@ int System::CheckBombardValid(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   const int result = CheckBombardEnabled(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -299,10 +293,10 @@ int System::ChangeDestroyedReason(int reason, NotifyContext* ctx)
   sideContext.m_flag04 = 1;
   sideContext.m_flag08 = 3;
   int ok = 1;
-  if (System* alliance = ViewAsSystem(1))
+  if (System* alliance = ViewAsSystem(1)) {
     ok = alliance->ApplyBombard(&sideContext) != 0;
-  if (System* empire = ViewAsSystem(2))
-  {
+  }
+  if (System* empire = ViewAsSystem(2)) {
     const int applied = empire->ApplyBombard(&sideContext);
     ok = applied && ok;
   }
@@ -381,23 +375,19 @@ int System::NotifyUnitExisting(intptr_t childArg, int added, intptr_t ctxArg)
   int ok = GameObj::NotifyUnitExisting(childArg, added, ctxArg);
   const uint32_t family = child->GetFamily();
   int applied;
-  if (familyIn(family, kFacilityRange))
-  {
+  if (familyIn(family, kFacilityRange)) {
     applied = this->System::RecomputeEnergyAllocated(ctx);
     ok = applied && ok;
   }
-  if (family == 0x2c)
-  {
+  if (family == 0x2c) {
     applied = this->System::RecomputeRawMaterialAllocated(ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, kFacilityKindCRange) && added != 0)
-  {
+  if (familyIn(family, kFacilityKindCRange) && added != 0) {
     applied = this->System::RecomputeFacilityBattleFlags(ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, kFleetRange))
-  {
+  if (familyIn(family, kFleetRange)) {
     applied = this->System::RecomputeFleetExploredFlags(ctx);
     ok = applied && ok;
     applied = this->System::RecomputeFleetEmptyFlags(ctx);
@@ -415,51 +405,43 @@ int System::NotifyUnitUsable(intptr_t childArg, int added, intptr_t ctxArg)
   int ok = GameObj::NotifyUnitUsable(childArg, added, ctxArg);
   const uint32_t family = child->GetFamily();
   int applied;
-  if (familyIn(family, kFacilityRange))
-  {
+  if (familyIn(family, kFacilityRange)) {
     applied = this->System::RecomputePopulated(ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, FamilyRange(0x20, 0x22)))
-  {
+  if (familyIn(family, FamilyRange(0x20, 0x22))) {
     applied = this->System::AdjustLoyalty(SignedParameter1E1A(added), 1, ctx);
     ok = applied && ok;
   }
-  if (family == 0x22)
-  {
+  if (family == 0x22) {
     applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, FamilyRange(0x2c, 0x30)) && added != 0)
-  {
+  if (familyIn(family, FamilyRange(0x2c, 0x30)) && added != 0) {
     applied = this->System::PushProductionModifier(child, ctx);
     ok = applied && ok;
   }
-  if (family == 0x28)
-  {
+  if (family == 0x28) {
     applied = this->System::RecomputeCombatUnitFastRepair(ctx);
     ok = applied && ok;
     applied = this->System::RefreshSiteKind0(ctx);
     ok = applied && ok;
   }
-  if (family == 0x29)
-  {
+  if (family == 0x29) {
     applied = this->System::RefreshSiteKind2(ctx);
     ok = applied && ok;
   }
-  if (ok)
-  {
-    if (family == 0x2a)
+  if (ok) {
+    if (family == 0x2a) {
       ok = this->System::RefreshSiteKind1(ctx) != 0;
-    if (ok && familyIn(family, kFleetRange))
-    {
+    }
+    if (ok && familyIn(family, kFleetRange)) {
       const int first = this->System::RecomputeObservation(ctx);
       applied = this->System::RecomputeFleetExploredFlags(ctx);
       ok = applied && first;
       applied = this->System::RecomputeFleetEmptyFlags(ctx);
       ok = applied && ok;
-      if (added != 0)
-      {
+      if (added != 0) {
         applied = SetControlKindBattleReady(child->ControlSide(), ctx);
         ok = applied && ok;
       }
@@ -471,10 +453,8 @@ int System::NotifyUnitUsable(intptr_t childArg, int added, intptr_t ctxArg)
       ok = applied && ok;
     }
   }
-  if (familyIn(family, kFighterRange))
-  {
-    if (added != 0)
-    {
+  if (familyIn(family, kFighterRange)) {
+    if (added != 0) {
       applied = SetControlKindBattleReady(child->ControlSide(), ctx);
       ok = applied && ok;
     }
@@ -483,16 +463,14 @@ int System::NotifyUnitUsable(intptr_t childArg, int added, intptr_t ctxArg)
     applied = SetBlockadeAndBattlePendingManagementRequired(1, ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, kTroopRange))
-  {
+  if (familyIn(family, kTroopRange)) {
     applied = this->System::RecomputeControlData(ctx);
     ok = applied && ok;
     applied = this->System::RecomputeGarrisoned(ctx);
     ok = applied && ok;
     applied = this->System::RecomputeTroopRegSurplus(ctx);
     ok = applied && ok;
-    if (added != 0)
-    {
+    if (added != 0) {
       applied = this->System::PushTroopWithdrawPercent(child, ctx);
       ok = applied && ok;
     }
@@ -504,29 +482,20 @@ int System::NotifyOwnerExisting(intptr_t childArg, int added, intptr_t ctxArg)
 {
   auto* child = reinterpret_cast<GameObj*>(childArg);
   int ok = GameObj::NotifyOwnerExisting(childArg, added, ctxArg);
-  if (added == 0 && (child->m_stateFlags & kDestroyedState))
-  {
-    if (familyIn(child->GetFamily(), kUnitRange))
-    {
+  if (added == 0 && (child->m_stateFlags & kDestroyedState)) {
+    if (familyIn(child->GetFamily(), kUnitRange)) {
       int strength = static_cast<int>(static_cast<Detector*>(child)->GetRecordField58());
       strength -= static_cast<Detector*>(child)->GetCapturedStrengthLoss();
       const int reason = static_cast<int>(child->m_packed & 0xff);
       const uint32_t side = child->ControlSide();
       int applied;
-      if (reason == kDestroyedByCapture)
-      {
+      if (reason == kDestroyedByCapture) {
         applied = this->System::SetData68(GetDataWord68(static_cast<int>(side)) + strength, side);
-      }
-      else if (reason == kDestroyedByRetreat)
-      {
+      } else if (reason == kDestroyedByRetreat) {
         applied = this->System::SetData48(GetDataWord48(static_cast<int>(side)) + strength, side);
-      }
-      else if (reason == kDestroyedByLoss)
-      {
+      } else if (reason == kDestroyedByLoss) {
         applied = this->System::SetData54(GetDataWord54(static_cast<int>(side)) + strength, side);
-      }
-      else
-      {
+      } else {
         return ok;
       }
       return applied && ok ? 1 : 0;
@@ -542,31 +511,26 @@ int System::NotifyOwnerUsable(intptr_t childArg, int added, intptr_t ctxArg)
   int ok = GameObj::NotifyOwnerUsable(childArg, added, ctxArg);
   const uint32_t family = child->GetFamily();
   int applied;
-  if (familyIn(family, kCapitalShipRange))
-  {
+  if (familyIn(family, kCapitalShipRange)) {
     applied = this->System::RecomputeSmugglingPercent(ctx);
     const int first = applied && ok;
     applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
     ok = applied && first;
-    if (added != 0)
-    {
+    if (added != 0) {
       applied = this->System::PushFastRepair(child, ctx);
       ok = applied && ok;
     }
   }
-  if (familyIn(family, kTroopRange))
-  {
+  if (familyIn(family, kTroopRange)) {
     applied = this->System::RecomputeSmugglingPercent(ctx);
     ok = applied && ok;
   }
-  if (familyIn(family, kFleetRange))
-  {
+  if (familyIn(family, kFleetRange)) {
     applied = this->System::RecomputeSmugglingPercent(ctx);
     const int first = applied && ok;
     applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
     ok = applied && first;
-    if (added != 0)
-    {
+    if (added != 0) {
       applied = this->System::RecomputeFastRepair(ctx);
       ok = applied && ok;
     }

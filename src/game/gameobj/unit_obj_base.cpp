@@ -48,13 +48,14 @@ int UnitObjBase::GetEventKinds(int unused, EventKindSet* out)
 int UnitObjBase::CanBeControlledBy(int side)
 {
   const bool validSide = side >= 1 && side <= 3;
-  if (!validSide || !m_record)
+  if (!validSide || !m_record) {
     return 0;
-  if (!(m_stateFlags & kExistingFlag))
+  }
+  if (!(m_stateFlags & kExistingFlag)) {
     return 1;
+  }
   const SdRecord* record = static_cast<SdRecord*>(m_record);
-  switch (side)
-  {
+  switch (side) {
     case 1:
       return record->m_field40;
     case 2:
@@ -74,8 +75,9 @@ int UnitObjBase::CheckRequestImpl(const ActivityRequest* request, StatusCode* ou
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -161,23 +163,26 @@ int UnitObjBase::OnAutoroutingChanged(int newValue, NotifyContext* ctx)
 
 uint32_t UnitObjBase::GetRecordField48()
 {
-  if (!m_record)
+  if (!m_record) {
     return 0;
+  }
   return static_cast<SdRecord*>(m_record)->GetField48();
 }
 
 uint32_t UnitObjBase::GetRecordField4c()
 {
-  if (!m_record)
+  if (!m_record) {
     return 0;
+  }
   return static_cast<SdRecord*>(m_record)->GetField4c();
 }
 
 int UnitObjBase::ApplyAllToSideView(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     GameObj::ApplyAll(ctx);
+  }
   return result;
 }
 

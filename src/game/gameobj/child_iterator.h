@@ -11,7 +11,7 @@
 //   for (it.Begin(); it.Current(); it.Advance()) ...
 class ChildIterator
 {
-public:
+  public:
   // Any side.
   ChildIterator(GameObjNotifier* parent, const FamilyRange* range, uint32_t stateFilter);
   // Only children controlled by `side`.
@@ -33,18 +33,18 @@ public:
     return m_current;
   }
 
-  GameObjNotifier* m_parent; // +0x04
-  FamilyRange m_range; // +0x08
-  uint32_t m_stateFilter; // +0x10
-  int m_hasSideFilter; // +0x14
-  uint32_t m_side; // +0x18
+  GameObjNotifier* m_parent;  // +0x04
+  FamilyRange m_range;        // +0x08
+  uint32_t m_stateFilter;     // +0x10
+  int m_hasSideFilter;        // +0x14
+  uint32_t m_side;            // +0x18
   GameObjNotifier* m_current; // +0x1c
 };
 
 // Iterator over the "unit" families 0x10-0x3f (troops, ships, squadrons, facilities, characters, special forces).
 class UnitIterator : public ChildIterator
 {
-public:
+  public:
   UnitIterator(GameObjNotifier* parent, uint32_t stateFilter);
   ~UnitIterator() override;
 };

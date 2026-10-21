@@ -6,7 +6,8 @@
 //        macOS    /System/Library/Fonts/Supplemental, /Library/Fonts, ~/Library/Fonts
 //        Linux    ~/.fonts, ~/.local/share/fonts, /usr/share/fonts, /usr/local/share/fonts (searched recursively, so
 //                 .../truetype/msttcorefonts/Arial.ttf is found)
-//   3. Liberation Sans (metric-compatible with Arial; LiberationSans-Regular.ttf + -Bold.ttf): the same system directories, then
+//   3. Liberation Sans (metric-compatible with Arial; LiberationSans-Regular.ttf + -Bold.ttf): the same system
+//   directories, then
 //      <executable dir>/fonts and the repository's third_party/liberation-fonts-ttf-2.1.5 (tools/fetch_deps.sh)
 // The environment variable MW_FONT_DIR adds one more directory (searched recursively) in front of the system ones.
 // When no bold file exists next to the regular one the bold face is synthesised by emboldening the regular outlines.
@@ -17,15 +18,14 @@
 namespace mwtext
 {
 
-struct FontFiles
-{
+struct FontFiles {
   std::string regular; // empty: no font found at all
-  std::string bold; // empty: synthesise
-  std::string source; // "config", "system Arial" or "Liberation Sans" (for the log)
+  std::string bold;    // empty: synthesise
+  std::string source;  // "config", "system Arial" or "Liberation Sans" (for the log)
 };
 
-// Extra directories searched (after the config path, before the system directories). Used by tests and by the port's startup
-// code to add its own data directory.
+// Extra directories searched (after the config path, before the system directories). Used by tests and by the port's
+// startup code to add its own data directory.
 void SetExtraFontDirectories(const std::vector<std::string>& dirs);
 
 FontFiles FindArial();

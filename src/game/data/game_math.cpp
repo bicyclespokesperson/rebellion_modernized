@@ -9,8 +9,7 @@ namespace
 
 int checkedInt(int64_t value)
 {
-  if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max())
-  {
+  if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max()) {
     throw std::overflow_error("integer math result is outside int range");
   }
   return static_cast<int>(value);
@@ -18,8 +17,9 @@ int checkedInt(int64_t value)
 
 int64_t divide(int64_t numerator, int64_t denominator)
 {
-  if (denominator == 0)
+  if (denominator == 0) {
     throw std::domain_error("division by zero");
+  }
   return numerator / denominator;
 }
 
@@ -52,10 +52,10 @@ int MinInt(int a, int b)
 
 int IntDivide(int numerator, int denominator)
 {
-  if (denominator == 0)
+  if (denominator == 0) {
     throw std::domain_error("division by zero");
-  if (numerator == std::numeric_limits<int>::min() && denominator == -1)
-  {
+  }
+  if (numerator == std::numeric_limits<int>::min() && denominator == -1) {
     throw std::overflow_error("integer division result is outside int range");
   }
   return numerator / denominator;
@@ -92,13 +92,13 @@ uint64_t IntegerSqrt(uint64_t value)
 {
   uint64_t low = 0;
   uint64_t high = (uint64_t{1} << 32);
-  while (low + 1 < high)
-  {
+  while (low + 1 < high) {
     const uint64_t middle = low + (high - low) / 2;
-    if (middle <= value / middle)
+    if (middle <= value / middle) {
       low = middle;
-    else
+    } else {
       high = middle;
+    }
   }
   return low;
 }

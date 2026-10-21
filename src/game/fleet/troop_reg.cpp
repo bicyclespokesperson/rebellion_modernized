@@ -8,7 +8,7 @@
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_obj_iterator.h"
 
-extern int g_troopRegEventKindsReady; // 0x6b2b68
+extern int g_troopRegEventKindsReady;     // 0x6b2b68
 extern EventKindSet g_troopRegEventKinds; // 0x6b2b70
 
 namespace
@@ -62,8 +62,7 @@ int TroopReg::ApplyAll(NotifyContext* ctx)
 int TroopReg::ReadState(istream* in)
 {
   const int result = Detector::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_runningBlockadeFlags);
     ReadValue32(in, &m_withdrawPercent);
   }
@@ -73,8 +72,7 @@ int TroopReg::ReadState(istream* in)
 int TroopReg::WriteState(ostream* out)
 {
   const int result = Detector::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_runningBlockadeFlags);
     WriteValue32(out, &m_withdrawPercent);
   }
@@ -84,11 +82,9 @@ int TroopReg::WriteState(ostream* out)
 int TroopReg::ApplyAllState(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     Detector::ApplyAll(ctx);
-    if (ctx->m_flag04 == kApplyEverything)
-    {
+    if (ctx->m_flag04 == kApplyEverything) {
       ApplyDestroyedRunningBlockade(ctx);
       ApplyWithdrawPercent(ctx);
     }
@@ -99,8 +95,7 @@ int TroopReg::ApplyAllState(NotifyContext* ctx)
 int TroopReg::ChecksumState(Crc32* crc)
 {
   const int result = Detector::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_runningBlockadeFlags);
     crc->AddInt(m_withdrawPercent);
   }
@@ -112,14 +107,13 @@ int TroopReg::Validate()
   uint32_t valid = Detector::Validate();
   GameObjIterator children(this, kAlwaysFilter);
   children.Begin();
-  if (children.Current())
+  if (children.Current()) {
     valid = 0;
+  }
   GameObjNotifier* parent = nullptr;
   uint32_t result = 0;
-  if (valid && (result = GetParent(&parent)) != 0)
-  {
-    if ((m_stateFlags & kDestroyedFlag) == 0 || (m_stateFlags & kLockedFlag) == 0)
-    {
+  if (valid && (result = GetParent(&parent)) != 0) {
+    if ((m_stateFlags & kDestroyedFlag) == 0 || (m_stateFlags & kLockedFlag) == 0) {
       result = (~static_cast<GameObj*>(parent)->m_stateFlags >> 3) & 1;
     }
   }
@@ -129,8 +123,9 @@ int TroopReg::Validate()
 int TroopReg::GetEventKinds(int unused, EventKindSet* out)
 {
   const int ready = EnsureEventKinds();
-  if (ready)
+  if (ready) {
     *out = g_troopRegEventKinds;
+  }
   return ready;
 }
 
@@ -138,8 +133,9 @@ int TroopReg::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int ready = EnsureEventKinds();
-  if (ready && g_troopRegEventKinds.Contains(orderKind))
+  if (ready && g_troopRegEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return ready;
 }
 
@@ -147,8 +143,9 @@ int TroopReg::CheckRequestImpl(const ActivityRequest* request, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -156,8 +153,9 @@ int TroopReg::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -174,18 +172,19 @@ GameObj* TroopReg::CreateViewObject()
 int TroopReg::OnUsableChanged(int newValue, NotifyContext* ctx)
 {
   int result = Detector::OnUsableChanged(newValue, ctx);
-  if (result && newValue)
+  if (result && newValue) {
     result = SetWithdrawPercent(kFullWithdrawPercent, ctx);
+  }
   return result;
 }
 
 int TroopReg::OnEnrouteActiveChanged(int newValue, NotifyContext* ctx)
 {
   int result = UnitObjBase::OnEnrouteActiveChanged(newValue, ctx);
-  if (result && newValue)
-  {
-    if (PercentChance(m_withdrawPercent) == 0)
+  if (result && newValue) {
+    if (PercentChance(m_withdrawPercent) == 0) {
       result = SetDestroyedRunningBlockade(1, ctx);
+    }
   }
   return result;
 }
@@ -199,11 +198,9 @@ int TroopReg::OnDestroyedRunningBlockadeNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
   ObjectKey parentKey;
-  if (result)
-  {
+  if (result) {
     result = GetValidParentKey(&parentKey);
-    if (result && value != 0)
-    {
+    if (result && value != 0) {
       ObjectKey logKey;
       LogKey("(TroopRegDestroyedRunningBlockadeNotif)", "TroopRegDestroyedRunningBlockade", &parentKey, &logKey, 0,
              ctx);
@@ -217,16 +214,16 @@ int TroopReg::OnDestroyedRunningBlockadeNotified(int value, NotifyContext* ctx)
 int TroopReg::OnWithdrawPercentNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogInt("(TroopRegWithdrawPercentNotif)", "WithdrawPercent", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int TroopReg::SetDestroyedRunningBlockade(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kDestroyedRunningBlockadeFlag, on, &m_runningBlockadeFlags))
-  {
+  if (result && UpdateFlagBit(kDestroyedRunningBlockadeFlag, on, &m_runningBlockadeFlags)) {
     static_cast<TroopReg*>(GetViewObject(1))->ApplyDestroyedRunningBlockade(ctx);
     static_cast<TroopReg*>(GetViewObject(2))->ApplyDestroyedRunningBlockade(ctx);
     OnDestroyedRunningBlockadeChanged(on, ctx);
@@ -238,10 +235,10 @@ int TroopReg::SetWithdrawPercent(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int result = 0;
-  if (master)
+  if (master) {
     result = IsInRange(value, 0, 100, "TroopReg.cpp: Invalid WithdrawPercent value!");
-  if (result && m_withdrawPercent != value)
-  {
+  }
+  if (result && m_withdrawPercent != value) {
     const int oldValue = m_withdrawPercent;
     m_withdrawPercent = value;
     static_cast<TroopReg*>(GetViewObject(1))->ApplyWithdrawPercent(ctx);
@@ -254,8 +251,7 @@ int TroopReg::SetWithdrawPercent(int value, NotifyContext* ctx)
 int TroopReg::ApplyDestroyedRunningBlockade(NotifyContext* ctx)
 {
   return fleet::applyFlagToView(this, &TroopReg::m_runningBlockadeFlags, kDestroyedRunningBlockadeFlag, ctx,
-                                [&](int value)
-                                {
+                                [&](int value) {
                                   return OnDestroyedRunningBlockadeNotified(value, ctx);
                                 });
 }
@@ -263,17 +259,13 @@ int TroopReg::ApplyDestroyedRunningBlockade(NotifyContext* ctx)
 int TroopReg::ApplyWithdrawPercent(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* master = static_cast<TroopReg*>(GetViewObject(0));
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_withdrawPercent;
-      if (oldValue != master->m_withdrawPercent)
-      {
+      if (oldValue != master->m_withdrawPercent) {
         m_withdrawPercent = master->m_withdrawPercent;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnWithdrawPercentNotified(oldValue, m_withdrawPercent, ctx);
         }
       }
@@ -284,12 +276,13 @@ int TroopReg::ApplyWithdrawPercent(NotifyContext* ctx)
 
 int TroopReg::EnsureEventKinds()
 {
-  if (g_troopRegEventKindsReady != 0)
+  if (g_troopRegEventKindsReady != 0) {
     return 1;
+  }
   g_troopRegEventKindsReady = 1;
-  return Detector::InitEventKinds(0, &g_troopRegEventKinds) && g_troopRegEventKinds.Add(kKindMoveOrder, 1) &&
-         g_troopRegEventKinds.Add(kKindOrder202, 1) && g_troopRegEventKinds.Add(kKindOrder204, 1) &&
-         g_troopRegEventKinds.Add(kKindOrder200, 1);
+  return Detector::InitEventKinds(0, &g_troopRegEventKinds) && g_troopRegEventKinds.Add(kKindMoveOrder, 1)
+         && g_troopRegEventKinds.Add(kKindOrder202, 1) && g_troopRegEventKinds.Add(kKindOrder204, 1)
+         && g_troopRegEventKinds.Add(kKindOrder200, 1);
 }
 
 int CountTroopRegs(GameObj* parent, uint32_t side, uint32_t filter)
@@ -303,12 +296,12 @@ GameObj* CreateTroopReg()
 }
 
 TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kTroopFamilies, stateFilter)
+    : ChildIterator(parent, &kTroopFamilies, stateFilter)
 {
 }
 
 TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kTroopFamilies, stateFilter)
+    : ChildIterator(parent, side, &kTroopFamilies, stateFilter)
 {
 }
 

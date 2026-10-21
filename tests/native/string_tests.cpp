@@ -13,16 +13,18 @@ namespace
 int LoadTestResource(const ResourceStringId*, int bufferSize, char* buffer)
 {
   constexpr char kText[] = "resource text";
-  if (bufferSize < static_cast<int>(sizeof(kText)))
+  if (bufferSize < static_cast<int>(sizeof(kText))) {
     return 0;
+  }
   std::memcpy(buffer, kText, sizeof(kText));
   return 1;
 }
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void Rewind(ScopedStrstream& stream)

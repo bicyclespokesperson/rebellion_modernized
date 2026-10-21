@@ -58,12 +58,13 @@ uint8_t HandleFlags(int fd)
 #else
 // The host CRT keeps its handle table private. Text mode is observable through _setmode; the end-of-file flag the
 // original adds a byte for is not, so a text-mode seek back after reading to a lone CR at the end of a buffer can be
-// one byte off (docs/library_code.md, CRT decisions).
+// one byte off.
 uint8_t HandleFlags(int fd)
 {
   const int mode = _setmode(fd, _O_BINARY);
-  if (mode == -1)
+  if (mode == -1) {
     return 0;
+  }
   _setmode(fd, mode);
   return (mode & _O_TEXT) != 0 ? kTextModeFlag : 0;
 }
@@ -73,21 +74,16 @@ int SharingModeFor(int protection)
 {
   protection &= kProtectionMask;
   int share = kShareDenyNone;
-  if (protection != 0)
-  {
-    if (protection < 0xa01)
-    {
-      if (protection == 0xa00)
+  if (protection != 0) {
+    if (protection < 0xa01) {
+      if (protection == 0xa00) {
         share = kShareDenyWrite;
-      else if (protection == 0x800)
+      } else if (protection == 0x800) {
         share = kShareCompat;
-    }
-    else if (protection == 0xc00)
-    {
+      }
+    } else if (protection == 0xc00) {
       share = kShareDenyRead;
-    }
-    else if (protection == 0xe00)
-    {
+    } else if (protection == 0xe00) {
       share = kShareDenyNone;
     }
   }
@@ -112,23 +108,22 @@ filebuf* filebuf_ctor(filebuf* self)
 void filebuf_dtor(filebuf* self)
 {
   iostream_access::LockBuffer(self);
-  if (self->m_open == 0)
+  if (self->m_open == 0) {
     filebuf_sync(self);
-  else
+  } else {
     filebuf_close(self);
+  }
   iostream_access::UnlockBuffer(self);
   streambuf_dtor(self);
 }
 
 filebuf* filebuf_close(filebuf* self)
 {
-  if (self->m_fd != -1)
-  {
+  if (self->m_fd != -1) {
     iostream_access::LockBuffer(self);
     const int synced = self->Sync();
     const int closed = _close(self->m_fd);
-    if (closed != -1 && synced != -1)
-    {
+    if (closed != -1 && synced != -1) {
       self->m_fd = -1;
       iostream_access::UnlockBuffer(self);
       return self;
@@ -140,25 +135,25 @@ filebuf* filebuf_close(filebuf* self)
 
 int filebuf_overflow(filebuf* self, int c)
 {
-  if (streambuf_allocate(self) == -1)
+  if (streambuf_allocate(self) == -1) {
     return -1;
-  if (filebuf_sync(self) == -1)
+  }
+  if (filebuf_sync(self) == -1) {
     return -1;
-  if (self->m_unbuffered == 0)
-  {
+  }
+  if (self->m_unbuffered == 0) {
     self->m_pbase = self->m_base;
     self->m_pptr = self->m_base;
     self->m_epptr = self->m_ebuf;
   }
-  if (c != -1)
-  {
-    if (self->m_unbuffered == 0 && self->m_pptr < self->m_epptr)
-    {
+  if (c != -1) {
+    if (self->m_unbuffered == 0 && self->m_pptr < self->m_epptr) {
       *self->m_pptr++ = static_cast<char>(c);
       return 1;
     }
-    if (_write(self->m_fd, &c, 1) != 1)
+    if (_write(self->m_fd, &c, 1) != 1) {
       return -1;
+    }
   }
   return 1;
 }
@@ -166,22 +161,24 @@ int filebuf_overflow(filebuf* self, int c)
 int filebuf_underflow(filebuf* self)
 {
   const char* get = self->m_gptr;
-  if (RangeLength(self->m_gptr, self->m_egptr) == 0)
-  {
+  if (RangeLength(self->m_gptr, self->m_egptr) == 0) {
     int single = 0;
-    if (streambuf_allocate(self) == -1)
+    if (streambuf_allocate(self) == -1) {
       return -1;
-    if (filebuf_sync(self) == -1)
+    }
+    if (filebuf_sync(self) == -1) {
       return -1;
-    if (self->m_unbuffered != 0)
-    {
-      if (_read(self->m_fd, &single, 1) < 1)
+    }
+    if (self->m_unbuffered != 0) {
+      if (_read(self->m_fd, &single, 1) < 1) {
         return -1;
+      }
       return single & 0xff;
     }
     const int got = _read(self->m_fd, self->m_base, RangeLength(self->m_base, self->m_ebuf));
-    if (got < 1)
+    if (got < 1) {
       return -1;
+    }
     get = self->m_base;
     self->m_lastc = -1;
     self->m_eback = self->m_base;
@@ -193,33 +190,34 @@ int filebuf_underflow(filebuf* self)
 
 int filebuf_seekoff(filebuf* self, long offset, int dir, int)
 {
-  if (dir != iostream_flags::kSeekBeg && dir != iostream_flags::kSeekCur && dir != iostream_flags::kSeekEnd)
+  if (dir != iostream_flags::kSeekBeg && dir != iostream_flags::kSeekCur && dir != iostream_flags::kSeekEnd) {
     return -1;
-  if (filebuf_sync(self) != -1)
-  {
+  }
+  if (filebuf_sync(self) != -1) {
     const int position = _lseek(self->m_fd, offset, dir);
-    if (position != -1)
+    if (position != -1) {
       return position;
+    }
   }
   return -1;
 }
 
 int filebuf_sync(filebuf* self)
 {
-  if (self->m_fd == -1)
+  if (self->m_fd == -1) {
     return -1;
-  if (self->m_unbuffered == 0)
-  {
+  }
+  if (self->m_unbuffered == 0) {
     const int pending = static_cast<int>(RangeLength(self->m_pbase, self->m_pptr));
-    if (pending != 0)
-    {
+    if (pending != 0) {
       const int written = _write(self->m_fd, self->m_pbase, pending);
-      if (written != pending)
-      {
-        if (written < 1)
+      if (written != pending) {
+        if (written < 1) {
           return -1;
-        if (self->m_epptr != nullptr)
+        }
+        if (self->m_epptr != nullptr) {
           self->m_pptr -= written;
+        }
         memmove(self->m_pbase, self->m_pbase + written, pending - written);
         return -1;
       }
@@ -230,20 +228,22 @@ int filebuf_sync(filebuf* self)
     self->m_pptr = nullptr;
     self->m_epptr = nullptr;
     int unread = static_cast<int>(RangeLength(get, end));
-    if (0 < unread)
-    {
+    if (0 < unread) {
       const int fd = self->m_fd;
       const uint8_t flags = HandleFlags(fd);
-      if ((flags & kTextModeFlag) != 0)
-      {
-        for (; get < end; ++get)
-          if (*get == '\n')
+      if ((flags & kTextModeFlag) != 0) {
+        for (; get < end; ++get) {
+          if (*get == '\n') {
             ++unread;
-        if ((flags & kPendingCrFlag) != 0)
+          }
+        }
+        if ((flags & kPendingCrFlag) != 0) {
           ++unread;
+        }
       }
-      if (_lseek(fd, -unread, iostream_flags::kSeekCur) == -1)
+      if (_lseek(fd, -unread, iostream_flags::kSeekCur) == -1) {
         return -1;
+      }
     }
     self->m_eback = nullptr;
     self->m_gptr = nullptr;
@@ -255,14 +255,12 @@ int filebuf_sync(filebuf* self)
 
 streambuf* filebuf_setbuf(filebuf* self, char* buffer, int size)
 {
-  if (self->m_fd != -1 && self->m_ebuf != nullptr)
+  if (self->m_fd != -1 && self->m_ebuf != nullptr) {
     return nullptr;
-  if (buffer == nullptr || size < 1)
-  {
-    self->m_unbuffered = 1;
   }
-  else
-  {
+  if (buffer == nullptr || size < 1) {
+    self->m_unbuffered = 1;
+  } else {
     iostream_access::LockBuffer(self);
     streambuf_setb(self, buffer, buffer + size, 0);
     iostream_access::UnlockBuffer(self);
@@ -272,55 +270,54 @@ streambuf* filebuf_setbuf(filebuf* self, char* buffer, int size)
 
 filebuf* filebuf_open(filebuf* self, const char* name, int mode, int protection)
 {
-  if (self->m_fd != -1)
+  if (self->m_fd != -1) {
     return nullptr;
+  }
   int flags = (mode & kOpenBinary) != 0 ? kOBinary : kOText;
-  if ((mode & kOpenNoCreate) == 0)
+  if ((mode & kOpenNoCreate) == 0) {
     flags |= kOCreate;
-  if ((mode & kOpenNoReplace) != 0)
+  }
+  if ((mode & kOpenNoReplace) != 0) {
     flags |= kOExcl;
-  if ((mode & iostream_flags::kApp) != 0)
-  {
+  }
+  if ((mode & iostream_flags::kApp) != 0) {
     mode |= iostream_flags::kOut;
     flags |= kOAppend;
   }
-  if ((mode & iostream_flags::kTrunc) != 0)
-  {
+  if ((mode & iostream_flags::kTrunc) != 0) {
     mode |= iostream_flags::kOut;
     flags |= kOTrunc;
   }
-  if ((mode & iostream_flags::kOut) == 0)
-  {
-    if ((mode & iostream_flags::kIn) == 0)
+  if ((mode & iostream_flags::kOut) == 0) {
+    if ((mode & iostream_flags::kIn) == 0) {
       return nullptr;
-  }
-  else
-  {
+    }
+  } else {
     flags |= (mode & iostream_flags::kIn) == 0 ? kOWriteOnly : kOReadWrite;
-    if ((mode & (iostream_flags::kIn | iostream_flags::kAte | iostream_flags::kApp | kOpenNoReplace)) == 0)
-    {
+    if ((mode & (iostream_flags::kIn | iostream_flags::kAte | iostream_flags::kApp | kOpenNoReplace)) == 0) {
       mode |= iostream_flags::kTrunc;
       flags |= kOTrunc;
     }
   }
   self->m_fd = _sopen(name, flags, SharingModeFor(protection), kDefaultPermissions);
-  if (self->m_fd == -1)
+  if (self->m_fd == -1) {
     return nullptr;
+  }
   iostream_access::LockBuffer(self);
   self->m_open = 1;
-  if (self->m_unbuffered == 0 && self->m_ebuf == nullptr)
-  {
+  if (self->m_unbuffered == 0 && self->m_ebuf == nullptr) {
     char* buffer = static_cast<char*>(::operator new(kDefaultBufferSize));
-    if (buffer == nullptr)
+    if (buffer == nullptr) {
       self->m_unbuffered = 1;
-    else
+    } else {
       streambuf_setb(self, buffer, buffer + kDefaultBufferSize, 1);
+    }
   }
-  if ((mode & iostream_flags::kAte) != 0 && self->SeekOffset(0, iostream_flags::kSeekEnd, mode) == -1)
-  {
+  if ((mode & iostream_flags::kAte) != 0 && self->SeekOffset(0, iostream_flags::kSeekEnd, mode) == -1) {
     filebuf_close(self);
-    if (-1 < self->m_lockCount)
+    if (-1 < self->m_lockCount) {
       return nullptr;
+    }
     mtx_unlock(&self->m_lock);
     return nullptr;
   }

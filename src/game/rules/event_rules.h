@@ -48,12 +48,12 @@ int UpdateDeathStarNearby(NotifyContext* ctx); // 0x5178b0
 // The loyalty rules of a system whose side bits changed from *from to *to (and the victory state if it is Coruscant).
 int ApplySideBitsChangeRules(GameObj* system, SideBits* from, SideBits* to, NotifyContext* ctx); // 0x517aa0
 // Coruscant (system id 0x109) part of the above and of the value changes.
-int ApplyCoruscantRules(GameObj* system, int value, NotifyContext* ctx); // 0x517bb0
+int ApplyCoruscantRules(GameObj* system, int value, NotifyContext* ctx);                            // 0x517bb0
 int ApplyCoruscantControlChange(GameObj* system, SideBits* from, SideBits* to, NotifyContext* ctx); // 0x517be0
-int ApplyCoruscantValueRules(GameObj* system, int value, NotifyContext* ctx); // 0x517ca0
+int ApplyCoruscantValueRules(GameObj* system, int value, NotifyContext* ctx);                       // 0x517ca0
 // The departure / en route rules of an object that moved (value == 0 only for the first).
 int ApplyDepartureRules(GameObj* unused, int value, ObjectKey* system, NotifyContext* ctx); // 0x517cd0
-int ApplyEnrouteRules(GameObj* object, int unused, ObjectKey* system, NotifyContext* ctx); // 0x517de0
+int ApplyEnrouteRules(GameObj* object, int unused, ObjectKey* system, NotifyContext* ctx);  // 0x517de0
 // The loyalty pull of the two sides' unit strengths on `object`'s system.
 int ApplyStrengthImbalance(GameObj* object, int side, int valueSide1, int valueSide2, NotifyContext* ctx); // 0x517ee0
 // Recomputes victory flags from the Alliance HQ, Coruscant and (in standard mode) the four story characters.
@@ -69,18 +69,16 @@ int GetOwnerSystem(GameObjNotifier* object, GameObjNotifier** out); // 0x5185c0,
 int GetOwnerSector(GameObjNotifier* object, GameObjNotifier** out); // 0x518690, that system's parent sector
 // The side object (game root member) of a control side / of side 1 or 2; true unless a valid side has no object.
 int GetControlSideObject(GameObjNotifier* object, GameObjNotifier** out); // 0x518750
-int GetSideObjectForIndex(int side, GameObjNotifier** out); // 0x5187a0
+int GetSideObjectForIndex(int side, GameObjNotifier** out);               // 0x5187a0
 
 // Collects the systems the fleets of an activity request's team are in into *out (keys with value 0). *status is
 // {1,-1} on success, {1,0x12} when a fleet is unknown or destroyed and {1,1} when something else failed. See
 // events/request_orders.cpp.
-int CollectTeamSystems(ActivityRequest* request,
-                       ObjectKeyValueSet* team,
-                       ObjectKeyValueSet* out,
+int CollectTeamSystems(ActivityRequest* request, ObjectKeyValueSet* team, ObjectKeyValueSet* out,
                        StatusCode* status); // 0x5187f0
 
 // Applies `rule` to every sector / to the sector `object` is in.
-int ApplyLoyaltyRuleToAllSectors(LoyaltyRule* rule, NotifyContext* ctx); // 0x518a70
+int ApplyLoyaltyRuleToAllSectors(LoyaltyRule* rule, NotifyContext* ctx);                            // 0x518a70
 int ApplyLoyaltyRuleToParentSector(GameObjNotifier* object, LoyaltyRule* rule, NotifyContext* ctx); // 0x518ac0
 
 // ---- the event handlers (0x5140c0-0x516360) --------------------------------------------------------------------
@@ -88,32 +86,32 @@ int ApplyLoyaltyRuleToParentSector(GameObjNotifier* object, LoyaltyRule* rule, N
 int ApplyEvent300(ObjectKey* object, ObjectKey* from, ObjectKey* to, int value, NotifyContext* ctx); // 0x5140c0
 int ApplyEvent301(ObjectKey* object, ObjectKey* from, ObjectKey* to, int value, NotifyContext* ctx); // 0x514510
 int ApplyEvent31d(ObjectKey* object, ObjectKey* from, ObjectKey* to, int value, NotifyContext* ctx); // 0x514820
-int ApplyEvent302(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx); // 0x514890
-int ApplyEvent318(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx); // 0x514a20
-int ApplyEvent320(ObjectKey* object, ObjectKey* keyC, ObjectKey* keyD, NotifyContext* ctx); // 0x514a60
-int ApplyEvent308(ObjectKey* object, int value, NotifyContext* ctx); // 0x5150c0
-int ApplyEvent307(ObjectKey* object, int value, NotifyContext* ctx); // 0x515480
-int ApplyEvent306(ObjectKey* object, int value, NotifyContext* ctx); // 0x515a50
-int ApplyEvent316(ObjectKey* object, int value, NotifyContext* ctx); // 0x515bb0
-int ApplyRoleStateEvent(ObjectKey* object, int value, NotifyContext* ctx); // 0x515970
-int ApplySystemEvent31b(ObjectKey* system, SideBits* from, SideBits* to, NotifyContext* ctx); // 0x515c00
-int ApplySystemEvent303(ObjectKey* system, int value, NotifyContext* ctx); // 0x515cd0
-int ApplySystemEvent304(ObjectKey* system, int value, NotifyContext* ctx); // 0x515dc0
-int ApplySystemEvent309(ObjectKey* system, int value, NotifyContext* ctx); // 0x515e30
-int ApplySystemEvent310(ObjectKey* system, int value, NotifyContext* ctx); // 0x515e70
-int ApplySystemEvent30f(ObjectKey* system, int value, NotifyContext* ctx); // 0x515eb0
-int ApplySystemEvent311(ObjectKey* system, int value, NotifyContext* ctx); // 0x515ef0
-int ApplySystemEvent305(ObjectKey* system, int value, NotifyContext* ctx); // 0x515f40
-int ApplyEvent30a(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx); // 0x516220
+int ApplyEvent302(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx);                    // 0x514890
+int ApplyEvent318(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx);                    // 0x514a20
+int ApplyEvent320(ObjectKey* object, ObjectKey* keyC, ObjectKey* keyD, NotifyContext* ctx);          // 0x514a60
+int ApplyEvent308(ObjectKey* object, int value, NotifyContext* ctx);                                 // 0x5150c0
+int ApplyEvent307(ObjectKey* object, int value, NotifyContext* ctx);                                 // 0x515480
+int ApplyEvent306(ObjectKey* object, int value, NotifyContext* ctx);                                 // 0x515a50
+int ApplyEvent316(ObjectKey* object, int value, NotifyContext* ctx);                                 // 0x515bb0
+int ApplyRoleStateEvent(ObjectKey* object, int value, NotifyContext* ctx);                           // 0x515970
+int ApplySystemEvent31b(ObjectKey* system, SideBits* from, SideBits* to, NotifyContext* ctx);        // 0x515c00
+int ApplySystemEvent303(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515cd0
+int ApplySystemEvent304(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515dc0
+int ApplySystemEvent309(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515e30
+int ApplySystemEvent310(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515e70
+int ApplySystemEvent30f(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515eb0
+int ApplySystemEvent311(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515ef0
+int ApplySystemEvent305(ObjectKey* system, int value, NotifyContext* ctx);                           // 0x515f40
+int ApplyEvent30a(ObjectKey* object, int valueA, int valueB, NotifyContext* ctx);                    // 0x516220
 // *smuggled = 1 when the smuggling percent (absolute value) of the facility's system wins a percent roll. Returns
 // whether the system exists.
-int RollSmuggling(GameObjNotifier* facility, int* smuggled); // 0x5166a0
+int RollSmuggling(GameObjNotifier* facility, int* smuggled);                   // 0x5166a0
 int ApplyEvent315(ObjectKey* object, int kind, int value, NotifyContext* ctx); // 0x516360
 
 // ---- the move command's helpers ----
-int CheckMoveEnabled(const ObjectKey* object, StatusCode* status); // 0x5152e0
+int CheckMoveEnabled(const ObjectKey* object, StatusCode* status);                             // 0x5152e0
 int CheckMoveValid(const ObjectKey* object, const ObjectKey* destination, StatusCode* status); // 0x515390
-int ExecuteMove(const ObjectKey* object, const ObjectKey* destination, NotifyContext* ctx); // 0x515440
+int ExecuteMove(const ObjectKey* object, const ObjectKey* destination, NotifyContext* ctx);    // 0x515440
 
 // Loads the rule tables of the difficulty; the game root runs it first (0x513f70). Returns 1.
 int BindRuleTables(int difficulty); // 0x513f70

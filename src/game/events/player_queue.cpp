@@ -9,7 +9,9 @@
 
 // ---- PlayerQueue ----------------------------------------------------------------------------------------------
 
-PlayerQueue::PlayerQueue() : m_pending(), m_state(0)
+PlayerQueue::PlayerQueue()
+    : m_pending()
+    , m_state(0)
 {
   m_side = 0;
   m_syncMessageId = 0;
@@ -19,7 +21,9 @@ PlayerQueue::PlayerQueue() : m_pending(), m_state(0)
   m_maxSyncPoint = 0;
 }
 
-PlayerQueue::PlayerQueue(int side) : m_pending(), m_state(0)
+PlayerQueue::PlayerQueue(int side)
+    : m_pending()
+    , m_state(0)
 {
   m_side = side;
   m_syncMessageId = 0;
@@ -40,8 +44,7 @@ void PlayerQueue::Read(istream* in)
   ReadValuePersistentInt(in, &m_state);
   ReadValue32(in, &m_syncMessageId);
   ReadValue32(in, &m_deliveredId);
-  if (m_syncMessageId != 0)
-  {
+  if (m_syncMessageId != 0) {
     auto* sync = NewOrNull<NetMsg1>();
     m_sync = sync;
     sync->Read(in);
@@ -57,8 +60,9 @@ void PlayerQueue::Write(ostream* out)
   WriteValuePersistentInt(out, &m_state);
   WriteValue32(out, &m_syncMessageId);
   WriteValue32(out, &m_deliveredId);
-  if (m_sync)
+  if (m_sync) {
     m_sync->Write(out);
+  }
   WriteValue32(out, &m_syncId);
   WriteValue32(out, &m_maxSyncPoint);
   m_pending.Write(out);
@@ -66,14 +70,15 @@ void PlayerQueue::Write(ostream* out)
 
 void PlayerQueue::QueueReceivedMessage(PlayerMessage* message)
 {
-  if (!message)
+  if (!message) {
     return;
+  }
   MessageBase* queued = message;
-  if (queued->GetKind() == 1)
-  {
+  if (queued->GetKind() == 1) {
     unsigned syncPoint = static_cast<NetMsg1*>(queued)->m_syncPoint;
-    if (m_maxSyncPoint < syncPoint)
+    if (m_maxSyncPoint < syncPoint) {
       m_maxSyncPoint = syncPoint;
+    }
   }
   m_pending.Adopt(message);
 }
@@ -81,27 +86,32 @@ void PlayerQueue::QueueReceivedMessage(PlayerMessage* message)
 int PlayerQueue::DeliverNextMessage()
 {
   int result = 1;
-  if ((m_state.m_value & 4) != 0)
+  if ((m_state.m_value & 4) != 0) {
     return result;
+  }
   auto* node = static_cast<IdNode*>(m_pending.First());
-  if (!node)
+  if (!node) {
     return result;
-  for (;;)
-  {
-    if (node->m_id > m_deliveredId)
+  }
+  for (;;) {
+    if (node->m_id > m_deliveredId) {
       break;
+    }
     IdNode* old = m_pending.Detach(node->m_id);
-    if (old)
+    if (old) {
       delete old;
+    }
     node = static_cast<IdNode*>(m_pending.First());
-    if (!node)
+    if (!node) {
       return result;
+    }
   }
   m_deliveredId = node->m_id;
   MessageBase* message = m_pending.Detach(node->m_id);
   result = message->GetKind() == 1;
-  if (result)
+  if (result) {
     m_state.m_value |= 4;
+  }
   UiAddManagerNotice(message);
   return result;
 }
@@ -114,7 +124,9 @@ int PlayerQueue::ResetQueueSyncState()
 
 // ---- PlayerController -----------------------------------------------------------------------------------------
 
-PlayerController::PlayerController() : PlayerQueue(), m_voteKey()
+PlayerController::PlayerController()
+    : PlayerQueue()
+    , m_voteKey()
 {
   m_voteTime.m_value = 0;
   m_nextMessageId = 0;
@@ -124,7 +136,9 @@ PlayerController::PlayerController() : PlayerQueue(), m_voteKey()
   m_unk4c = 0;
 }
 
-PlayerController::PlayerController(int side) : PlayerQueue(side), m_voteKey()
+PlayerController::PlayerController(int side)
+    : PlayerQueue(side)
+    , m_voteKey()
 {
   m_voteTime.m_value = 0;
   PlayerController::SetFirstMessageId(side == 1 ? 1 : 0x77359401);
@@ -191,47 +205,43 @@ void PlayerController::Write(ostream* out)
 int PlayerController::ProcessSyncPoint(unsigned syncId)
 {
   int result = 0;
-  if (m_syncId != syncId)
-  {
+  if (m_syncId != syncId) {
     m_syncId = syncId;
     return result;
   }
-  if ((m_state.m_value & 2) != 0)
-  {
-    if (m_syncId <= m_maxSyncPoint)
-    {
+  if ((m_state.m_value & 2) != 0) {
+    if (m_syncId <= m_maxSyncPoint) {
       m_syncMessageId = 0;
       result = 1;
     }
     return result;
   }
-  if ((m_state.m_value & 1) == 0)
-  {
+  if ((m_state.m_value & 1) == 0) {
     auto* sync = NewOrNull<NetMsg1>(static_cast<int>(syncId));
     m_sync = sync;
-    if (sync)
-    {
+    if (sync) {
       sync->SetId(NextMessageId());
       sync->m_side = m_side;
-      ChecksumRecord current;
-      CopyCurrentSnapshot(reinterpret_cast<GameStateSnapshot*>(&current));
-      sync->m_checksums = current;
+      GameStateSnapshot current;
+      CopyCurrentSnapshot(&current);
+      sync->m_checksums.m_value00 = current.m_tick;
+      sync->m_checksums.m_value04 = current.m_stamp;
+      sync->m_checksums.m_value08 = current.m_unk08;
+      sync->m_checksums.m_crcA = current.m_stateCrc;
+      sync->m_checksums.m_crcB = current.m_tableCrc;
       m_syncMessageId = sync->m_id;
       m_state.m_value |= 1;
     }
     return result;
   }
   bool earlierMessage = false;
-  for (uint32_t id : UiQueuedMessageIds())
-  {
-    if (static_cast<uint32_t>(m_lastMessageId) < id && id < static_cast<uint32_t>(m_syncMessageId))
-    {
+  for (uint32_t id : UiQueuedMessageIds()) {
+    if (static_cast<uint32_t>(m_lastMessageId) < id && id < static_cast<uint32_t>(m_syncMessageId)) {
       earlierMessage = true;
       break;
     }
   }
-  if (!earlierMessage)
-  {
+  if (!earlierMessage) {
     Send(m_sync);
     m_state.m_value |= 2;
     m_sync = nullptr;
@@ -246,18 +256,21 @@ void PlayerController::OnSyncFinished()
 
 void PlayerController::Send(MessageBase* message)
 {
-  if (!message)
+  if (!message) {
     return;
-  if (message->m_id == 0)
+  }
+  if (message->m_id == 0) {
     message->SetId(NextMessageId());
+  }
   UiRouteMessage(message, m_side);
 }
 
 void PlayerController::SendKeyRequest(const ObjectKey* key)
 {
   auto* order = static_cast<OrderBase*>(CreateMessageByKind(0x205));
-  if (!order)
+  if (!order) {
     return;
+  }
   ObjectKeyValueSet team;
   team.AddKeyValue(key, 0);
   order->m_side = m_side;

@@ -6,7 +6,7 @@
 #include "gameobj/object_family.h"
 
 extern EventKindSet g_roleEventKinds; // 0x6b9028
-extern int g_roleEventKindsBuilt; // 0x6b9030, set by the first BuildEventKinds
+extern int g_roleEventKindsBuilt;     // 0x6b9030, set by the first BuildEventKinds
 
 namespace
 {
@@ -34,15 +34,15 @@ void setStatus(StatusCode* out, int code)
 // ---- construction -----------------------------------------------------------------------------------------
 
 Role::Role()
-: m_baseDiplomacy(0),
-  m_baseEspionage(0),
-  m_baseShipyardRD(0),
-  m_baseTrainingFacilRD(0),
-  m_baseConstructionYardRD(0),
-  m_baseCombat(0),
-  m_baseLeadership(0),
-  m_baseLoyalty(0),
-  m_flags78(0)
+    : m_baseDiplomacy(0)
+    , m_baseEspionage(0)
+    , m_baseShipyardRD(0)
+    , m_baseTrainingFacilRD(0)
+    , m_baseConstructionYardRD(0)
+    , m_baseCombat(0)
+    , m_baseLeadership(0)
+    , m_baseLoyalty(0)
+    , m_flags78(0)
 {
   m_missionSeedKey.m_value = 0;
 }
@@ -52,8 +52,9 @@ Role::~Role() = default;
 GameObjData* Role::CreateData()
 {
   void* memory = operator new(sizeof(RoleData));
-  if (!memory)
+  if (!memory) {
     return nullptr;
+  }
   return new (memory) RoleData();
 }
 
@@ -61,12 +62,12 @@ GameObjData* Role::CreateData()
 
 int Role::BuildEventKinds()
 {
-  if (g_roleEventKindsBuilt)
+  if (g_roleEventKindsBuilt) {
     return 1;
+  }
   g_roleEventKindsBuilt = 1;
   int result = UnitObjBase::InitEventKinds(0, &g_roleEventKinds);
-  for (int index = 0; result && index < kEventKindsCount; ++index)
-  {
+  for (int index = 0; result && index < kEventKindsCount; ++index) {
     result = g_roleEventKinds.Add(kRoleEventKinds[index], kDefaultEventKindValue) != nullptr;
   }
   return result;
@@ -82,8 +83,9 @@ int Role::InitEventKinds(int unused, EventKindSet* out)
 int Role::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_roleEventKinds;
+  }
   return result;
 }
 
@@ -97,8 +99,7 @@ int Role::GetTransitSpeed(int arg)
 int Role::GetEffectiveRdForKind(int kind, int* out)
 {
   *out = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case 0:
       *out = GetShipyardRD();
       return 1;
@@ -116,8 +117,7 @@ int Role::GetEffectiveRdForKind(int kind, int* out)
 int Role::GetBaseRdForKind(int kind, int* out)
 {
   *out = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case 0:
       *out = m_baseShipyardRD;
       return 1;
@@ -134,8 +134,7 @@ int Role::GetBaseRdForKind(int kind, int* out)
 
 int Role::SetBaseRdForKind(int kind, int value, NotifyContext* ctx)
 {
-  switch (kind)
-  {
+  switch (kind) {
     case 0:
       return SetBaseShipyardRD(value, ctx);
     case 1:
@@ -151,8 +150,9 @@ int Role::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   setStatus(out, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_roleEventKinds.Contains(orderKind))
+  if (result && g_roleEventKinds.Contains(orderKind)) {
     setStatus(out, kStatusOk);
+  }
   return result;
 }
 
@@ -178,10 +178,12 @@ int Role::CheckUnknown(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   int result = CheckUnknownImpl(request, out);
-  if (result)
+  if (result) {
     result = CheckActivityRequest(request, out);
-  if (!result)
+  }
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -189,8 +191,7 @@ int Role::CheckActivity(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (result && out->m_second == static_cast<uint32_t>(kStatusOk) && HasMissionFlag(role_flag::kOnMission))
-  {
+  if (result && out->m_second == static_cast<uint32_t>(kStatusOk) && HasMissionFlag(role_flag::kOnMission)) {
     *out = StatusCode(kStatusOnMission, kStatusBusy);
   }
   return result;
@@ -206,8 +207,7 @@ int Role::CheckActivity2(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (result && out->m_second == static_cast<uint32_t>(kStatusOk) && HasMissionFlag(role_flag::kOnMission))
-  {
+  if (result && out->m_second == static_cast<uint32_t>(kStatusOk) && HasMissionFlag(role_flag::kOnMission)) {
     *out = StatusCode(kStatusOnMission, kStatusBusy);
   }
   return result;
@@ -237,8 +237,7 @@ int Role::PrepareForDestroyedRelease(intptr_t a)
   int result = UnitObjBase::PrepareForDestroyedRelease(a) != 0;
   Role* master = ViewAsRole(0);
   ObjectKey missionKey;
-  if (master->GetMissionKey(&missionKey)->IsSet())
-  {
+  if (master->GetMissionKey(&missionKey)->IsSet()) {
     ObjectKey cleared;
     result = master->SetMissionKey(&cleared, ctx);
   }
@@ -261,10 +260,12 @@ int Role::RollCombatCheck(const ObjectKey* opponent, int difficulty, NotifyConte
 {
   int succeeded = 0;
   const int combat = GetCombat();
-  if (!RollRlevadChance(static_cast<int>(ControlSide()), combat, difficulty, &succeeded))
+  if (!RollRlevadChance(static_cast<int>(ControlSide()), combat, difficulty, &succeeded)) {
     return 0;
-  if (succeeded)
+  }
+  if (succeeded) {
     return HandleMissionResignationRequest(ctx);
+  }
   return HandleCaptureByOpponent(opponent, ctx);
 }
 
@@ -272,8 +273,9 @@ int Role::HandleActivityRequest(const ActivityRequest* request, NotifyContext* c
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int result = CheckActivityStatus(request, &status);
-  if (result && status.m_second == static_cast<uint32_t>(kStatusOk))
+  if (result && status.m_second == static_cast<uint32_t>(kStatusOk)) {
     result = DestroyForActivityRequest(ctx);
+  }
   return result;
 }
 
@@ -285,8 +287,7 @@ int Role::DestroyForActivityRequest(NotifyContext* ctx)
 int Role::HandleMissionResignationRequest(NotifyContext* ctx)
 {
   int result = 1;
-  if (HasMissionFlag(role_flag::kCanResignFromMission) && m_missionKey.IsSet())
-  {
+  if (HasMissionFlag(role_flag::kCanResignFromMission) && m_missionKey.IsSet()) {
     result = SetMissionResignRequest(1, ctx);
   }
   return result;
@@ -303,8 +304,7 @@ ObjectKey* Role::GetParentAtMissionCompletionKey(ObjectKey* out)
 int Role::Read(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue16(in, &m_baseDiplomacy);
     ReadValue16(in, &m_baseEspionage);
     ReadValue16(in, &m_baseShipyardRD);
@@ -314,7 +314,7 @@ int Role::Read(istream* in)
     ReadValue16(in, &m_baseLeadership);
     ReadValue16(in, &m_baseLoyalty);
     m_missionKey.Read(in);
-    MissionSeedKeyAsObjectKey()->Read(in);
+    ReadValue32(in, &m_missionSeedKey.m_value);
     m_parentAtMissionCompletionKey.Read(in);
     m_locationAtMissionCompletionKey.Read(in);
     ReadValue32(in, &m_flags78);
@@ -325,8 +325,7 @@ int Role::Read(istream* in)
 int Role::Write(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue16(out, &m_baseDiplomacy);
     WriteValue16(out, &m_baseEspionage);
     WriteValue16(out, &m_baseShipyardRD);
@@ -336,7 +335,7 @@ int Role::Write(ostream* out)
     WriteValue16(out, &m_baseLeadership);
     WriteValue16(out, &m_baseLoyalty);
     m_missionKey.Write(out);
-    MissionSeedKeyAsObjectKey()->Write(out);
+    WriteValue32(out, &m_missionSeedKey.m_value);
     m_parentAtMissionCompletionKey.Write(out);
     m_locationAtMissionCompletionKey.Write(out);
     WriteValue32(out, &m_flags78);
@@ -347,8 +346,7 @@ int Role::Write(ostream* out)
 int Role::ApplyAll(NotifyContext* ctx)
 {
   const int result = ApplyAllToSideView(ctx);
-  if (result && ctx->m_flag04 == 1)
-  {
+  if (result && ctx->m_flag04 == 1) {
     ApplyBaseDiplomacy(ctx);
     ApplyBaseEspionage(ctx);
     ApplyBaseShipyardRD(ctx);
@@ -378,8 +376,7 @@ int Role::ApplyAll(NotifyContext* ctx)
 int Role::Checksum(Crc32* crc)
 {
   int result = GameObj::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddShort(m_baseDiplomacy);
     crc->AddShort(m_baseEspionage);
     crc->AddShort(m_baseShipyardRD);
@@ -389,14 +386,18 @@ int Role::Checksum(Crc32* crc)
     crc->AddShort(m_baseLeadership);
     crc->AddShort(m_baseLoyalty);
     result = m_missionKey.Checksum(crc);
-    if (result)
-      result = MissionSeedKeyAsObjectKey()->Checksum(crc);
-    if (result)
+    if (result) {
+      crc->AddInt(static_cast<int>(m_missionSeedKey.m_value));
+    }
+    if (result) {
       result = m_parentAtMissionCompletionKey.Checksum(crc);
-    if (result)
+    }
+    if (result) {
       result = m_locationAtMissionCompletionKey.Checksum(crc);
-    if (result)
+    }
+    if (result) {
       crc->AddInt(static_cast<int>(m_flags78));
+    }
   }
   return result;
 }
@@ -404,17 +405,18 @@ int Role::Checksum(Crc32* crc)
 int Role::Validate()
 {
   int notAdrift = 0;
-  if (GameObj::Validate())
+  if (GameObj::Validate()) {
     notAdrift = !HasMissionFlag(role_flag::kAdrift);
+  }
   GameObjNotifier* parent = nullptr;
   int result = 0;
-  if (notAdrift)
-  {
+  if (notAdrift) {
     result = GetParent(&parent);
-    const bool parentStateApplies =
-      !HasMissionFlag(role_flag::kOnMission) && !((m_stateFlags & kDestroyedState) && (m_stateFlags & kLockedState));
-    if (result && parentStateApplies)
+    const bool parentStateApplies = !HasMissionFlag(role_flag::kOnMission)
+                                    && !((m_stateFlags & kDestroyedState) && (m_stateFlags & kLockedState));
+    if (result && parentStateApplies) {
       result = !(static_cast<GameObj*>(parent)->m_stateFlags & kDestroyedState);
+    }
   }
   return result;
 }
@@ -422,12 +424,12 @@ int Role::Validate()
 // ---- RoleIterator ----------------------------------------------------------------------------------------------
 
 RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kRoleFamilies, stateFilter)
+    : ChildIterator(parent, &kRoleFamilies, stateFilter)
 {
 }
 
 RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kRoleFamilies, stateFilter)
+    : ChildIterator(parent, side, &kRoleFamilies, stateFilter)
 {
 }
 

@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <string>
 
+#include "app/enhancements.h"
 #include "character/character.h"
 #include "data/dat_record.h"
 #include "fleet/capship.h"
@@ -15,6 +16,16 @@ using namespace status_page;
 namespace
 {
 
+// "left/total" with the enhancements on; the original shows only what is left.
+void AppendDamageable(std::string* text, uint32_t left, uint32_t total)
+{
+  if (EnhancementsEnabled()) {
+    AppendLeftOfTotal(text, left, total);
+  } else {
+    text->append(std::to_string(static_cast<unsigned long>(left)));
+  }
+}
+
 uint32_t LeftOfGrid(CapShip* ship, uint32_t a, uint32_t b)
 {
   const uint32_t lost = ship->GetDamageGridValue(a, b);
@@ -22,17 +33,11 @@ uint32_t LeftOfGrid(CapShip* ship, uint32_t a, uint32_t b)
   return total - lost;
 }
 
-void AddGridRow(std::string* text,
-                uint16_t labelId,
-                int row,
-                CapShip* ship,
-                uint32_t a,
-                uint32_t b,
-                CoolListItemList* labels,
-                CoolListItemList* values)
+void AddGridRow(std::string* text, uint16_t labelId, int row, CapShip* ship, uint32_t a, uint32_t b,
+                CoolListItemList* labels, CoolListItemList* values)
 {
   AddLabelRow(text, labelId, row, labels);
-  text->append(std::to_string(static_cast<unsigned long>(LeftOfGrid(ship, a, b))));
+  AppendDamageable(text, LeftOfGrid(ship, a, b), ship->GetGridValue(a, b));
   AddStatusRow(row, text, values);
 }
 
@@ -43,11 +48,7 @@ void AddEmptyRow(std::string* text, uint16_t labelId, int row, CoolListItemList*
   AddStatusRow(row, text, values);
 }
 
-void AddGridGroup(std::string* text,
-                  int firstRow,
-                  CapShip* ship,
-                  uint32_t a,
-                  CoolListItemList* labels,
+void AddGridGroup(std::string* text, int firstRow, CapShip* ship, uint32_t a, CoolListItemList* labels,
                   CoolListItemList* values)
 {
   AddGridRow(text, 0x8718, firstRow, ship, a, 0, labels, values);
@@ -125,8 +126,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     const int lost = ship->GetDamageField6c();
     const int total = ship->GetField6c();
     int left = total - lost;
-    if (left == 0)
-    {
+    if (left == 0) {
       const int lost70 = ship->GetDamageField70();
       const int total70 = ship->GetField70();
       left = total70 - lost70;
@@ -141,7 +141,13 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   {
     const uint32_t lost = ship->GetHullValueDamage();
     const uint32_t hull = ship->GetHull();
-    AppendLeftOfTotal(&text, hull - lost, ship->GetHull());
+    const uint32_t remaining = hull - lost;
+    AppendLeftOfTotal(&text, remaining, hull);
+    if (EnhancementsEnabled()) {
+      text.append(" (");
+      text.append(std::to_string(hull == 0 ? 0 : (remaining * 100) / hull));
+      text.append("%)");
+    }
   }
   AddStatusRow(row + 11, &text, values);
 
@@ -149,7 +155,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   {
     const uint32_t lost = ship->GetDamageControlLoss();
     const uint32_t control = ship->GetDamageControl();
-    text.append(std::to_string(static_cast<unsigned long>(control - lost)));
+    AppendDamageable(&text, control - lost, control);
   }
   AddStatusRow(row + 12, &text, values);
 
@@ -162,7 +168,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   AddStatusRow(row + 13, &text, values);
 
   AddLabelRow(&text, 0x8654, row + 14, labels);
-  text.append(std::to_string(static_cast<unsigned long>(ship->GetField60())));
+  AppendDamageable(&text, ship->GetField60() - ship->GetDamageField60(), ship->GetField60());
   AddStatusRow(row + 14, &text, values);
 
   AddLabelRow(&text, 0x8713, row + 15, labels);
@@ -185,7 +191,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   {
     const uint32_t lost = ship->GetDamageField68();
     const uint32_t total = ship->GetField68();
-    text.append(std::to_string(static_cast<unsigned long>(total - lost)));
+    AppendDamageable(&text, total - lost, total);
   }
   AddStatusRow(row + 17, &text, values);
 
@@ -193,7 +199,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   {
     const uint32_t first = ship->GetRecordField5c();
     const uint32_t second = ship->GetDetectionLoss();
-    text.append(std::to_string(static_cast<unsigned long>(first - second)));
+    AppendDamageable(&text, first - second, first);
   }
   AddStatusRow(row + 18, &text, values);
 
@@ -209,7 +215,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
   {
     const uint32_t lost = ship->GetBombardmentModifierLoss();
     const uint32_t modifier = ship->GetBombardmentModifier();
-    text.append(std::to_string(static_cast<unsigned long>(modifier - lost)));
+    AppendDamageable(&text, modifier - lost, modifier);
   }
   AddStatusRow(row + 20, &text, values);
 

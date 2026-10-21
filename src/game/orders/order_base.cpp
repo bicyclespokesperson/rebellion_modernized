@@ -8,8 +8,7 @@
 #include "gameobj/object_database.h"
 #include "orders/order_checks.h"
 
-struct OrderFactoryEntry
-{
+struct OrderFactoryEntry {
   int m_kind;
   void* (*m_create)();
 };
@@ -40,11 +39,15 @@ bool isTextMessageKind(int kind)
 } // namespace
 
 extern OrderFactoryEntry g_orderFactories[]; // 0x6b6fe0
-extern int g_orderFactoryCount; // 0x6b8fd8
+extern int g_orderFactoryCount;              // 0x6b8fd8
 
 // ---- ActivityRequest ------------------------------------------------------------------------------------------
 
-ActivityRequest::ActivityRequest() : m_side(0), m_unk04(0), m_target(), m_kind(0)
+ActivityRequest::ActivityRequest()
+    : m_side(0)
+    , m_unk04(0)
+    , m_target()
+    , m_kind(0)
 {
 }
 
@@ -52,7 +55,8 @@ ActivityRequest::ActivityRequest(const ActivityRequest& other) = default;
 
 // ---- MessageBase ----------------------------------------------------------------------------------------------
 
-MessageBase::MessageBase() : IdNode()
+MessageBase::MessageBase()
+    : IdNode()
 {
   m_unk1c = 1;
 }
@@ -63,8 +67,9 @@ int MessageBase::Read(istream* in)
 {
   uint32_t id = 0;
   StreamRead32(in, &id);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
+  }
   SetId(id);
   StreamRead32(in, &m_unk1c);
   return (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) == 0;
@@ -80,7 +85,8 @@ int MessageBase::Write(ostream* out)
 
 // ---- SidedMessage ---------------------------------------------------------------------------------------------
 
-SidedMessage::SidedMessage() : MessageBase()
+SidedMessage::SidedMessage()
+    : MessageBase()
 {
   m_side = 0;
   m_unk28 = 0;
@@ -92,8 +98,7 @@ SidedMessage::~SidedMessage() = default;
 int SidedMessage::Read(istream* in)
 {
   int result = MessageBase::Read(in);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamRead32(in, &m_side);
     StreamRead32(in, &m_unk24);
     StreamRead32(in, &m_unk28);
@@ -104,8 +109,7 @@ int SidedMessage::Read(istream* in)
 int SidedMessage::Write(ostream* out)
 {
   int result = MessageBase::Write(out);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamWrite32(out, &m_side);
     StreamWrite32(out, &m_unk24);
     StreamWrite32(out, &m_unk28);
@@ -116,10 +120,10 @@ int SidedMessage::Write(ostream* out)
 void* CreateOrderByKind(int kind)
 {
   void* (*create)() = nullptr;
-  for (int i = 0; i < g_orderFactoryCount && !create; ++i)
-  {
-    if (g_orderFactories[i].m_kind == kind)
+  for (int i = 0; i < g_orderFactoryCount && !create; ++i) {
+    if (g_orderFactories[i].m_kind == kind) {
       create = g_orderFactories[i].m_create;
+    }
   }
   return create ? create() : nullptr;
 }
@@ -127,10 +131,10 @@ void* CreateOrderByKind(int kind)
 int RegisterOrderFactory(int kind, void* (*factory)())
 {
   bool absent = true;
-  for (int i = 0; i < g_orderFactoryCount && absent; ++i)
+  for (int i = 0; i < g_orderFactoryCount && absent; ++i) {
     absent = g_orderFactories[i].m_kind != kind;
-  if (absent && g_orderFactoryCount + 1 < kMaxOrderFactories)
-  {
+  }
+  if (absent && g_orderFactoryCount + 1 < kMaxOrderFactories) {
     g_orderFactories[g_orderFactoryCount].m_kind = kind;
     g_orderFactories[g_orderFactoryCount].m_create = factory;
     ++g_orderFactoryCount;
@@ -140,21 +144,24 @@ int RegisterOrderFactory(int kind, void* (*factory)())
 
 void* CreateMessageByKind(int kind)
 {
-  if (kind < 0x200 && !isTextMessageKind(kind))
+  if (kind < 0x200 && !isTextMessageKind(kind)) {
     return nullptr;
+  }
   return CreateOrderByKind(kind);
 }
 
 // ---- OrderBase ------------------------------------------------------------------------------------------------
 
-OrderBase::OrderBase() : SidedMessage(), m_team(), m_target()
+OrderBase::OrderBase()
+    : SidedMessage()
+    , m_team()
+    , m_target()
 {
   m_arg = 0;
   m_unk3c = 0;
   m_commands = nullptr;
   uint32_t ownsQueue = 0;
-  if (m_unk1c != 0)
-  {
+  if (m_unk1c != 0) {
     m_commands = NewOrNull<CommandQueue>();
     ownsQueue = m_commands != nullptr;
   }
@@ -163,8 +170,7 @@ OrderBase::OrderBase() : SidedMessage(), m_team(), m_target()
 
 OrderBase::~OrderBase()
 {
-  if (m_commands)
-  {
+  if (m_commands) {
     delete m_commands;
     m_commands = nullptr;
   }
@@ -239,15 +245,16 @@ int OrderBase::IsChecked()
   int anyChecked = 0;
   int anyUnchecked = 0;
   int ok = ownsQueue;
-  if (ok != 0)
+  if (ok != 0) {
     ok = ClassifyCommands(&request, m_commands, &anyChecked, &anyUnchecked);
+  }
   int result = 0;
-  if (ok != 0)
-  {
-    if (RequiresAllCommandsChecked() == 0)
+  if (ok != 0) {
+    if (RequiresAllCommandsChecked() == 0) {
       result = anyChecked;
-    else
+    } else {
       result = anyChecked != 0 && anyUnchecked == 0;
+    }
   }
   return result;
 }
@@ -258,16 +265,17 @@ int OrderBase::CheckEnabled(StatusCode* status)
   *status = StatusCode(kStatusCategory, kStatusOk);
   ActivityRequest request;
   BuildRequest(&request);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckCommand(status);
-    if (ownsQueue != 0)
-    {
-      if (isOk(status))
+    }
+    if (ownsQueue != 0) {
+      if (isOk(status)) {
         ownsQueue = CheckCommandsEnabled(&request, m_commands, status);
-      if (ownsQueue != 0)
+      }
+      if (ownsQueue != 0) {
         return isOk(status);
+      }
     }
   }
   setStatus(status, kStatusRefused);
@@ -281,16 +289,17 @@ int OrderBase::CheckValid(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   CheckEnabled(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckDestination(status);
-    if (ownsQueue != 0)
-    {
-      if (isOk(status))
+    }
+    if (ownsQueue != 0) {
+      if (isOk(status)) {
         ownsQueue = CheckCommandsValid(&request, m_commands, status);
-      if (ownsQueue != 0)
+      }
+      if (ownsQueue != 0) {
         return isOk(status);
+      }
     }
   }
   setStatus(status, kStatusRefused);
@@ -302,12 +311,11 @@ int OrderBase::Execute(StatusCode* status)
   int ownsQueue = static_cast<int>(m_unk1c);
   *status = StatusCode(kStatusCategory, kStatusOk);
   CheckValid(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       SetArg(CallGameHook2AFC());
-    if (ownsQueue != 0 && isOk(status))
-    {
+    }
+    if (ownsQueue != 0 && isOk(status)) {
       ActivityRequest request;
       BuildRequest(&request);
       ExecuteCommands(&request, m_commands);
@@ -321,16 +329,16 @@ int OrderBase::CheckCommand(StatusCode* status)
   *status = StatusCode(kStatusCategory, kStatusOk);
   Command* command = CreateCommand();
   int result = 0;
-  if (command != nullptr)
-  {
+  if (command != nullptr) {
     ActivityRequest request;
     BuildRequest(&request);
     command->SetRequest(&request);
     result = CheckCommandForTeam(command, &m_team, m_commands, status);
     delete command;
   }
-  if (result == 0)
+  if (result == 0) {
     setStatus(status, kStatusRefused);
+  }
   return result;
 }
 
@@ -340,14 +348,17 @@ int OrderBase::CheckDestination(StatusCode* status)
   *status = StatusCode(kStatusCategory, kStatusOk);
   ActivityRequest request;
   BuildRequest(&request);
-  if (ownsQueue == 0)
+  if (ownsQueue == 0) {
     setStatus(status, kStatusRefused);
+  }
   return ownsQueue;
 }
 
 // ---- TextMessage ----------------------------------------------------------------------------------------------
 
-TextMessage::TextMessage() : OrderBase(), m_text()
+TextMessage::TextMessage()
+    : OrderBase()
+    , m_text()
 {
 }
 
@@ -356,16 +367,18 @@ TextMessage::~TextMessage() = default;
 int TextMessage::Read(istream* in)
 {
   int result = OrderBase::Read(in);
-  if (result != 0)
+  if (result != 0) {
     result = ReadLegacyString(in, m_text);
+  }
   return result;
 }
 
 int TextMessage::Write(ostream* out)
 {
   int result = OrderBase::Write(out);
-  if (result != 0)
+  if (result != 0) {
     result = WriteLegacyString(out, m_text);
+  }
   return result;
 }
 
@@ -398,8 +411,7 @@ int TextMessage::CheckDestination(StatusCode* status)
 int OrderBase::Read(istream* in)
 {
   int result = SidedMessage::Read(in);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamRead32(in, &m_arg);
     StreamRead32(in, &m_unk3c);
     m_target.Read(in);
@@ -411,8 +423,7 @@ int OrderBase::Read(istream* in)
 int OrderBase::Write(ostream* out)
 {
   int result = SidedMessage::Write(out);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamWrite32(out, &m_arg);
     StreamWrite32(out, &m_unk3c);
     m_target.Write(out);

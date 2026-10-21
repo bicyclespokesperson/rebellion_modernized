@@ -13,7 +13,10 @@ uint32_t RecordKeyValue(const DatRecord* record)
 
 } // namespace
 
-ObjectNameNode::ObjectNameNode() : IdNode(), m_key(), m_name()
+ObjectNameNode::ObjectNameNode()
+    : IdNode()
+    , m_key()
+    , m_name()
 {
   m_nameValid = 1;
 }

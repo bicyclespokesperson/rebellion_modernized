@@ -11,11 +11,17 @@ using events::succeedWithoutChecks;
 
 // ---- NetMsg1 --------------------------------------------------------------------------------------------------
 
-NetMsg1::NetMsg1() : SidedMessage(), m_syncPoint(0), m_checksums()
+NetMsg1::NetMsg1()
+    : SidedMessage()
+    , m_syncPoint(0)
+    , m_checksums()
 {
 }
 
-NetMsg1::NetMsg1(int syncPoint) : SidedMessage(), m_syncPoint(syncPoint), m_checksums()
+NetMsg1::NetMsg1(int syncPoint)
+    : SidedMessage()
+    , m_syncPoint(syncPoint)
+    , m_checksums()
 {
 }
 
@@ -24,8 +30,9 @@ NetMsg1::~NetMsg1() = default;
 int NetMsg1::Read(istream* in)
 {
   int result = SidedMessage::Read(in);
-  if (!result)
+  if (!result) {
     return result;
+  }
   StreamRead32(in, &m_syncPoint);
   return m_checksums.Load(in);
 }
@@ -33,8 +40,9 @@ int NetMsg1::Read(istream* in)
 int NetMsg1::Write(ostream* out)
 {
   int result = SidedMessage::Write(out);
-  if (!result)
+  if (!result) {
     return result;
+  }
   StreamWrite32(out, &m_syncPoint);
   return m_checksums.Save(out);
 }
@@ -52,7 +60,13 @@ int NetMsg1::CheckValid(StatusCode* status)
 int NetMsg1::Execute(StatusCode* status)
 {
   succeedWithoutChecks(status);
-  return SetSideSnapshot(reinterpret_cast<GameStateSnapshot*>(&m_checksums), m_side);
+  GameStateSnapshot snapshot;
+  snapshot.m_tick = m_checksums.m_value00;
+  snapshot.m_stamp = m_checksums.m_value04;
+  snapshot.m_unk08 = m_checksums.m_value08;
+  snapshot.m_stateCrc = m_checksums.m_crcA;
+  snapshot.m_tableCrc = m_checksums.m_crcB;
+  return SetSideSnapshot(&snapshot, m_side);
 }
 
 void* CreateNetMsg1()
@@ -62,7 +76,9 @@ void* CreateNetMsg1()
 
 // ---- NetMsg2 --------------------------------------------------------------------------------------------------
 
-NetMsg2::NetMsg2() : SidedMessage(), m_syncPoint(0)
+NetMsg2::NetMsg2()
+    : SidedMessage()
+    , m_syncPoint(0)
 {
 }
 
@@ -71,16 +87,18 @@ NetMsg2::~NetMsg2() = default;
 int NetMsg2::Read(istream* in)
 {
   int result = SidedMessage::Read(in);
-  if (result)
+  if (result) {
     StreamRead32(in, &m_syncPoint);
+  }
   return result;
 }
 
 int NetMsg2::Write(ostream* out)
 {
   int result = SidedMessage::Write(out);
-  if (result)
+  if (result) {
     StreamWrite32(out, &m_syncPoint);
+  }
   return result;
 }
 
@@ -106,7 +124,8 @@ void* CreateNetMsg2()
 
 // ---- NetMsg280 ------------------------------------------------------------------------------------------------
 
-NetMsg280::NetMsg280() : SidedMessage()
+NetMsg280::NetMsg280()
+    : SidedMessage()
 {
 }
 
@@ -115,16 +134,18 @@ NetMsg280::~NetMsg280() = default;
 int NetMsg280::Read(istream* in)
 {
   int result = SidedMessage::Read(in);
-  if (result)
+  if (result) {
     StreamRead32(in, &m_value);
+  }
   return result;
 }
 
 int NetMsg280::Write(ostream* out)
 {
   int result = SidedMessage::Write(out);
-  if (result)
+  if (result) {
     StreamWrite32(out, &m_value);
+  }
   return result;
 }
 
@@ -157,7 +178,11 @@ void* CreateNetMsg280()
 
 // ---- NetMsg4 --------------------------------------------------------------------------------------------------
 
-NetMsg4::NetMsg4() : MessageBase(), m_voteId(0), m_voteState(0), m_voteKey()
+NetMsg4::NetMsg4()
+    : MessageBase()
+    , m_voteId(0)
+    , m_voteState(0)
+    , m_voteKey()
 {
   m_voteTime.m_value = 0;
 }
@@ -170,7 +195,7 @@ int NetMsg4::Read(istream* in)
   StreamRead32(in, &m_voteId);
   StreamRead32(in, &m_voteState);
   ReadGameTime(&m_voteTime, in);
-  reinterpret_cast<SideBits*>(&m_voteKey)->Read(in);
+  StreamRead32(in, &m_voteKey.m_value);
   return result;
 }
 
@@ -180,7 +205,7 @@ int NetMsg4::Write(ostream* out)
   StreamWrite32(out, &m_voteId);
   StreamWrite32(out, &m_voteState);
   StreamWrite32(out, &m_voteTime);
-  reinterpret_cast<SideBits*>(&m_voteKey)->Write(out);
+  StreamWrite32(out, &m_voteKey.m_value);
   return result;
 }
 
@@ -191,7 +216,9 @@ void* CreateNetMsg4()
 
 // ---- NetMsg5 --------------------------------------------------------------------------------------------------
 
-NetMsg5::NetMsg5() : SidedMessage(), m_value(0)
+NetMsg5::NetMsg5()
+    : SidedMessage()
+    , m_value(0)
 {
 }
 
@@ -223,7 +250,8 @@ void* CreateNetMsg5()
 
 // ---- NetMsg13 -------------------------------------------------------------------------------------------------
 
-NetMsg13::NetMsg13() : MessageBase()
+NetMsg13::NetMsg13()
+    : MessageBase()
 {
 }
 
@@ -246,7 +274,11 @@ void* CreateNetMsg13()
 
 // ---- NetMsg15 -------------------------------------------------------------------------------------------------
 
-NetMsg15::NetMsg15() : MessageBase(), m_valueA(0), m_valueB(0), m_valueC(0)
+NetMsg15::NetMsg15()
+    : MessageBase()
+    , m_valueA(0)
+    , m_valueB(0)
+    , m_valueC(0)
 {
 }
 

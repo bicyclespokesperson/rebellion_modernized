@@ -24,9 +24,7 @@ foreach(LEGACY_OPTION REB_STANDALONE REB_OWN_DATA REB_OWN_VTABLES REB_MINWIN_IMP
   endif()
 endforeach()
 
-# Reconstructed game code: every .cpp under src/game, except the absent 3D tactical implementation,
-# which is replaced by the native build's auto-resolve stubs.
+# Native game and battle simulator sources.
 file(GLOB_RECURSE REB_GAME_SOURCES CONFIGURE_DEPENDS src/game/*.cpp)
-list(FILTER REB_GAME_SOURCES EXCLUDE REGEX "tactical_3d_absent\\.cpp$")
 
 include(${CMAKE_SOURCE_DIR}/cmake/native.cmake)

@@ -7,16 +7,17 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 } // namespace
 
 int main()
 {
-  using minwin::present::RenderScaleForOutput;
   using minwin::present::GameplayWidthForOutput;
+  using minwin::present::RenderScaleForOutput;
   Require(RenderScaleForOutput(640, 480) == 1);
   Require(RenderScaleForOutput(1280, 960) == 2);
   Require(RenderScaleForOutput(1365, 768) == 2);

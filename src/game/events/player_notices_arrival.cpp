@@ -28,10 +28,7 @@ uint32_t stateFlags(GameObjNotifier* object)
   return static_cast<GameObj*>(object)->m_stateFlags;
 }
 
-void say(std::string* text,
-         uint32_t id,
-         GameObjNotifier* a = nullptr,
-         GameObjNotifier* b = nullptr,
+void say(std::string* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr,
          GameObjNotifier* c = nullptr)
 {
   ExpandMessageTemplate(text, id, notice::nameOf(a), notice::nameOf(b), notice::nameOf(c), nullptr);
@@ -51,23 +48,21 @@ void Notice1::FillNeutral()
   GameObjNotifier* mine = GetSideObject(m_owner, m_owner);
   GameObjNotifier* other = GetSideObject(m_owner, otherSide(m_owner));
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_systemKey);
-  if (!mine || !system || !other)
+  if (!mine || !system || !other) {
     return;
+  }
   say(&m_text88, 0x7001, system);
   say(&m_text94, 0x7004, system);
   say(&m_texta0, 0x700e, mine, other);
   uint32_t tail;
-  if (m_f54 == 0)
-  {
+  if (m_f54 == 0) {
     say(&m_texta0, 0x700f, mine, other);
-  }
-  else
-  {
-    if (m_f54 == m_f58)
-    {
+  } else {
+    if (m_f54 == m_f58) {
       GameObjNotifier* third = GetObjectInFamilies_90_98(m_owner, &m_keyB);
-      if (!third)
+      if (!third) {
         return;
+      }
       say(&m_texta0, 0x700d, mine, third);
       say(&m_texta0, 0x700b, other);
       say(&m_textac, 0x7011, mine, system, third);
@@ -86,33 +81,28 @@ void Notice1::FillOwnSide()
 {
   GameObjNotifier* mine = GetSideObject(m_owner, m_owner);
   GameObjNotifier* other = GetSideObject(m_owner, otherSide(m_owner));
-  if (mine)
+  if (mine) {
     say(&m_text94, 0x7002, mine);
+  }
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_systemKey);
-  if (!mine || !system || !other)
+  if (!mine || !system || !other) {
     return;
+  }
   say(&m_text88, 0x7001, system);
   say(&m_textac, 0x7012, mine, system);
   say(&m_textb8, 0x7013);
   const uint32_t controller = system->ControlSide();
   GameObjNotifier* second = mine;
   uint32_t id;
-  if (controller == 0 || controller == 3)
-  {
+  if (controller == 0 || controller == 3) {
     second = other;
     id = 0x7007;
-  }
-  else if (static_cast<uint32_t>(m_f5c) == controller)
-  {
+  } else if (static_cast<uint32_t>(m_f5c) == controller) {
     id = static_cast<uint32_t>(m_f58) == controller ? 0x7016 : 0x7015;
-  }
-  else if (controller == static_cast<uint32_t>(m_f58))
-  {
+  } else if (controller == static_cast<uint32_t>(m_f58)) {
     second = other;
     id = 0x7005;
-  }
-  else
-  {
+  } else {
     id = 0x7006;
   }
   say(&m_texta0, id, system, second);
@@ -123,45 +113,38 @@ void Notice1::FillOtherSide()
 {
   GameObjNotifier* mine = GetSideObject(m_owner, m_owner);
   GameObjNotifier* other = GetSideObject(m_owner, otherSide(m_owner));
-  if (mine)
+  if (mine) {
     say(&m_text94, 0x7003, mine);
+  }
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_systemKey);
-  if (!mine || !system || !other)
+  if (!mine || !system || !other) {
     return;
+  }
   say(&m_text88, 0x7001, system);
   const uint32_t controller = system->ControlSide();
   GameObjNotifier* second = other;
   uint32_t id;
-  if (controller == 0 || controller == 3)
-  {
+  if (controller == 0 || controller == 3) {
     id = 0x700a;
-  }
-  else if (static_cast<uint32_t>(m_f5c) == controller)
-  {
+  } else if (static_cast<uint32_t>(m_f5c) == controller) {
     id = static_cast<uint32_t>(m_f58) == controller ? 0x7015 : 0x7016;
-  }
-  else if (controller == static_cast<uint32_t>(m_f58))
-  {
+  } else if (controller == static_cast<uint32_t>(m_f58)) {
     id = 0x7008;
-  }
-  else
-  {
+  } else {
     second = mine;
     id = 0x7009;
   }
   say(&m_texta0, id, system, second);
   uint32_t tail;
-  if (m_f54 == 0)
-  {
+  if (m_f54 == 0) {
     say(&m_texta0, 0x700b, mine);
     say(&m_textac, 0x7010, mine, system);
     tail = 0x7014;
-  }
-  else
-  {
+  } else {
     GameObjNotifier* third = GetObjectInFamilies_90_98(m_owner, &m_keyB);
-    if (!third)
+    if (!third) {
       return;
+    }
     say(&m_texta0, 0x700d, mine, third);
     say(&m_textac, 0x7011, mine, system, third);
     tail = 0x7013;
@@ -174,8 +157,7 @@ namespace
 
 void rememberParentAsKeyB(ObjectKey* keyB, GameObjNotifier* object, int owner, int ownerOfList)
 {
-  if (keyB->IsSet() == 0 && owner == ownerOfList)
-  {
+  if (keyB->IsSet() == 0 && owner == ownerOfList) {
     ObjectKey parent;
     object->m_parent->GetKey(&parent);
     *keyB = ObjectKey(parent);
@@ -184,8 +166,9 @@ void rememberParentAsKeyB(ObjectKey* keyB, GameObjNotifier* object, int owner, i
 
 void rememberOnce(ObjectKeySet* set, const ObjectKey& key)
 {
-  if (set->Find(&key) == nullptr)
+  if (set->Find(&key) == nullptr) {
     set->Add(NewOrNull<ObjectKeyNode>(key));
+  }
 }
 
 } // namespace
@@ -194,47 +177,39 @@ void rememberOnce(ObjectKeySet* set, const ObjectKey& key)
 void Notice1::ReadVote(Notice2* vote)
 {
   m_f5c = vote->m_f4c;
-  struct List
-  {
+  struct List {
     const ObjectKeySet* objects;
     int side;
     ObjectKeySet* destroyed;
   };
   const List lists[] = {{&vote->m_set6c, 1, &m_set78}, {&vote->m_set74, 2, &m_set80}};
-  for (const List& list : lists)
-  {
-    for (const auto& entry : list.objects->Entries())
-    {
+  for (const List& list : lists) {
+    for (const auto& entry : list.objects->Entries()) {
       auto* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey key(node->m_key);
       GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
-      if (!object)
+      if (!object) {
         continue;
-      const uint32_t flags = stateFlags(object);
-      if ((flags & kStateDestroyed) != 0)
-      {
-        if (list.destroyed->Find(&key) == nullptr)
-          list.destroyed->Add(NewOrNull<ObjectKeyNode>(*node));
       }
-      else if ((flags & kStateArrived) != 0)
-      {
-        if (inFleetFamilies(key))
-        {
+      const uint32_t flags = stateFlags(object);
+      if ((flags & kStateDestroyed) != 0) {
+        if (list.destroyed->Find(&key) == nullptr) {
+          list.destroyed->Add(NewOrNull<ObjectKeyNode>(*node));
+        }
+      } else if ((flags & kStateArrived) != 0) {
+        if (inFleetFamilies(key)) {
           rememberParentAsKeyB(&m_keyB, object, m_owner, list.side);
           rememberOnce(&m_set60, key);
-        }
-        else if (notice::inFamilies(key, 0x1c, 0x20))
-        {
+        } else if (notice::inFamilies(key, 0x1c, 0x20)) {
           rememberParentAsKeyB(&m_keyB, object, m_owner, list.side);
           rememberOnce(&m_set68, key);
-        }
-        else if (notice::inFamilies(key, 0x30, 0x3c))
-        {
+        } else if (notice::inFamilies(key, 0x30, 0x3c)) {
           rememberOnce(&m_set70, key);
         }
       }
-      if (inFleetFamilies(key) && (flags & kStateDestroyed) == 0 && m_owner == list.side && m_keyC.IsSet() == 0)
+      if (inFleetFamilies(key) && (flags & kStateDestroyed) == 0 && m_owner == list.side && m_keyC.IsSet() == 0) {
         m_keyC = ObjectKey(key);
+      }
     }
   }
 }
@@ -243,20 +218,19 @@ void Notice1::ReadVote(Notice2* vote)
 
 void Notice2::AddObjectKeys(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return;
+  }
   ObjectKey key;
   object->GetKey(&key);
   auto* node = NewOrNull<ObjectKeyNode>(key);
-  if (!node)
+  if (!node) {
     return;
-  const uint32_t controller = object->ControlSide();
-  if (controller == 1)
-  {
-    m_set6c.Add(node);
   }
-  else if (controller == 2)
-  {
+  const uint32_t controller = object->ControlSide();
+  if (controller == 1) {
+    m_set6c.Add(node);
+  } else if (controller == 2) {
     m_set74.Add(node);
   }
 }
@@ -266,8 +240,9 @@ int Notice2::FillText()
   GameObjNotifier* mine = GetSideObject(m_owner, m_owner);
   GameObjNotifier* other = GetSideObject(m_owner, otherSide(m_owner));
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_systemKey);
-  if (!mine || !system || !other)
+  if (!mine || !system || !other) {
     return 1;
+  }
   say(&m_text54, 0x7020, system);
   const uint32_t controller = system->ControlSide();
   const uint32_t battleReady = ControlBitsField(static_cast<System*>(system)->m_controlBits, 6);
@@ -276,38 +251,28 @@ int Notice2::FillText()
   GameObjNotifier* second;
   GameObjNotifier* third = system;
   uint32_t id;
-  if (controller == static_cast<uint32_t>(m_side))
-  {
-    if (battleReady == controller)
-    {
+  if (controller == static_cast<uint32_t>(m_side)) {
+    if (battleReady == controller) {
       first = mine;
       second = system;
       third = other;
       id = 0x7022;
-    }
-    else
-    {
+    } else {
       first = other;
       second = system;
       third = mine;
       id = 0x7021;
     }
-  }
-  else if (controller == 0 || controller == 3)
-  {
+  } else if (controller == 0 || controller == 3) {
     first = mine;
     second = other;
     third = system;
     id = 0x7025;
-  }
-  else if (battleReady == controller)
-  {
+  } else if (battleReady == controller) {
     first = other;
     second = mine;
     id = 0x7024;
-  }
-  else
-  {
+  } else {
     first = mine;
     second = system;
     third = other;
@@ -318,27 +283,30 @@ int Notice2::FillText()
   FleetIterator fleets(system, 1);
   FightSquadIterator squads(system, 1);
   CharacterIterator characters(system, 1);
-  for (fleets.Begin(); fleets.Current(); fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
     CapShipIterator capitals(fleets.Current(), 1);
     AddObjectKeys(fleets.Current());
-    for (capitals.Begin(); capitals.Current(); capitals.Advance())
-    {
+    for (capitals.Begin(); capitals.Current(); capitals.Advance()) {
       FightSquadIterator capitalSquads(capitals.Current(), 1);
       CharacterIterator capitalCharacters(capitals.Current(), 1);
       TroopRegIterator capitalTroops(capitals.Current(), 1);
       AddObjectKeys(capitals.Current());
-      for (capitalSquads.Begin(); capitalSquads.Current(); capitalSquads.Advance())
+      for (capitalSquads.Begin(); capitalSquads.Current(); capitalSquads.Advance()) {
         AddObjectKeys(capitalSquads.Current());
-      for (capitalTroops.Begin(); capitalTroops.Current(); capitalTroops.Advance())
+      }
+      for (capitalTroops.Begin(); capitalTroops.Current(); capitalTroops.Advance()) {
         AddObjectKeys(capitalTroops.Current());
-      for (capitalCharacters.Begin(); capitalCharacters.Current(); capitalCharacters.Advance())
+      }
+      for (capitalCharacters.Begin(); capitalCharacters.Current(); capitalCharacters.Advance()) {
         AddObjectKeys(capitalCharacters.Current());
+      }
     }
   }
-  for (squads.Begin(); squads.Current(); squads.Advance())
+  for (squads.Begin(); squads.Current(); squads.Advance()) {
     AddObjectKeys(squads.Current());
-  for (characters.Begin(); characters.Current(); characters.Advance())
+  }
+  for (characters.Begin(); characters.Current(); characters.Advance()) {
     AddObjectKeys(characters.Current());
+  }
   return 1;
 }

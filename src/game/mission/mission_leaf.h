@@ -37,8 +37,9 @@ template <class BuildFn>
 inline int CopyEventKinds(BuildFn build, EventKindSet* source, EventKindSet* out)
 {
   const int result = build();
-  if (result)
+  if (result) {
     *out = *source;
+  }
   return result;
 }
 
@@ -47,51 +48,52 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 {
   *out = MakeStatus(mission_status::kNotSupported);
   const int result = build();
-  if (result && kinds->Contains(orderKind))
+  if (result && kinds->Contains(orderKind)) {
     *out = MakeStatus(mission_status::kOk);
+  }
   return result;
 }
 
 // The slot 5-9 and 37 bodies shared (identical-code-folded) by almost all concrete types. A type that has its own
 // second-level forwarders still ends in the same rule-base bodies.
-#define REB_MISSION_SHARED_PERSISTENCE(CLASS)                 \
-  int CLASS::Read(istream* in)                                \
-  {                                                           \
-    return this->Mission::ReadImpl(in);                       \
-  }                                                           \
-  int CLASS::Write(ostream* out)                              \
-  {                                                           \
-    return WriteImpl(out);                                    \
-  }                                                           \
-  int CLASS::Checksum(Crc32* crc)                             \
-  {                                                           \
-    return this->Mission::ChecksumImpl(crc);                  \
-  }                                                           \
-  int CLASS::Validate()                                       \
-  {                                                           \
-    return Mission::ValidateImpl();                           \
-  }                                                           \
-  int CLASS::ApplyAll(NotifyContext* ctx)                     \
-  {                                                           \
-    return IsSideView() ? ApplyAllImpl(ctx) : 0;              \
-  }                                                           \
-  int CLASS::CreateViews(int controlKind, NotifyContext* ctx) \
-  {                                                           \
-    return Mission::CreateViewsImpl(controlKind, ctx);        \
+#define REB_MISSION_SHARED_PERSISTENCE(CLASS)                                                                          \
+  int CLASS::Read(istream* in)                                                                                         \
+  {                                                                                                                    \
+    return this->Mission::ReadImpl(in);                                                                                \
+  }                                                                                                                    \
+  int CLASS::Write(ostream* out)                                                                                       \
+  {                                                                                                                    \
+    return WriteImpl(out);                                                                                             \
+  }                                                                                                                    \
+  int CLASS::Checksum(Crc32* crc)                                                                                      \
+  {                                                                                                                    \
+    return this->Mission::ChecksumImpl(crc);                                                                           \
+  }                                                                                                                    \
+  int CLASS::Validate()                                                                                                \
+  {                                                                                                                    \
+    return Mission::ValidateImpl();                                                                                    \
+  }                                                                                                                    \
+  int CLASS::ApplyAll(NotifyContext* ctx)                                                                              \
+  {                                                                                                                    \
+    return IsSideView() ? ApplyAllImpl(ctx) : 0;                                                                       \
+  }                                                                                                                    \
+  int CLASS::CreateViews(int controlKind, NotifyContext* ctx)                                                          \
+  {                                                                                                                    \
+    return Mission::CreateViewsImpl(controlKind, ctx);                                                                 \
   }
 
-#define REB_MISSION_SHARED_PERSISTENCE_DECLS         \
-  virtual int Read(istream* in) override;            \
-  virtual int Write(ostream* out) override;          \
-  virtual int Checksum(Crc32* crc) override;         \
-  virtual int Validate() override;                   \
-  virtual int ApplyAll(NotifyContext* ctx) override; \
+#define REB_MISSION_SHARED_PERSISTENCE_DECLS                                                                           \
+  virtual int Read(istream* in) override;                                                                              \
+  virtual int Write(ostream* out) override;                                                                            \
+  virtual int Checksum(Crc32* crc) override;                                                                           \
+  virtual int Validate() override;                                                                                     \
+  virtual int ApplyAll(NotifyContext* ctx) override;                                                                   \
   virtual int CreateViews(int controlKind, NotifyContext* ctx) override;
 
 // Slot 160 body shared by Subdue, Rescue, Recruit, Pickup, Jedi Training and Incite (0x576700): a mission that is
 // still in TaskStatus 0 starts (TaskStatus 2).
 int MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
 
-// Slot 160 body shared by Sabotage and DS Sabotage (0x5746e0): start when idle; once the task has succeeded the object the
-// mission started from is destroyed (reason 6).
+// Slot 160 body shared by Sabotage and DS Sabotage (0x5746e0): start when idle; once the task has succeeded the object
+// the mission started from is destroyed (reason 6).
 int MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);

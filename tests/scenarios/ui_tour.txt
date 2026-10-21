@@ -1,5 +1,5 @@
 # UI tour in a loaded game (RebelsFastStart, Alliance): opens the main windows/panels with a screenshot
-# of each and closes them again. See docs/ui_navigation.md. Runtime ~170 s.
+# of each and closes them again. Runtime ~170 s.
 # The game is set to Very Slow (not paused) so time advances but the Ando space battle (which pops up
 # ~45 s after setting Fast) does not interrupt the tour.
 12 key Escape

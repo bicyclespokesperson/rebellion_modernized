@@ -1,4 +1,5 @@
-// The monotonic millisecond clock behind SmackWait, kept apart from the minwin headers (it needs <windows.h> on Windows).
+// The monotonic millisecond clock behind SmackWait, kept apart from the minwin headers (it needs <windows.h> on
+// Windows).
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -12,9 +13,8 @@ namespace mwsmk
 namespace
 {
 
-// The executable's own QueryPerformanceCounter import is the determinism shim's virtual counter (src/standalone/determinism.cpp), which
-// advances one step per call: a polled SmackWait would run the game's virtual clock ahead by minutes while a movie plays. The pacing of
-// videos is wall-clock business, so it reads the real counter through GetProcAddress.
+// The pacing of videos is wall-clock business, so it reads kernel32's real counter through GetProcAddress, never a
+// virtual one: a polled SmackWait would otherwise run a virtual clock ahead by minutes while a movie plays.
 using CounterFunction = BOOL(WINAPI*)(LARGE_INTEGER*);
 
 CounterFunction RealCounterFunction(const char* name)

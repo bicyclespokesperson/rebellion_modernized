@@ -12,7 +12,7 @@
 // Kind 0x14: the table of six player-slot values (global table at 0x6b1220, indexed 1..6).
 class MpSlotTableMsg : public MessageBase
 {
-public:
+  public:
   MpSlotTableMsg();
   ~MpSlotTableMsg() override;
   int Read(istream* in) override;
@@ -23,14 +23,14 @@ public:
   int Apply();
 
   uint32_t m_unk20; // +0x20, zeroed but not serialised
-  int m_values[6]; // +0x24
+  int m_values[6];  // +0x24
 };
 
 // Kind 0x10: the lobby settings the host chose; the fields are copies of the multiplayer window's +0x130, +0x120,
 // +0x124 and +0x128.
 class MpLobbySettingsMsg : public MessageBase
 {
-public:
+  public:
   MpLobbySettingsMsg(int setting130, int setting120, int setting124, int setting128, int startGame);
   ~MpLobbySettingsMsg() override;
   int Read(istream* in) override;
@@ -41,13 +41,13 @@ public:
   int m_setting120; // +0x24
   int m_setting124; // +0x28
   int m_setting128; // +0x2c
-  int m_startGame; // +0x30
+  int m_startGame;  // +0x30
 };
 
 // Kind 0x11: a chat line (the text is in TextMessage::m_text). Adds no fields.
 class MpChatMsg : public TextMessage
 {
-public:
+  public:
   MpChatMsg();
   ~MpChatMsg() override;
   int Read(istream* in) override;
@@ -69,7 +69,7 @@ public:
 // session (global at 0x6be3b8), m_action 2 sets its peer id.
 class MpPlayerInfoMsg : public MessageBase
 {
-public:
+  public:
   MpPlayerInfoMsg();
   ~MpPlayerInfoMsg() override;
   int Read(istream* in) override;
@@ -79,17 +79,17 @@ public:
   // Returns 1 if the action was recognised, else 0.
   int Apply();
 
-  int m_action; // +0x20
-  int m_playerId; // +0x24
+  int m_action;             // +0x20
+  int m_playerId;           // +0x24
   std::string m_playerName; // +0x28
-  int m_extra; // +0x34
+  int m_extra;              // +0x34
 };
 
 // Kind 0x16 has no constructor or registration in the binary; only its handler was found (it sets the
 // multiplayer flag word at 0x6b123c). The class is declared just far enough to hold the handler.
 class MpFlagsMsg : public MessageBase
 {
-public:
+  public:
   int Apply(); // always returns 0
 
   uint32_t m_flags; // +0x20
@@ -99,7 +99,3 @@ MessageBase* CreateMpSlotTableMsg();
 MessageBase* CreateMpLobbySettingsMsg();
 MessageBase* CreateMpChatMsg();
 MessageBase* CreateMpPlayerInfoMsg();
-
-// Static initialisers: a width computed from a constant rectangle {left, top, right, bottom} in .rdata.
-void ComputeRectAWidth();
-void ComputeRectBWidth();

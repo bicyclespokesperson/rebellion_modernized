@@ -13,8 +13,7 @@
 namespace
 {
 
-struct FamilyRange
-{
+struct FamilyRange {
   uint32_t m_first;
   uint32_t m_end;
 };
@@ -56,8 +55,7 @@ ObjectKey KeyOf(GameObjNotifier* object)
   return key;
 }
 
-struct Destination
-{
+struct Destination {
   ObjectKey m_sector;
   int m_windowType = 0;
   GameObjNotifier* m_shown = nullptr;
@@ -69,105 +67,86 @@ int GalaxyWindow::OpenWindowForObject(const ObjectKey* object)
 {
   Destination destination;
   GameObjNotifier* target = GetObjectInFamilies_01_ff(m_side, object);
-  if (!target)
+  if (!target) {
     return 0;
+  }
   const uint32_t family = object->Family();
   GameObjNotifier* parent = target->m_parent;
 
-  if (InRange(family, kFacilityFamilies))
-  {
+  if (InRange(family, kFacilityFamilies)) {
     destination.m_shown = parent;
     destination.m_sector = KeyOf(parent->m_parent);
-    if (InRange(family, kDefenseFamilies))
-    {
+    if (InRange(family, kDefenseFamilies)) {
       destination.m_windowType = kDefenseWindow;
-    }
-    else if (InRange(family, kManufacturingFamilies))
-    {
+    } else if (InRange(family, kManufacturingFamilies)) {
       destination.m_windowType = kManufacturingWindow;
     }
-  }
-  else if (InRange(family, kFleetFamilies))
-  {
-    if (InRange(FamilyOf(parent), kPlanetaryFamilies))
-    {
+  } else if (InRange(family, kFleetFamilies)) {
+    if (InRange(FamilyOf(parent), kPlanetaryFamilies)) {
       GameObjNotifier* shown = parent->m_parent;
-      if (InRange(FamilyOf(shown), kHiddenFleetFamilies))
+      if (InRange(FamilyOf(shown), kHiddenFleetFamilies)) {
         return 0;
+      }
       destination.m_sector = KeyOf(shown->m_parent);
       destination.m_windowType = kFleetWindow;
       destination.m_shown = shown;
     }
-  }
-  else if (InRange(family, kShipFamilies) || InRange(family, kUnitFamilies))
-  {
-    if (InRange(FamilyOf(parent), kFleetFamilies))
-    {
+  } else if (InRange(family, kShipFamilies) || InRange(family, kUnitFamilies)) {
+    if (InRange(FamilyOf(parent), kFleetFamilies)) {
       GameObjNotifier* shown = parent->m_parent->m_parent;
-      if (InRange(FamilyOf(shown), kHiddenFleetFamilies))
+      if (InRange(FamilyOf(shown), kHiddenFleetFamilies)) {
         return 0;
+      }
       destination.m_sector = KeyOf(shown->m_parent);
       destination.m_windowType = kFleetWindow;
       destination.m_shown = shown;
-    }
-    else if (InRange(FamilyOf(parent), kSystemFamilies))
-    {
+    } else if (InRange(FamilyOf(parent), kSystemFamilies)) {
       destination.m_sector = KeyOf(parent->m_parent);
       destination.m_windowType = kSystemPageWindow;
       destination.m_shown = parent;
     }
-  }
-  else if (!InRange(family, kCharacterFamilies))
-  {
-    if (InRange(family, kSystemFamilies))
-    {
+  } else if (!InRange(family, kCharacterFamilies)) {
+    if (InRange(family, kSystemFamilies)) {
       destination.m_sector = KeyOf(parent);
       destination.m_shown = target;
-    }
-    else if (InRange(family, kPlanetaryFamilies))
-    {
-      if (InRange(FamilyOf(parent), kHiddenFleetFamilies))
+    } else if (InRange(family, kPlanetaryFamilies)) {
+      if (InRange(FamilyOf(parent), kHiddenFleetFamilies)) {
         return 0;
+      }
       destination.m_sector = KeyOf(parent->m_parent);
       destination.m_windowType = kFleetWindow;
       destination.m_shown = parent;
     }
-  }
-  else if (InRange(FamilyOf(parent), kFleetFamilies))
-  {
-    if (InRange(FamilyOf(parent->m_parent), kHiddenFleetFamilies))
+  } else if (InRange(FamilyOf(parent), kFleetFamilies)) {
+    if (InRange(FamilyOf(parent->m_parent), kHiddenFleetFamilies)) {
       return 0;
+    }
     GameObjNotifier* shown = parent->m_parent->m_parent;
     destination.m_sector = KeyOf(shown->m_parent);
     destination.m_windowType = kFleetWindow;
     destination.m_shown = shown;
-  }
-  else if (InRange(FamilyOf(parent), kSystemFamilies))
-  {
+  } else if (InRange(FamilyOf(parent), kSystemFamilies)) {
     destination.m_sector = KeyOf(parent->m_parent);
     destination.m_shown = parent;
     bool onVisibleMission = false;
     const ObjectKey missionKey = static_cast<Role*>(target)->m_missionKey;
     GameObjNotifier* mission = GetObjectInFamilies_40_80(m_side, &missionKey);
-    if (mission && static_cast<Mission*>(mission)->GetRecordHidden() == 0)
+    if (mission && static_cast<Mission*>(mission)->GetRecordHidden() == 0) {
       onVisibleMission = true;
+    }
     destination.m_windowType = onVisibleMission ? kMissionWindowOfCharacter : kSystemWindowOfCharacter;
-  }
-  else if (InRange(FamilyOf(parent), kDeepSpaceFamilies))
-  {
+  } else if (InRange(FamilyOf(parent), kDeepSpaceFamilies)) {
     return 0;
   }
 
-  if (destination.m_sector.IsSet())
-  {
+  if (destination.m_sector.IsSet()) {
     auto* sectorWindow = static_cast<SectorWindow*>(OpenSectorWindow(&destination.m_sector));
-    if (!sectorWindow)
+    if (!sectorWindow) {
       return 0;
-    if (destination.m_windowType != 0)
-    {
+    }
+    if (destination.m_windowType != 0) {
       const ObjectKey shownKey = KeyOf(destination.m_shown);
-      auto* page =
-        static_cast<CustomDialogBox*>(sectorWindow->OpenWindowOfType(&shownKey, destination.m_windowType));
+      auto* page = static_cast<CustomDialogBox*>(sectorWindow->OpenWindowOfType(&shownKey, destination.m_windowType));
       page->ShowObjectPage(object);
     }
   }

@@ -1,6 +1,6 @@
 # Load "RebelsFastStart" (Alliance), open the in-game Saved Games screen and save into the first empty row.
 # Creates/overwrites work/game/SaveGame/SAVEGAME.005. Exercises the whole save path (every object's Write/Checksum).
-# Runtime ~80 s. See docs/ui_navigation.md (Saved Games / options screen).
+# Runtime ~80 s.
 12 key Escape
 16 key Escape
 20 key Escape

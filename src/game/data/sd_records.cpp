@@ -50,7 +50,10 @@ int BasicSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- TroopSD ------------------------------------------------------------------------------------
 
-TroopSD::TroopSD() : m_bombardmentDefense(0), m_attackStrength(0), m_defenseStrength(0)
+TroopSD::TroopSD()
+    : m_bombardmentDefense(0)
+    , m_attackStrength(0)
+    , m_defenseStrength(0)
 {
 }
 
@@ -100,7 +103,13 @@ int TroopSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- SystemSD -----------------------------------------------------------------------------------
 
-SystemSD::SystemSD() : m_sectorId(0), m_pictureId(0), m_field48(0), m_xPosition(0), m_yPosition(0), m_field50(0)
+SystemSD::SystemSD()
+    : m_sectorId(0)
+    , m_pictureId(0)
+    , m_field48(0)
+    , m_xPosition(0)
+    , m_yPosition(0)
+    , m_field50(0)
 {
 }
 
@@ -162,7 +171,8 @@ int SystemSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- SpecialForceSD -----------------------------------------------------------------------------
 
-SpecialForceSD::SpecialForceSD() : m_missionId(0)
+SpecialForceSD::SpecialForceSD()
+    : m_missionId(0)
 {
 }
 
@@ -204,7 +214,11 @@ int SpecialForceSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- SectorSD -----------------------------------------------------------------------------------
 
-SectorSD::SectorSD() : m_group(0), m_galaxySize(0), m_xPosition(0), m_yPosition(0)
+SectorSD::SectorSD()
+    : m_group(0)
+    , m_galaxySize(0)
+    , m_xPosition(0)
+    , m_yPosition(0)
 {
 }
 
@@ -258,7 +272,8 @@ int SectorSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- ProductionFacilitySD -----------------------------------------------------------------------
 
-ProductionFacilitySD::ProductionFacilitySD() : m_processingRate(0)
+ProductionFacilitySD::ProductionFacilitySD()
+    : m_processingRate(0)
 {
 }
 
@@ -301,28 +316,28 @@ int ProductionFacilitySD::ParseFields(istream* in, int* endOfLine)
 // ---- MissionSD ----------------------------------------------------------------------------------
 
 MissionSD::MissionSD()
-: m_isAlliance(0),
-  m_isEmpire(0),
-  m_specialForceEligibility(0),
-  m_targetFlags(0),
-  m_timerMinDays(0),
-  m_timerSpreadDays(0),
-  m_repeats(0),
-  m_hidden(0),
-  m_detectionPhases(0),
-  m_canResign(0),
-  m_field68(0),
-  m_containerLossEnds(0),
-  m_field70(0),
-  m_needsPopulatedContainer(0),
-  m_targetLossEnds(0),
-  m_ownSideTarget(0),
-  m_otherSideTarget(0),
-  m_opponentTarget(0),
-  m_revoltingTarget(0),
-  m_calmTarget(0),
-  m_prisonerTarget(0),
-  m_freeTarget(0)
+    : m_isAlliance(0)
+    , m_isEmpire(0)
+    , m_specialForceEligibility(0)
+    , m_targetFlags(0)
+    , m_timerMinDays(0)
+    , m_timerSpreadDays(0)
+    , m_repeats(0)
+    , m_hidden(0)
+    , m_detectionPhases(0)
+    , m_canResign(0)
+    , m_field68(0)
+    , m_containerLossEnds(0)
+    , m_field70(0)
+    , m_needsPopulatedContainer(0)
+    , m_targetLossEnds(0)
+    , m_ownSideTarget(0)
+    , m_otherSideTarget(0)
+    , m_opponentTarget(0)
+    , m_revoltingTarget(0)
+    , m_calmTarget(0)
+    , m_prisonerTarget(0)
+    , m_freeTarget(0)
 {
 }
 
@@ -485,7 +500,8 @@ int MinorCharacterSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- ManufacturingFacilitySD --------------------------------------------------------------------
 
-ManufacturingFacilitySD::ManufacturingFacilitySD() : m_processingRate(0)
+ManufacturingFacilitySD::ManufacturingFacilitySD()
+    : m_processingRate(0)
 {
 }
 
@@ -564,7 +580,11 @@ int MajorCharacterSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- FighterSD ----------------------------------------------------------------------------------
 
-FighterSD::FighterSD() : m_torpedoes(0), m_torpedoRange(0), m_squadronSize(0), m_bombardmentDefense(0)
+FighterSD::FighterSD()
+    : m_torpedoes(0)
+    , m_torpedoRange(0)
+    , m_squadronSize(0)
+    , m_bombardmentDefense(0)
 {
 }
 
@@ -618,7 +638,9 @@ int FighterSD::ParseFields(istream* in, int* endOfLine)
 
 // ---- DefenseFacilitySD --------------------------------------------------------------------------
 
-DefenseFacilitySD::DefenseFacilitySD() : m_attackStrength(0), m_shieldStrength(0)
+DefenseFacilitySD::DefenseFacilitySD()
+    : m_attackStrength(0)
+    , m_shieldStrength(0)
 {
 }
 
@@ -665,18 +687,18 @@ int DefenseFacilitySD::ParseFields(istream* in, int* endOfLine)
 // ---- CapitalShipSD ------------------------------------------------------------------------------
 
 CapitalShipSD::CapitalShipSD()
-: m_hull(0),
-  m_tractorBeamPower(0),
-  m_tractorBeamRange(0),
-  m_gravityWellProjector(0),
-  m_interdictionStrength(0),
-  m_bombardmentModifier(0),
-  m_damageControl(0),
-  m_weaponRechargeRate(0),
-  m_shieldRechargeRate(0),
-  m_fighterCapacity(0),
-  m_troopCapacity(0),
-  m_field51(0)
+    : m_hull(0)
+    , m_tractorBeamPower(0)
+    , m_tractorBeamRange(0)
+    , m_gravityWellProjector(0)
+    , m_interdictionStrength(0)
+    , m_bombardmentModifier(0)
+    , m_damageControl(0)
+    , m_weaponRechargeRate(0)
+    , m_shieldRechargeRate(0)
+    , m_fighterCapacity(0)
+    , m_troopCapacity(0)
+    , m_field51(0)
 {
 }
 

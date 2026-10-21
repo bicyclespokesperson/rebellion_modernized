@@ -45,8 +45,7 @@ int pickReserveUnits(int tableType, int* count, ObjectRefList* list)
 {
   TableEntry* record = FindTableRecord(tableType, GameRandomRange(kReserveRollLow, kReserveRollHigh));
   int result = 0;
-  if (record != nullptr)
-  {
+  if (record != nullptr) {
     *count = TableRecordFirstValue(record);
     *list = static_cast<SeedFamilyTableEntry*>(record)->m_items;
     result = list->m_ok;
@@ -66,19 +65,13 @@ int scaleReserveBudget(int value, int galaxySize, int* out, int percentSize1, in
 {
   *out = 0;
   const int valid = galaxySize >= 1 && galaxySize <= 3;
-  if (valid)
-  {
+  if (valid) {
     int percent;
-    if (galaxySize == 1)
-    {
+    if (galaxySize == 1) {
       percent = percentSize1;
-    }
-    else if (galaxySize == 2)
-    {
+    } else if (galaxySize == 2) {
       percent = percentSize2;
-    }
-    else
-    {
+    } else {
       percent = percentSize3;
     }
     *out = ScalePercent(value, percent);
@@ -89,10 +82,12 @@ int scaleReserveBudget(int value, int galaxySize, int* out, int percentSize1, in
 // The sides a pair of side fields (1, 2 or 3 = both) is resolved to: "both" takes the side the other one is not.
 void resolveSides(uint32_t* from, uint32_t* to)
 {
-  if (*from == kBothSides)
+  if (*from == kBothSides) {
     *from = (*to == *from) ? kBothSides : 2 - (*to != 1);
-  if (*to == kBothSides)
+  }
+  if (*to == kBothSides) {
     *to = (*from == *to) ? kBothSides : 2 - (*from != 1);
+  }
 }
 
 } // namespace
@@ -246,33 +241,20 @@ int PickEmpireReserveUnits(int* count, ObjectRefList* list)
 int GetStartingCharacterCount(int side, int galaxySize, int* count)
 {
   *count = 0;
-  if (side == 1)
-  {
-    if (galaxySize == 1)
-    {
+  if (side == 1) {
+    if (galaxySize == 1) {
       *count = g_sdprtb1400Side1;
-    }
-    else if (galaxySize == 2)
-    {
+    } else if (galaxySize == 2) {
       *count = g_sdprtb1401Side1;
-    }
-    else if (galaxySize == 3)
-    {
+    } else if (galaxySize == 3) {
       *count = g_sdprtb1402Side1;
     }
-  }
-  else if (side == 2)
-  {
-    if (galaxySize == 1)
-    {
+  } else if (side == 2) {
+    if (galaxySize == 1) {
       *count = g_sdprtb1400Side2;
-    }
-    else if (galaxySize == 2)
-    {
+    } else if (galaxySize == 2) {
       *count = g_sdprtb1401Side2;
-    }
-    else if (galaxySize == 3)
-    {
+    } else if (galaxySize == 3) {
       *count = g_sdprtb1402Side2;
     }
   }
@@ -296,11 +278,11 @@ int TravelDaysAtSpeed(const MapPosition* from, const MapPosition* to, int speed)
 {
   int days = 0;
   const int distance = MapDistance(from, to);
-  if (distance != 0)
-  {
+  if (distance != 0) {
     days = ScalePercent(IntDivide(distance, g_gnprtb1400), speed);
-    if (days == 0)
+    if (days == 0) {
       days = 1;
+    }
   }
   return days;
 }
@@ -311,30 +293,26 @@ int BuildCaptureRule(int side, int inner, LoyaltyRule* rule)
 {
   resetRule(rule);
   int built = isSideNumber(side);
-  if (built)
+  if (built) {
     built = side != kBothSides;
-  if (!built)
-    return built;
-  rule->m_controlSide = 0;
-  if (inner != 0)
-  {
-    rule->SetFamilyRange(kCoreFamiliesFirst, kCoreFamiliesEnd);
   }
-  else
-  {
+  if (!built) {
+    return built;
+  }
+  rule->m_controlSide = 0;
+  if (inner != 0) {
+    rule->SetFamilyRange(kCoreFamiliesFirst, kCoreFamiliesEnd);
+  } else {
     rule->SetFamilyRange(kCoreFamiliesEnd, kOuterFamiliesEnd);
   }
   rule->m_unitSide = side;
   rule->m_direction = side;
   int threshold;
   int amount;
-  if (inner != 0)
-  {
+  if (inner != 0) {
     threshold = side == 1 ? g_sdprtb140BSide1 : g_sdprtb140BSide2;
     amount = side == 1 ? g_sdprtb140ASide1 : g_sdprtb140ASide2;
-  }
-  else
-  {
+  } else {
     threshold = side == 1 ? g_sdprtb1409Side1 : g_sdprtb1409Side2;
     amount = side == 1 ? g_sdprtb1408Side1 : g_sdprtb1408Side2;
   }
@@ -347,17 +325,16 @@ int BuildCaptureRuleAlt(int side, int inner, LoyaltyRule* rule)
 {
   resetRule(rule);
   int built = isSideNumber(side);
-  if (built)
+  if (built) {
     built = side != kBothSides;
-  if (!built)
-    return built;
-  rule->m_controlSide = 0;
-  if (inner != 0)
-  {
-    rule->SetFamilyRange(kCoreFamiliesFirst, kCoreFamiliesEnd);
   }
-  else
-  {
+  if (!built) {
+    return built;
+  }
+  rule->m_controlSide = 0;
+  if (inner != 0) {
+    rule->SetFamilyRange(kCoreFamiliesFirst, kCoreFamiliesEnd);
+  } else {
     rule->SetFamilyRange(kCoreFamiliesEnd, kOuterFamiliesEnd);
   }
   rule->m_unitSide = side;
@@ -367,19 +344,17 @@ int BuildCaptureRuleAlt(int side, int inner, LoyaltyRule* rule)
   return built;
 }
 
-int BuildStrengthImbalanceRule(int totalSide1,
-                               int totalSide2,
-                               int side,
-                               int valueSide1,
-                               int valueSide2,
+int BuildStrengthImbalanceRule(int totalSide1, int totalSide2, int side, int valueSide1, int valueSide2,
                                LoyaltyRule* rule)
 {
   resetRule(rule);
   int built = isSideNumber(side);
-  if (built)
+  if (built) {
     built = side != kBothSides;
-  if (!built)
+  }
+  if (!built) {
     return built;
+  }
   rule->m_controlSide = 0;
   rule->SetFamilyRange(kSystemFamiliesFirst, kSystemFamiliesEnd);
 
@@ -392,17 +367,14 @@ int BuildStrengthImbalanceRule(int totalSide1,
   int ratioSmaller;
   int largerValue;
   int smallerValue;
-  if (side1Larger == 1)
-  {
+  if (side1Larger == 1) {
     baseLarger = g_sdprtb1412Side1;
     baseSmaller = g_sdprtb1414Side2;
     ratioLarger = g_sdprtb1413Side1;
     ratioSmaller = g_sdprtb1415Side2;
     largerValue = valueSide1;
     smallerValue = valueSide2;
-  }
-  else
-  {
+  } else {
     baseLarger = g_sdprtb1412Side2;
     baseSmaller = g_sdprtb1414Side1;
     ratioLarger = g_sdprtb1413Side2;
@@ -413,8 +385,7 @@ int BuildStrengthImbalanceRule(int totalSide1,
 
   int largerShare = 0;
   int smallerShare = 0;
-  if (larger != 0)
-  {
+  if (larger != 0) {
     const int difference = larger - smaller;
     largerShare = ScaleRatio(ratioLarger, difference, larger) + baseLarger;
     smallerShare = ratioSmaller + baseSmaller - ScaleRatio(ratioSmaller, difference, larger);
@@ -424,17 +395,13 @@ int BuildStrengthImbalanceRule(int totalSide1,
 
   int direction = side;
   int balance;
-  if (side1Larger == direction)
-  {
+  if (side1Larger == direction) {
     balance = 2 * scaledSmaller - scaledLarger;
-  }
-  else
-  {
+  } else {
     balance = 2 * scaledLarger - scaledSmaller;
   }
   int amount = balance / g_gnprtb1420;
-  if (amount < 0)
-  {
+  if (amount < 0) {
     amount = -amount;
     direction = otherSide(direction);
   }
@@ -451,8 +418,7 @@ int BuildStrengthImbalanceRule(int totalSide1,
 int BuildControlChangeRule(SideBits* from, SideBits* to, LoyaltyRule* rule)
 {
   resetRule(rule);
-  if (((from->m_value ^ to->m_value) & kControllerMask) != 0)
-  {
+  if (((from->m_value ^ to->m_value) & kControllerMask) != 0) {
     uint32_t fromSide = from->m_value & kControllerMask;
     uint32_t toSide = to->m_value & kControllerMask;
     resolveSides(&fromSide, &toSide);
@@ -464,30 +430,24 @@ int BuildControlChangeRule(SideBits* from, SideBits* to, LoyaltyRule* rule)
     int threshold;
     const uint32_t fromBits = from->m_value;
     const uint32_t toBits = to->m_value;
-    if ((fromBits & kGarrisonMask) == 0)
-    {
-      if ((toBits & kGarrisonMask) == 0)
-      {
+    if ((fromBits & kGarrisonMask) == 0) {
+      if ((toBits & kGarrisonMask) == 0) {
         threshold = toSide == 1 ? g_sdprtb1421Side1 : g_sdprtb1421Side2;
         const uint32_t fromController = fromBits & kControllerMask;
-        if (fromController == 1 || (toBits & kControllerMask) == 1)
+        if (fromController == 1 || (toBits & kControllerMask) == 1) {
           amount += g_sdprtb1420Side1;
-        if (fromController == 2 || (toBits & kControllerMask) == 2)
+        }
+        if (fromController == 2 || (toBits & kControllerMask) == 2) {
           amount += g_sdprtb1420Side2;
-      }
-      else
-      {
+        }
+      } else {
         threshold = toSide == 1 ? g_sdprtb1441Side1 : g_sdprtb1441Side2;
         amount = toSide == 1 ? g_sdprtb1440Side1 : g_sdprtb1440Side2;
       }
-    }
-    else if ((toBits & kGarrisonMask) == 0)
-    {
+    } else if ((toBits & kGarrisonMask) == 0) {
       threshold = toSide == 1 ? g_sdprtb1443Side1 : g_sdprtb1443Side2;
       amount = toSide == 1 ? g_sdprtb1442Side1 : g_sdprtb1442Side2;
-    }
-    else
-    {
+    } else {
       threshold = toSide == 1 ? g_sdprtb1445Side1 : g_sdprtb1445Side2;
       amount = toSide == 1 ? g_sdprtb1444Side1 : g_sdprtb1444Side2;
     }
@@ -500,8 +460,7 @@ int BuildControlChangeRule(SideBits* from, SideBits* to, LoyaltyRule* rule)
 int BuildControlChangeRuleSimple(SideBits* from, SideBits* to, LoyaltyRule* rule)
 {
   resetRule(rule);
-  if (((from->m_value ^ to->m_value) & kControllerMask) != 0)
-  {
+  if (((from->m_value ^ to->m_value) & kControllerMask) != 0) {
     uint32_t fromSide = from->m_value & kControllerMask;
     uint32_t toSide = to->m_value & kControllerMask;
     resolveSides(&fromSide, &toSide);
@@ -512,10 +471,12 @@ int BuildControlChangeRuleSimple(SideBits* from, SideBits* to, LoyaltyRule* rule
     int amount = g_percentMin;
     const int threshold = toSide == 1 ? g_sdprtb1423Side1 : g_sdprtb1423Side2;
     const uint32_t fromController = from->m_value & kControllerMask;
-    if (fromController == 1 || (to->m_value & kControllerMask) == 1)
+    if (fromController == 1 || (to->m_value & kControllerMask) == 1) {
       amount += g_sdprtb1422Side1;
-    if (fromController == 2 || (to->m_value & kControllerMask) == 2)
+    }
+    if (fromController == 2 || (to->m_value & kControllerMask) == 2) {
       amount += g_sdprtb1422Side2;
+    }
     rule->m_threshold = threshold;
     rule->m_amount = amount;
   }

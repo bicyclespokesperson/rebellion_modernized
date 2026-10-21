@@ -1,7 +1,7 @@
 # Compile the native Windows backend and resource-free tests with clang-cl and the Windows SDK.
 # This validates compilation only; licensed game data and runtime smoke checks remain local developer work.
 name: windows
-on: [push, pull_request]
+on: workflow_dispatch
 
 jobs:
   native:

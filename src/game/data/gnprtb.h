@@ -7,7 +7,7 @@
 // ones); the globals are named after them. Meanings inferred from the callers are noted where known.
 
 extern int g_gnprtbDifficulty; // 0x6b904c, index (0-7) of the difficulty column to read
-extern int g_gnprtbDefault; // 0x6b9050, GNPRTB 1
+extern int g_gnprtbDefault;    // 0x6b9050, GNPRTB 1
 
 extern int g_gnprtbA00; // 0x6b9088, Force potential threshold (HasForcePotentialA00)
 extern int g_gnprtbA01; // 0x6b9068

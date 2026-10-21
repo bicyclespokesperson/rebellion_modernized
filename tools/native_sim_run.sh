@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One headless simulation run of the native executable (the counterpart of tools/sim_run.sh).
+# One headless simulation run of the native executable (REB_SIM, src/port/sim_harness.cpp).
 #   tools/native_sim_run.sh [-x EXE] <loadfile> <ticks> <outdir> [every]
 # REB_DETERMINISTIC=1 (virtual clocks). Output: <outdir>/sim.sav, sim.sav.t<tick>, sim.sav.log, game.log. Extra environment: REB_SIM_ENV
 # (space separated VAR=VAL pairs without spaces, e.g. "ASAN_OPTIONS=detect_leaks=0"); REB_SIM_PREFIX: a command to run the executable under

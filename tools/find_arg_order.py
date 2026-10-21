@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Find argument lists in src/game whose evaluation order matters.
 
-The order in which the arguments of a call are evaluated is unspecified in C++. MSVC (and clang-cl, which builds the i686 binaries) evaluates
+The order in which the arguments of a call are evaluated is unspecified in C++. MSVC (and clang-cl, which builds the native Windows binaries) evaluates
 them right to left; clang for the Itanium ABI (the native Linux/macOS build) left to right. When two or more arguments contain calls (or
 increments/assignments) and any of them has a side effect, the two builds behave differently: random draws, stream reads, iterator cursors,
 id allocation, counters.
@@ -14,7 +14,7 @@ right-to-left order, then call) or reviewed and listed in tools/arg_order_allow.
 Runs in the rebellion-native container (clang.cindex) over a compile_commands.json of the game (tools/check_arg_order.sh does it end to end).
   python3 tools/find_arg_order.py build/native [--check] [--detail] [--changed-since REV]
     (default)   print every unclassified site with its calls
-    --check     one verdict line; exit status 1 when there are unclassified sites (used by tools/integrate.sh)
+    --check     one verdict line; exit status 1 when there are unclassified sites (used by tools/check_arg_order.sh)
     --all       also print the allowlisted and the read-only sites
 """
 from __future__ import annotations

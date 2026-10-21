@@ -23,11 +23,11 @@ inline bool inFamilies(const ObjectKey& key, uint32_t first, uint32_t last)
 inline GameObjNotifier* containingSystem(GameObjNotifier* start, ObjectKey* key)
 {
   GameObjNotifier* object = start;
-  while (object)
-  {
+  while (object) {
     object->GetKey(key);
-    if (inFamilies(*key, 0x90, 0x98))
+    if (inFamilies(*key, 0x90, 0x98)) {
       break;
+    }
     object = object->m_parent;
   }
   return object;

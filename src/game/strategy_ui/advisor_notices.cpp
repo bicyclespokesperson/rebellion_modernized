@@ -28,7 +28,9 @@ constexpr unsigned kRecordTypeResourceBase = 0x1000;
 
 // ---- UiNotice -------------------------------------------------------------------------------------------------
 
-UiNotice::UiNotice() : IdNode(), m_flags(0)
+UiNotice::UiNotice()
+    : IdNode()
+    , m_flags(0)
 {
   m_unk1c = 0;
   m_owner = 0;
@@ -43,7 +45,9 @@ UiNotice::UiNotice() : IdNode(), m_flags(0)
   m_flags.m_value |= kNoticeFlagUi;
 }
 
-UiNotice::UiNotice(int owner) : IdNode(), m_flags(0)
+UiNotice::UiNotice(int owner)
+    : IdNode()
+    , m_flags(0)
 {
   m_unk1c = 0;
   m_owner = owner;
@@ -84,13 +88,9 @@ const ObjectKey& UiNotice::MessageTarget() const
   return empty;
 }
 
-void UiNotice::AcceptFromMessageIndex()
-{
-}
+void UiNotice::AcceptFromMessageIndex() {}
 
-void UiNotice::DeclineFromMessageIndex()
-{
-}
+void UiNotice::DeclineFromMessageIndex() {}
 
 void UiNotice::Read(istream* in)
 {
@@ -131,18 +131,21 @@ int UiNotice::IsStale()
 
 void UiNotice::OnMessage(int message, intptr_t a, intptr_t b)
 {
-  if (message == kUiMessageForward)
+  if (message == kUiMessageForward) {
     UiSendNotificationToSide(m_owner, a);
+  }
 }
 
 // ---- UiTextNotice / UiKeyNotice --------------------------------------------------------------------------------
 
-UiTextNotice::UiTextNotice() : UiNotice()
+UiTextNotice::UiTextNotice()
+    : UiNotice()
 {
   m_target.m_value = 0;
 }
 
-UiTextNotice::UiTextNotice(int owner) : UiNotice(owner)
+UiTextNotice::UiTextNotice(int owner)
+    : UiNotice(owner)
 {
   m_target.m_value = 0;
 }
@@ -184,10 +187,12 @@ void UiTextNotice::DeclineFromMessageIndex()
 
 int ForwardPayloads(UiNotice* sink, const AiNoticeGroup* payloads)
 {
-  if (!payloads)
+  if (!payloads) {
     return 0;
-  for (const auto& node : payloads->Entries())
+  }
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(sink);
+  }
   return 1;
 }
 
@@ -201,11 +206,13 @@ int UiKeyNotice::DispatchPayloads(const AiNoticeGroup* payloads)
   return ForwardPayloads(this, payloads);
 }
 
-UiKeyNotice::UiKeyNotice() : UiNotice()
+UiKeyNotice::UiKeyNotice()
+    : UiNotice()
 {
 }
 
-UiKeyNotice::UiKeyNotice(int owner) : UiNotice(owner)
+UiKeyNotice::UiKeyNotice(int owner)
+    : UiNotice(owner)
 {
 }
 
@@ -231,7 +238,8 @@ void UiKeyNotice::Write(ostream* out)
 
 // ---- DroidScript ----------------------------------------------------------------------------------------------
 
-DroidScript::DroidScript() : IdNode()
+DroidScript::DroidScript()
+    : IdNode()
 {
   m_unk1c = 0;
   m_entryCount = 0;
@@ -241,8 +249,9 @@ DroidScript::DroidScript() : IdNode()
 
 DroidScript::~DroidScript()
 {
-  if (m_entries)
+  if (m_entries) {
     ::operator delete(m_entries);
+  }
 }
 
 void DroidScript::Read(istream* in)
@@ -252,8 +261,7 @@ void DroidScript::Read(istream* in)
   ReadValue32(in, &m_entryCount);
   ReadValue32(in, &m_cursor);
   m_entries = static_cast<DroidScriptEntry*>(::operator new(m_entryCount * sizeof(DroidScriptEntry)));
-  for (uint32_t i = 0; i < m_entryCount; ++i)
-  {
+  for (uint32_t i = 0; i < m_entryCount; ++i) {
     ReadValue16(in, &m_entries[i].m_id);
     ReadValue32(in, &m_entries[i].m_flags);
     ReadValue32(in, &m_entries[i].m_x);
@@ -267,8 +275,7 @@ void DroidScript::Write(ostream* out)
   WriteValue32(out, &m_unk1c);
   WriteValue32(out, &m_entryCount);
   WriteValue32(out, &m_cursor);
-  for (uint32_t i = 0; i < m_entryCount; ++i)
-  {
+  for (uint32_t i = 0; i < m_entryCount; ++i) {
     WriteValue16(out, &m_entries[i].m_id);
     WriteValue32(out, &m_entries[i].m_flags);
     WriteValue32(out, &m_entries[i].m_x);
@@ -278,8 +285,9 @@ void DroidScript::Write(ostream* out)
 
 DroidScriptEntry* DroidScript::NextEntry()
 {
-  if (m_unk1c != 0 && m_cursor < m_entryCount)
+  if (m_unk1c != 0 && m_cursor < m_entryCount) {
     return &m_entries[m_cursor++];
+  }
   m_cursor = 0;
   return nullptr;
 }
@@ -291,40 +299,40 @@ uint16_t AdvisorPickAdviceLine(uint32_t adviceId)
   const uint16_t* table = nullptr;
   uint16_t line = 0;
   HMODULE module = FindResourceModule(kAdviceResourceModule);
-  HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(adviceId & 0xffff), MAKEINTRESOURCEA(kRcdata));
+  HRSRC info = reb::compat::FindResourceA(module, MAKEINTRESOURCEA(adviceId & 0xffff), MAKEINTRESOURCEA(kRcdata));
   auto resource = reinterpret_cast<HGLOBAL>(static_cast<uintptr_t>(adviceId));
-  if (info && (resource = LoadResource(module, info)) != nullptr)
-    table = static_cast<const uint16_t*>(LockResource(resource));
-  if (!table)
+  if (info && (resource = reb::compat::LoadResource(module, info)) != nullptr) {
+    table = static_cast<const uint16_t*>(reb::compat::LockResource(resource));
+  }
+  if (!table) {
     return line;
+  }
   const uint16_t count = table[0];
-  if (count != 0)
-  {
-    if (count > 1)
-    {
+  if (count != 0) {
+    if (count > 1) {
       line = table[UiSessionRandom(count) + 1];
-      FreeResource(resource);
+      reb::compat::FreeResource(resource);
       return line;
     }
     line = table[1];
   }
-  FreeResource(resource);
+  reb::compat::FreeResource(resource);
   return line;
 }
 
-SoundRequest* AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId)
+void AdvisorPlayAdvice(uint32_t adviceId)
 {
   SoundRequest request(0, 0, 0, 0, 0, 0);
   request.m_kind = 1;
   request.m_soundId = adviceId & 0xffff;
   request.m_moduleIndex = kAdviceSoundModule;
   SoundManager::Play(&request);
-  return new (result) SoundRequest(request);
 }
 
 uint16_t AdvisorRecordTypeResource(GameObj* object)
 {
-  if (!object)
+  if (!object) {
     return 0;
+  }
   return static_cast<uint16_t>((object->GetRecordTypeBits() & kRecordTypeMask) + kRecordTypeResourceBase);
 }

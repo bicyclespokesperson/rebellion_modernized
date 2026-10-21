@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the native Linux x86-64 executable (build/native/rebellion) of this checkout in the rebellion-native container
-# (docker/Dockerfile.native; docs/native_linux.md). Stages, like tools/build_standalone.sh:
+# (docker/Dockerfile.native; docs/native.md). Stages:
 #   1. objects: the game, minwin_impl (SDL3, FreeType) and the POSIX port layer;
 #   2. extract versioned text assets from the local installation (no symbols or object layouts);
 #   3. link.

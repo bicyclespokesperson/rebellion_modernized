@@ -51,8 +51,7 @@ int countChildrenOfFleets(System* system, uint32_t side, uint32_t stateFilter, c
 {
   int total = 0;
   ChildIterator fleets(system, side, &family::kFleets, stateFilter);
-  for (fleets.Begin(); fleets.Current(); fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
     ChildIterator ships(fleets.Current(), side, range, stateFilter);
     total += ships.Count();
   }
@@ -69,12 +68,12 @@ uint32_t recordKeyOf(GameObjNotifier* object)
 template <uint32_t (CombatUnit::*Value)()>
 void keepBetter(GameObjNotifier** best, GameObjNotifier* candidate)
 {
-  if (*best)
-  {
+  if (*best) {
     const int current = static_cast<int>((static_cast<CombatUnit*>(*best)->*Value)());
     const int offered = static_cast<int>((static_cast<CombatUnit*>(candidate)->*Value)());
-    if (current >= offered)
+    if (current >= offered) {
       return;
+    }
   }
   *best = candidate;
 }
@@ -83,11 +82,11 @@ int findFleetWithFlag(System* system, uint32_t flag, uint32_t side, GameObjNotif
 {
   *out = nullptr;
   ChildIterator fleets(system, side, &family::kFleets, kStateAlways);
-  for (fleets.Begin(); fleets.Current() && !*out; fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current() && !*out; fleets.Advance()) {
     auto* fleet = static_cast<Fleet*>(fleets.Current());
-    if (!(fleet->m_stateFlags & kDestroyedStateFlag) && (fleet->m_fleetFlags & flag))
+    if (!(fleet->m_stateFlags & kDestroyedStateFlag) && (fleet->m_fleetFlags & flag)) {
       *out = fleet;
+    }
   }
   return 1;
 }
@@ -128,14 +127,23 @@ int System::CountEmpireRegimentsOfKey6()
 {
   int count = 0;
   ChildIterator regiments(this, kSideEmpire, &family::kTroopRegiments, kStateUsable);
-  for (regiments.Begin(); regiments.Current(); regiments.Advance())
+  for (regiments.Begin(); regiments.Current(); regiments.Advance()) {
     count += recordKeyOf(regiments.Current()) == kRegimentKeyCounted;
+  }
   return count;
 }
 
 TrackedStat* System::GetStat0()
 {
   return m_data ? &GetData()->m_stats[0] : nullptr;
+}
+TrackedStat* System::GetStat1()
+{
+  return m_data ? &GetData()->m_stats[1] : nullptr;
+}
+TrackedStat* System::GetStat2()
+{
+  return m_data ? &GetData()->m_stats[2] : nullptr;
 }
 TrackedStat* System::GetStat3()
 {
@@ -163,11 +171,11 @@ int System::FindCharacterByCommandKind(int kind, GameObjNotifier** out)
 {
   *out = nullptr;
   CharacterIterator characters(this, kStateExisting, ControlSide());
-  for (characters.Begin(); characters.Current() && !*out; characters.Advance())
-  {
+  for (characters.Begin(); characters.Current() && !*out; characters.Advance()) {
     auto* character = static_cast<Character*>(characters.Current());
-    if (character->m_commandKind == kind)
+    if (character->m_commandKind == kind) {
       *out = character;
+    }
   }
   return 1;
 }
@@ -176,8 +184,7 @@ int System::FindCharacterUnused(GameObjNotifier** out, int, int)
 {
   *out = nullptr;
   CharacterIterator characters(this, kStateExisting);
-  for (characters.Begin(); characters.Current(); characters.Advance())
-  {
+  for (characters.Begin(); characters.Current(); characters.Advance()) {
   }
   return 1;
 }
@@ -187,14 +194,15 @@ int System::FindBestShipOfCommandKind2(uint32_t side, GameObjNotifier** out)
   int found = 1;
   *out = nullptr;
   ChildIterator fleets(this, side, &family::kFleets, kStateUsable);
-  for (fleets.Begin(); fleets.Current(); fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
     GameObjNotifier* ship = nullptr;
     found = static_cast<Fleet*>(fleets.Current())->FindShipByNumber(2, &ship);
-    if (found && ship)
+    if (found && ship) {
       keepBetter<&CombatUnit::GetGridTotal>(out, ship);
-    if (!found)
+    }
+    if (!found) {
       break;
+    }
   }
   return found;
 }
@@ -203,12 +211,12 @@ int System::FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out)
 {
   int found = FindCharacterByCommandKind(1, out);
   ChildIterator fleets(this, side, &family::kFleets, kStateUsable);
-  for (fleets.Begin(); found && fleets.Current(); fleets.Advance())
-  {
+  for (fleets.Begin(); found && fleets.Current(); fleets.Advance()) {
     GameObjNotifier* ship = nullptr;
     found = static_cast<Fleet*>(fleets.Current())->FindShipByNumber(1, &ship);
-    if (found && ship)
+    if (found && ship) {
       keepBetter<&CombatUnit::GetField70>(out, ship);
+    }
   }
   return found;
 }
@@ -220,14 +228,11 @@ uint32_t System::GetRecordField44()
 
 uint32_t* System::GetRecordField4c(uint32_t* out)
 {
-  if (m_record)
-  {
+  if (m_record) {
     const SystemSD* record = static_cast<SystemSD*>(m_record);
-    *out = static_cast<uint32_t>(static_cast<uint16_t>(record->m_xPosition)) |
-           (static_cast<uint32_t>(static_cast<uint16_t>(record->m_yPosition)) << 16);
-  }
-  else
-  {
+    *out = static_cast<uint32_t>(static_cast<uint16_t>(record->m_xPosition))
+           | (static_cast<uint32_t>(static_cast<uint16_t>(record->m_yPosition)) << 16);
+  } else {
     *out = 0;
   }
   return out;
@@ -246,9 +251,11 @@ int System::GetRawMaterial()
 GameObjNotifier* System::FindManufacturingManagerByKind(int value)
 {
   ChildIterator managers(this, &family::kManufacturingManagers, kStateAlways);
-  for (managers.Begin(); managers.Current(); managers.Advance())
-    if (static_cast<ManuMgr*>(managers.Current())->GetFacilityKind() == value)
+  for (managers.Begin(); managers.Current(); managers.Advance()) {
+    if (static_cast<ManuMgr*>(managers.Current())->GetFacilityKind() == value) {
       break;
+    }
+  }
   return managers.Current();
 }
 
@@ -273,21 +280,22 @@ int System::GetBlockadingSide(uint32_t* out)
 {
   *out = kSideNone;
   int found = (m_flags & system_flag::kBlockade) ? 1 : 0;
-  if (found)
-  {
+  if (found) {
     ChildIterator fleets(this, &family::kFleets, kStateUsable);
     fleets.Begin();
     found = fleets.Current() != nullptr;
-    if (found)
+    if (found) {
       *out = fleets.Current()->ControlSide();
+    }
   }
   return found;
 }
 
 int System::GetMoreLoyalSide()
 {
-  if (GetLoyaltyFor(kSideAlliance) > GetLoyaltyFor(kSideEmpire))
+  if (GetLoyaltyFor(kSideAlliance) > GetLoyaltyFor(kSideEmpire)) {
     return 1;
+  }
   return GetLoyaltyFor(kSideEmpire) <= GetLoyaltyFor(kSideAlliance) ? 3 : 2;
 }
 
@@ -296,8 +304,9 @@ int System::IsBlockaderMoreLoyal(uint32_t* out)
   uint32_t blockader;
   *out = 0;
   const int found = GetBlockadingSide(&blockader);
-  if (found)
+  if (found) {
     *out = static_cast<uint32_t>(GetMoreLoyalSide()) == blockader;
+  }
   return found;
 }
 
@@ -317,14 +326,17 @@ int System::GetDataWord68(int side)
 int System::SumWords48And54(int side)
 {
   int total = 0;
-  if (!isSideOneOrTwo(side))
+  if (!isSideOneOrTwo(side)) {
     return total;
+  }
   const int owner = GetDataWord60();
-  if (!isSideOneOrTwo(owner))
+  if (!isSideOneOrTwo(owner)) {
     return total;
+  }
   total = GetDataWord48(side) + GetDataWord54(side);
-  if (owner != side)
+  if (owner != side) {
     total = GetDataWord54(kSideNone) + total + GetDataWord48(kSideNone);
+  }
   return total;
 }
 

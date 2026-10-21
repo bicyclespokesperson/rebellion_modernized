@@ -6,7 +6,7 @@
 // Entry of GNPRTB.DAT: eight general game parameters.
 class GeneralParamTableEntry : public TableEntry
 {
-public:
+  public:
   static constexpr int kValueCount = 8;
 
   GeneralParamTableEntry();
@@ -29,7 +29,7 @@ public:
 // Entry of SDPRTB.DAT: eight (first, second) parameter pairs.
 class SideParamTableEntry : public TableEntry
 {
-public:
+  public:
   static constexpr int kPairCount = 8;
   static constexpr int kValueCount = kPairCount * 2;
 

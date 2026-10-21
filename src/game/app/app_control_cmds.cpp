@@ -11,25 +11,13 @@
 #include "multiplayer/multiplayer_window.h"
 #include "ui/cool_window.h"
 
-extern const int g_rectA[4]; // 0x658b08 {left, top, right, bottom}
-extern int g_rectAWidth; // 0x6b14c4
-extern const int g_rectB[4]; // 0x658b90
-extern int g_rectBWidth; // 0x6b14c8
 
 namespace
 {
 
 constexpr int kSlotCount = 6;
-constexpr int kRectLeft = 0;
-constexpr int kRectRight = 2;
-constexpr int kRectMargin = 5;
 constexpr int kActionSetLocalPlayer = 1;
 constexpr int kActionSetPeerId = 2;
-
-int rectWidth(const int (&rect)[4])
-{
-  return rect[kRectRight] - rect[kRectLeft] - kRectMargin;
-}
 
 } // namespace
 
@@ -38,8 +26,9 @@ int rectWidth(const int (&rect)[4])
 MpSlotTableMsg::MpSlotTableMsg()
 {
   m_unk20 = 0;
-  for (int& value : m_values)
+  for (int& value : m_values) {
     value = 0;
+  }
 }
 
 MpSlotTableMsg::~MpSlotTableMsg() = default;
@@ -48,16 +37,15 @@ int MpSlotTableMsg::Read(istream* in)
 {
   int result = MessageBase::Read(in);
   int values[kSlotCount]{};
-  for (int& value : values)
+  for (int& value : values) {
     StreamRead32(in, &value);
-  const ios* state = iostream_access::IosOf(in);
-  if ((state->m_state & iostream_flags::kFail) == 0)
-  {
-    for (int i = 0; i < kSlotCount; ++i)
-      m_values[i] = values[i];
   }
-  else
-  {
+  const ios* state = iostream_access::IosOf(in);
+  if ((state->m_state & iostream_flags::kFail) == 0) {
+    for (int i = 0; i < kSlotCount; ++i) {
+      m_values[i] = values[i];
+    }
+  } else {
     result = 0;
   }
   return result;
@@ -66,8 +54,9 @@ int MpSlotTableMsg::Read(istream* in)
 int MpSlotTableMsg::Write(ostream* out)
 {
   int result = MessageBase::Write(out);
-  for (const int& value : m_values)
+  for (const int& value : m_values) {
     StreamWrite32(out, &value);
+  }
   return result;
 }
 
@@ -78,8 +67,9 @@ int MpSlotTableMsg::GetKind()
 
 int MpSlotTableMsg::Apply()
 {
-  for (int slot = 1; slot <= kSlotCount; ++slot)
+  for (int slot = 1; slot <= kSlotCount; ++slot) {
     SetSlotValue(slot, m_values[slot - 1]);
+  }
   return 0;
 }
 
@@ -88,19 +78,14 @@ MessageBase* CreateMpSlotTableMsg()
   return NewOrNull<MpSlotTableMsg>();
 }
 
-void ComputeRectAWidth()
-{
-  g_rectAWidth = rectWidth(g_rectA);
-}
-
 // ---- MpLobbySettingsMsg (kind 0x10) --------------------------------------------------------------------------
 
 MpLobbySettingsMsg::MpLobbySettingsMsg(int setting130, int setting120, int setting124, int setting128, int startGame)
-: m_setting130(setting130),
-  m_setting120(setting120),
-  m_setting124(setting124),
-  m_setting128(setting128),
-  m_startGame(startGame)
+    : m_setting130(setting130)
+    , m_setting120(setting120)
+    , m_setting124(setting124)
+    , m_setting128(setting128)
+    , m_startGame(startGame)
 {
 }
 
@@ -181,14 +166,12 @@ int MpFlagsMsg::Apply()
   return 0;
 }
 
-void ComputeRectBWidth()
-{
-  g_rectBWidth = rectWidth(g_rectB);
-}
-
 // ---- MpPlayerInfoMsg (kind 0x12) -----------------------------------------------------------------------------
 
-MpPlayerInfoMsg::MpPlayerInfoMsg() : m_action(0), m_playerId(0), m_extra(0)
+MpPlayerInfoMsg::MpPlayerInfoMsg()
+    : m_action(0)
+    , m_playerId(0)
+    , m_extra(0)
 {
 }
 
@@ -221,14 +204,12 @@ int MpPlayerInfoMsg::GetKind()
 
 int MpPlayerInfoMsg::Apply()
 {
-  if (m_action == kActionSetLocalPlayer)
-  {
+  if (m_action == kActionSetLocalPlayer) {
     AppSetAutosaveTick(m_extra);
     AppRequestSave(m_playerId, std::string(m_playerName));
     return 1;
   }
-  if (m_action == kActionSetPeerId)
-  {
+  if (m_action == kActionSetPeerId) {
     AppRequestLoad(m_playerId);
     return 1;
   }
@@ -248,15 +229,11 @@ HPALETTE g_displayPalette{};
 HPALETTE g_palette{};
 HPALETTE g_savedPalette{};
 HWND g_tooltipWindow{};
-std::map<uint32_t, CoolWindow*> g_windowRegistry{};
+std::map<uintptr_t, CoolWindow*> g_windowRegistry{};
 std::list<std::unique_ptr<PopupEntry>> g_popupStack{};
 const RECT g_rectSessionList = {124, 277, 473, 352};
 const char* g_tooltipClassName = nullptr;
-const int g_rectA[4] = {144, 125, 500, 222};
-const int g_rectB[4] = {144, 125, 500, 222};
 int g_isNetworkGame{};
-int g_rectAWidth{};
-int g_rectBWidth{};
 uint32_t g_appDialogMessage{};
 uint32_t g_lobbyFlags{};
 uint32_t g_lobbySlotPollTime{};

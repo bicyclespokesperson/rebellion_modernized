@@ -8,4 +8,5 @@
 
 // The manager's key at +0x7c (copies it into *out).
 // The data record of a key (via the object-type database).
-// Fetches the side object that controls `manager` into *out (null for neutral). Returns 0 only if that object is missing.
+// Fetches the side object that controls `manager` into *out (null for neutral). Returns 0 only if that object is
+// missing.

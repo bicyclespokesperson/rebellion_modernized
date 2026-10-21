@@ -1,9 +1,9 @@
 // minwin: the fixed-width scalar types and the keyword macros every other minwin header builds on.
 //
-// minwin declares the subset of Win32 / COM / DirectX / WinMM / VfW that the reconstructed game uses (inventory:
-// tools/minwin_inventory.txt). Where the target is Windows the types are spelled the way the Windows SDK spells them
-// (`long`-based DWORD/LONG), so that mangled C++ names, overload resolution and generated code are the same as with the real
-// headers; everywhere else they are explicit fixed widths, so that ILP32 and LP64 targets agree on every struct layout.
+// minwin declares the subset of Win32 / COM / DirectX / WinMM / VfW that the reconstructed game uses. Where the target is Windows the types are spelled the way the Windows SDK spells them
+// (`long`-based DWORD/LONG), so that mangled C++ names, overload resolution and generated code are the same as with the
+// real headers; everywhere else they are explicit fixed widths, so that ILP32 and LP64 targets agree on every struct
+// layout.
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
@@ -25,13 +25,7 @@
 #define STDMETHODCALLTYPE REB_STDCALL
 #define STDAPICALLTYPE REB_STDCALL
 
-// Functions the game imports are always called through the import address table on Windows. The native implementation of
-// minwin (compiled with MINWIN_IMPLEMENTATION) defines them instead.
-#if defined(MINWIN_IMPLEMENTATION)
-#define MINWIN_IMPORT
-#else
-#define MINWIN_IMPORT REB_DLLIMPORT
-#endif
+// Compatibility functions use C++ linkage in reb::compat; native OS calls live in the platform layer.
 
 // Legacy qualifiers that old headers decorate prototypes with; they mean nothing on a flat 32/64-bit address space.
 #define FAR

@@ -1,12 +1,10 @@
 // minwin: COMCTL32 -- the tooltip control (InitCommonControls and the TTM_* messages).
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/base.h"
 #include "port/minwin/user32.h"
 
-struct tagTOOLINFOA
-{
+struct tagTOOLINFOA {
   UINT cbSize;
   UINT uFlags;
   HWND hwnd;
@@ -19,8 +17,9 @@ struct tagTOOLINFOA
 };
 using TTTOOLINFOA = struct tagTOOLINFOA;
 
-extern "C" {
-MINWIN_IMPORT void REB_STDCALL InitCommonControls(void);
+namespace reb::compat
+{
+void REB_STDCALL InitCommonControls(void);
 }
 
 #define TTS_ALWAYSTIP 1

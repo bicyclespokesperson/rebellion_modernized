@@ -1,5 +1,5 @@
 # New Standard game as the Galactic Empire, then let game time run ~60 s at Fast speed.
-# See docs/ui_navigation.md. Runtime ~300 s (the agent-droid introduction cannot be skipped and takes
+# Runtime ~300 s (the agent-droid introduction cannot be skipped and takes
 # ~190 s after the shuttle movie; the day counter / clock controls are disabled until it ends).
 #
 # Skip the three intro movies, main menu (cockpit) is up at ~26 s.

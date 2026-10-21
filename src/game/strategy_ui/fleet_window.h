@@ -20,48 +20,41 @@ class GalaxyWindow;
 class GameObjNotifier;
 
 // Bits of FleetWindow::m_uiFlags.
-enum FleetWindowFlags : uint32_t
-{
+enum FleetWindowFlags : uint32_t {
   kFleetShipListActive = 0x01, // the ship list (not the fleet list) is the one the user works in
-  kFleetOwnSelected = 0x04, // the selected fleets belong to the player's side
-  kFleetShipSelected = 0x08, // the selection is one ship (shown with its own picture)
+  kFleetOwnSelected = 0x04,    // the selected fleets belong to the player's side
+  kFleetShipSelected = 0x08,   // the selection is one ship (shown with its own picture)
   kFleetOwnTabsShown = 0x10,
   kFleetOtherTabsShown = 0x20,
   kFleetOtherSelected = 0x40, // the selected fleets belong to the other side
   kFleetNeedsRefresh = 0x10000000,
 };
 
-// The window of a system's fleets (galaxy view child kind 0x10, id (system id << 6) | 4): the left list shows the fleets
-// at the system, each with the capital ships below it (a double click opens or closes a fleet); the right list shows what
-// the selected fleets carry - ships, fighter squadrons, troop regiments or personnel, chosen by the tabs.
+// The window of a system's fleets (galaxy view child kind 0x10, id (system id << 6) | 4): the left list shows the
+// fleets at the system, each with the capital ships below it (a double click opens or closes a fleet); the right list
+// shows what the selected fleets carry - ships, fighter squadrons, troop regiments or personnel, chosen by the tabs.
 class FleetWindow : public CustomDialogBox
 {
-public:
+  public:
   using RowIterator = std::list<std::unique_ptr<CoolListItem>>::const_iterator;
-  FleetWindow(HINSTANCE instance,
-              int x,
-              int y,
-              CoolWindow* parent,
-              uint32_t childId,
+  FleetWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId,
               GameObjNotifier* system); // 0x4a2630
-  ~FleetWindow() override; // 0x4a2820 (scalar deleting destructor 0x4a2800)
+  ~FleetWindow() override;              // 0x4a2820 (scalar deleting destructor 0x4a2800)
 
-  LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // slot 5, 0x4a29c0
-  int OnRightButtonUp(int x, int y, CoolWindow* sender) override; // slot 7, 0x4a2c40
-  void SaveState(ostream* out) override; // slot 9, 0x4a7300
-  void LoadState(istream* in) override; // slot 10, 0x4a7290
-  void OnCreate1() override; // slot 14, 0x4a4b10
-  void OnKeyDown(WPARAM key, LPARAM lParam) override; // slot 19, 0x4a7390
-  void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override; // slot 22, 0x4a2c80
+  LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;   // slot 5, 0x4a29c0
+  int OnRightButtonUp(int x, int y, CoolWindow* sender) override;            // slot 7, 0x4a2c40
+  void SaveState(ostream* out) override;                                     // slot 9, 0x4a7300
+  void LoadState(istream* in) override;                                      // slot 10, 0x4a7290
+  void OnCreate1() override;                                                 // slot 14, 0x4a4b10
+  void OnKeyDown(WPARAM key, LPARAM lParam) override;                        // slot 19, 0x4a7390
+  void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;    // slot 22, 0x4a2c80
   void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override; // slot 23, 0x4a2e70
-  void OnChildMoved(const ObjectKey* key,
-                    GameObjNotifier* object,
-                    const ObjectKey* otherKey,
-                    GameObjNotifier* otherObject) override; // slot 24, 0x4a2d60
+  void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+                    GameObjNotifier* otherObject) override;                     // slot 24, 0x4a2d60
   void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override; // slot 25, 0x4a2e70
-  ObjectKey GetKeyAt(int x, int y) override; // slot 26, 0x4a2f80
-  void ShowObjectPage(const ObjectKey* key) override; // slot 27, 0x4a73c0
-  ObjectKey GetDropKeyAt(int x, int y) override; // slot 28, 0x4a3130
+  ObjectKey GetKeyAt(int x, int y) override;                                    // slot 26, 0x4a2f80
+  void ShowObjectPage(const ObjectKey* key) override;                           // slot 27, 0x4a73c0
+  ObjectKey GetDropKeyAt(int x, int y) override;                                // slot 28, 0x4a3130
   int GetMinimizedIconBitmapId() override; // slot 29, 0x4a76e0: the bitmap of the side to show
   RECT* GetRenameRect(RECT* out) override; // slot 34, 0x4a71d0: over the selected row's text
   // Rebuilds the rows when something below the system changed (flag kFleetNeedsRefresh).
@@ -84,40 +77,45 @@ public:
   void UpdateTabs(); // 0x4a6980
   // Adds the rows of the page `m_page` for `object` (a fleet: for its ships; a ship: its units, or itself).
   void AddShipRows(GameObjNotifier* object); // 0x4a6be0
-  void AddShipRow(GameObjNotifier* object); // 0x4a6e70
+  void AddShipRow(GameObjNotifier* object);  // 0x4a6e70
+  // The system the window is about; closes the window when the system is gone.
+  GameObjNotifier* GetSystem();
 
-  uint32_t m_unknown140; // +0x140
-  ObjectKey m_systemKey; // +0x144
-  GalaxyWindow* m_galaxy; // +0x148
-  PersistentInt m_uiFlags; // +0x14c FleetWindowFlags
-  ChildWindowTree m_buttons; // +0x150 the title bar buttons: sector 0xca, close 0x65, side 100
-  CoolTabControl* m_ownTabs; // +0x158 child id 0x6a: the tabs when the selection is the player's
-  CoolTabControl* m_otherTabs; // +0x15c child id 0x6b
-  CoolDragList* m_fleetList; // +0x160 child id 0xc9
-  CoolDragList* m_shipList; // +0x164 child id 200
-  DibBitmap* m_infoBitmap; // +0x168 owned: the selection's picture and the totals
-  int m_controlSide; // +0x16c the side whose colours the window shows
-  int m_viewSide; // +0x170 1 for the Alliance, 2 for the Empire
-  int m_galaxySide; // +0x174 the player's side
-  DibBitmap* m_headerActive; // +0x178 the title bar while the window is in front
-  DibBitmap* m_headerInactive; // +0x17c
-  DibBitmap* m_infoBackdropOwn; // +0x180
+  uint32_t m_unknown140;          // +0x140
+  ObjectKey m_systemKey;          // +0x144
+  GalaxyWindow* m_galaxy;         // +0x148
+  PersistentInt m_uiFlags;        // +0x14c FleetWindowFlags
+  ChildWindowTree m_buttons;      // +0x150 the title bar buttons: sector 0xca, close 0x65, side 100
+  CoolTabControl* m_ownTabs;      // +0x158 child id 0x6a: the tabs when the selection is the player's
+  CoolTabControl* m_otherTabs;    // +0x15c child id 0x6b
+  CoolDragList* m_fleetList;      // +0x160 child id 0xc9
+  CoolDragList* m_shipList;       // +0x164 child id 200
+  DibBitmap* m_infoBitmap;        // +0x168 owned: the selection's picture and the totals
+  int m_controlSide;              // +0x16c the side whose colours the window shows
+  int m_viewSide;                 // +0x170 1 for the Alliance, 2 for the Empire
+  int m_galaxySide;               // +0x174 the player's side
+  DibBitmap* m_headerActive;      // +0x178 the title bar while the window is in front
+  DibBitmap* m_headerInactive;    // +0x17c
+  DibBitmap* m_infoBackdropOwn;   // +0x180
   DibBitmap* m_infoBackdropOther; // +0x184
   CoolListItemList* m_fleetItems; // +0x188
-  CoolListItemList* m_shipItems; // +0x18c
-  CoolLabel* m_selectionLabel; // +0x190 owned, the name of the selection
-  int m_page; // +0x194 the shown tab, 0x66 ships, 0x67 fighters, 0x68 troops, 0x69 personnel
-  int m_primaryTotal; // +0x198 squadrons / regiments of the selection
-  int m_capacityTotal; // +0x19c their capacity
-  HPEN m_pen; // +0x1a0 dotted white: the connector lines
-  HFONT m_fleetFont; // +0x1a4
-  HFONT m_shipFont; // +0x1a8
-  HDC m_dc; // +0x1ac memory DC the row pictures are drawn with
-  HMODULE m_gokres; // +0x1b0 GOKRES.DLL (resource slot 10)
+  CoolListItemList* m_shipItems;  // +0x18c
+  CoolLabel* m_selectionLabel;    // +0x190 owned, the name of the selection
+  int m_page;                     // +0x194 the shown tab, 0x66 ships, 0x67 fighters, 0x68 troops, 0x69 personnel
+  int m_primaryTotal;             // +0x198 squadrons / regiments of the selection
+  int m_capacityTotal;            // +0x19c their capacity
+  HPEN m_pen;                     // +0x1a0 dotted white: the connector lines
+  HFONT m_fleetFont;              // +0x1a4
+  HFONT m_shipFont;               // +0x1a8
+  HDC m_dc;                       // +0x1ac memory DC the row pictures are drawn with
+  HMODULE m_gokres;               // +0x1b0 GOKRES.DLL (resource slot 10)
+  bool m_compactLabels = true;    // the enhanced layout: smaller two-line labels in taller rows
+
+  int RowHeight() const;
 };
 
-// What `object` (a fleet or a capital ship) carries and its state, as the bits the fleet rows show: 1 fighters, 2 troops,
-// 4 personnel, 8 enroute, 0x10 has orders, 0x20 not completed, 0x40 cannot move (0x4a66a0).
+// What `object` (a fleet or a capital ship) carries and its state, as the bits the fleet rows show: 1 fighters, 2
+// troops, 4 personnel, 8 enroute, 0x10 has orders, 0x20 not completed, 0x40 cannot move (0x4a66a0).
 uint32_t FleetContents(GameObjNotifier* object);
 // Draws the icons for the bits of `contents` on `target`: low (when `compact`) or high row of the picture (0x4a67a0).
 void DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact);

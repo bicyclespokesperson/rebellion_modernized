@@ -12,7 +12,7 @@ class SoundRequest;
 // stores sources keyed by (module index << 16) + resource id.
 class SoundSource : public KeyedSoundNode
 {
-public:
+  public:
   // From an in-memory WAVE image (a locked resource) that is loaded whole into a static buffer.
   SoundSource(const void* waveImage, int mode, SoundRequest* request);
   // From a file, `seekPosition` bytes in (0 = start), streamed when long enough.
@@ -37,18 +37,18 @@ public:
   int IsAnyPlaying();
   int ReleaseUser(int bufferKey);
 
-  int m_users{}; // +0x1c buffers currently playing or paused
-  WaveInfo m_wave; // +0x20
+  int m_users{};             // +0x1c buffers currently playing or paused
+  WaveInfo m_wave;           // +0x20
   SoundBufferList m_buffers; // +0x40 keyed by SoundBuffer::m_key
-  ifstream* m_stream{}; // owns the file stream borrowed by streamed buffers
-  long m_streamPosition{}; // +0x50 where the WAVE image starts in that file
-  int m_keepLoaded{}; // +0x54 survives SoundManager::ReleaseAll(0)
+  ifstream* m_stream{};      // owns the file stream borrowed by streamed buffers
+  long m_streamPosition{};   // +0x50 where the WAVE image starts in that file
+  int m_keepLoaded{};        // +0x54 survives SoundManager::ReleaseAll(0)
 };
 
 // Tree of all loaded SoundSources.
 class SoundSourceList : public SoundIdTree
 {
-public:
+  public:
   SoundSourceList();
   ~SoundSourceList() override;
 
@@ -58,7 +58,7 @@ public:
 // A second tree of the same kind, constructed at start-up but never filled (SoundManager::SweepSources empties it).
 class SoundCatalogList : public SoundIdTree
 {
-public:
+  public:
   SoundCatalogList();
   ~SoundCatalogList() override;
 };
@@ -66,7 +66,7 @@ public:
 // A queued notification for the sound-event thread (see SoundManager::QueueEvent).
 class SoundEvent
 {
-public:
+  public:
   SoundEvent(uint32_t message, uint32_t first, uint32_t second);
   ~SoundEvent();
   void Read(istream* in);

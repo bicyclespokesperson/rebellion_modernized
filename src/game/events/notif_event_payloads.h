@@ -11,12 +11,15 @@
 #include "gameobj/notif_payload.h"
 #include "gameobj/object_key.h"
 
-// VT 0x661300: two object keys. No Read/Write of its own.
+// VT 0x661300: two object keys.
 class KeyPairPayload : public KeyedNotifPayload
 {
-public:
-  KeyPairPayload(); // 0x539290
+  public:
+  KeyPairPayload();           // 0x539290
   ~KeyPairPayload() override; // 0x5392f0 (deleting), 0x539310
+
+  int ReadPayload(istream* in);
+  int WritePayload(ostream* out);
 
   ObjectKey m_keyA; // +0x24
   ObjectKey m_keyB; // +0x28
@@ -25,11 +28,11 @@ public:
 // VT 0x661320: two ints.
 class IntPairPayload : public KeyedNotifPayload
 {
-public:
-  IntPairPayload(); // 0x539370
+  public:
+  IntPairPayload();           // 0x539370
   ~IntPairPayload() override; // 0x539390 (deleting), 0x5393b0
 
-  int ReadPayload(istream* in); // 0x5393c0
+  int ReadPayload(istream* in);   // 0x5393c0
   int WritePayload(ostream* out); // 0x539400
 
   int m_valueA; // +0x24
@@ -39,11 +42,11 @@ public:
 // VT 0x661340: four ints.
 class IntQuadPayload : public KeyedNotifPayload
 {
-public:
-  IntQuadPayload(); // 0x539440
+  public:
+  IntQuadPayload();           // 0x539440
   ~IntQuadPayload() override; // 0x539460 (deleting), 0x539480
 
-  int ReadPayload(istream* in); // 0x539490
+  int ReadPayload(istream* in);   // 0x539490
   int WritePayload(ostream* out); // 0x5394f0
 
   int m_valueA; // +0x24
@@ -55,11 +58,11 @@ public:
 // VT 0x661360: two strings.
 class StringPairPayload : public KeyedNotifPayload
 {
-public:
-  StringPairPayload(); // 0x539550
+  public:
+  StringPairPayload();           // 0x539550
   ~StringPairPayload() override; // 0x5395b0 (deleting), 0x5395d0
 
-  int ReadPayload(istream* in); // 0x539630
+  int ReadPayload(istream* in);   // 0x539630
   int WritePayload(ostream* out); // 0x539660
 
   std::string m_textA; // +0x24
@@ -69,11 +72,11 @@ public:
 // VT 0x661380: two 4-byte keys that start out as 0 and are saved the way an ObjectKey is.
 class NullableKeyPairPayload : public KeyedNotifPayload
 {
-public:
-  NullableKeyPairPayload(); // 0x539690
+  public:
+  NullableKeyPairPayload();           // 0x539690
   ~NullableKeyPairPayload() override; // 0x5396f0 (deleting), 0x539710
 
-  int ReadPayload(istream* in); // 0x539770
+  int ReadPayload(istream* in);   // 0x539770
   int WritePayload(ostream* out); // 0x5397a0
 
   NullableKey m_keyA; // +0x24
@@ -84,19 +87,19 @@ public:
 // (0x51cd20-0x51d874); Load/Save have void-returning forwarders (Read 0x539960, Write 0x539970) that it calls.
 class ChecksumRecord
 {
-public:
-  ChecksumRecord(); // 0x5397d0
-  ~ChecksumRecord(); // 0x539830
+  public:
+  ChecksumRecord();                                       // 0x5397d0
+  ~ChecksumRecord();                                      // 0x539830
   ChecksumRecord& operator=(const ChecksumRecord& other); // 0x539880
 
-  int Load(istream* in); // 0x5398c0
-  int Save(ostream* out); // 0x539910
-  int Read(istream* in); // 0x539960
+  int Load(istream* in);   // 0x5398c0
+  int Save(ostream* out);  // 0x539910
+  int Read(istream* in);   // 0x539960
   int Write(ostream* out); // 0x539970
 
   int m_value00; // +0x00
   int m_value04; // +0x04
   int m_value08; // +0x08
-  Crc32 m_crcA; // +0x0c
-  Crc32 m_crcB; // +0x14
+  Crc32 m_crcA;  // +0x0c
+  Crc32 m_crcB;  // +0x14
 };

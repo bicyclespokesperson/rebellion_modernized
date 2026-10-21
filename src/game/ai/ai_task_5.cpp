@@ -57,14 +57,14 @@ constexpr FamilyParams kParams = {0x46,
 } // namespace
 
 AiTask5::AiTask5(int view)
-: AiStagedTask(5, view),
-  m_key58(),
-  m_system(),
-  m_manager(),
-  m_classKey(),
-  m_selector(),
-  m_targets(),
-  m_dropped()
+    : AiStagedTask(5, view)
+    , m_key58()
+    , m_system()
+    , m_manager()
+    , m_classKey()
+    , m_selector()
+    , m_targets()
+    , m_dropped()
 {
   m_classKey.m_value = 0;
   m_stage = 0;
@@ -129,12 +129,11 @@ void AiTask5::Write(ostream* out)
 
 OrderBase* AiTask5::Step()
 {
-  if (m_flags.Get() != 1)
+  if (m_flags.Get() != 1) {
     return nullptr;
-  if (m_stage != kStageTargets)
-  {
-    if (m_stage != kStageProduce)
-    {
+  }
+  if (m_stage != kStageTargets) {
+    if (m_stage != kStageProduce) {
       m_stage = kStageProduce;
       return nullptr;
     }
@@ -146,8 +145,7 @@ OrderBase* AiTask5::Step()
 OrderBase* AiTask5::StepProduce()
 {
   OrderBase* order = nullptr;
-  switch (m_step)
-  {
+  switch (m_step) {
     case 1:
       m_step = NextKind() != 0 ? 5 : 6;
       return nullptr;
@@ -159,14 +157,14 @@ OrderBase* AiTask5::StepProduce()
       return nullptr;
     case 5:
       m_step = ComputeSpecialForceCount();
-      if (m_step != 0)
+      if (m_step != 0) {
         return nullptr;
+      }
       m_stage = kStageTargets;
       m_finished = 1;
       return nullptr;
     case 6:
-      if (IsOverQuota() != 0)
-      {
+      if (IsOverQuota() != 0) {
         m_step = 2;
         return nullptr;
       }
@@ -187,15 +185,13 @@ OrderBase* AiTask5::StepProduce()
 OrderBase* AiTask5::StepTargets()
 {
   OrderBase* order = nullptr;
-  switch (m_step)
-  {
+  switch (m_step) {
     case 3:
       m_step = SelectTarget() != 0 ? 9 : 7;
       return nullptr;
     case 4:
       order = BuildScrapOrder();
-      if (order)
-      {
+      if (order) {
         m_finished = 1;
         ++m_priority;
       }
@@ -203,8 +199,9 @@ OrderBase* AiTask5::StepTargets()
       return order;
     case 5:
       m_step = ComputeFacilityCount();
-      if (m_step != 0)
+      if (m_step != 0) {
         return nullptr;
+      }
       m_stage = kStageProduce;
       m_finished = 1;
       return nullptr;
@@ -212,8 +209,7 @@ OrderBase* AiTask5::StepTargets()
       m_step = 3;
       return nullptr;
     case 7:
-      if (IsOverQuotaForFacilities() == 0)
-      {
+      if (IsOverQuotaForFacilities() == 0) {
         m_step = 0;
         m_stage = kStageProduce;
         return nullptr;
@@ -225,8 +221,7 @@ OrderBase* AiTask5::StepTargets()
       break;
     case 9:
       m_owner->m_bitsA &= ~4u;
-      if (m_owner->m_bitB == 4 && PickSupplySystem() != 0)
-      {
+      if (m_owner->m_bitB == 4 && PickSupplySystem() != 0) {
         m_owner->AdvanceBitCursor();
         m_step = 4;
         return nullptr;
@@ -234,17 +229,16 @@ OrderBase* AiTask5::StepTargets()
       m_step = 0xc;
       return nullptr;
     case 10:
-    {
-      OrderBase* destination = BuildDestinationOrder(&m_system);
-      if (destination)
       {
-        m_step = 0xb;
-        m_finished = 1;
-        ++m_priority;
-        return destination;
+        OrderBase* destination = BuildDestinationOrder(&m_system);
+        if (destination) {
+          m_step = 0xb;
+          m_finished = 1;
+          ++m_priority;
+          return destination;
+        }
+        break;
       }
-      break;
-    }
     case 0xb:
       order = BuildManufactureOrder210();
       break;
@@ -265,17 +259,14 @@ int AiTask5::ChooseManager()
   bool found = false;
   m_owner->m_key18.Reset();
   auto position = m_targets.Entries().begin();
-  while (position != m_targets.Entries().end() && !found)
-  {
+  while (position != m_targets.Entries().end() && !found) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     m_manager = KeyOfNode(node);
     AiSystemEval* eval = IsSystemKey(m_manager) ? m_owner->m_systems.FindEval(m_manager) : nullptr;
     const bool stale = !eval || (eval->m_flags30.m_value & 1) == 0 || (eval->m_flags28.m_value & kSystemClaimed) == 0;
-    if (stale)
-    {
-      if (eval)
-      {
+    if (stale) {
+      if (eval) {
         eval->m_flags28.m_value &= ~kSystemClaimed;
         eval->MarkChanged();
       }
@@ -283,34 +274,29 @@ int AiTask5::ChooseManager()
       m_targets.RemoveKey(&key);
       continue;
     }
-    if (0 < eval->Stat(0x5c) && (eval->m_flags28.m_value & 0x400) != 0 && (eval->m_flags28.m_value & 3) == 0)
-    {
+    if (0 < eval->Stat(0x5c) && (eval->m_flags28.m_value & 0x400) != 0 && (eval->m_flags28.m_value & 3) == 0) {
       m_owner->m_key18 = m_manager;
       found = true;
     }
   }
-  if (!found)
-  {
+  if (!found) {
     m_manager = m_owner->m_key14;
-    if (IsSystemKey(m_manager))
-    {
+    if (IsSystemKey(m_manager)) {
       AiSystemEval* eval = m_owner->m_systems.FindEval(m_manager);
-      if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0 &&
-          0 < eval->Stat(0x5c) && (eval->m_flags28.m_value & 0x400) != 0 && (eval->m_flags28.m_value & 3) == 0)
+      if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0
+          && 0 < eval->Stat(0x5c) && (eval->m_flags28.m_value & 0x400) != 0 && (eval->m_flags28.m_value & 3) == 0) {
         found = true;
+      }
     }
-    if (!found)
-    {
+    if (!found) {
       m_manager.Reset();
       return 0;
     }
   }
   auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_manager));
-  if (system)
-  {
+  if (system) {
     GameObjNotifier* manager = system->FindManufacturingManagerByKind(2);
-    if (manager)
-    {
+    if (manager) {
       ObjectKey key;
       GetObjectKey(manager, &key);
       m_manager = key;
@@ -324,16 +310,15 @@ int AiTask5::NextKind()
 {
   bool wrapped = false;
   int found = 0;
-  if (m_kind == 0)
+  if (m_kind == 0) {
     m_kind = 0x5a;
+  }
   const uint16_t start = m_kind;
-  while (!wrapped)
-  {
+  while (!wrapped) {
     const uint16_t current = m_kind;
     const int wanted = m_owner->Stat(0x2fc) < 8 ? 8 : m_owner->Stat(0x2fc);
     m_x48 = m_owner->m_stat[current] < wanted ? 1 : 0;
-    switch (current)
-    {
+    switch (current) {
       case 0x5a:
         m_x50 = 0x1000000;
         m_x54 = 1;
@@ -355,10 +340,12 @@ int AiTask5::NextKind()
         m_kind = 0x5a;
     }
     found = 0 < m_x48 ? 1 : 0;
-    if (start == static_cast<uint16_t>(m_kind))
+    if (start == static_cast<uint16_t>(m_kind)) {
       wrapped = true;
-    if (found)
+    }
+    if (found) {
       break;
+    }
   }
   return found;
 }
@@ -372,21 +359,20 @@ int AiTask5::ComputeSpecialForceCount()
 {
   int result = 0;
   const int need = Need();
-  if (need < 1)
-  {
-    if (need < 0)
+  if (need < 1) {
+    if (need < 0) {
       result = 2;
+    }
     return result;
   }
   const int count = m_owner->ChooseClass(&m_classKey, 0x29, m_x50, m_x54, 1);
-  if ((m_classKey.m_value & 0xff000000) != 0 && count != 0)
-  {
+  if ((m_classKey.m_value & 0xff000000) != 0 && count != 0) {
     const int total = count * m_x48;
-    if (total - need != 0 && need <= total)
+    if (total - need != 0 && need <= total) {
       m_x48 = need / count;
+    }
   }
-  if (0 < m_x48)
-  {
+  if (0 < m_x48) {
     m_owner->m_key18.Reset();
     return 0xb;
   }
@@ -402,20 +388,20 @@ OrderBase* AiTask5::BuildSpecialForceOrder()
   m_selector.Add(m_owner->RankCharacters(0x802000, 0, 0xa0, 0, 9, 0, 1000, 1));
   picked = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!ai::KeyInFamilies(picked, 0x3c, 0x40))
-  {
+  if (!ai::KeyInFamilies(picked, 0x3c, 0x40)) {
     m_selector.Add(m_owner->RankCharacters(0x2000, 0, 0xa0, 0, 9, 0, 1000, 1));
     picked = *m_selector.PickBest(&scratch);
     m_selector.Reset();
   }
-  if (ai::KeyInFamilies(picked, 0x3c, 0x40))
-  {
+  if (ai::KeyInFamilies(picked, 0x3c, 0x40)) {
     auto* node = NewOrNull<ObjectKeyValueNode>(picked, 0);
-    if (node)
+    if (node) {
       team.Add(node);
+    }
   }
-  if (team.First())
+  if (team.First()) {
     order = NewTeamOrder(kSpecialForceOrder, m_view, &team);
+  }
   return order;
 }
 
@@ -435,18 +421,16 @@ int AiTask5::PickSupplySystem()
   m_selector.Add(m_owner->RankSystemsOfSector(&m_manager, 0x800800, 0, 1, 3, 0, 0, 6, 1));
   m_manager = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (IsSystemKey(m_manager))
-  {
+  if (IsSystemKey(m_manager)) {
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_manager);
     auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_manager));
-    if (system && eval)
-    {
+    if (system && eval) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(1);
-      if (manager)
-      {
+      if (manager) {
         m_x4c = eval->Stat(0x60);
-        if (1 < m_x4c)
+        if (1 < m_x4c) {
           --m_x4c;
+        }
         ObjectKey key;
         GetObjectKey(manager, &key);
         m_manager = key;

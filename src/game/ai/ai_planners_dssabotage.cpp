@@ -10,7 +10,7 @@ using ai::KeyOfNode;
 using ai::KeyOfObject;
 
 AiDsSabotagePlanner::AiDsSabotagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x6a, 0x41);
 }
@@ -20,15 +20,14 @@ AiDsSabotagePlanner::~AiDsSabotagePlanner() = default;
 int AiDsSabotagePlanner::GetPriority()
 {
   int sum = 0;
-  if ((m_flags.m_value & 0x20) == 0)
-  {
-    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
-    {
+  if ((m_flags.m_value & 0x20) == 0) {
+    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position) {
       auto* node = static_cast<ObjectKeyNode*>((*position).get());
       const ObjectKey key = KeyOfNode(node);
       auto* character = static_cast<AiCharacterRecord*>(m_characters->Find(&key));
-      if (character)
+      if (character) {
         sum += (character->m_values[5] + character->m_values[1]) / 2;
+      }
     }
   }
   return sum;
@@ -47,27 +46,25 @@ void AiDsSabotagePlanner::PrepareMembers()
 void AiDsSabotagePlanner::FindTargetShip()
 {
   bool found = false;
-  if (!IsSystemKey(m_x34))
+  if (!IsSystemKey(m_x34)) {
     return;
+  }
   GameObjNotifier* systemObject = GetObjectInFamilies_90_98(m_view, &m_x34);
   AiSystemEval* system = m_owner->m_systems.FindEval(m_x34);
-  if (!systemObject || !system || (system->m_flags2c.m_value & 0x1000000) == 0)
+  if (!systemObject || !system || (system->m_flags2c.m_value & 0x1000000) == 0) {
     return;
+  }
   FleetIterator fleets(systemObject, 1);
   fleets.Begin();
-  while (fleets.m_current && !found)
-  {
+  while (fleets.m_current && !found) {
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfObject(fleets.m_current));
-    if (fleet && (fleet->m_flags.m_value & 1) == 0 && (fleet->m_flags.m_value & 0x10) != 0)
-    {
+    if (fleet && (fleet->m_flags.m_value & 1) == 0 && (fleet->m_flags.m_value & 0x10) != 0) {
       for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end() && !found;
-           ++position)
-      {
+           ++position) {
         auto* node = static_cast<ObjectKeyNode*>((*position).get());
         const ObjectKey shipKey = KeyOfNode(node);
         auto* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&shipKey));
-        if (ship && (ship->m_flags.m_value & 0x80) != 0)
-        {
+        if (ship && (ship->m_flags.m_value & 0x80) != 0) {
           ship->GetKey(&m_target);
           found = true;
         }
@@ -89,37 +86,36 @@ int AiDsSabotagePlanner::ChooseTarget()
   const int membersAtDestination = CountMembersAtDestination();
   m_selector.Add(m_owner->RankFleets(0x10, 1, 0x15, 2));
   fleetKey = *m_selector.PickBest(&scratch);
-  while (IsFleetKey(fleetKey))
-  {
+  while (IsFleetKey(fleetKey)) {
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(fleetKey);
-    if (fleet)
-    {
+    if (fleet) {
       auto* node = NewOrNull<ObjectKeyNode>(fleet->m_systemKey);
-      if (node)
+      if (node) {
         fleetSystems.Add(node);
+      }
     }
     fleetKey = *m_selector.PickBest(&scratch);
   }
   m_selector.Reset();
-  if (static_cast<uint16_t>(fleetSystems.Count()) != 0)
-  {
+  if (static_cast<uint16_t>(fleetSystems.Count()) != 0) {
     bool found = false;
-    for (auto position = fleetSystems.Entries().begin(); position != fleetSystems.Entries().end() && !found; ++position)
-    {
+    for (auto position = fleetSystems.Entries().begin(); position != fleetSystems.Entries().end() && !found;
+         ++position) {
       auto* node = static_cast<ObjectKeyNode*>((*position).get());
       found = false;
       AiSystemEval* system = m_owner->m_systems.FindEval(KeyOfNode(node));
-      if (system && (membersAtDestination == GetMemberLimitOrSelectMembers() || system->Stat(0xbc) / 2 <= membersAtDestination))
-      {
+      if (system
+          && (membersAtDestination == GetMemberLimitOrSelectMembers()
+              || system->Stat(0xbc) / 2 <= membersAtDestination)) {
         m_x34 = KeyOfNode(node);
         found = true;
       }
     }
-    if (IsSystemKey(m_x34))
+    if (IsSystemKey(m_x34)) {
       FindTargetShip();
+    }
   }
-  if (ai::KeyInFamilies(m_target, 1, 0xff))
-  {
+  if (ai::KeyInFamilies(m_target, 1, 0xff)) {
     result = 1;
     m_flags.m_value |= 0x10;
   }

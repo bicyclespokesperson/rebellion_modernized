@@ -50,10 +50,10 @@ void ShowChoices(int mode, std::set<uint32_t>* tree, int16_t titleId)
 GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
 {
   ObjectKey key;
-  for (GameObjNotifier* parent = object->m_parent; parent; parent = parent->m_parent)
-  {
-    if (KeyIn(*parent->GetKey(&key), 0x90, 0x98))
+  for (GameObjNotifier* parent = object->m_parent; parent; parent = parent->m_parent) {
+    if (KeyIn(*parent->GetKey(&key), 0x90, 0x98)) {
       return parent;
+    }
   }
   return nullptr;
 }
@@ -61,11 +61,9 @@ GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
 void ShowFirstSystemChoice(AllianceAdvisor* advisor, std::set<uint32_t>* tree, ObjectKey key, int16_t titleId, int mode)
 {
   GameObjNotifier* object = GetObjectInFamilies_01_ff(advisor->m_side, &key);
-  if (object)
-  {
+  if (object) {
     GameObjNotifier* system = FindSystemAbove(object);
-    if (system)
-    {
+    if (system) {
       ObjectKey systemKey;
       AddChoice(tree, system->GetKey(&systemKey)->Id());
     }
@@ -75,14 +73,14 @@ void ShowFirstSystemChoice(AllianceAdvisor* advisor, std::set<uint32_t>* tree, O
 
 } // namespace
 
-AllianceAdvisor::AllianceAdvisor(int side, HumanPlayer* player) : AdvisorBase(side, player)
+AllianceAdvisor::AllianceAdvisor(int side, HumanPlayer* player)
+    : AdvisorBase(side, player)
 {
   g_humanUiFlags.m_value |= kUiFlagChatty;
   m_cueCount = kCueCount;
   m_cueDue = static_cast<uint32_t*>(::operator new(kCueCount * sizeof(uint32_t)));
   m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
-  for (uint32_t i = 0; i < m_cueCount; ++i)
-  {
+  for (uint32_t i = 0; i < m_cueCount; ++i) {
     m_cueDue[i] = 0;
     m_cueCooldown[i] = 0;
   }
@@ -96,52 +94,39 @@ AllianceAdvisor::~AllianceAdvisor()
 
 void AllianceAdvisor::HandleRefusedOrder(OrderBase* order, IntPair* status)
 {
-  if (m_enabled == 0)
+  if (m_enabled == 0) {
     return;
-  if (status->m_first == m_lastStatus.m_first && status->m_second == m_lastStatus.m_second)
-  {
+  }
+  if (status->m_first == m_lastStatus.m_first && status->m_second == m_lastStatus.m_second) {
     ToggleRepeatedStatus(status);
     return;
   }
   m_lastStatus = *status;
   m_statusRepeat = 0;
   const uint32_t category = status->m_first;
-  if (category >= 0x90 && category < 0x98)
-  {
+  if (category >= 0x90 && category < 0x98) {
     RefusedSystem(order, status);
-  }
-  else if (category >= 0xa0 && category < 0xb0)
-  {
+  } else if (category >= 0xa0 && category < 0xb0) {
     RefusedManager(order, status);
-  }
-  else if (category >= 8 && category < 0x10)
-  {
+  } else if (category >= 8 && category < 0x10) {
     RefusedFleet(order, status);
-  }
-  else if (category >= 0x14 && category < 0x1c)
-  {
+  } else if (category >= 0x14 && category < 0x1c) {
     RefusedShip(order, status);
-  }
-  else if (category == 0xf3)
-  {
+  } else if (category == 0xf3) {
     RefusedSide(order, status);
-  }
-  else
-  {
+  } else {
     RefusedOther(order, status);
   }
 }
 
 void AllianceAdvisor::HandleUiFlags(unsigned flags)
 {
-  if ((flags & 0x100000) != 0)
-  {
+  if ((flags & 0x100000) != 0) {
     CueDue(0x15c) = g_advisorNow + kNeverTicks;
     UiMarkGalaxyViewUnknownAc();
     return;
   }
-  if ((flags & 0x1000000) != 0)
-  {
+  if ((flags & 0x1000000) != 0) {
     CueDue(0x158) = g_advisorNow + kNeverTicks;
     UiMarkGalaxyViewUnknownAc();
   }
@@ -162,53 +147,43 @@ int AllianceAdvisor::Update()
   bool played = false;
   uint32_t cue = 1;
   g_advisorNow = GameHookTickCount();
-  if (g_advisorPendingMode != 0)
-  {
+  if (g_advisorPendingMode != 0) {
     RunPendingCommand();
     return 1;
   }
   g_advisorPendingMode = 0;
-  while (g_advisorMaySpeak != 0)
-  {
-    if (played)
-    {
+  while (g_advisorMaySpeak != 0) {
+    if (played) {
       g_advisorLastRun = g_advisorNow;
       return 1;
     }
     played = false;
-    if (m_cueCount <= cue)
+    if (m_cueCount <= cue) {
       break;
+    }
     uint32_t* due = &m_cueDue[cue];
-    if (*due == 0 || *due < g_advisorNow)
-    {
+    if (*due == 0 || *due < g_advisorNow) {
       *due = 0;
       ++cue;
       continue;
     }
     *due = 0;
-    if (m_cueCooldown[cue] < g_advisorNow)
-    {
+    if (m_cueCooldown[cue] < g_advisorNow) {
       m_cueCooldown[cue] = g_advisorNow + 0x3c;
       played = true;
       auto* script = static_cast<DroidScript*>(Cues()->FindById(cue));
-      if (script)
-      {
-        while (DroidScriptEntry* entry = script->NextEntry())
-        {
-          if ((entry->m_flags & 1) == 0)
-          {
+      if (script) {
+        while (DroidScriptEntry* entry = script->NextEntry()) {
+          if ((entry->m_flags & 1) == 0) {
             PlayEntry(entry);
-          }
-          else if ((g_humanUiFlags.m_value & kUiFlagChatty) != 0 && (g_humanUiFlags.m_value & 0x4000) == 0)
-          {
+          } else if ((g_humanUiFlags.m_value & kUiFlagChatty) != 0 && (g_humanUiFlags.m_value & 0x4000) == 0) {
             PlayEntry(entry);
           }
         }
       }
     }
   }
-  if (played)
-  {
+  if (played) {
     g_advisorLastRun = g_advisorNow;
     return 1;
   }
@@ -222,8 +197,7 @@ int AllianceAdvisor::LoadCueScripts()
   char* dataLocation = GetDataLocation();
   ScopedStrstream name;
   ostream* out = iostream_access::AsOstream(name.get());
-  if (dataLocation)
-  {
+  if (dataLocation) {
     ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, dataLocation), "\\");
     ::operator delete(dataLocation);
   }
@@ -233,8 +207,7 @@ int AllianceAdvisor::LoadCueScripts()
   OpenInputFile(file.get(), strstreambuf_str(iostream_access::BufferOf(name.get())));
   strstreambuf_freeze(iostream_access::BufferOf(name.get()), 0);
   const int error = GetFileError();
-  if (error == 0)
-  {
+  if (error == 0) {
     m_cueTree.Load(file.get()->In());
     CloseFileStream(file.get());
   }
@@ -244,10 +217,8 @@ int AllianceAdvisor::LoadCueScripts()
 void AllianceAdvisor::ProcessIdle()
 {
   g_advisorNow = GameHookTickCount();
-  if (m_enabled == 0)
-  {
-    if ((g_humanUiFlags.m_value & kUiFlagWake) != 0)
-    {
+  if (m_enabled == 0) {
+    if ((g_humanUiFlags.m_value & kUiFlagWake) != 0) {
       g_advisorNagCount = 0;
       CueDue(0x88) = g_advisorNow + kQuickCue;
       g_humanUiFlags.m_value &= ~kUiFlagWake;
@@ -258,66 +229,54 @@ void AllianceAdvisor::ProcessIdle()
   }
   g_advisorMaySpeak = 0;
   auto& flags = reinterpret_cast<uint32_t&>(g_humanUiFlags.m_value);
-  if ((flags & kUiFlagSleep) != 0)
-  {
+  if ((flags & kUiFlagSleep) != 0) {
     CueDue(0x84) = g_advisorNow + kNeverTicks;
     flags &= ~kUiFlagSleep;
     m_enabled = 0;
     ResetTasks();
     return;
   }
-  if ((flags & kUiFlagIdleRequested) != 0)
-  {
+  if ((flags & kUiFlagIdleRequested) != 0) {
     CueDue(0xa0) = g_advisorNow + kNeverTicks;
     UiBeginGameInput();
     flags &= ~kUiFlagIdleRequested;
     return;
   }
-  if ((flags & 1) != 0)
-  {
+  if ((flags & 1) != 0) {
     CueDue(0x8c) = g_advisorNow + kShortCue;
     flags &= ~1u;
     return;
   }
-  if ((flags & 0x10) != 0)
-  {
+  if ((flags & 0x10) != 0) {
     CueDue(0x90) = g_advisorNow + kShortCue;
     flags &= ~0x10u;
     return;
   }
-  if ((flags & 0x20) != 0)
-  {
+  if ((flags & 0x20) != 0) {
     CueDue(0x98) = g_advisorNow + kShortCue;
     flags &= ~0x20u;
     return;
   }
-  if ((flags & 0x100) != 0)
-  {
+  if ((flags & 0x100) != 0) {
     CueDue(0x94) = g_advisorNow + kLongCue;
     flags &= ~0x100u;
     return;
   }
-  if ((flags & 0x200) != 0)
-  {
+  if ((flags & 0x200) != 0) {
     CueDue(0x9c) = g_advisorNow + kLongCue;
     flags &= ~0x200u;
     return;
   }
-  if ((flags & 0x1000000) != 0)
-  {
+  if ((flags & 0x1000000) != 0) {
     CueDue(0x13c) = g_advisorNow + kQuickCue;
     flags &= ~0x1000000u;
     return;
   }
-  if ((flags & 0x2000000) != 0)
-  {
+  if ((flags & 0x2000000) != 0) {
     uint32_t cue = g_advisorNagCount + 0x4a;
-    if (cue < 0x4c)
-    {
+    if (cue < 0x4c) {
       cue = 0x4c;
-    }
-    else if (cue > 0x4e)
-    {
+    } else if (cue > 0x4e) {
       cue = 0x4e;
       g_advisorNagCount = 0;
     }
@@ -325,11 +284,11 @@ void AllianceAdvisor::ProcessIdle()
     flags &= ~0x2000000u;
     return;
   }
-  if ((flags & 0x80000000) != 0)
-  {
+  if ((flags & 0x80000000) != 0) {
     const uint32_t pick = UiSessionRandom(0xc);
-    if (pick < 6)
+    if (pick < 6) {
       CueDue(0x140 + pick * 4) = g_advisorNow + kNeverTicks;
+    }
     g_advisorMaySpeak = 1;
     flags &= 0x7fffffff;
   }
@@ -337,23 +296,12 @@ void AllianceAdvisor::ProcessIdle()
 
 void AllianceAdvisor::RunPendingCommand()
 {
-  if (g_advisorPendingMode != 1)
-  {
-    if (g_advisorPendingMode == 2)
-    {
+  if (g_advisorPendingMode != 1) {
+    if (g_advisorPendingMode == 2) {
       RunCommand(g_advisorPendingArg);
-    }
-    else if (g_advisorPendingMode == 3)
-    {
+    } else if (g_advisorPendingMode == 3) {
       GameObjNotifier* side = GetSideObject(1, 1);
-      if (!side)
-      {
-        UiSetAlternateDisplayMode(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)));
-      }
-      else
-      {
-        UiSetAlternateDisplayMode(static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions));
-      }
+      UiSetAlternateDisplayMode(side ? static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions) : 0u);
     }
   }
   g_advisorPendingMode = 0;
@@ -363,8 +311,7 @@ void AllianceAdvisor::RunPendingCommand()
 void AllianceAdvisor::RunCommand(int command)
 {
   std::set<uint32_t>* choices = ChoicesTree();
-  switch (command)
-  {
+  switch (command) {
     case 1:
       UiSetDisplayMode(0x11, 0);
       break;
@@ -374,20 +321,19 @@ void AllianceAdvisor::RunCommand(int command)
       UiSetDisplayMode(0x13, 0);
       break;
     case 3:
-    {
-      choices->clear();
-      ObjectKey key = ObjectKey::Make(0x20, 5);
-      GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &key);
-      if (!object)
       {
-        UiSetDisplayMode(0x80, 0);
+        choices->clear();
+        ObjectKey key = ObjectKey::Make(0x20, 5);
+        GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &key);
+        if (!object) {
+          UiSetDisplayMode(0x80, 0);
+          break;
+        }
+        ObjectKey parentKey;
+        choices->insert(object->m_parent->GetKey(&parentKey)->Id());
+        ShowChoices(0x93, choices, 0x1623);
         break;
       }
-      ObjectKey parentKey;
-      choices->insert(object->m_parent->GetKey(&parentKey)->Id());
-      ShowChoices(0x93, choices, 0x1623);
-      break;
-    }
     case 4:
       choices->clear();
       AddChoice(choices, 0x109);
@@ -422,8 +368,7 @@ void AllianceAdvisor::RunCommand(int command)
       break;
     case 0xd:
       UnloadBriefingDll();
-      if ((g_humanUiFlags.m_value & 0x8000) == 0)
-      {
+      if ((g_humanUiFlags.m_value & 0x8000) == 0) {
         FlushPending();
         UiPostOpenType0dWindow(1, 0x82);
       }
@@ -455,36 +400,24 @@ void AllianceAdvisor::RunCommand(int command)
 
 void AllianceAdvisor::RefusedSystem(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0x90, 1))
-  {
+  if (Is(status, 0x90, 1)) {
     Raise(this, 0x2c, kShortCue);
-  }
-  else if (Is(status, 0x90, 2))
-  {
+  } else if (Is(status, 0x90, 2)) {
     Raise(this, 0x30, kShortCue);
-  }
-  else if (Is(status, 0x90, 4))
-  {
+  } else if (Is(status, 0x90, 4)) {
     Raise(this, 0x54, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
 
 void AllianceAdvisor::RefusedManager(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0xa0, 2))
-  {
+  if (Is(status, 0xa0, 2)) {
     Raise(this, 8, kShortCue);
-  }
-  else if (Is(status, 0xa0, 3))
-  {
+  } else if (Is(status, 0xa0, 3)) {
     Raise(this, 0x60, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
@@ -509,12 +442,9 @@ void AllianceAdvisor::RefusedShip(OrderBase* order, IntPair* status)
 
 void AllianceAdvisor::RefusedSide(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0xf3, 1))
-  {
+  if (Is(status, 0xf3, 1)) {
     Raise(this, 0x28, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
@@ -528,14 +458,14 @@ void AllianceAdvisor::RefusedOther(OrderBase* order, IntPair* status)
 void AllianceAdvisor::ScheduleRandomPair()
 {
   const int pick = UiSessionRandom(2);
-  if (pick < 2)
+  if (pick < 2) {
     CueDue(0x44 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void AllianceAdvisor::ToggleRepeatedStatus(IntPair* status)
 {
-  if (m_statusRepeat == 0)
-  {
+  if (m_statusRepeat == 0) {
     m_statusRepeat = 1;
     CueDue(0x3c) = g_advisorNow + kShortCue;
     return;
@@ -548,27 +478,28 @@ void AllianceAdvisor::ToggleRepeatedStatus(IntPair* status)
 
 void AllianceAdvisor::ScheduleRandomQuad()
 {
-  for (int i = 0; i < 4; ++i)
-  {
-    if (CueDue(0x114 + i * 4) != 0)
+  for (int i = 0; i < 4; ++i) {
+    if (CueDue(0x114 + i * 4) != 0) {
       return;
+    }
   }
   const int pick = UiSessionRandom(4);
-  if (pick < 4)
+  if (pick < 4) {
     CueDue(0x114 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void AllianceAdvisor::ScheduleRandomPairAt124()
 {
   const int pick = UiSessionRandom(2);
-  if (pick < 2)
+  if (pick < 2) {
     CueDue(0x124 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void AllianceAdvisor::ScheduleCue(int cue)
 {
-  switch (cue)
-  {
+  switch (cue) {
     case 1:
       Raise(this, 0xd0, kShortCue);
       break;
@@ -683,8 +614,7 @@ void AllianceAdvisor::ScheduleCue(int cue)
 
 int AllianceAdvisor::PickMoodCue()
 {
-  switch (m_mood)
-  {
+  switch (m_mood) {
     case 1:
       return 4;
     case 2:

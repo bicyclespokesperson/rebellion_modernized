@@ -8,7 +8,8 @@ extern uint8_t g_uiNotif2KeyReady;
 extern ObjectKey g_uiNotif2Key;
 
 // ---- UiNotif340 (kind 0x340) ----
-UiNotif340::UiNotif340() : KeyPairPayload()
+UiNotif340::UiNotif340()
+    : KeyPairPayload()
 {
 }
 
@@ -16,12 +17,12 @@ UiNotif340::~UiNotif340() = default;
 
 void UiNotif340::Read(istream* in)
 {
-  reinterpret_cast<NullableKeyPairPayload*>(this)->ReadPayload(in);
+  ReadPayload(in);
 }
 
 void UiNotif340::Write(ostream* out)
 {
-  reinterpret_cast<NullableKeyPairPayload*>(this)->WritePayload(out);
+  WritePayload(out);
 }
 
 int UiNotif340::GetKind()
@@ -31,8 +32,9 @@ int UiNotif340::GetKind()
 
 void UiNotif340::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnMessage(GetKind(), asArg(&m_key), asArg(&m_keyA));
+  }
 }
 
 void* CreateUiNotif340()
@@ -41,7 +43,8 @@ void* CreateUiNotif340()
 }
 
 // ---- UiNotif14f (kind 0x14f) ----
-UiNotif14f::UiNotif14f() : IntPairPayload()
+UiNotif14f::UiNotif14f()
+    : IntPairPayload()
 {
 }
 
@@ -69,8 +72,9 @@ void UiNotif14f::Dispatch(PlayerController* controller)
 
 void UiNotif14f::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif14f()
@@ -79,7 +83,8 @@ void* CreateUiNotif14f()
 }
 
 // ---- UiNotif150 (kind 0x150) ----
-UiNotif150::UiNotif150() : IntPairPayload()
+UiNotif150::UiNotif150()
+    : IntPairPayload()
 {
 }
 
@@ -92,8 +97,9 @@ void UiNotif150::Dispatch(PlayerController* controller)
 
 void UiNotif150::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif150()
@@ -102,7 +108,8 @@ void* CreateUiNotif150()
 }
 
 // ---- UiNotif14d (kind 0x14d) ----
-UiNotif14d::UiNotif14d() : IntPairPayload()
+UiNotif14d::UiNotif14d()
+    : IntPairPayload()
 {
 }
 
@@ -120,8 +127,9 @@ void UiNotif14d::Dispatch(PlayerController* controller)
 
 void UiNotif14d::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif14d()
@@ -130,7 +138,8 @@ void* CreateUiNotif14d()
 }
 
 // ---- UiNotif14e (kind 0x14e) ----
-UiNotif14e::UiNotif14e() : IntPairPayload()
+UiNotif14e::UiNotif14e()
+    : IntPairPayload()
 {
 }
 
@@ -148,8 +157,9 @@ void UiNotif14e::Dispatch(PlayerController* controller)
 
 void UiNotif14e::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif14e()
@@ -158,7 +168,8 @@ void* CreateUiNotif14e()
 }
 
 // ---- UiNotif142 (kind 0x142) ----
-UiNotif142::UiNotif142() : IntPairPayload()
+UiNotif142::UiNotif142()
+    : IntPairPayload()
 {
 }
 
@@ -180,7 +191,8 @@ void* CreateUiNotif142()
 }
 
 // ---- UiNotif141 (kind 0x141) ----
-UiNotif141::UiNotif141() : IntPairPayload()
+UiNotif141::UiNotif141()
+    : IntPairPayload()
 {
 }
 
@@ -198,8 +210,9 @@ void UiNotif141::Dispatch(PlayerController* controller)
 
 void UiNotif141::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif141()
@@ -208,7 +221,8 @@ void* CreateUiNotif141()
 }
 
 // ---- UiNotif14a (kind 0x14a) ----
-UiNotif14a::UiNotif14a() : IntPairPayload()
+UiNotif14a::UiNotif14a()
+    : IntPairPayload()
 {
 }
 
@@ -230,7 +244,8 @@ void* CreateUiNotif14a()
 }
 
 // ---- UiNotif140 (kind 0x140) ----
-UiNotif140::UiNotif140() : IntPairPayload()
+UiNotif140::UiNotif140()
+    : IntPairPayload()
 {
 }
 
@@ -252,7 +267,8 @@ void* CreateUiNotif140()
 }
 
 // ---- UiNotif14c (kind 0x14c) ----
-UiNotif14c::UiNotif14c() : IntPairPayload()
+UiNotif14c::UiNotif14c()
+    : IntPairPayload()
 {
 }
 
@@ -274,7 +290,8 @@ void* CreateUiNotif14c()
 }
 
 // ---- UiNotif149 (kind 0x149) ----
-UiNotif149::UiNotif149() : IntPairPayload()
+UiNotif149::UiNotif149()
+    : IntPairPayload()
 {
 }
 
@@ -296,7 +313,8 @@ void* CreateUiNotif149()
 }
 
 // ---- UiNotif146 (kind 0x146) ----
-UiNotif146::UiNotif146() : IntPairPayload()
+UiNotif146::UiNotif146()
+    : IntPairPayload()
 {
 }
 
@@ -318,7 +336,8 @@ void* CreateUiNotif146()
 }
 
 // ---- UiNotif144 (kind 0x144) ----
-UiNotif144::UiNotif144() : IntPairPayload()
+UiNotif144::UiNotif144()
+    : IntPairPayload()
 {
 }
 
@@ -340,7 +359,8 @@ void* CreateUiNotif144()
 }
 
 // ---- UiNotif143 (kind 0x143) ----
-UiNotif143::UiNotif143() : IntPairPayload()
+UiNotif143::UiNotif143()
+    : IntPairPayload()
 {
 }
 
@@ -358,8 +378,9 @@ void UiNotif143::Dispatch(PlayerController* controller)
 
 void UiNotif143::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif143()
@@ -368,7 +389,8 @@ void* CreateUiNotif143()
 }
 
 // ---- UiNotif145 (kind 0x145) ----
-UiNotif145::UiNotif145() : IntPairPayload()
+UiNotif145::UiNotif145()
+    : IntPairPayload()
 {
 }
 
@@ -386,8 +408,9 @@ void UiNotif145::Dispatch(PlayerController* controller)
 
 void UiNotif145::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif145()
@@ -396,7 +419,8 @@ void* CreateUiNotif145()
 }
 
 // ---- UiNotif14b (kind 0x14b) ----
-UiNotif14b::UiNotif14b() : IntPairPayload()
+UiNotif14b::UiNotif14b()
+    : IntPairPayload()
 {
 }
 
@@ -414,8 +438,9 @@ void UiNotif14b::Dispatch(PlayerController* controller)
 
 void UiNotif14b::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif14b()
@@ -424,7 +449,8 @@ void* CreateUiNotif14b()
 }
 
 // ---- UiNotif147 (kind 0x147) ----
-UiNotif147::UiNotif147() : IntPairPayload()
+UiNotif147::UiNotif147()
+    : IntPairPayload()
 {
 }
 
@@ -441,7 +467,8 @@ void* CreateUiNotif147()
 }
 
 // ---- UiNotif148 (kind 0x148) ----
-UiNotif148::UiNotif148() : IntPairPayload()
+UiNotif148::UiNotif148()
+    : IntPairPayload()
 {
 }
 
@@ -454,8 +481,9 @@ int UiNotif148::GetKind()
 
 void UiNotif148::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif148()
@@ -464,7 +492,8 @@ void* CreateUiNotif148()
 }
 
 // ---- UiNotif156 (kind 0x156) ----
-UiNotif156::UiNotif156() : IntPairPayload()
+UiNotif156::UiNotif156()
+    : IntPairPayload()
 {
 }
 
@@ -477,8 +506,9 @@ void UiNotif156::Dispatch(PlayerController* controller)
 
 void UiNotif156::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif156()
@@ -487,7 +517,8 @@ void* CreateUiNotif156()
 }
 
 // ---- UiNotif151 (kind 0x151) ----
-UiNotif151::UiNotif151() : IntPairPayload()
+UiNotif151::UiNotif151()
+    : IntPairPayload()
 {
 }
 
@@ -509,7 +540,8 @@ void* CreateUiNotif151()
 }
 
 // ---- UiNotif152 (kind 0x152) ----
-UiNotif152::UiNotif152() : IntPairPayload()
+UiNotif152::UiNotif152()
+    : IntPairPayload()
 {
 }
 
@@ -526,7 +558,8 @@ void* CreateUiNotif152()
 }
 
 // ---- UiNotif153 (kind 0x153) ----
-UiNotif153::UiNotif153() : IntPairPayload()
+UiNotif153::UiNotif153()
+    : IntPairPayload()
 {
 }
 
@@ -544,8 +577,9 @@ void UiNotif153::Dispatch(PlayerController* controller)
 
 void UiNotif153::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif153()
@@ -554,7 +588,8 @@ void* CreateUiNotif153()
 }
 
 // ---- UiNotif154 (kind 0x154) ----
-UiNotif154::UiNotif154() : IntPairPayload()
+UiNotif154::UiNotif154()
+    : IntPairPayload()
 {
 }
 
@@ -572,8 +607,9 @@ void UiNotif154::Dispatch(PlayerController* controller)
 
 void UiNotif154::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif154()
@@ -582,7 +618,8 @@ void* CreateUiNotif154()
 }
 
 // ---- UiNotif155 (kind 0x155) ----
-UiNotif155::UiNotif155() : IntPairPayload()
+UiNotif155::UiNotif155()
+    : IntPairPayload()
 {
 }
 
@@ -600,8 +637,9 @@ void UiNotif155::Dispatch(PlayerController* controller)
 
 void UiNotif155::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif155()
@@ -610,7 +648,8 @@ void* CreateUiNotif155()
 }
 
 // ---- UiNotif121 (kind 0x121) ----
-UiNotif121::UiNotif121() : IntPairPayload()
+UiNotif121::UiNotif121()
+    : IntPairPayload()
 {
 }
 
@@ -632,7 +671,8 @@ void* CreateUiNotif121()
 }
 
 // ---- UiNotif123 (kind 0x123) ----
-UiNotif123::UiNotif123() : IntPairPayload()
+UiNotif123::UiNotif123()
+    : IntPairPayload()
 {
 }
 
@@ -654,7 +694,8 @@ void* CreateUiNotif123()
 }
 
 // ---- UiNotif122 (kind 0x122) ----
-UiNotif122::UiNotif122() : IntPairPayload()
+UiNotif122::UiNotif122()
+    : IntPairPayload()
 {
 }
 
@@ -676,7 +717,8 @@ void* CreateUiNotif122()
 }
 
 // ---- UiNotif124 (kind 0x124) ----
-UiNotif124::UiNotif124() : IntPairPayload()
+UiNotif124::UiNotif124()
+    : IntPairPayload()
 {
 }
 
@@ -698,7 +740,8 @@ void* CreateUiNotif124()
 }
 
 // ---- UiNotif600 (kind 0x600) ----
-UiNotif600::UiNotif600() : IntQuadPayload()
+UiNotif600::UiNotif600()
+    : IntQuadPayload()
 {
 }
 
@@ -738,7 +781,8 @@ void* CreateUiNotif600()
 }
 
 // ---- UiNotif120 (kind 0x120) ----
-UiNotif120::UiNotif120() : IntPairPayload()
+UiNotif120::UiNotif120()
+    : IntPairPayload()
 {
 }
 
@@ -760,7 +804,8 @@ void* CreateUiNotif120()
 }
 
 // ---- UiNotif125 (kind 0x125) ----
-UiNotif125::UiNotif125() : IntPairPayload()
+UiNotif125::UiNotif125()
+    : IntPairPayload()
 {
 }
 
@@ -778,8 +823,9 @@ void UiNotif125::Dispatch(PlayerController* controller)
 
 void UiNotif125::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif125()
@@ -788,7 +834,8 @@ void* CreateUiNotif125()
 }
 
 // ---- UiNotif126 (kind 0x126) ----
-UiNotif126::UiNotif126() : IntPairPayload()
+UiNotif126::UiNotif126()
+    : IntPairPayload()
 {
 }
 
@@ -806,8 +853,9 @@ void UiNotif126::Dispatch(PlayerController* controller)
 
 void UiNotif126::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif126()
@@ -816,7 +864,8 @@ void* CreateUiNotif126()
 }
 
 // ---- UiNotif127 (kind 0x127) ----
-UiNotif127::UiNotif127() : IntPairPayload()
+UiNotif127::UiNotif127()
+    : IntPairPayload()
 {
 }
 
@@ -834,8 +883,9 @@ void UiNotif127::Dispatch(PlayerController* controller)
 
 void UiNotif127::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif127()
@@ -844,7 +894,8 @@ void* CreateUiNotif127()
 }
 
 // ---- UiNotif129 (kind 0x129) ----
-UiNotif129::UiNotif129() : IntPairPayload()
+UiNotif129::UiNotif129()
+    : IntPairPayload()
 {
 }
 
@@ -857,8 +908,9 @@ int UiNotif129::GetKind()
 
 void UiNotif129::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif129()
@@ -867,7 +919,8 @@ void* CreateUiNotif129()
 }
 
 // ---- UiNotif12a (kind 0x12a) ----
-UiNotif12a::UiNotif12a() : IntPairPayload()
+UiNotif12a::UiNotif12a()
+    : IntPairPayload()
 {
 }
 
@@ -880,8 +933,9 @@ int UiNotif12a::GetKind()
 
 void UiNotif12a::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif12a()
@@ -890,7 +944,8 @@ void* CreateUiNotif12a()
 }
 
 // ---- UiNotif12b (kind 0x12b) ----
-UiNotif12b::UiNotif12b() : IntPairPayload()
+UiNotif12b::UiNotif12b()
+    : IntPairPayload()
 {
 }
 
@@ -903,8 +958,9 @@ int UiNotif12b::GetKind()
 
 void UiNotif12b::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif12b()
@@ -913,7 +969,8 @@ void* CreateUiNotif12b()
 }
 
 // ---- UiNotif12c (kind 0x12c) ----
-UiNotif12c::UiNotif12c() : IntPairPayload()
+UiNotif12c::UiNotif12c()
+    : IntPairPayload()
 {
 }
 
@@ -926,8 +983,9 @@ int UiNotif12c::GetKind()
 
 void UiNotif12c::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif12c()
@@ -936,7 +994,8 @@ void* CreateUiNotif12c()
 }
 
 // ---- UiNotif128 (kind 0x128) ----
-UiNotif128::UiNotif128() : IntPairPayload()
+UiNotif128::UiNotif128()
+    : IntPairPayload()
 {
 }
 
@@ -954,8 +1013,9 @@ void UiNotif128::Dispatch(PlayerController* controller)
 
 void UiNotif128::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif128()
@@ -964,7 +1024,8 @@ void* CreateUiNotif128()
 }
 
 // ---- UiNotif380 (kind 0x380) ----
-UiNotif380::UiNotif380() : KeyPairPayload()
+UiNotif380::UiNotif380()
+    : KeyPairPayload()
 {
 }
 
@@ -977,8 +1038,9 @@ void UiNotif380::Dispatch(PlayerController* controller)
 
 void UiNotif380::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnThreeObjectPayload(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+  }
 }
 
 void* CreateUiNotif380()
@@ -987,7 +1049,8 @@ void* CreateUiNotif380()
 }
 
 // ---- UiNotif1f0 (kind 0x1f0) ----
-UiNotif1f0::UiNotif1f0() : IntPairPayload()
+UiNotif1f0::UiNotif1f0()
+    : IntPairPayload()
 {
 }
 
@@ -1005,8 +1068,9 @@ void UiNotif1f0::Dispatch(PlayerController* controller)
 
 void UiNotif1f0::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif1f0()
@@ -1015,7 +1079,8 @@ void* CreateUiNotif1f0()
 }
 
 // ---- UiNotif1f1 (kind 0x1f1) ----
-UiNotif1f1::UiNotif1f1() : IntPairPayload()
+UiNotif1f1::UiNotif1f1()
+    : IntPairPayload()
 {
 }
 
@@ -1033,8 +1098,9 @@ void UiNotif1f1::Dispatch(PlayerController* controller)
 
 void UiNotif1f1::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif1f1()
@@ -1043,7 +1109,8 @@ void* CreateUiNotif1f1()
 }
 
 // ---- UiNotif370 (kind 0x370) ----
-UiNotif370::UiNotif370() : KeyPairPayload()
+UiNotif370::UiNotif370()
+    : KeyPairPayload()
 {
 }
 
@@ -1060,7 +1127,8 @@ void* CreateUiNotif370()
 }
 
 // ---- UiNotif221 (kind 0x221) ----
-UiNotif221::UiNotif221() : IntPairPayload()
+UiNotif221::UiNotif221()
+    : IntPairPayload()
 {
 }
 
@@ -1068,8 +1136,9 @@ UiNotif221::~UiNotif221() = default;
 
 void UiNotif221::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif221()
@@ -1078,7 +1147,8 @@ void* CreateUiNotif221()
 }
 
 // ---- UiNotif220 (kind 0x220) ----
-UiNotif220::UiNotif220() : IntPairPayload()
+UiNotif220::UiNotif220()
+    : IntPairPayload()
 {
 }
 
@@ -1086,8 +1156,9 @@ UiNotif220::~UiNotif220() = default;
 
 void UiNotif220::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif220()
@@ -1096,7 +1167,8 @@ void* CreateUiNotif220()
 }
 
 // ---- UiNotif161 (kind 0x161) ----
-UiNotif161::UiNotif161() : IntPairPayload()
+UiNotif161::UiNotif161()
+    : IntPairPayload()
 {
 }
 
@@ -1118,7 +1190,8 @@ void* CreateUiNotif161()
 }
 
 // ---- UiNotif321 (kind 0x321) ----
-UiNotif321::UiNotif321() : KeyPairPayload()
+UiNotif321::UiNotif321()
+    : KeyPairPayload()
 {
 }
 
@@ -1135,7 +1208,8 @@ void* CreateUiNotif321()
 }
 
 // ---- UiNotif320 (kind 0x320) ----
-UiNotif320::UiNotif320() : KeyPairPayload()
+UiNotif320::UiNotif320()
+    : KeyPairPayload()
 {
 }
 
@@ -1152,7 +1226,8 @@ void* CreateUiNotif320()
 }
 
 // ---- UiNotif520 (kind 0x520) ----
-UiNotif520::UiNotif520() : StringPairPayload()
+UiNotif520::UiNotif520()
+    : StringPairPayload()
 {
 }
 
@@ -1176,8 +1251,7 @@ int UiNotif520::GetKind()
 void UiNotif520::Dispatch(PlayerController* controller)
 {
   auto* text = NewOrNull<std::string>();
-  if (text)
-  {
+  if (text) {
     *text = m_textB;
     controller->OnManagerStatusTextChanged(&m_key, text);
     delete text;
@@ -1190,7 +1264,8 @@ void* CreateUiNotif520()
 }
 
 // ---- UiNotif160 (kind 0x160) ----
-UiNotif160::UiNotif160() : IntPairPayload()
+UiNotif160::UiNotif160()
+    : IntPairPayload()
 {
 }
 
@@ -1208,8 +1283,9 @@ void UiNotif160::Dispatch(PlayerController* controller)
 
 void UiNotif160::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif160()
@@ -1218,7 +1294,8 @@ void* CreateUiNotif160()
 }
 
 // ---- UiNotif162 (kind 0x162) ----
-UiNotif162::UiNotif162() : IntPairPayload()
+UiNotif162::UiNotif162()
+    : IntPairPayload()
 {
 }
 
@@ -1240,7 +1317,8 @@ void* CreateUiNotif162()
 }
 
 // ---- UiNotif400 (kind 0x400) ----
-UiNotif400::UiNotif400() : NullableKeyPairPayload()
+UiNotif400::UiNotif400()
+    : NullableKeyPairPayload()
 {
 }
 
@@ -1258,7 +1336,9 @@ void UiNotif400::Write(ostream* out)
 
 void UiNotif400::Dispatch(PlayerController* controller)
 {
-  controller->OnManagerSeedKeyChanged(&m_key, reinterpret_cast<const ObjectKey*>(&m_keyB));
+  ObjectKey seedKey;
+  seedKey.m_value = m_keyB.m_value;
+  controller->OnManagerSeedKeyChanged(&m_key, &seedKey);
 }
 
 void* CreateUiNotif400()
@@ -1267,7 +1347,8 @@ void* CreateUiNotif400()
 }
 
 // ---- UiNotif163 (kind 0x163) ----
-UiNotif163::UiNotif163() : IntPairPayload()
+UiNotif163::UiNotif163()
+    : IntPairPayload()
 {
 }
 
@@ -1289,7 +1370,8 @@ void* CreateUiNotif163()
 }
 
 // ---- UiNotif360 (kind 0x360) ----
-UiNotif360::UiNotif360() : KeyPairPayload()
+UiNotif360::UiNotif360()
+    : KeyPairPayload()
 {
 }
 
@@ -1302,8 +1384,9 @@ int UiNotif360::GetKind()
 
 void UiNotif360::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif360()
@@ -1312,7 +1395,8 @@ void* CreateUiNotif360()
 }
 
 // ---- UiNotif361 (kind 0x361) ----
-UiNotif361::UiNotif361() : KeyPairPayload()
+UiNotif361::UiNotif361()
+    : KeyPairPayload()
 {
 }
 
@@ -1325,8 +1409,9 @@ int UiNotif361::GetKind()
 
 void UiNotif361::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnThreeObjectPayload(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+  }
 }
 
 void* CreateUiNotif361()
@@ -1335,7 +1420,8 @@ void* CreateUiNotif361()
 }
 
 // ---- UiNotif362 (kind 0x362) ----
-UiNotif362::UiNotif362() : KeyPairPayload()
+UiNotif362::UiNotif362()
+    : KeyPairPayload()
 {
 }
 
@@ -1348,8 +1434,9 @@ int UiNotif362::GetKind()
 
 void UiNotif362::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif362()
@@ -1358,7 +1445,8 @@ void* CreateUiNotif362()
 }
 
 // ---- UiNotif1e1 (kind 0x1e1) ----
-UiNotif1e1::UiNotif1e1() : IntPairPayload()
+UiNotif1e1::UiNotif1e1()
+    : IntPairPayload()
 {
 }
 
@@ -1376,8 +1464,9 @@ void UiNotif1e1::Dispatch(PlayerController* controller)
 
 void UiNotif1e1::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnPayload(GetKind(), asArg(this));
+  }
 }
 
 void* CreateUiNotif1e1()
@@ -1386,7 +1475,8 @@ void* CreateUiNotif1e1()
 }
 
 // ---- UiNotif1e5 (kind 0x1e5) ----
-UiNotif1e5::UiNotif1e5() : IntPairPayload()
+UiNotif1e5::UiNotif1e5()
+    : IntPairPayload()
 {
 }
 
@@ -1403,7 +1493,8 @@ void* CreateUiNotif1e5()
 }
 
 // ---- UiNotif1e4 (kind 0x1e4) ----
-UiNotif1e4::UiNotif1e4() : IntPairPayload()
+UiNotif1e4::UiNotif1e4()
+    : IntPairPayload()
 {
 }
 
@@ -1420,7 +1511,8 @@ void* CreateUiNotif1e4()
 }
 
 // ---- UiNotif1e2 (kind 0x1e2) ----
-UiNotif1e2::UiNotif1e2() : IntPairPayload()
+UiNotif1e2::UiNotif1e2()
+    : IntPairPayload()
 {
 }
 
@@ -1442,7 +1534,8 @@ void* CreateUiNotif1e2()
 }
 
 // ---- UiNotif1e3 (kind 0x1e3) ----
-UiNotif1e3::UiNotif1e3() : IntPairPayload()
+UiNotif1e3::UiNotif1e3()
+    : IntPairPayload()
 {
 }
 
@@ -1459,7 +1552,8 @@ void* CreateUiNotif1e3()
 }
 
 // ---- UiNotif210 (kind 0x210) ----
-UiNotif210::UiNotif210() : IntPairPayload()
+UiNotif210::UiNotif210()
+    : IntPairPayload()
 {
 }
 
@@ -1467,8 +1561,9 @@ UiNotif210::~UiNotif210() = default;
 
 void UiNotif210::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif210()
@@ -1477,7 +1572,8 @@ void* CreateUiNotif210()
 }
 
 // ---- UiNotif211 (kind 0x211) ----
-UiNotif211::UiNotif211() : IntPairPayload()
+UiNotif211::UiNotif211()
+    : IntPairPayload()
 {
 }
 
@@ -1485,8 +1581,9 @@ UiNotif211::~UiNotif211() = default;
 
 void UiNotif211::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif211()
@@ -1495,7 +1592,8 @@ void* CreateUiNotif211()
 }
 
 // ---- UiNotif212 (kind 0x212) ----
-UiNotif212::UiNotif212() : IntPairPayload()
+UiNotif212::UiNotif212()
+    : IntPairPayload()
 {
 }
 
@@ -1503,8 +1601,9 @@ UiNotif212::~UiNotif212() = default;
 
 void UiNotif212::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif212()
@@ -1513,7 +1612,8 @@ void* CreateUiNotif212()
 }
 
 // ---- UiNotif230 (kind 0x230) ----
-UiNotif230::UiNotif230() : IntPairPayload()
+UiNotif230::UiNotif230()
+    : IntPairPayload()
 {
 }
 
@@ -1521,8 +1621,9 @@ UiNotif230::~UiNotif230() = default;
 
 void UiNotif230::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif230()
@@ -1531,7 +1632,8 @@ void* CreateUiNotif230()
 }
 
 // ---- UiNotif231 (kind 0x231) ----
-UiNotif231::UiNotif231() : IntPairPayload()
+UiNotif231::UiNotif231()
+    : IntPairPayload()
 {
 }
 
@@ -1544,8 +1646,9 @@ int UiNotif231::GetKind()
 
 void UiNotif231::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif231()
@@ -1554,7 +1657,8 @@ void* CreateUiNotif231()
 }
 
 // ---- UiNotif300 (kind 0x300) ----
-UiNotif300::UiNotif300() : KeyPairPayload()
+UiNotif300::UiNotif300()
+    : KeyPairPayload()
 {
 }
 
@@ -1567,8 +1671,9 @@ void UiNotif300::Dispatch(PlayerController* controller)
 
 void UiNotif300::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnThreeObjectPayload(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+  }
 }
 
 void* CreateUiNotif300()
@@ -1577,7 +1682,8 @@ void* CreateUiNotif300()
 }
 
 // ---- UiNotif301 (kind 0x301) ----
-UiNotif301::UiNotif301() : KeyPairPayload()
+UiNotif301::UiNotif301()
+    : KeyPairPayload()
 {
 }
 
@@ -1585,8 +1691,9 @@ UiNotif301::~UiNotif301() = default;
 
 void UiNotif301::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnThreeObjectPayload(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+  }
 }
 
 void* CreateUiNotif301()
@@ -1595,7 +1702,8 @@ void* CreateUiNotif301()
 }
 
 // ---- UiNotif103 (kind 0x103) ----
-UiNotif103::UiNotif103() : IntPairPayload()
+UiNotif103::UiNotif103()
+    : IntPairPayload()
 {
 }
 
@@ -1617,7 +1725,8 @@ void* CreateUiNotif103()
 }
 
 // ---- UiNotif107 (kind 0x107) ----
-UiNotif107::UiNotif107() : IntPairPayload()
+UiNotif107::UiNotif107()
+    : IntPairPayload()
 {
 }
 
@@ -1635,8 +1744,9 @@ void UiNotif107::Dispatch(PlayerController* controller)
 
 void UiNotif107::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif107()
@@ -1645,7 +1755,8 @@ void* CreateUiNotif107()
 }
 
 // ---- UiNotif100 (kind 0x100) ----
-UiNotif100::UiNotif100() : IntPairPayload()
+UiNotif100::UiNotif100()
+    : IntPairPayload()
 {
 }
 
@@ -1658,8 +1769,9 @@ void UiNotif100::Dispatch(PlayerController* controller)
 
 void UiNotif100::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndTwoValuesPayload(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+  }
 }
 
 void* CreateUiNotif100()
@@ -1668,7 +1780,8 @@ void* CreateUiNotif100()
 }
 
 // ---- UiNotif102 (kind 0x102) ----
-UiNotif102::UiNotif102() : IntPairPayload()
+UiNotif102::UiNotif102()
+    : IntPairPayload()
 {
 }
 
@@ -1690,7 +1803,8 @@ void* CreateUiNotif102()
 }
 
 // ---- UiNotif302 (kind 0x302) ----
-UiNotif302::UiNotif302() : KeyPairPayload()
+UiNotif302::UiNotif302()
+    : KeyPairPayload()
 {
 }
 
@@ -1700,14 +1814,14 @@ void UiNotif302::Dispatch(PlayerController* controller)
 {
   ObjectKey keyA;
   controller->OnObjectReparented(&m_key, copyFirstKey(this, &keyA));
-  if (m_value0c == 0)
+  if (m_value0c == 0) {
     UiSendNotificationToSide(m_value18, reinterpret_cast<intptr_t>(&m_key));
+  }
 }
 
 void UiNotif302::DispatchToSink(UiNotice* sink)
 {
-  if (!sink)
-  {
+  if (!sink) {
     UiSendNotificationToSide(m_value18, asArg(&m_key));
     return;
   }
@@ -1721,7 +1835,8 @@ void* CreateUiNotif302()
 }
 
 // ---- UiNotif303 (kind 0x303) ----
-UiNotif303::UiNotif303() : KeyPairPayload()
+UiNotif303::UiNotif303()
+    : KeyPairPayload()
 {
 }
 
@@ -1733,7 +1848,8 @@ void* CreateUiNotif303()
 }
 
 // ---- UiNotif304 (kind 0x304) ----
-UiNotif304::UiNotif304() : KeyPairPayload()
+UiNotif304::UiNotif304()
+    : KeyPairPayload()
 {
 }
 
@@ -1741,8 +1857,7 @@ UiNotif304::~UiNotif304() = default;
 
 void UiNotif304::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
-  {
+  if (sink) {
     ObjectKey keyA;
     sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
   }
@@ -1754,7 +1869,8 @@ void* CreateUiNotif304()
 }
 
 // ---- UiNotif305 (kind 0x305) ----
-UiNotif305::UiNotif305() : KeyPairPayload()
+UiNotif305::UiNotif305()
+    : KeyPairPayload()
 {
 }
 
@@ -1768,8 +1884,7 @@ void UiNotif305::Dispatch(PlayerController* controller)
 
 void UiNotif305::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
-  {
+  if (sink) {
     ObjectKey keyA;
     sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
   }
@@ -1781,7 +1896,8 @@ void* CreateUiNotif305()
 }
 
 // ---- UiNotif306 (kind 0x306) ----
-UiNotif306::UiNotif306() : KeyPairPayload()
+UiNotif306::UiNotif306()
+    : KeyPairPayload()
 {
 }
 
@@ -1789,8 +1905,7 @@ UiNotif306::~UiNotif306() = default;
 
 void UiNotif306::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
-  {
+  if (sink) {
     ObjectKey keyA;
     sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
   }
@@ -1802,7 +1917,8 @@ void* CreateUiNotif306()
 }
 
 // ---- UiNotif105 (kind 0x105) ----
-UiNotif105::UiNotif105() : IntPairPayload()
+UiNotif105::UiNotif105()
+    : IntPairPayload()
 {
 }
 
@@ -1820,8 +1936,9 @@ void UiNotif105::Dispatch(PlayerController* controller)
 
 void UiNotif105::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif105()
@@ -1830,7 +1947,8 @@ void* CreateUiNotif105()
 }
 
 // ---- UiNotif104 (kind 0x104) ----
-UiNotif104::UiNotif104() : IntPairPayload()
+UiNotif104::UiNotif104()
+    : IntPairPayload()
 {
 }
 
@@ -1852,7 +1970,8 @@ void* CreateUiNotif104()
 }
 
 // ---- UiNotif500 (kind 0x500) ----
-UiNotif500::UiNotif500() : StringPairPayload()
+UiNotif500::UiNotif500()
+    : StringPairPayload()
 {
 }
 
@@ -1879,7 +1998,8 @@ void* CreateUiNotif500()
 }
 
 // ---- UiNotif101 (kind 0x101) ----
-UiNotif101::UiNotif101() : IntPairPayload()
+UiNotif101::UiNotif101()
+    : IntPairPayload()
 {
 }
 
@@ -1901,7 +2021,8 @@ void* CreateUiNotif101()
 }
 
 // ---- UiNotif106 (kind 0x106) ----
-UiNotif106::UiNotif106() : IntPairPayload()
+UiNotif106::UiNotif106()
+    : IntPairPayload()
 {
 }
 
@@ -1919,8 +2040,9 @@ void UiNotif106::Dispatch(PlayerController* controller)
 
 void UiNotif106::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif106()
@@ -1929,7 +2051,8 @@ void* CreateUiNotif106()
 }
 
 // ---- UiNotif183 (kind 0x183) ----
-UiNotif183::UiNotif183() : IntPairPayload()
+UiNotif183::UiNotif183()
+    : IntPairPayload()
 {
 }
 
@@ -1947,8 +2070,9 @@ void UiNotif183::Dispatch(PlayerController* controller)
 
 void UiNotif183::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif183()
@@ -1957,7 +2081,8 @@ void* CreateUiNotif183()
 }
 
 // ---- UiNotif180 (kind 0x180) ----
-UiNotif180::UiNotif180() : IntPairPayload()
+UiNotif180::UiNotif180()
+    : IntPairPayload()
 {
 }
 
@@ -1975,8 +2100,9 @@ void UiNotif180::Dispatch(PlayerController* controller)
 
 void UiNotif180::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif180()
@@ -1985,7 +2111,8 @@ void* CreateUiNotif180()
 }
 
 // ---- UiNotif181 (kind 0x181) ----
-UiNotif181::UiNotif181() : IntPairPayload()
+UiNotif181::UiNotif181()
+    : IntPairPayload()
 {
 }
 
@@ -2007,7 +2134,8 @@ void* CreateUiNotif181()
 }
 
 // ---- UiNotif182 (kind 0x182) ----
-UiNotif182::UiNotif182() : IntPairPayload()
+UiNotif182::UiNotif182()
+    : IntPairPayload()
 {
 }
 
@@ -2025,8 +2153,9 @@ void UiNotif182::Dispatch(PlayerController* controller)
 
 void UiNotif182::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&m_key), m_valueB);
+  }
 }
 
 void* CreateUiNotif182()
@@ -2035,7 +2164,8 @@ void* CreateUiNotif182()
 }
 
 // ---- UiNotif1a0 (kind 0x1a0) ----
-UiNotif1a0::UiNotif1a0() : IntPairPayload()
+UiNotif1a0::UiNotif1a0()
+    : IntPairPayload()
 {
 }
 
@@ -2057,7 +2187,8 @@ void* CreateUiNotif1a0()
 }
 
 // ---- UiNotif2 (kind 0x2) ----
-UiNotif2::UiNotif2() : IntQuadPayload()
+UiNotif2::UiNotif2()
+    : IntQuadPayload()
 {
 }
 
@@ -2070,8 +2201,9 @@ int UiNotif2::GetKind()
 
 void UiNotif2::DispatchToSink(UiNotice* sink)
 {
-  if (sink)
+  if (sink) {
     sink->OnObjectAndValuePayload(GetKind(), asArg(&g_uiNotif2Key), 1);
+  }
 }
 
 void* CreateUiNotif2()
@@ -2080,7 +2212,8 @@ void* CreateUiNotif2()
 }
 
 // ---- UiNotif1c0 (kind 0x1c0) ----
-UiNotif1c0::UiNotif1c0() : IntPairPayload()
+UiNotif1c0::UiNotif1c0()
+    : IntPairPayload()
 {
 }
 
@@ -2102,7 +2235,8 @@ void* CreateUiNotif1c0()
 }
 
 // ---- UiNotif1c1 (kind 0x1c1) ----
-UiNotif1c1::UiNotif1c1() : IntPairPayload()
+UiNotif1c1::UiNotif1c1()
+    : IntPairPayload()
 {
 }
 
@@ -2124,7 +2258,8 @@ void* CreateUiNotif1c1()
 }
 
 // ---- UiNotif1c2 (kind 0x1c2) ----
-UiNotif1c2::UiNotif1c2() : IntPairPayload()
+UiNotif1c2::UiNotif1c2()
+    : IntPairPayload()
 {
 }
 
@@ -2146,7 +2281,8 @@ void* CreateUiNotif1c2()
 }
 
 // ---- UiNotif1c3 (kind 0x1c3) ----
-UiNotif1c3::UiNotif1c3() : IntPairPayload()
+UiNotif1c3::UiNotif1c3()
+    : IntPairPayload()
 {
 }
 
@@ -2168,7 +2304,8 @@ void* CreateUiNotif1c3()
 }
 
 // ---- UiNotif1c4 (kind 0x1c4) ----
-UiNotif1c4::UiNotif1c4() : IntPairPayload()
+UiNotif1c4::UiNotif1c4()
+    : IntPairPayload()
 {
 }
 
@@ -2190,7 +2327,8 @@ void* CreateUiNotif1c4()
 }
 
 // ---- UiNotif1c5 (kind 0x1c5) ----
-UiNotif1c5::UiNotif1c5() : IntPairPayload()
+UiNotif1c5::UiNotif1c5()
+    : IntPairPayload()
 {
 }
 
@@ -2212,7 +2350,8 @@ void* CreateUiNotif1c5()
 }
 
 // ---- UiNotif1c6 (kind 0x1c6) ----
-UiNotif1c6::UiNotif1c6() : IntPairPayload()
+UiNotif1c6::UiNotif1c6()
+    : IntPairPayload()
 {
 }
 
@@ -2234,7 +2373,8 @@ void* CreateUiNotif1c6()
 }
 
 // ---- UiNotif1 (kind 0x1) ----
-UiNotif1::UiNotif1() : IntQuadPayload()
+UiNotif1::UiNotif1()
+    : IntQuadPayload()
 {
 }
 

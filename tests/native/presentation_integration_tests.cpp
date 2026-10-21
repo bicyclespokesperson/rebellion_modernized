@@ -1,5 +1,5 @@
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <source_location>
 #include <string>
@@ -19,12 +19,12 @@ ScreenSurface Screen()
   static uint8_t pixels[1280 * 480] = {};
   return {pixels, testCanvasWidth, 480, testCanvasWidth};
 }
-}
+} // namespace minwin_gdi
 
 namespace minwin
 {
 void RefreshCursor() {}
-}
+} // namespace minwin
 
 namespace reb::platform
 {
@@ -32,15 +32,14 @@ std::string UserConfigDir()
 {
   return std::filesystem::temp_directory_path().string();
 }
-}
+} // namespace reb::platform
 
 namespace
 {
 
 void Require(bool condition, std::source_location location = std::source_location::current())
 {
-  if (!condition)
-  {
+  if (!condition) {
     fprintf(stderr, "presentation integration requirement failed at line %u\n", location.line());
     std::abort();
   }
@@ -51,12 +50,14 @@ uint64_t SurfaceHash(SDL_Surface* surface)
   uint64_t hash = 1469598103934665603ull;
   const auto* pixels = static_cast<const uint8_t*>(surface->pixels);
   const size_t bytes = static_cast<size_t>(surface->pitch) * surface->h;
-  for (size_t i = 0; i < bytes; ++i)
+  for (size_t i = 0; i < bytes; ++i) {
     hash = (hash ^ pixels[i]) * 1099511628211ull;
+  }
   return hash;
 }
 
-uint64_t SaveRenderAndHash(const std::filesystem::path& path, const std::vector<uint32_t>& pixels, int width, int height)
+uint64_t SaveRenderAndHash(const std::filesystem::path& path, const std::vector<uint32_t>& pixels, int width,
+                           int height)
 {
   Require(minwin::present::RequestScreenshot());
   minwin::present::Present(pixels.data(), width, height);
@@ -87,13 +88,13 @@ int main()
   constexpr int width = 640 * sourceScale;
   constexpr int height = 480 * sourceScale;
   std::vector<uint32_t> pixels(static_cast<size_t>(width) * height);
-  for (int y = 0; y < height; ++y)
-    for (int x = 0; x < width; ++x)
-    {
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
       const uint8_t value = x % sourceScale == 0 ? 0 : (x % sourceScale == 1 ? 128 : 255);
-      pixels[static_cast<size_t>(y) * width + x] = 0xff000000u | (static_cast<uint32_t>(value) << 16) |
-                                                   (static_cast<uint32_t>(value) << 8) | value;
+      pixels[static_cast<size_t>(y) * width + x]
+          = 0xff000000u | (static_cast<uint32_t>(value) << 16) | (static_cast<uint32_t>(value) << 8) | value;
     }
+  }
 
   SDL_SetWindowSize(minwin::present::Window(), 800, 600);
   const std::filesystem::path path = PRESENT_SCREENSHOT_PATH;

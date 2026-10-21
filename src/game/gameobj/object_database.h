@@ -25,7 +25,7 @@ class ObjectDatabase;
 // One database entry; the IdNode id is the key's id, m_family its family.
 class ObjectEntry : public IdNode
 {
-public:
+  public:
   ObjectEntry();
   ~ObjectEntry() override;
 
@@ -40,15 +40,15 @@ public:
   int IsFullyLinked() const;
   // The next entry in key order if its family lies in `range`.
 
-  int m_flag; // +0x1c, always 1
-  uint32_t m_family; // +0x20
+  int m_flag;                    // +0x1c, always 1
+  uint32_t m_family;             // +0x20
   GameObjNotifier* m_objects[3]; // +0x24, indexed by view
 };
 
 // A parent's children, sorted by (family, id). m_ok is saved with the list.
 class ChildList
 {
-public:
+  public:
   void Clear()
   {
     decltype(m_nodes) detached;
@@ -69,11 +69,9 @@ public:
   }
   auto PositionOf(const GameObjNotifier* node) const
   {
-    return std::ranges::find(Entries(), node,
-                             [](const auto& owned)
-                             {
-                               return owned.get();
-                             });
+    return std::ranges::find(Entries(), node, [](const auto& owned) {
+      return owned.get();
+    });
   }
   GameObjNotifier* First() const
   {
@@ -94,7 +92,7 @@ public:
   GameObjNotifier* FindFirstInRange(const FamilyRange* range) const;
 
   int m_ok; // +0x0c
-private:
+  private:
   std::map<uint32_t, std::unique_ptr<GameObjNotifier>> m_nodes;
   uint32_t m_nextId = 1;
 };
@@ -102,7 +100,7 @@ private:
 // The database itself (VT 0x66a220, 0x585b20-0x585f80): an ID registry of ObjectEntries ordered by key.
 class ObjectDatabase
 {
-public:
+  public:
   void Clear()
   {
     decltype(m_nodes) detached;
@@ -123,11 +121,9 @@ public:
   }
   auto PositionOf(const ObjectEntry* node) const
   {
-    return std::ranges::find(Entries(), node,
-                             [](const auto& owned)
-                             {
-                               return owned.get();
-                             });
+    return std::ranges::find(Entries(), node, [](const auto& owned) {
+      return owned.get();
+    });
   }
   ObjectEntry* First() const
   {
@@ -136,29 +132,29 @@ public:
   void Remove(ObjectEntry* node);
   uint32_t AddWithId(ObjectEntry* node);
 
-  ObjectDatabase(); // 0x585b20
+  ObjectDatabase();  // 0x585b20
   ~ObjectDatabase(); // 0: 0x585b40 (deleting), 0x585b60
 
   // Puts the object in the entry of its key (creating the entry); 0 for a null object.
   int AddObject(GameObjNotifier* object); // 0x585b70
   // Takes the object out of its entry and deletes the entry once it holds no object; 1 if the object was in it.
-  int RemoveObject(GameObjNotifier* object); // 0x585c70
-  int DetachEntry(ObjectEntry* entry); // 0x585d40: unlinks the node; 1 unless it is null
-  int DeleteEntry(ObjectEntry* entry); // 0x585d60
-  int AreAllLinked(); // 0x585d90
+  int RemoveObject(GameObjNotifier* object);    // 0x585c70
+  int DetachEntry(ObjectEntry* entry);          // 0x585d40: unlinks the node; 1 unless it is null
+  int DeleteEntry(ObjectEntry* entry);          // 0x585d60
+  int AreAllLinked();                           // 0x585d90
   ObjectEntry* FindEntry(const ObjectKey* key); // 0x585dc0
-  // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies in
-  // the range.
+  // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies
+  // in the range.
   ObjectEntry* FindEntryInRange(const FamilyRange* range); // 0x585e40
 
   int m_ok; // +0x0c
-private:
+  private:
   std::map<uint32_t, std::unique_ptr<ObjectEntry>> m_nodes;
   uint32_t m_nextId = 1;
 };
 
 extern ObjectDatabase* g_objectDatabase; // 0x6b90e4
-extern ObjectKeySet* g_unresolvedKeys; // 0x6b90e8: keys whose lookup found no object, for debugging
+extern ObjectKeySet* g_unresolvedKeys;   // 0x6b90e8: keys whose lookup found no object, for debugging
 
 // ---- lookups (view 0 = master copy) ------------------------------------------------------------------------
 

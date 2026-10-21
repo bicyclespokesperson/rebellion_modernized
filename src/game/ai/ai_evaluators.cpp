@@ -20,7 +20,8 @@ bool IsSectorKey(const ObjectKey& key)
   return KeyInFamilies(key, 0x80, 0x90) != 0;
 }
 
-// ---- ScoreVote: how much of the system's fleet strength the side's own fleets make up ------------------------------------
+// ---- ScoreVote: how much of the system's fleet strength the side's own fleets make up
+// ------------------------------------
 
 constexpr uint32_t kSystemVoteable = 1;
 constexpr uint32_t kSystemLocked = 0x80000000;
@@ -31,41 +32,39 @@ void ScoreVoteOf(AiTaskEvaluator* self, const ObjectKey* key, float* chance)
   AiSideController* owner = self->m_owner;
   float result = kMostAccepted;
   AiSystemEval* record = owner->m_systems.FindEval(*key);
-  if (record && (record->m_flags30.m_value & kSystemVoteable) && 0 < record->Stat(0xac))
-  {
-    if (record->m_flags28.m_value & kSystemLocked)
-    {
+  if (record && (record->m_flags30.m_value & kSystemVoteable) && 0 < record->Stat(0xac)) {
+    if (record->m_flags28.m_value & kSystemLocked) {
       result = 0.0f;
-    }
-    else if (GameObjNotifier* system = GetObjectInFamilies_90_98(self->m_view, key))
-    {
+    } else if (GameObjNotifier* system = GetObjectInFamilies_90_98(self->m_view, key)) {
       int present = 0;
       int absent = 0;
       FleetIterator fleets(system, 3);
-      for (fleets.Begin(); fleets.Current(); fleets.Advance())
-      {
+      for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         ObjectKey fleetKey;
         GetObjectKey(fleets.Current(), &fleetKey);
         AiFleetEval* fleet = owner->m_fleets.FindEval(fleetKey);
-        if (!fleet)
+        if (!fleet) {
           continue;
+        }
         (fleet->m_flags.m_value & kFleetPresent ? present : absent) += fleet->Stat(0x58);
       }
       result = static_cast<float>(present);
-      if (0 < absent)
+      if (0 < absent) {
         result = static_cast<float>(static_cast<double>(present) / absent);
-      if (kMostAccepted < result)
+      }
+      if (kMostAccepted < result) {
         result = kMostAccepted;
+      }
     }
   }
   *chance = result;
 }
 
-// ---- Prepare: choose the sectors the evaluator works on ----------------------------------------------------------------
+// ---- Prepare: choose the sectors the evaluator works on
+// ----------------------------------------------------------------
 
 // The flag masks of one candidate query: the sector must carry all of the `require` bits and none of the `forbid` bits.
-struct Query
-{
+struct Query {
   uint32_t requireA;
   uint32_t requireC;
   uint32_t forbidC;
@@ -76,33 +75,31 @@ constexpr uint32_t kRankAscending = 2;
 constexpr uint32_t kObjectSectorHeld = 0x8000000;
 constexpr uint32_t kUnfilled = 1;
 
-// One run of Prepare: asks the side controller for candidate sectors until `wanted` of them are taken into `picked`, then
-// hands the sectors over to the evaluator's object set.
+// One run of Prepare: asks the side controller for candidate sectors until `wanted` of them are taken into `picked`,
+// then hands the sectors over to the evaluator's object set.
 class SectorPass
 {
-public:
+  public:
   explicit SectorPass(AiTaskEvaluator* evaluator, bool findOrigin)
-  : e(evaluator),
-    owner(evaluator->m_owner),
-    sel(evaluator->m_selector)
+      : e(evaluator)
+      , owner(evaluator->m_owner)
+      , sel(evaluator->m_selector)
   {
     const int existing = static_cast<uint16_t>(e->m_objects->Count());
     have = existing != 0;
     wanted = existing;
-    if (e->m_x14 == 0)
-    {
-      if (e->m_x18 != 0)
+    if (e->m_x14 == 0) {
+      if (e->m_x18 != 0) {
         --wanted;
-    }
-    else
-    {
+      }
+    } else {
       ++wanted;
     }
-    if (findOrigin)
-    {
+    if (findOrigin) {
       AiTaskObject* first = e->m_objects->First();
-      if (first)
+      if (first) {
         origin = first->m_key;
+      }
     }
   }
 
@@ -129,13 +126,15 @@ public:
   }
   void NearOrigin(const Query& q)
   {
-    if (IsSectorKey(origin))
+    if (IsSectorKey(origin)) {
       sel.Add(owner->RankSectorsByDistance(&origin, q.requireA, 0, q.requireC, 0, 0, q.forbidC, kRankAscending));
+    }
   }
   void Spread(const Query& q)
   {
-    if (!have)
+    if (!have) {
       return;
+    }
     sel.Add(owner->RankSectorsByX3c(q.requireA, 0, q.requireC, 0, 0, q.forbidC, kRankAscending));
     sel.Add(owner->RankSectorsByX3c(q.requireA, 0, q.requireC, 0, 0, q.forbidC, kRankAscending));
   }
@@ -153,16 +152,18 @@ public:
   void ChooseWith(const Query& q, uint32_t stat, int descending, bool nearOrigin = true)
   {
     Rank(q, stat, descending);
-    if (nearOrigin)
+    if (nearOrigin) {
       NearOrigin(q);
+    }
     Spread(q);
     PickAndReset();
   }
 
   bool TakePicked(int first, int second)
   {
-    if (picked.FindByKey(&key))
+    if (picked.FindByKey(&key)) {
       return false;
+    }
     picked.AddWithId(NewOrNull<AiTaskObject>(key, first, second));
     ++count;
     return true;
@@ -170,19 +171,20 @@ public:
 
   void TakeSinglePicked(int first, int second = 0)
   {
-    if (PickedSector())
+    if (PickedSector()) {
       TakePicked(first, second);
+    }
   }
 
   void FillGroup(const Query& q, uint32_t stat, int firstValue)
   {
-    if (!NeedsMore())
+    if (!NeedsMore()) {
       return;
+    }
     Rank(q, stat, kRankDescending);
     Spread(q);
     PickKey();
-    while (PickedSector() && NeedsMore())
-    {
+    while (PickedSector() && NeedsMore()) {
       TakePicked(firstValue, 0);
       PickKey();
     }
@@ -195,20 +197,20 @@ public:
     FillGroup({0, 0x16, 8}, 0x26, 3);
     FillGroup({0, 6, 0}, 0x26, 3);
     FillGroup({0, 0x80000, lastForbid}, 4, 1);
-    if (NeedsMore())
+    if (NeedsMore()) {
       e->m_flags.m_value |= kUnfilled;
+    }
     Commit();
   }
 
   void Commit()
   {
-    if (picked.Count() == 0)
+    if (picked.Count() == 0) {
       return;
-    for (const auto& entry : e->m_objects->Entries())
-    {
+    }
+    for (const auto& entry : e->m_objects->Entries()) {
       AiTaskObject* object = entry.second.get();
-      if (AiSectorEval* sector = FindSector(object))
-      {
+      if (AiSectorEval* sector = FindSector(object)) {
         sector->m_flags2c.m_value &= ~kObjectSectorHeld;
         sector->ClearTarget();
         sector->m_x3c = 0;
@@ -216,11 +218,9 @@ public:
     }
     e->m_objects->Clear();
     auto position = picked.Entries().begin();
-    while (position != picked.Entries().end())
-    {
+    while (position != picked.Entries().end()) {
       AiTaskObject* object = position->second.get();
-      if (AiSectorEval* sector = FindSector(object))
-      {
+      if (AiSectorEval* sector = FindSector(object)) {
         sector->m_flags2c.m_value |= kObjectSectorHeld;
         sector->SetTarget(object->m_first, object->m_second);
         sector->m_x3c = object->m_id;
@@ -242,25 +242,28 @@ public:
   int wanted;
   int count = 0;
 
-private:
+  private:
   AiSectorEval* FindSector(AiTaskObject* object)
   {
     return static_cast<AiSectorEval*>(owner->m_sectors.Find(&object->m_key));
   }
 };
 
-// The first choice of the plans 2 and 7 (and the second of plan 7): the sector nearest the sectors the evaluator already has.
+// The first choice of the plans 2 and 7 (and the second of plan 7): the sector nearest the sectors the evaluator
+// already has.
 void ChooseNearOwnSectors(SectorPass& pass, int firstValue)
 {
   const Query near{0, 0, 2};
   pass.ChooseWith(near, 4, kRankAscending);
-  if (pass.PickedSector())
+  if (pass.PickedSector()) {
     pass.TakePicked(firstValue, 0);
+  }
 }
 
 } // namespace
 
-// ---- AiPlanEvaluator ----------------------------------------------------------------------------------------------------
+// ---- AiPlanEvaluator
+// ----------------------------------------------------------------------------------------------------
 
 void AiPlanEvaluator::Read(istream* in)
 {
@@ -275,8 +278,7 @@ void AiPlanEvaluator::Write(ostream* out)
 namespace
 {
 
-struct PlannerRequest
-{
+struct PlannerRequest {
   int* missionKind;
   int* missionSubtype;
   int* plannerKind;
@@ -314,132 +316,94 @@ void AiPlanEvaluator::GetPlannerRequest(int* missionKind, int* missionSubtype, i
   AiSideController* owner = m_owner;
   const int* planners = owner->m_plannerCount;
   const int usableCharacters = owner->m_characters.m_usableCount;
-  const auto flagSet = [owner](uint32_t mask)
-  {
+  const auto flagSet = [owner](uint32_t mask) {
     return (owner->m_flags.Get() & mask) != 0;
   };
   const int records = static_cast<uint16_t>(owner->m_systemRecords.Count());
 
   int count = planners[0];
-  if (request.CanStart() && count < 2 && 0 < usableCharacters)
-  {
+  if (request.CanStart() && count < 2 && 0 < usableCharacters) {
     request.Start(0x55, 0);
-  }
-  else if (request.CanRetire() && (2 < count || (usableCharacters == 0 && 0 < count)))
-  {
+  } else if (request.CanRetire() && (2 < count || (usableCharacters == 0 && 0 < count))) {
     request.Retire(0x55, 0);
   }
 
   count = planners[1];
-  if (request.CanStart() && !flagSet(0x2000000) && count < owner->Stat(0x2cc))
-  {
+  if (request.CanStart() && !flagSet(0x2000000) && count < owner->Stat(0x2cc)) {
     request.Start(0x53, 1);
-  }
-  else if (request.CanRetire() && (owner->Stat(0x2cc) < count || (flagSet(0x2000000) && 0 < count)))
-  {
+  } else if (request.CanRetire() && (owner->Stat(0x2cc) < count || (flagSet(0x2000000) && 0 < count))) {
     request.Retire(0x53, 1);
   }
 
   count = planners[2];
-  if (request.CanStart() && !flagSet(0x4000000) && count < owner->Stat(0x2d0))
-  {
+  if (request.CanStart() && !flagSet(0x4000000) && count < owner->Stat(0x2d0)) {
     request.Start(0x53, 2);
-  }
-  else if (request.CanRetire() && (owner->Stat(0x2d0) < count || (flagSet(0x4000000) && 0 < count)))
-  {
+  } else if (request.CanRetire() && (owner->Stat(0x2d0) < count || (flagSet(0x4000000) && 0 < count))) {
     request.Retire(0x53, 2);
   }
 
   count = planners[3];
-  if (request.CanStart() && !flagSet(0x8000000) && count < owner->Stat(0x2c8))
-  {
+  if (request.CanStart() && !flagSet(0x8000000) && count < owner->Stat(0x2c8)) {
     request.Start(0x53, 3);
-  }
-  else if (request.CanRetire() && (owner->Stat(0x2c8) < count || (flagSet(0x8000000) && 0 < count)))
-  {
+  } else if (request.CanRetire() && (owner->Stat(0x2c8) < count || (flagSet(0x8000000) && 0 < count))) {
     request.Retire(0x53, 3);
   }
 
   count = planners[11];
-  if (request.CanStart() && count < owner->Stat(0x214))
-  {
+  if (request.CanStart() && count < owner->Stat(0x214)) {
     request.Start(0x51, 0);
-  }
-  else if (request.CanRetire() && owner->Stat(0x214) < count)
-  {
+  } else if (request.CanRetire() && owner->Stat(0x214) < count) {
     request.Retire(0x51, 0);
   }
 
   count = planners[4];
-  if (request.CanStart() && flagSet(0x100) && count < owner->Stat(0x21c) + 1)
-  {
+  if (request.CanStart() && flagSet(0x100) && count < owner->Stat(0x21c) + 1) {
     request.Start(0x57, 0);
-  }
-  else if (request.CanRetire() && (owner->Stat(0x21c) + 1 < count || (!flagSet(0x100) && 0 < count)))
-  {
+  } else if (request.CanRetire() && (owner->Stat(0x21c) + 1 < count || (!flagSet(0x100) && 0 < count))) {
     request.Retire(0x57, 0);
   }
 
   count = planners[12];
-  if (request.CanStart() && count < owner->Stat(0x218))
-  {
+  if (request.CanStart() && count < owner->Stat(0x218)) {
     request.Start(0x56, 0);
-  }
-  else if (request.CanRetire() && owner->Stat(0x218) < count)
-  {
+  } else if (request.CanRetire() && owner->Stat(0x218) < count) {
     request.Retire(0x56, 0);
   }
 
-  if (m_view == 1)
-  {
+  if (m_view == 1) {
     count = planners[5];
-    if (request.CanStart() && count < 1 && flagSet(4))
-    {
+    if (request.CanStart() && count < 1 && flagSet(4)) {
       request.Start(0x6a, 0);
-    }
-    else if (request.CanRetire() && (1 < count || (!flagSet(4) && 0 < count)))
-    {
+    } else if (request.CanRetire() && (1 < count || (!flagSet(4) && 0 < count))) {
       request.Retire(0x6a, 0);
     }
   }
 
   count = planners[6];
-  if (request.CanStart() && count < 1)
-  {
+  if (request.CanStart() && count < 1) {
     request.Start(0x62, 0);
-  }
-  else if (request.CanRetire() && 1 < count)
-  {
+  } else if (request.CanRetire() && 1 < count) {
     request.Retire(0x62, 0);
   }
 
   count = planners[8];
-  if (request.CanStart() && flagSet(0x200) && count < 1)
-  {
+  if (request.CanStart() && flagSet(0x200) && count < 1) {
     request.Start(0x61, 0);
-  }
-  else if (request.CanRetire() && (1 < count || (!flagSet(0x200) && 0 < count)))
-  {
+  } else if (request.CanRetire() && (1 < count || (!flagSet(0x200) && 0 < count))) {
     request.Retire(0x61, 0);
   }
 
   count = planners[9];
-  if (request.CanStart() && count < records)
-  {
+  if (request.CanStart() && count < records) {
     request.Start(0x54, 5);
-  }
-  else if (request.CanRetire() && records < count)
-  {
+  } else if (request.CanRetire() && records < count) {
     request.Retire(0x54, 5);
   }
 
   count = planners[10];
-  if (request.CanStart() && count < owner->Stat(0x1bc) - records)
-  {
+  if (request.CanStart() && count < owner->Stat(0x1bc) - records) {
     request.Start(0x52, 6);
-  }
-  else if (request.CanRetire() && owner->Stat(0x1bc) - records < count)
-  {
+  } else if (request.CanRetire() && owner->Stat(0x1bc) - records < count) {
     request.Retire(0x52, 6);
   }
 }
@@ -451,22 +415,24 @@ void AiPlanEvaluator::GetAgentRequest(int* agentTarget, int* wantAgent)
   AiSideController* owner = m_owner;
   const int agents = owner->m_agentCount[0];
   const int wanted = owner->Stat(0x220);
-  if (*agentTarget == 0 && agents < wanted)
+  if (*agentTarget == 0 && agents < wanted) {
     *agentTarget = 1;
-  else if (wanted < agents)
+  } else if (wanted < agents) {
     *wantAgent = 1;
+  }
 
-  if (m_view != 2)
+  if (m_view != 2) {
     return;
+  }
   const int specialAgents = owner->m_agentCount[1];
   const bool characterWanted = (owner->m_flags.Get() & 0x80) != 0;
-  if (*agentTarget == 0 && owner->m_characters.m_usableCount == 0 && characterWanted && specialAgents == 0)
-  {
+  if (*agentTarget == 0 && owner->m_characters.m_usableCount == 0 && characterWanted && specialAgents == 0) {
     *agentTarget = 6;
     return;
   }
-  if (*wantAgent == 0 && (0 < owner->m_characters.m_usableCount || !characterWanted) && specialAgents == 1)
+  if (*wantAgent == 0 && (0 < owner->m_characters.m_usableCount || !characterWanted) && specialAgents == 1) {
     *wantAgent = 6;
+  }
 }
 
 void AiPlanEvaluator::Finish()
@@ -474,15 +440,18 @@ void AiPlanEvaluator::Finish()
   AiSideController* owner = m_owner;
   const int records = static_cast<uint16_t>(owner->m_tasks.Count());
   const int wanted = owner->Stat(0x224);
-  if (records < wanted)
+  if (records < wanted) {
     owner->m_tasks.CreateRecord();
-  else if (wanted < records)
+  } else if (wanted < records) {
     owner->m_tasks.DeleteFirstUnassigned();
+  }
 }
 
-// ---- plan 1 -------------------------------------------------------------------------------------------------------------
+// ---- plan 1
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan1::AiEvaluatorPlan1(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan1::AiEvaluatorPlan1(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -504,9 +473,11 @@ void AiEvaluatorPlan1::Prepare()
   pass.FillFromGroups(4);
 }
 
-// ---- plan 2 -------------------------------------------------------------------------------------------------------------
+// ---- plan 2
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan2::AiEvaluatorPlan2(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan2::AiEvaluatorPlan2(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -525,14 +496,17 @@ void AiEvaluatorPlan2::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan2::Prepare()
 {
   SectorPass pass(this, true);
-  if (pass.HasWork())
+  if (pass.HasWork()) {
     ChooseNearOwnSectors(pass, 5);
+  }
   pass.FillFromGroups(4);
 }
 
-// ---- plan 3 -------------------------------------------------------------------------------------------------------------
+// ---- plan 3
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan3::AiEvaluatorPlan3(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan3::AiEvaluatorPlan3(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -551,19 +525,16 @@ void AiEvaluatorPlan3::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan3::Prepare()
 {
   SectorPass pass(this, true);
-  if (pass.HasWork())
-  {
+  if (pass.HasWork()) {
     pass.ChooseWith({0, 0x408, 0x40000}, 0xc, kRankAscending);
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       const Query fallback{0, 0x408, 0};
       pass.Rank(fallback, 0x48, kRankAscending);
       pass.Spread(fallback);
       pass.PickAndReset();
     }
     int kind = 6;
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       kind = 5;
       pass.ChooseWith({0, 0, 2}, 3, kRankDescending);
     }
@@ -572,9 +543,11 @@ void AiEvaluatorPlan3::Prepare()
   pass.FillFromGroups(0);
 }
 
-// ---- plan 4 -------------------------------------------------------------------------------------------------------------
+// ---- plan 4
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan4::AiEvaluatorPlan4(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan4::AiEvaluatorPlan4(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -593,17 +566,18 @@ void AiEvaluatorPlan4::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan4::Prepare()
 {
   SectorPass pass(this, false);
-  if (pass.HasWork())
-  {
+  if (pass.HasWork()) {
     const int facilityKind = ChooseSector(pass.have, &pass.key);
     pass.TakeSinglePicked(4, facilityKind);
   }
   pass.FillFromGroups(0);
 }
 
-// ---- plan 5 -------------------------------------------------------------------------------------------------------------
+// ---- plan 5
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan5::AiEvaluatorPlan5(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan5::AiEvaluatorPlan5(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -622,11 +596,9 @@ void AiEvaluatorPlan5::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan5::Prepare()
 {
   SectorPass pass(this, true);
-  if (pass.HasWork())
-  {
+  if (pass.HasWork()) {
     pass.ChooseWith({0, 0x40000, 0}, 0x48, kRankDescending);
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       const Query unowned{0, 8, 0x20000000};
       pass.RankByAge(unowned, kRankDescending);
       pass.NearOrigin(unowned);
@@ -638,9 +610,11 @@ void AiEvaluatorPlan5::Prepare()
   pass.FillFromGroups(0);
 }
 
-// ---- plan 6 -------------------------------------------------------------------------------------------------------------
+// ---- plan 6
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan6::AiEvaluatorPlan6(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan6::AiEvaluatorPlan6(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -659,31 +633,27 @@ void AiEvaluatorPlan6::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan6::Prepare()
 {
   SectorPass pass(this, true);
-  if (pass.HasWork())
-  {
+  if (pass.HasWork()) {
     int kind = 6;
     const bool empireWithAccess = (m_owner->m_flags.Get() & 0x400) != 0 && m_view == 2;
-    if (empireWithAccess)
-    {
+    if (empireWithAccess) {
       pass.Rank({0, 0x80000408, 0}, 0x4b, kRankDescending);
       pass.PickAndReset();
     }
-    if (!pass.PickedSector())
+    if (!pass.PickedSector()) {
       pass.ChooseWith({0, 0x408, 0}, 0x4b, kRankDescending);
-    if (!pass.PickedSector())
-    {
+    }
+    if (!pass.PickedSector()) {
       pass.Rank({0, 0x408, 0}, 0x30, kRankDescending);
       pass.NearOrigin({0, 8, 0});
       pass.Spread({0, 0x408, 0});
       pass.PickAndReset();
     }
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       kind = 1;
       pass.ChooseWith({0, 0x80100, 0}, 4, kRankDescending);
     }
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       kind = 5;
       pass.ChooseWith({0, 0, 2}, 3, kRankDescending);
     }
@@ -692,9 +662,11 @@ void AiEvaluatorPlan6::Prepare()
   pass.FillFromGroups(0);
 }
 
-// ---- plan 7 -------------------------------------------------------------------------------------------------------------
+// ---- plan 7
+// -------------------------------------------------------------------------------------------------------------
 
-AiEvaluatorPlan7::AiEvaluatorPlan7(int view, AiSideController* owner) : AiPlanEvaluator(view, owner)
+AiEvaluatorPlan7::AiEvaluatorPlan7(int view, AiSideController* owner)
+    : AiPlanEvaluator(view, owner)
 {
 }
 
@@ -713,16 +685,15 @@ void AiEvaluatorPlan7::ScoreVote(const ObjectKey* key, float* chance)
 void AiEvaluatorPlan7::Prepare()
 {
   SectorPass pass(this, true);
-  if (pass.HasWork())
+  if (pass.HasWork()) {
     ChooseNearOwnSectors(pass, 5);
-  if (pass.NeedsMore())
-  {
+  }
+  if (pass.NeedsMore()) {
     const Query best{0, 0x408, 0x40000};
     pass.Rank(best, 0xc, kRankAscending);
     pass.Spread(best);
     pass.PickKey();
-    if (!pass.PickedSector())
-    {
+    if (!pass.PickedSector()) {
       pass.sel.Reset();
       const Query fallback{0, 0x408, 0};
       pass.Rank(fallback, 0x48, kRankAscending);
@@ -730,8 +701,7 @@ void AiEvaluatorPlan7::Prepare()
       pass.PickKey();
     }
     bool taken = false;
-    while (pass.PickedSector() && !taken)
-    {
+    while (pass.PickedSector() && !taken) {
       taken = pass.TakePicked(6, 0);
       pass.PickKey();
     }

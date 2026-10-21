@@ -18,35 +18,27 @@ class GameObjNotifier;
 // 3 fighter squadrons, 4 and 5 the two kinds of defense facilities.
 class SystemForcesWindow : public CustomDialogBox
 {
-public:
-  SystemForcesWindow(HINSTANCE instance,
-                     int x,
-                     int y,
-                     int width,
-                     int height,
-                     CoolWindow* parent,
-                     uint32_t childId,
+  public:
+  SystemForcesWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                      GameObjNotifier* system); // 0x4a7790
-  ~SystemForcesWindow() override; // 0x4a78f0 (scalar deleting destructor 0x4a78d0)
+  ~SystemForcesWindow() override;              // 0x4a78f0 (scalar deleting destructor 0x4a78d0)
 
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // slot 5, 0x4a86d0
-  void SaveState(ostream* out) override; // slot 9, 0x4aa6d0
-  void LoadState(istream* in) override; // slot 10, 0x4aa760
-  void OnCreate1() override; // slot 14, 0x4a8790
-  void DrawOverlay(HDC dc) override; // slot 17, 0x4a9800
-  void OnCommand(int a, int command, int c) override; // slot 18, 0x4a9890
+  void SaveState(ostream* out) override;                                   // slot 9, 0x4aa6d0
+  void LoadState(istream* in) override;                                    // slot 10, 0x4aa760
+  void OnCreate1() override;                                               // slot 14, 0x4a8790
+  void DrawOverlay(HDC dc) override;                                       // slot 17, 0x4a9800
+  void OnCommand(int a, int command, int c) override;                      // slot 18, 0x4a9890
   void OnKeyDown(WPARAM key, LPARAM lParam) override; // slot 19, 0x4aa2b0: Escape closes, left and right change tab
-  void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override; // slot 22, 0x4a7a20
+  void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;    // slot 22, 0x4a7a20
   void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override; // slot 23, 0x4a7b40
-  void OnChildMoved(const ObjectKey* key,
-                    GameObjNotifier* object,
-                    const ObjectKey* otherKey,
-                    GameObjNotifier* otherObject) override; // slot 24, 0x4a7f10
+  void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+                    GameObjNotifier* otherObject) override;                     // slot 24, 0x4a7f10
   void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override; // slot 25, 0x4a7f50
-  ObjectKey GetKeyAt(int x, int y) override; // slot 26, 0x4aa380
-  void ShowObjectPage(const ObjectKey* key) override; // slot 27, 0x4aa4d0
+  ObjectKey GetKeyAt(int x, int y) override;                                    // slot 26, 0x4aa380
+  void ShowObjectPage(const ObjectKey* key) override;                           // slot 27, 0x4aa4d0
   ObjectKey GetDropKeyAt(int x, int y) override; // slot 28, 0x4aa470 (shared with the other system windows)
-  int GetMinimizedIconBitmapId() override; // slot 29, 0x4aa4a0: the bitmap of the controlling side
+  int GetMinimizedIconBitmapId() override;       // slot 29, 0x4aa4a0: the bitmap of the controlling side
 
   // Shows the tab `tab` (1-5) unless it is the shown one; returns whether it changed.
   int ShowTab(int tab); // 0x4a90d0
@@ -54,21 +46,23 @@ public:
   void AddRow(GameObjNotifier* object, DibBitmap* overlay); // 0x4a9ab0
   // The title bar and row pictures of the controlling side, and the pictures of the tabs (greyed when empty).
   void LoadHeaderBitmaps(); // 0x4a9ce0
+  // The system the window is about; closes the window when the system is gone.
+  GameObjNotifier* GetSystem();
 
-  uint32_t m_unknown140; // +0x140
-  ObjectKey m_systemKey; // +0x144
-  int m_side; // +0x148 the side that controls the system
-  GalaxyWindow* m_galaxy; // +0x14c
-  uint8_t m_unk150[8]; // +0x150
-  int m_tab; // +0x158 the shown tab, 0 before the first
-  HMODULE m_gokres; // +0x15c GOKRES.DLL (resource slot 10)
-  CoolTabControl* m_tabs; // +0x160 child id 100
-  CoolDragList* m_list; // +0x164 child id 0xcb
-  CoolListItemList* m_items; // +0x168
-  CoolLabel* m_tabLabel; // +0x16c owned, the name of the shown tab
-  CoolLabel* m_infoLabel; // +0x170 owned, "troops required" on the troop tab
-  DibBitmap* m_rowOverlay; // +0x174 owned, drawn over the selected pictures
-  DibBitmap* m_unused178; // +0x178 owned, never created
-  DibBitmap* m_headerActive; // +0x17c the title bar while the window is in front
+  uint32_t m_unknown140;       // +0x140
+  ObjectKey m_systemKey;       // +0x144
+  int m_side;                  // +0x148 the side that controls the system
+  GalaxyWindow* m_galaxy;      // +0x14c
+  uint8_t m_unk150[8];         // +0x150
+  int m_tab;                   // +0x158 the shown tab, 0 before the first
+  HMODULE m_gokres;            // +0x15c GOKRES.DLL (resource slot 10)
+  CoolTabControl* m_tabs;      // +0x160 child id 100
+  CoolDragList* m_list;        // +0x164 child id 0xcb
+  CoolListItemList* m_items;   // +0x168
+  CoolLabel* m_tabLabel;       // +0x16c owned, the name of the shown tab
+  CoolLabel* m_infoLabel;      // +0x170 owned, "troops required" on the troop tab
+  DibBitmap* m_rowOverlay;     // +0x174 owned, drawn over the selected pictures
+  DibBitmap* m_unused178;      // +0x178 owned, never created
+  DibBitmap* m_headerActive;   // +0x17c the title bar while the window is in front
   DibBitmap* m_headerInactive; // +0x180
 };

@@ -28,8 +28,9 @@ CharacterData* dataOf(Character* character)
 int Character::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx)
 {
   int result = Role::OnParentChanged(oldParent, newParent, ctx);
-  if (result)
+  if (result) {
     result = UpdateCanHeal(ctx);
+  }
   return result;
 }
 
@@ -37,38 +38,47 @@ int Character::OnCreatedChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnCreatedChanged(newValue, ctx);
   SdRecordExt25* record = nullptr;
-  if (result)
-  {
+  if (result) {
     record = GetCharacterRecord();
     result = record != nullptr;
   }
-  if (result)
-  {
+  if (result) {
     const int jediProbability = record->m_moreFields[0];
     const int knownJedi = record->m_moreFields[1];
     result = SetForceAware(knownJedi, ctx);
-    if (result)
+    if (result) {
       result = SetForcePotential(PercentChance(jediProbability), ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateForceExperience(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateForce(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedDiplomacy(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedEspionage(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedShipyardRD(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedTrainingFacilRD(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedConstructionYardRD(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedCombat(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedLeadership(ctx);
-    if (result)
+    }
+    if (result) {
       result = UpdateEnhancedLoyalty(ctx);
+    }
   }
   return result;
 }
@@ -76,19 +86,20 @@ int Character::OnCreatedChanged(int newValue, NotifyContext* ctx)
 int Character::OnEnrouteChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnEnrouteChanged(newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateHealing(ctx);
+  }
   return result;
 }
 
 int Character::OnUsableChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnUsableChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateDiscoveringForceUser(ctx);
-    if (result)
+    if (result) {
       result = RaiseEscapeRequest(ctx);
+    }
   }
   return result;
 }
@@ -96,8 +107,7 @@ int Character::OnUsableChanged(int newValue, NotifyContext* ctx)
 int Character::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnDestroyedChanged(newValue, ctx);
-  if (newValue != 0)
-  {
+  if (newValue != 0) {
     result = UpdateCommandKind(ctx) && result;
     result = UpdateCanHeal(ctx) && result;
     result = SetCanEscape(0, ctx) && result;
@@ -115,8 +125,9 @@ int Character::OnAutoroutingChanged(int newValue, NotifyContext* ctx)
 int Character::OnAdriftChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnAdriftChanged(newValue, ctx);
-  if (m_flagsAc & kCapturedFlag)
+  if (m_flagsAc & kCapturedFlag) {
     result = SetUncapturedState(ctx);
+  }
   return result;
 }
 
@@ -128,14 +139,13 @@ int Character::OnMovingBetweenMissionsChanged(int newValue, NotifyContext* ctx)
 int Character::OnOnMissionChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnOnMissionChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateDiscoveringForceUser(ctx);
-    if (result)
-    {
+    if (result) {
       result = UpdateCommandKind(ctx);
-      if (result)
+      if (result) {
         result = RaiseEscapeRequest(ctx);
+      }
     }
   }
   return result;
@@ -144,72 +154,81 @@ int Character::OnOnMissionChanged(int newValue, NotifyContext* ctx)
 int Character::OnMissionChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int result = Role::OnMissionChanged(oldKey, newKey, ctx);
-  if (result && !newKey->IsSet())
+  if (result && !newKey->IsSet()) {
     result = SetMissionHyperdriveModifier(g_gnprtbDefault, ctx);
+  }
   return result;
 }
 
 int Character::OnBaseDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseDiplomacyChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedDiplomacy(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseEspionageChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseEspionageChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedEspionage(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseShipyardRDChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseShipyardRDChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedShipyardRD(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseTrainingFacilRDChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseTrainingFacilRDChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedTrainingFacilRD(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseConstructionYardRDChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseConstructionYardRDChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedConstructionYardRD(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseCombatChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseCombatChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedCombat(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseLeadershipChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseLeadershipChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedLeadership(ctx);
+  }
   return result;
 }
 
 int Character::OnBaseLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = Role::OnBaseLoyaltyChanged(oldValue, newValue, ctx);
-  if (result)
+  if (result) {
     result = UpdateEnhancedLoyalty(ctx);
+  }
   return result;
 }
 
@@ -218,19 +237,18 @@ int Character::OnBaseLoyaltyChanged(int oldValue, int newValue, NotifyContext* c
 int Character::OnForceChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = newValue != 0;
-  if (result)
+  if (result) {
     result = UpdateEnhancedDiplomacy(ctx);
-  if (result)
-  {
+  }
+  if (result) {
     result = UpdateEnhancedEspionage(ctx);
-    if (result)
-    {
+    if (result) {
       result = UpdateEnhancedCombat(ctx);
-      if (result)
-      {
+      if (result) {
         result = UpdateFastHeal(ctx);
-        if (result)
+        if (result) {
           result = UpdateDiscoveringForceUser(ctx);
+        }
       }
     }
   }
@@ -255,22 +273,20 @@ int Character::OnLeadershipAdjustmentChanged(int oldValue, int newValue, NotifyC
 int Character::OnInjuryChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = UpdateEnhancedCombat(ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateHealing(ctx);
-    if (result)
-    {
+    if (result) {
       result = UpdateCommandKind(ctx);
-      if (result)
-      {
-        if (newValue != 0 && (m_flags78 & kCanResignFlag))
-        {
+      if (result) {
+        if (newValue != 0 && (m_flags78 & kCanResignFlag)) {
           const ObjectKey missionKey(m_missionKey);
-          if (missionKey.IsSet())
+          if (missionKey.IsSet()) {
             result = SetMissionResignRequest(1, ctx);
+          }
         }
-        if (result)
+        if (result) {
           result = SetDamaged(newValue != 0, ctx);
+        }
       }
     }
   }
@@ -283,22 +299,17 @@ int Character::OnCommandKindChanged(int oldValue, int newValue, NotifyContext* c
   bool named = true;
   ResourceStringId nameId = {static_cast<int16_t>(record->m_small), static_cast<int16_t>(record->m_small2)};
   const auto kind = static_cast<unsigned>(m_commandKind);
-  if (kind < sizeof(kCommandNameOffsets) / sizeof(kCommandNameOffsets[0]))
-  {
+  if (kind < sizeof(kCommandNameOffsets) / sizeof(kCommandNameOffsets[0])) {
     nameId.m_id = static_cast<int16_t>(nameId.m_id + kCommandNameOffsets[kind]);
-  }
-  else
-  {
+  } else {
     named = false;
   }
   int result = 0;
-  if (named)
-  {
+  if (named) {
     std::string name = LoadStringResource(&nameId);
     result = SetName(&name, ctx);
   }
-  if (result)
-  {
+  if (result) {
     ObjectKey unset;
     result = SetCommandingKey(&unset, ctx);
   }
@@ -314,8 +325,9 @@ int Character::OnStateChanged(int oldValue, int newValue, NotifyContext* ctx)
     ok = SetHolderKey(&unset) && captured;
   }
   ok = SetAutorouting(1, ctx) && ok;
-  if (m_missionKey.IsSet())
+  if (m_missionKey.IsSet()) {
     ok = SetMissionRemoveRequest(1, ctx) && ok;
+  }
   const int hub = PostSourceEvent(0x30a, this, oldValue, newValue, ctx);
   return hub && ok ? 1 : 0;
 }
@@ -333,20 +345,17 @@ int Character::OnEncounterChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyCo
 int Character::OnCapturedChanged(int newValue, NotifyContext* ctx)
 {
   int result = SetCanEscape(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     result = SetEscapeRequest(0, ctx);
-    if (result)
-    {
+    if (result) {
       result = UpdateControlKind(ctx);
-      if (result)
-      {
+      if (result) {
         result = UpdateCanHeal(ctx);
-        if (result)
-        {
+        if (result) {
           result = UpdateDiscoveringForceUser(ctx);
-          if (result)
+          if (result) {
             result = UpdateCommandKind(ctx);
+          }
         }
       }
     }

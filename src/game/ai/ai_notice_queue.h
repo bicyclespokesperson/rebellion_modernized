@@ -9,7 +9,7 @@
 // The notes the AI player was sent, in AiNoticeGroups by group id. The tree holds the IdNode part of the groups.
 class AiNoticeQueue
 {
-public:
+  public:
   AiNoticeQueue();
   ~AiNoticeQueue();
   void Clear();
@@ -25,9 +25,11 @@ public:
   {
     const auto& entries = m_groups.Storage();
     auto position = entries.cbegin();
-    for (; position != entries.cend(); ++position)
-      if (position->second.get() == group)
+    for (; position != entries.cend(); ++position) {
+      if (position->second.get() == group) {
         return position;
+      }
+    }
     return position;
   }
   uint32_t AddWithId(AiNoticeGroup* group);
@@ -41,6 +43,6 @@ public:
 
   int m_x0c;
 
-private:
+  private:
   IdRegistry<AiNoticeGroup> m_groups;
 };

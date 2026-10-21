@@ -2,15 +2,41 @@
 
 // ---- KeyPairPayload ---------------------------------------------------------------------------------------
 
-KeyPairPayload::KeyPairPayload() : KeyedNotifPayload(), m_keyA(), m_keyB()
+KeyPairPayload::KeyPairPayload()
+    : KeyedNotifPayload()
+    , m_keyA()
+    , m_keyB()
 {
 }
 
 KeyPairPayload::~KeyPairPayload() = default;
 
+int KeyPairPayload::ReadPayload(istream* in)
+{
+  const int result = ReadKeyed(in);
+  if (result) {
+    m_keyA.Read(in);
+    m_keyB.Read(in);
+  }
+  return result;
+}
+
+int KeyPairPayload::WritePayload(ostream* out)
+{
+  const int result = WriteKeyed(out);
+  if (result) {
+    m_keyA.Write(out);
+    m_keyB.Write(out);
+  }
+  return result;
+}
+
 // ---- IntPairPayload ---------------------------------------------------------------------------------------
 
-IntPairPayload::IntPairPayload() : KeyedNotifPayload(), m_valueA(0), m_valueB(0)
+IntPairPayload::IntPairPayload()
+    : KeyedNotifPayload()
+    , m_valueA(0)
+    , m_valueB(0)
 {
 }
 
@@ -19,8 +45,7 @@ IntPairPayload::~IntPairPayload() = default;
 int IntPairPayload::ReadPayload(istream* in)
 {
   int result = ReadKeyed(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_valueA);
     ReadValue32(in, &m_valueB);
   }
@@ -30,8 +55,7 @@ int IntPairPayload::ReadPayload(istream* in)
 int IntPairPayload::WritePayload(ostream* out)
 {
   int result = WriteKeyed(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_valueA);
     WriteValue32(out, &m_valueB);
   }
@@ -40,7 +64,12 @@ int IntPairPayload::WritePayload(ostream* out)
 
 // ---- IntQuadPayload ---------------------------------------------------------------------------------------
 
-IntQuadPayload::IntQuadPayload() : KeyedNotifPayload(), m_valueA(0), m_valueB(0), m_valueC(0), m_valueD(0)
+IntQuadPayload::IntQuadPayload()
+    : KeyedNotifPayload()
+    , m_valueA(0)
+    , m_valueB(0)
+    , m_valueC(0)
+    , m_valueD(0)
 {
 }
 
@@ -49,8 +78,7 @@ IntQuadPayload::~IntQuadPayload() = default;
 int IntQuadPayload::ReadPayload(istream* in)
 {
   int result = ReadKeyed(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_valueA);
     ReadValue32(in, &m_valueB);
     ReadValue32(in, &m_valueC);
@@ -62,8 +90,7 @@ int IntQuadPayload::ReadPayload(istream* in)
 int IntQuadPayload::WritePayload(ostream* out)
 {
   int result = WriteKeyed(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_valueA);
     WriteValue32(out, &m_valueB);
     WriteValue32(out, &m_valueC);
@@ -74,7 +101,10 @@ int IntQuadPayload::WritePayload(ostream* out)
 
 // ---- StringPairPayload ------------------------------------------------------------------------------------
 
-StringPairPayload::StringPairPayload() : KeyedNotifPayload(), m_textA(), m_textB()
+StringPairPayload::StringPairPayload()
+    : KeyedNotifPayload()
+    , m_textA()
+    , m_textB()
 {
 }
 
@@ -83,8 +113,7 @@ StringPairPayload::~StringPairPayload() = default;
 int StringPairPayload::ReadPayload(istream* in)
 {
   int result = ReadKeyed(in);
-  if (result)
-  {
+  if (result) {
     ReadLegacyString(in, m_textA);
     ReadLegacyString(in, m_textB);
   }
@@ -94,8 +123,7 @@ int StringPairPayload::ReadPayload(istream* in)
 int StringPairPayload::WritePayload(ostream* out)
 {
   int result = WriteKeyed(out);
-  if (result)
-  {
+  if (result) {
     WriteLegacyString(out, m_textA);
     WriteLegacyString(out, m_textB);
   }
@@ -104,7 +132,8 @@ int StringPairPayload::WritePayload(ostream* out)
 
 // ---- NullableKeyPairPayload -------------------------------------------------------------------------------
 
-NullableKeyPairPayload::NullableKeyPairPayload() : KeyedNotifPayload()
+NullableKeyPairPayload::NullableKeyPairPayload()
+    : KeyedNotifPayload()
 {
   m_keyA.m_value = 0;
   m_keyB.m_value = 0;
@@ -115,10 +144,9 @@ NullableKeyPairPayload::~NullableKeyPairPayload() = default;
 int NullableKeyPairPayload::ReadPayload(istream* in)
 {
   int result = ReadKeyed(in);
-  if (result)
-  {
-    reinterpret_cast<ObjectKey*>(&m_keyA)->Read(in);
-    reinterpret_cast<ObjectKey*>(&m_keyB)->Read(in);
+  if (result) {
+    ReadValue32(in, &m_keyA.m_value);
+    ReadValue32(in, &m_keyB.m_value);
   }
   return result;
 }
@@ -126,17 +154,21 @@ int NullableKeyPairPayload::ReadPayload(istream* in)
 int NullableKeyPairPayload::WritePayload(ostream* out)
 {
   int result = WriteKeyed(out);
-  if (result)
-  {
-    reinterpret_cast<ObjectKey*>(&m_keyA)->Write(out);
-    reinterpret_cast<ObjectKey*>(&m_keyB)->Write(out);
+  if (result) {
+    WriteValue32(out, &m_keyA.m_value);
+    WriteValue32(out, &m_keyB.m_value);
   }
   return result;
 }
 
 // ---- ChecksumRecord ---------------------------------------------------------------------------------------
 
-ChecksumRecord::ChecksumRecord() : m_value00(0), m_value04(0), m_value08(0), m_crcA(), m_crcB()
+ChecksumRecord::ChecksumRecord()
+    : m_value00(0)
+    , m_value04(0)
+    , m_value08(0)
+    , m_crcA()
+    , m_crcB()
 {
 }
 

@@ -22,8 +22,7 @@ ObjectKey KeyOfObject(GameObjNotifier* object)
   return key;
 }
 
-struct SystemMasks
-{
+struct SystemMasks {
   uint32_t requireA, requireB, requireC, forbidA, forbidB, forbidC;
 
   bool Matches(const AiSystemEval* system) const
@@ -31,19 +30,24 @@ struct SystemMasks
     const uint32_t a = system->m_flags28.m_value;
     const uint32_t b = system->m_flags2c.m_value;
     const uint32_t c = system->m_flags30.m_value;
-    return (a & requireA) == requireA && (forbidA & a) == 0 && (b & requireB) == requireB && (forbidB & b) == 0 &&
-           (c & requireC) == requireC && (forbidC & c) == 0;
+    return (a & requireA) == requireA && (forbidA & a) == 0 && (b & requireB) == requireB && (forbidB & b) == 0
+           && (c & requireC) == requireC && (forbidC & c) == 0;
   }
 };
 
 } // namespace
 
-AiSectorEval::AiSectorEval() : ObjectKeyNode(), m_flags24(0), m_flags28(0), m_flags2c(0)
+AiSectorEval::AiSectorEval()
+    : ObjectKeyNode()
+    , m_flags24(0)
+    , m_flags28(0)
+    , m_flags2c(0)
 {
   m_view = 0;
   m_owner = nullptr;
-  for (AiSystemEval*& system : m_systems)
+  for (AiSystemEval*& system : m_systems) {
     system = nullptr;
+  }
   m_dirty = 0;
   m_x38 = 0;
   m_x3c = 0;
@@ -53,12 +57,17 @@ AiSectorEval::AiSectorEval() : ObjectKeyNode(), m_flags24(0), m_flags28(0), m_fl
   m_y = 0;
 }
 
-AiSectorEval::AiSectorEval(int view) : ObjectKeyNode(), m_flags24(0), m_flags28(0), m_flags2c(0)
+AiSectorEval::AiSectorEval(int view)
+    : ObjectKeyNode()
+    , m_flags24(0)
+    , m_flags28(0)
+    , m_flags2c(0)
 {
   m_view = view;
   m_owner = nullptr;
-  for (AiSystemEval*& system : m_systems)
+  for (AiSystemEval*& system : m_systems) {
     system = nullptr;
+  }
   m_x38 = 0;
   m_x3c = 0;
   m_x30 = 0;
@@ -69,8 +78,9 @@ AiSectorEval::AiSectorEval(int view) : ObjectKeyNode(), m_flags24(0), m_flags28(
 AiSectorEval::~AiSectorEval()
 {
   m_owner = nullptr;
-  for (AiSystemEval*& system : m_systems)
+  for (AiSystemEval*& system : m_systems) {
     system = nullptr;
+  }
 }
 
 void AiSectorEval::Attach(Sector* sector, AiSystemEvalSet* systems)
@@ -85,8 +95,7 @@ void AiSectorEval::Attach(Sector* sector, AiSystemEvalSet* systems)
   SystemIterator iterator(sector, 4);
   iterator.Begin();
   int index = 0;
-  while (iterator.m_current)
-  {
+  while (iterator.m_current) {
     ObjectKey systemKey = KeyOfObject(iterator.m_current);
     SetSystem(static_cast<uint16_t>(index), &systemKey, systems);
     iterator.Advance();
@@ -110,13 +119,13 @@ void AiSectorEval::ReadRecord(istream* in, AiSystemEvalSet* systems)
   ReadValue32(in, &m_x34);
   ReadValue16(in, &m_x);
   ReadValue16(in, &m_y);
-  for (uint16_t index = 0; index < kSystemCount; ++index)
-  {
+  for (uint16_t index = 0; index < kSystemCount; ++index) {
     key.Read(in);
     SetSystem(index, &key, systems);
   }
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     ReadValue32(in, &value);
+  }
   m_dirty = 1;
 }
 
@@ -134,14 +143,14 @@ void AiSectorEval::Save(ostream* out)
   WriteValue32(out, &m_x34);
   WriteValue16(out, &m_x);
   WriteValue16(out, &m_y);
-  for (AiSystemEval* system : m_systems)
-  {
+  for (AiSystemEval* system : m_systems) {
     ObjectKey key;
     system->GetKey(&key);
     key.Write(out);
   }
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     WriteValue32(out, &value);
+  }
 }
 
 void AiSectorEval::SetTarget(int x, int y)
@@ -169,33 +178,29 @@ void AiSectorEval::SetPeer(int value)
 int AiSectorEval::ScoreByAge()
 {
   int total = 0;
-  for (AiSystemEval* system : m_systems)
-  {
-    if ((system->m_flags30.m_value & 1) == 0 && (system->m_flags30.m_value & 0x20) != 0)
+  for (AiSystemEval* system : m_systems) {
+    if ((system->m_flags30.m_value & 1) == 0 && (system->m_flags30.m_value & 0x20) != 0) {
       total += system->DaysSinceTouched();
+    }
   }
-  if (0 < total)
+  if (0 < total) {
     total = total / (Stat(0x84) + Stat(0x80));
+  }
   return total;
 }
 
-AiRankedList* AiSectorEval::RankSystemsByStat(uint32_t requireA,
-                                              uint32_t requireB,
-                                              uint32_t requireC,
-                                              uint32_t forbidA,
-                                              uint32_t forbidB,
-                                              uint32_t forbidC,
-                                              uint32_t statIndex,
-                                              int descending)
+AiRankedList* AiSectorEval::RankSystemsByStat(uint32_t requireA, uint32_t requireB, uint32_t requireC, uint32_t forbidA,
+                                              uint32_t forbidB, uint32_t forbidC, uint32_t statIndex, int descending)
 {
   const SystemMasks masks{requireA, requireB, requireC, forbidA, forbidB, forbidC};
   auto* list = NewOrNull<AiRankedList>(descending);
-  if (!list)
+  if (!list) {
     return list;
-  for (AiSystemEval* system : m_systems)
-  {
-    if (!masks.Matches(system))
+  }
+  for (AiSystemEval* system : m_systems) {
+    if (!masks.Matches(system)) {
       continue;
+    }
     ObjectKey key;
     auto* item = NewOrNull<AiRankedItem>(*system->GetKey(&key), system->m_stat[statIndex & 0xffff]);
     list->AddItem(item);
@@ -204,22 +209,18 @@ AiRankedList* AiSectorEval::RankSystemsByStat(uint32_t requireA,
   return list;
 }
 
-AiRankedList* AiSectorEval::RankSystemsByAge(uint32_t requireA,
-                                             uint32_t requireB,
-                                             uint32_t requireC,
-                                             uint32_t forbidA,
-                                             uint32_t forbidB,
-                                             uint32_t forbidC,
-                                             int descending)
+AiRankedList* AiSectorEval::RankSystemsByAge(uint32_t requireA, uint32_t requireB, uint32_t requireC, uint32_t forbidA,
+                                             uint32_t forbidB, uint32_t forbidC, int descending)
 {
   const SystemMasks masks{requireA, requireB, requireC, forbidA, forbidB, forbidC};
   auto* list = NewOrNull<AiRankedList>(descending);
-  if (!list)
+  if (!list) {
     return list;
-  for (AiSystemEval* system : m_systems)
-  {
-    if (!masks.Matches(system))
+  }
+  for (AiSystemEval* system : m_systems) {
+    if (!masks.Matches(system)) {
       continue;
+    }
     ObjectKey key;
     system->GetKey(&key);
     auto* item = NewOrNull<AiRankedItem>(key, system->DaysSinceTouched());
@@ -229,43 +230,36 @@ AiRankedList* AiSectorEval::RankSystemsByAge(uint32_t requireA,
   return list;
 }
 
-AiRankedList* AiSectorEval::RankSystemsByDistance(const ObjectKey* target,
-                                                  uint32_t requireA,
-                                                  uint32_t requireB,
-                                                  uint32_t requireC,
-                                                  uint32_t forbidA,
-                                                  uint32_t forbidB,
-                                                  uint32_t forbidC,
-                                                  int descending)
+AiRankedList* AiSectorEval::RankSystemsByDistance(const ObjectKey* target, uint32_t requireA, uint32_t requireB,
+                                                  uint32_t requireC, uint32_t forbidA, uint32_t forbidB,
+                                                  uint32_t forbidC, int descending)
 {
   const SystemMasks masks{requireA, requireB, requireC, forbidA, forbidB, forbidC};
   AiRankedList* list = nullptr;
   ObjectKey key = *target;
   bool resolved = false;
-  while (!resolved)
-  {
-    if (InFamilies(key.Family(), 0x90, 0x98))
+  while (!resolved) {
+    if (InFamilies(key.Family(), 0x90, 0x98)) {
       break;
+    }
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_view, &key);
-    if (!object || !object->m_parent)
+    if (!object || !object->m_parent) {
       break;
+    }
     ObjectKey parentKey;
     key = *GetObjectKey(object->m_parent, &parentKey);
   }
-  if (InFamilies(key.Family(), 0x90, 0x98))
-  {
+  if (InFamilies(key.Family(), 0x90, 0x98)) {
     AiSystemEval* targetSystem = m_owner->m_systems.FindEval(key);
-    if (targetSystem)
-    {
+    if (targetSystem) {
       const auto targetX = static_cast<int16_t>(targetSystem->m_position);
       const auto targetY = static_cast<int16_t>(targetSystem->m_position >> 16);
       list = NewOrNull<AiRankedList>(descending);
-      if (list)
-      {
-        for (AiSystemEval* system : m_systems)
-        {
-          if (!masks.Matches(system))
+      if (list) {
+        for (AiSystemEval* system : m_systems) {
+          if (!masks.Matches(system)) {
             continue;
+          }
           const int distance = m_owner->DistanceSquared(targetX, targetY, static_cast<int16_t>(system->m_position),
                                                         static_cast<int16_t>(system->m_position >> 16));
           ObjectKey systemKey;
@@ -279,22 +273,18 @@ AiRankedList* AiSectorEval::RankSystemsByDistance(const ObjectKey* target,
   return list;
 }
 
-AiRankedList* AiSectorEval::RankSystemsRandomly(uint32_t requireA,
-                                                uint32_t requireB,
-                                                uint32_t requireC,
-                                                uint32_t forbidA,
-                                                uint32_t forbidB,
-                                                uint32_t forbidC,
-                                                int descending)
+AiRankedList* AiSectorEval::RankSystemsRandomly(uint32_t requireA, uint32_t requireB, uint32_t requireC,
+                                                uint32_t forbidA, uint32_t forbidB, uint32_t forbidC, int descending)
 {
   const SystemMasks masks{requireA, requireB, requireC, forbidA, forbidB, forbidC};
   auto* list = NewOrNull<AiRankedList>(descending);
-  if (!list)
+  if (!list) {
     return list;
-  for (AiSystemEval* system : m_systems)
-  {
-    if (!masks.Matches(system))
+  }
+  for (AiSystemEval* system : m_systems) {
+    if (!masks.Matches(system)) {
       continue;
+    }
     ObjectKey key;
     system->GetKey(&key);
     auto* item = NewOrNull<AiRankedItem>(key, GameplayRandomNext(10));
@@ -308,8 +298,9 @@ ObjectKey* AiSectorEval::GetSystemKey(ObjectKey* out, uint32_t index)
 {
   ObjectKey key;
   AiSystemEval* system = m_systems[index & 0xffff];
-  if (system)
+  if (system) {
     key = system->m_key;
+  }
   *out = key;
   return out;
 }
@@ -322,42 +313,46 @@ void AiSectorEval::MarkDirty()
 
 int AiSectorEval::Refresh()
 {
-  if (m_dirty == 0)
+  if (m_dirty == 0) {
     return 0;
+  }
   m_dirty = 0;
   m_flags24.m_value = 0;
   m_flags28.m_value &= 0x30000000;
   m_flags2c.m_value &= 0x28000000;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
   Stat(0x144) = 100000;
-  for (AiSystemEval* system : m_systems)
-  {
+  for (AiSystemEval* system : m_systems) {
     system->Refresh();
     Accumulate(system->m_stat, &system->m_flags28.m_value, &system->m_flags30.m_value, &system->m_flags2c.m_value);
   }
-  if ((m_flags2c.m_value & 0x100) == 0)
+  if ((m_flags2c.m_value & 0x100) == 0) {
     Stat(0x144) = 0;
-  if (0 < Stat(0x7c))
-    Stat(0x8c) = Stat(0x8c) / Stat(0x7c);
-  if (Stat(0x70) == 10)
-    m_flags28.m_value |= 0x40000000;
-  if (Stat(0x74) == 10)
-    m_flags2c.m_value |= 1;
-  if (Stat(0x78) == 10)
-    m_flags2c.m_value |= 2;
-  if (0 < Stat(0x19c))
-    m_flags2c.m_value |= 0x80;
-  if (m_x30 == 0)
-  {
-    if (m_x38 != 0)
-      Stat(0x18c) = 1;
   }
-  else
-  {
+  if (0 < Stat(0x7c)) {
+    Stat(0x8c) = Stat(0x8c) / Stat(0x7c);
+  }
+  if (Stat(0x70) == 10) {
+    m_flags28.m_value |= 0x40000000;
+  }
+  if (Stat(0x74) == 10) {
+    m_flags2c.m_value |= 1;
+  }
+  if (Stat(0x78) == 10) {
+    m_flags2c.m_value |= 2;
+  }
+  if (0 < Stat(0x19c)) {
+    m_flags2c.m_value |= 0x80;
+  }
+  if (m_x30 == 0) {
+    if (m_x38 != 0) {
+      Stat(0x18c) = 1;
+    }
+  } else {
     m_flags2c.m_value |= 0x4000000;
-    if (m_x38 == 0)
-    {
+    if (m_x38 == 0) {
       Stat(0x18c) = -1;
       m_flags2c.m_value |= 0x10000;
     }
@@ -368,8 +363,7 @@ int AiSectorEval::Refresh()
 void AiSectorEval::SetSystem(uint16_t index, const ObjectKey* key, AiSystemEvalSet* systems)
 {
   AiSystemEval* system = systems->FindEval(*key);
-  if (index < kSystemCount)
-  {
+  if (index < kSystemCount) {
     m_systems[index] = system;
     system->m_sector = this;
   }
@@ -379,10 +373,8 @@ void AiSectorEval::Accumulate(const int* p, const int* f28, const int* f30, cons
 {
   uint32_t uVar1;
 
-  if ((*f30 & 1) == 0)
-  {
-    if ((*f30 & 4) == 0)
-    {
+  if ((*f30 & 1) == 0) {
+    if ((*f30 & 4) == 0) {
       m_flags2c.m_value |= 0x10;
       Stat(0x84) += 1;
       Stat(0x190) += p[0x27];
@@ -391,16 +383,14 @@ void AiSectorEval::Accumulate(const int* p, const int* f28, const int* f30, cons
       Stat(0x11c) += p[4];
       Stat(0x120) += p[5];
       Stat(0x124) += p[6];
-      if ((*f28 & 0x80000000) != 0)
-      {
+      if ((*f28 & 0x80000000) != 0) {
         m_flags24.m_value |= 0x40000000;
       }
-      if ((*f30 & 0x20) == 0)
+      if ((*f30 & 0x20) == 0) {
         goto LAB_00432b38;
+      }
       uVar1 = m_flags2c.m_value | 0x40;
-    }
-    else
-    {
+    } else {
       m_flags2c.m_value |= 8;
       Stat(0x80) += 1;
       Stat(0x114) += p[2];
@@ -416,44 +406,36 @@ void AiSectorEval::Accumulate(const int* p, const int* f28, const int* f30, cons
       Stat(0x11c) += p[4];
       Stat(0x120) += p[5];
       Stat(0x124) += p[6];
-      if (Stat(0x134) < p[0x34])
-      {
+      if (Stat(0x134) < p[0x34]) {
         Stat(0x134) = p[0x34];
       }
-      if (Stat(0x138) < p[0x17])
-      {
+      if (Stat(0x138) < p[0x17]) {
         Stat(0x138) = p[0x17];
       }
-      if (Stat(0x13c) < p[0x1b])
-      {
+      if (Stat(0x13c) < p[0x1b]) {
         Stat(0x13c) = p[0x1b];
       }
-      if (Stat(0x140) < p[0x1d])
-      {
+      if (Stat(0x140) < p[0x1d]) {
         Stat(0x140) = p[0x1d];
       }
-      if ((*f28 & 0x80000000) != 0)
-      {
+      if ((*f28 & 0x80000000) != 0) {
         m_flags24.m_value |= 0x80000000;
       }
-      if ((*f30 & 0x800) != 0)
-      {
+      if ((*f30 & 0x800) != 0) {
         m_flags2c.m_value |= 0x100;
-        if (p[8] < Stat(0x144))
-        {
+        if (p[8] < Stat(0x144)) {
           Stat(0x144) = p[8];
         }
       }
-      if ((*f30 & 0x100) == 0)
-      {
+      if ((*f30 & 0x100) == 0) {
         m_flags2c.m_value |= 0x400;
       }
-      if ((*f30 & 0x2000) == 0)
-      {
+      if ((*f30 & 0x2000) == 0) {
         m_flags2c.m_value |= 0x400000;
       }
-      if ((*f2c & 0x2f70000) == 0)
+      if ((*f2c & 0x2f70000) == 0) {
         goto LAB_00432b38;
+      }
       uVar1 = m_flags2c.m_value | 0x80000;
     }
     m_flags2c.m_value = uVar1;
@@ -481,321 +463,248 @@ void AiSectorEval::Accumulate(const int* p, const int* f28, const int* f30, cons
   Stat(0x190) += p[0x27];
   Stat(0x194) += p[0x28];
   Stat(0x198) += p[0x2b];
-  if ((*f30 & 0x40000) != 0)
-  {
+  if ((*f30 & 0x40000) != 0) {
     m_flags2c.m_value |= 0x800000;
-    if ((*f30 & 0x10000) == 0)
-    {
-      if ((*f30 & 0x20000) == 0)
+    if ((*f30 & 0x10000) == 0) {
+      if ((*f30 & 0x20000) == 0) {
         goto LAB_0043251a;
+      }
       uVar1 = m_flags2c.m_value | 0x2000000;
-    }
-    else
-    {
+    } else {
       uVar1 = m_flags2c.m_value | 0x1000000;
     }
     m_flags2c.m_value = uVar1;
   }
 LAB_0043251a:
-  if ((*f28 & 2) == 0)
-  {
+  if ((*f28 & 2) == 0) {
     m_flags24.m_value |= 8;
   }
-  if ((((*f28 & 3) == 0) && ((*f30 & 0x8000000) == 0)) && (0 < p[0x33]))
-  {
-    if ((*f28 & 0x200000) == 0)
-    {
+  if ((((*f28 & 3) == 0) && ((*f30 & 0x8000000) == 0)) && (0 < p[0x33])) {
+    if ((*f28 & 0x200000) == 0) {
       m_flags24.m_value |= 0x20;
     }
-    if ((*f28 & 0x400000) == 0)
-    {
+    if ((*f28 & 0x400000) == 0) {
       m_flags24.m_value |= 0x40;
     }
-    if ((*f28 & 0x3800000) == 0)
-    {
+    if ((*f28 & 0x3800000) == 0) {
       m_flags24.m_value |= 0x80;
     }
   }
-  if (((*f28 & 0x80) != 0) && ((*f28 & 3) == 0))
-  {
+  if (((*f28 & 0x80) != 0) && ((*f28 & 3) == 0)) {
     m_flags24.m_value |= 0x100;
   }
-  if (((*f28 & 0x100) != 0) && ((*f28 & 3) == 0))
-  {
+  if (((*f28 & 0x100) != 0) && ((*f28 & 3) == 0)) {
     m_flags24.m_value |= 0x200;
   }
-  if (((*f28 & 0x20) != 0) && ((*f28 & 3) == 0))
-  {
+  if (((*f28 & 0x20) != 0) && ((*f28 & 3) == 0)) {
     m_flags24.m_value |= 0x400;
   }
-  if (((*f28 & 0x40) != 0) && ((*f28 & 3) == 0))
-  {
+  if (((*f28 & 0x40) != 0) && ((*f28 & 3) == 0)) {
     m_flags24.m_value |= 0x800;
   }
   uVar1 = *f28;
-  if ((((uVar1 & 0x800000) != 0) && ((uVar1 & 0x800) != 0)) && ((uVar1 & 3) == 0))
-  {
+  if ((((uVar1 & 0x800000) != 0) && ((uVar1 & 0x800) != 0)) && ((uVar1 & 3) == 0)) {
     m_flags24.m_value |= 0x1000;
   }
-  if (((*f28 & 0x800) != 0) && ((*f28 & 0x3800000) == 0))
-  {
+  if (((*f28 & 0x800) != 0) && ((*f28 & 0x3800000) == 0)) {
     m_flags24.m_value |= 0x2000;
   }
-  if ((*f28 & 0x3e00000) == 0)
-  {
+  if ((*f28 & 0x3e00000) == 0) {
   LAB_00432660:
-    if ((*f28 & 0x3800000) == 0)
+    if ((*f28 & 0x3800000) == 0) {
       goto LAB_00432668;
-  }
-  else
-  {
+    }
+  } else {
     m_flags24.m_value |= 0x20000000;
-    if ((*f28 & 0x200000) != 0)
-    {
-      if ((*f28 & 2) == 0)
-      {
+    if ((*f28 & 0x200000) != 0) {
+      if ((*f28 & 2) == 0) {
         m_flags2c.m_value |= 0x20000;
       }
       Stat(0xb0) += p[4];
     }
-    if ((*f28 & 0x400000) != 0)
-    {
+    if ((*f28 & 0x400000) != 0) {
       Stat(0xb8) += p[5];
     }
-    if ((*f28 & 0x3800000) != 0)
-    {
+    if ((*f28 & 0x3800000) != 0) {
       Stat(0xc0) += p[6];
       goto LAB_00432660;
     }
   LAB_00432668:
     Stat(0xc4) += p[6];
   }
-  if ((*f28 & 0x400000) == 0)
-  {
+  if ((*f28 & 0x400000) == 0) {
     Stat(0xbc) += p[5];
   }
-  if ((*f28 & 0x200000) == 0)
-  {
+  if ((*f28 & 0x200000) == 0) {
     Stat(0xb4) += p[4];
   }
-  if (((*f30 & 0x10000000) != 0) && (Stat(0x188) = Stat(0x188) + 1, (*f30 & 0x20000000) == 0))
-  {
+  if (((*f30 & 0x10000000) != 0) && (Stat(0x188) = Stat(0x188) + 1, (*f30 & 0x20000000) == 0)) {
     m_flags2c.m_value |= 0x10000000;
   }
-  if (p[0x25] < 1)
-  {
-    if (p[0x25] < 0)
-    {
+  if (p[0x25] < 1) {
+    if (p[0x25] < 0) {
       m_flags24.m_value |= 0x8000;
       Stat(0xe0) += 1;
-      if ((*f28 & 0x3e00000) != 0)
-      {
+      if ((*f28 & 0x3e00000) != 0) {
         m_flags24.m_value |= 0x4000;
       }
     }
-  }
-  else
-  {
+  } else {
     m_flags24.m_value |= 0x10000;
     Stat(0xe4) += 1;
   }
-  if ((((*f28 & 0x80000000) == 0) && (0 < p[0xb])) && (0 < p[7]))
-  {
+  if ((((*f28 & 0x80000000) == 0) && (0 < p[0xb])) && (0 < p[7])) {
     m_flags24.m_value |= 0x20000;
   }
-  if ((*f28 & 0x10000) != 0)
-  {
+  if ((*f28 & 0x10000) != 0) {
     m_flags24.m_value |= 0x80000;
     Stat(0xec) += p[0x13];
-    if ((*f28 & 0x10000000) != 0)
-    {
+    if ((*f28 & 0x10000000) != 0) {
       m_flags24.m_value |= 0x100000;
     }
-    if ((*f28 & 0x20000000) != 0)
-    {
+    if ((*f28 & 0x20000000) != 0) {
       m_flags24.m_value |= 0x200000;
     }
-    if ((*f30 & 0x4000) != 0)
-    {
+    if ((*f30 & 0x4000) != 0) {
       m_flags2c.m_value |= 0x800;
     }
-    if ((*f30 & 0x8000) != 0)
-    {
+    if ((*f30 & 0x8000) != 0) {
       m_flags2c.m_value |= 0x1000;
     }
   }
-  if ((*f28 & 0x2000) != 0)
-  {
+  if ((*f28 & 0x2000) != 0) {
     m_flags24.m_value |= 0x40000;
     Stat(0xe8) += p[0x15];
-    if ((*f28 & 0x3e00000) != 0)
-    {
+    if ((*f28 & 0x3e00000) != 0) {
       m_flags24.m_value |= 0x800000;
     }
   }
-  if ((*f28 & 0x20000) != 0)
-  {
+  if ((*f28 & 0x20000) != 0) {
     m_flags24.m_value |= 0x400000;
   }
-  if (((0 < p[0x35]) && ((*f30 & 0x40000) == 0)) && ((*f28 & 2) == 0))
-  {
+  if (((0 < p[0x35]) && ((*f30 & 0x40000) == 0)) && ((*f28 & 2) == 0)) {
     m_flags24.m_value |= 0x2000000;
     Stat(0xf8) += p[0x35];
   }
-  if (p[0x26] < 0)
-  {
+  if (p[0x26] < 0) {
     m_flags24.m_value |= 0x1000000;
     Stat(0xf4) += 1;
-    if ((*f28 & 0x3e00000) != 0)
-    {
+    if ((*f28 & 0x3e00000) != 0) {
       m_flags24.m_value |= 0x4000000;
     }
-    if ((*f28 & 0x100000) != 0)
-    {
+    if ((*f28 & 0x100000) != 0) {
       m_flags24.m_value |= 0x10000000;
     }
   }
-  if ((*f28 & 0x80000) != 0)
-  {
+  if ((*f28 & 0x80000) != 0) {
     m_flags24.m_value |= 0x8000000;
   }
-  if ((*f28 & 1) != 0)
-  {
+  if ((*f28 & 1) != 0) {
     m_flags24.m_value |= 0x10;
   }
-  if ((*f28 & 0x80000000) != 0)
-  {
+  if ((*f28 & 0x80000000) != 0) {
     m_flags24.m_value |= 0x40000000;
-    if ((*f30 & 0x40000000) != 0)
-    {
+    if ((*f30 & 0x40000000) != 0) {
       m_flags2c.m_value |= 0x200;
     }
-    if ((*f28 & 2) == 0)
-    {
+    if ((*f28 & 2) == 0) {
       Stat(0x1a0) += 1;
     }
   }
-  if ((*f2c & 0x10000000) != 0)
-  {
+  if ((*f2c & 0x10000000) != 0) {
     m_flags28.m_value |= 0x8000000;
   }
 LAB_00432b38:
   Stat(0x19c) += p[0x32];
-  if ((*f2c & 0x8000000) != 0)
-  {
+  if ((*f2c & 0x8000000) != 0) {
     Stat(0x70) += 1;
   }
-  if ((*f30 & 8) != 0)
-  {
+  if ((*f30 & 8) != 0) {
     Stat(0x74) += 1;
   }
-  if ((*f30 & 0x20) != 0)
-  {
+  if ((*f30 & 0x20) != 0) {
     Stat(0x78) += 1;
   }
-  if ((*f30 & 0x10) != 0)
-  {
+  if ((*f30 & 0x10) != 0) {
     Stat(0x88) += 1;
   }
-  if ((*f30 & 0x40) != 0)
-  {
+  if ((*f30 & 0x40) != 0) {
     m_flags2c.m_value |= 0x20;
   }
-  if ((*f30 & 0x40000000) != 0)
-  {
+  if ((*f30 & 0x40000000) != 0) {
     m_flags2c.m_value |= 0x40000000;
   }
-  if ((*f30 & 0x80000000) != 0)
-  {
+  if ((*f30 & 0x80000000) != 0) {
     m_flags2c.m_value |= 0x80000000;
   }
-  if ((*f30 & 0x200) != 0)
-  {
+  if ((*f30 & 0x200) != 0) {
     m_flags2c.m_value |= 0x40000;
   }
-  if ((*f2c & 1) != 0)
-  {
+  if ((*f2c & 1) != 0) {
     Stat(0x150) += 1;
   }
-  if ((*f2c & 2) != 0)
-  {
+  if ((*f2c & 2) != 0) {
     Stat(0x160) += 1;
     m_flags28.m_value |= 8;
   }
-  if ((*f2c & 4) != 0)
-  {
+  if ((*f2c & 4) != 0) {
     Stat(0x154) += 1;
     m_flags28.m_value |= 1;
   }
-  if ((*f2c & 8) != 0)
-  {
+  if ((*f2c & 8) != 0) {
     Stat(0x158) += 1;
     m_flags28.m_value |= 2;
   }
-  if ((*f2c & 0x10) != 0)
-  {
+  if ((*f2c & 0x10) != 0) {
     Stat(0x15c) += 1;
     m_flags28.m_value |= 4;
   }
-  if ((*f2c & 0x20) != 0)
-  {
+  if ((*f2c & 0x20) != 0) {
     Stat(0x164) += 1;
     m_flags28.m_value |= 0x10;
   }
-  if ((*f2c & 0x40) != 0)
-  {
+  if ((*f2c & 0x40) != 0) {
     Stat(0x168) += 1;
     uVar1 = m_flags28.m_value;
     m_flags28.m_value = uVar1 | 0x20;
-    if ((*f2c & 0x20000000) == 0)
-    {
+    if ((*f2c & 0x20000000) == 0) {
       m_flags28.m_value = uVar1 | 0x4000020;
     }
   }
-  if ((*f2c & 0x80) != 0)
-  {
+  if ((*f2c & 0x80) != 0) {
     Stat(0x16c) += 1;
     m_flags28.m_value |= 0x40;
   }
-  if ((*f2c & 0xc00) != 0)
-  {
+  if ((*f2c & 0xc00) != 0) {
     Stat(0x170) += 1;
     m_flags28.m_value |= 0x80;
   }
-  if ((*f2c & 0x3000) != 0)
-  {
+  if ((*f2c & 0x3000) != 0) {
     Stat(0x174) += 1;
     m_flags28.m_value |= 0x100;
   }
-  if ((*f2c & 0x100) != 0)
-  {
+  if ((*f2c & 0x100) != 0) {
     Stat(0x178) += 1;
     m_flags28.m_value |= 0x200;
   }
-  if ((*f2c & 0x200) != 0)
-  {
+  if ((*f2c & 0x200) != 0) {
     Stat(0x17c) += 1;
     m_flags28.m_value |= 0x400;
   }
-  if ((*f2c & 0x10000) != 0)
-  {
+  if ((*f2c & 0x10000) != 0) {
     m_flags28.m_value |= 0x800;
   }
-  if ((*f2c & 0x20000) != 0)
-  {
+  if ((*f2c & 0x20000) != 0) {
     m_flags28.m_value |= 0x1000;
   }
-  if ((*f2c & 0x800000) != 0)
-  {
+  if ((*f2c & 0x800000) != 0) {
     m_flags28.m_value |= 0x2000;
   }
-  if ((*f2c & 0xc000) != 0)
-  {
+  if ((*f2c & 0xc000) != 0) {
     Stat(0x180) += 1;
     m_flags28.m_value |= 0x4000;
   }
-  if ((*f2c & 0x1000000) != 0)
-  {
+  if ((*f2c & 0x1000000) != 0) {
     Stat(0x184) += 1;
     m_flags28.m_value |= 0x8000;
   }

@@ -37,7 +37,8 @@ bool isLockable(const ObjectKey& key)
 
 // ---- RoleActivityCommand (0x230) --------------------------------------------------------------------------
 
-RoleActivityCommand::RoleActivityCommand() : Command()
+RoleActivityCommand::RoleActivityCommand()
+    : Command()
 {
 }
 
@@ -65,13 +66,13 @@ int RoleActivityCommand::CheckEnabled(StatusCode* status)
   int ok = 1;
   GameObjNotifier* role = nullptr;
   setOk(status);
-  if (isOk(*status))
-  {
+  if (isOk(*status)) {
     StatusCode missing(kStatusCategory, kStatusNoRole);
     ok = ResolveMasterInFamilies_30_40(&m_key, &role, &missing, status);
   }
-  if (ok && isOk(*status))
+  if (ok && isOk(*status)) {
     ok = static_cast<Role*>(role)->CheckActivity(&m_request, status);
+  }
   return ok;
 }
 
@@ -80,13 +81,13 @@ int RoleActivityCommand::CheckValid(StatusCode* status)
   int ok = 1;
   GameObjNotifier* role = nullptr;
   setOk(status);
-  if (isOk(*status))
-  {
+  if (isOk(*status)) {
     StatusCode missing(kStatusCategory, kStatusNoRole);
     ok = ResolveMasterInFamilies_30_40(&m_key, &role, &missing, status);
   }
-  if (ok && isOk(*status))
+  if (ok && isOk(*status)) {
     ok = static_cast<Role*>(role)->CheckActivityStatus(&m_request, status);
+  }
   return ok;
 }
 
@@ -97,14 +98,16 @@ int RoleActivityCommand::Execute()
   StatusCode status(kStatusCategory, kStatusOk);
   StatusCode missing(kStatusCategory, kStatusNoRole);
   int ok = ResolveMasterInFamilies_30_40(&m_key, &role, &missing, &status);
-  if (ok && isOk(status))
+  if (ok && isOk(status)) {
     static_cast<Role*>(role)->HandleActivityRequest(&m_request, &ctx);
+  }
   return 0;
 }
 
 // ---- RemoveRequestEvent (0x30b) ---------------------------------------------------------------------------
 
-RemoveRequestEvent::RemoveRequestEvent() : SourceEvent()
+RemoveRequestEvent::RemoveRequestEvent()
+    : SourceEvent()
 {
 }
 
@@ -147,14 +150,16 @@ int RemoveRequestEvent::CheckValid(StatusCode* status)
 int RemoveRequestEvent::Execute()
 {
   NotifyContext ctx(m_context);
-  if (GameObjNotifier* manager = GetGameRootMember_b8())
+  if (GameObjNotifier* manager = GetGameRootMember_b8()) {
     static_cast<MissionMgr*>(manager)->MissionMgr::ProcessRemoveRequest(&m_key, m_valueB, &ctx);
+  }
   return 0;
 }
 
 // ---- RoleStateEvent (0x30e) -------------------------------------------------------------------------------
 
-RoleStateEvent::RoleStateEvent() : SourceEvent()
+RoleStateEvent::RoleStateEvent()
+    : SourceEvent()
 {
 }
 
@@ -203,7 +208,8 @@ int RoleStateEvent::Execute()
 
 // ---- PersonRemovedEvent (0x312) ---------------------------------------------------------------------------
 
-PersonRemovedEvent::PersonRemovedEvent() : SourceEvent()
+PersonRemovedEvent::PersonRemovedEvent()
+    : SourceEvent()
 {
 }
 
@@ -241,14 +247,16 @@ int PersonRemovedEvent::CheckValid(StatusCode* status)
 int PersonRemovedEvent::Execute()
 {
   NotifyContext ctx(m_context);
-  if (GameObjNotifier* manager = GetGameRootMember_b8())
+  if (GameObjNotifier* manager = GetGameRootMember_b8()) {
     static_cast<MissionMgr*>(manager)->MissionMgr::OnPersonRemoved(&m_key, m_valueB, &ctx);
+  }
   return 0;
 }
 
 // ---- ResignRequestEvent (0x314) ---------------------------------------------------------------------------
 
-ResignRequestEvent::ResignRequestEvent() : SourceEvent()
+ResignRequestEvent::ResignRequestEvent()
+    : SourceEvent()
 {
 }
 
@@ -291,14 +299,16 @@ int ResignRequestEvent::CheckValid(StatusCode* status)
 int ResignRequestEvent::Execute()
 {
   NotifyContext ctx(m_context);
-  if (GameObjNotifier* manager = GetGameRootMember_b8())
+  if (GameObjNotifier* manager = GetGameRootMember_b8()) {
     static_cast<MissionMgr*>(manager)->MissionMgr::ProcessResignRequest(&m_key, m_valueB, &ctx);
+  }
   return 0;
 }
 
 // ---- LockTransferEvent (0x321) ----------------------------------------------------------------------------
 
-LockTransferEvent::LockTransferEvent() : TwoKeyEvent()
+LockTransferEvent::LockTransferEvent()
+    : TwoKeyEvent()
 {
 }
 
@@ -336,15 +346,15 @@ int LockTransferEvent::CheckValid(StatusCode* status)
 int LockTransferEvent::Execute()
 {
   NotifyContext ctx(m_context);
-  if (isLockable(m_keyD))
-  {
-    if (GameObjNotifier* target = GetMasterInFamilies_40_80(&m_keyD))
+  if (isLockable(m_keyD)) {
+    if (GameObjNotifier* target = GetMasterInFamilies_40_80(&m_keyD)) {
       static_cast<GameObj*>(target)->IncrementLock(&ctx);
+    }
   }
-  if (isLockable(m_keyC))
-  {
-    if (GameObjNotifier* target = GetMasterInFamilies_40_80(&m_keyC))
+  if (isLockable(m_keyC)) {
+    if (GameObjNotifier* target = GetMasterInFamilies_40_80(&m_keyC)) {
       static_cast<GameObj*>(target)->DecrementLock(&ctx);
+    }
   }
   return 0;
 }

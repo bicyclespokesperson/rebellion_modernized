@@ -8,7 +8,7 @@
 // completeness.
 class CdAudio
 {
-public:
+  public:
   CdAudio();
   ~CdAudio();
 
@@ -22,10 +22,10 @@ public:
   // MCI_STATUS item; MCI_MODE_NOT_READY if the device is closed or the query fails.
   DWORD GetStatus(DWORD item);
 
-  HWND m_window; // +0x00
+  HWND m_window;        // +0x00
   MCIDEVICEID m_device; // +0x04
-  int m_opened; // +0x08 1 once the device is open and set up
-  uint32_t m_unk0c; // +0x0c cleared by Stop
-  uint32_t m_unk10; // +0x10 cleared by Stop
-  uint32_t m_unk14; // +0x14 cleared by Stop
+  int m_opened;         // +0x08 1 once the device is open and set up
+  uint32_t m_unk0c;     // +0x0c cleared by Stop
+  uint32_t m_unk10;     // +0x10 cleared by Stop
+  uint32_t m_unk14;     // +0x14 cleared by Stop
 };

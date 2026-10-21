@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionDSSabotageEventKindsReady; // 0x6bbaa8
+extern int g_missionDSSabotageEventKindsReady;     // 0x6bbaa8
 extern EventKindSet g_missionDSSabotageEventKinds; // 0x6bbaa0
 
 namespace
@@ -58,10 +58,8 @@ int MissionDSSabotage::CheckTarget(MissionCheckArgs* check, StatusCode* status, 
   *out = 0;
   const int result = MissionObjectTargetBase::CheckTarget(check, status, out);
   const bool targetKnown = check->m_flag04 && check->m_flag0c;
-  if (targetKnown && result && status->m_second == static_cast<uint32_t>(mission_status::kOk))
-  {
-    if (!FamilyInRange(check->m_target->GetFamily(), kDeathStars))
-    {
+  if (targetKnown && result && status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
+    if (!FamilyInRange(check->m_target->GetFamily(), kDeathStars)) {
       *status = StatusCode(kStatusCategoryOrder, kStatusTargetNotDeathStar);
       *out = -1;
     }
@@ -91,13 +89,15 @@ int MissionDSSabotage::ApplyPersonResult(GameObj* person, int roll, int* out, No
 {
   int ok = 1;
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return ok;
+  }
   *out = 1;
   ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
   Role* role = static_cast<Role*>(person);
-  if (!role->IsCharacter())
+  if (!role->IsCharacter()) {
     return ok;
+  }
   ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1817, ctx) && ok;
   ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb1818, ctx) && ok;
   return ok;
@@ -105,8 +105,7 @@ int MissionDSSabotage::ApplyPersonResult(GameObj* person, int roll, int* out, No
 
 int MissionDSSabotage::BuildEventKinds()
 {
-  if (!g_missionDSSabotageEventKindsReady)
-  {
+  if (!g_missionDSSabotageEventKindsReady) {
     g_missionDSSabotageEventKindsReady = 1;
     return MissionObjectTargetBase::InitEventKinds(0, &g_missionDSSabotageEventKinds);
   }

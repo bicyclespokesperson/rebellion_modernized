@@ -12,7 +12,9 @@ namespace
 
 // ---- EventQueue ------------------------------------------------------------------------------------------------
 
-EventQueue::EventQueue() : m_events(EventCompare{this}), m_flag0c(1)
+EventQueue::EventQueue()
+    : m_events(EventCompare{this})
+    , m_flag0c(1)
 {
 }
 
@@ -29,8 +31,9 @@ bool EventQueue::EventCompare::operator()(const std::unique_ptr<EventBase>& a,
 
 void EventQueue::Clear()
 {
-  if (m_clearing)
+  if (m_clearing) {
     return;
+  }
   m_clearing = true;
   m_index.clear();
   EventSet detached(EventCompare{this});
@@ -41,30 +44,24 @@ void EventQueue::Clear()
 
 int EventQueue::Insert(EventBase* event)
 {
-  if (m_clearing || !event || m_index.contains(event))
+  if (m_clearing || !event || m_index.contains(event)) {
     return 0;
+  }
   std::unique_ptr<EventBase> pending(event);
   EventSet::iterator position;
-  try
-  {
+  try {
     position = m_events.insert(std::move(pending));
-  }
-  catch (...)
-  {
+  } catch (...) {
     pending.release();
     throw;
   }
-  try
-  {
-    if (!m_index.emplace(event, position).second)
-    {
+  try {
+    if (!m_index.emplace(event, position).second) {
       auto rejected = m_events.extract(position);
       rejected.value().release();
       return 0;
     }
-  }
-  catch (...)
-  {
+  } catch (...) {
     auto rejected = m_events.extract(position);
     rejected.value().release();
     throw;
@@ -75,8 +72,9 @@ int EventQueue::Insert(EventBase* event)
 void EventQueue::Remove(EventBase* event)
 {
   auto found = m_index.find(event);
-  if (found == m_index.end())
+  if (found == m_index.end()) {
     return;
+  }
   auto owned = m_events.extract(found->second);
   m_index.erase(found);
   owned.value().release();
@@ -92,23 +90,22 @@ int EventQueue::Read(istream* in)
   Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  }
+  for (uint32_t index = 0; index < count; ++index) {
     int kind = 0;
     ReadValue32(in, &kind);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return 0;
+    }
     auto* event = static_cast<EventBase*>(CreateEventById(kind));
-    if (!event)
-    {
+    if (!event) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
     }
     event->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !Insert(event))
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !Insert(event)) {
       delete event;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
@@ -119,15 +116,13 @@ int EventQueue::Read(istream* in)
 
 int EventQueue::Write(ostream* out)
 {
-  if (Count() > std::numeric_limits<uint32_t>::max())
-  {
+  if (Count() > std::numeric_limits<uint32_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
     return 0;
   }
   auto count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
-  {
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();) {
     EventBase* event = (*(nodePosition++)).get();
     int kind = event->GetKind();
     WriteValue32(out, &kind);
@@ -139,8 +134,7 @@ int EventQueue::Write(ostream* out)
 int EventQueue::Checksum(Crc32* crc)
 {
   crc->AddInt(Count());
-  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
-  {
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();) {
     EventBase* event = (*(nodePosition++)).get();
     event->Checksum(crc);
   }
@@ -154,8 +148,9 @@ int EventQueue::Validate()
 
 int EventQueue::RunNext()
 {
-  if (GetNext() == nullptr)
+  if (GetNext() == nullptr) {
     return 0;
+  }
   return RunFirst();
 }
 
@@ -163,13 +158,11 @@ int EventQueue::RunFirst()
 {
   int ran = 0;
   EventBase* first = First();
-  if (first)
-  {
+  if (first) {
     Remove(first);
     ran = 1;
     EventBase* event = first;
-    if (event->Execute() != 0)
-    {
+    if (event->Execute() != 0) {
       Add(event);
       return 1;
     }
@@ -180,13 +173,15 @@ int EventQueue::RunFirst()
 
 void EventQueue::Add(EventBase* event)
 {
-  if (event)
+  if (event) {
     Insert(event);
+  }
 }
 
 // ---- TimerQueue ------------------------------------------------------------------------------------------------
 
-TimerQueue::TimerQueue() : EventQueue()
+TimerQueue::TimerQueue()
+    : EventQueue()
 {
 }
 
@@ -194,26 +189,28 @@ TimerQueue::~TimerQueue() = default;
 
 bool TimerQueue::EventBefore(const EventBase* a, const EventBase* b) const
 {
-  if (a == nullptr || b == nullptr)
+  if (a == nullptr || b == nullptr) {
     return true;
+  }
   return static_cast<const TimedEvent*>(a)->m_dueDay < static_cast<const TimedEvent*>(b)->m_dueDay;
 }
 
 EventBase* TimerQueue::GetNext()
 {
   EventBase* first = First();
-  if (first)
-  {
+  if (first) {
     int due = static_cast<TimedEvent*>(first)->m_dueDay;
-    if (CallGameHook2B08() < due)
+    if (CallGameHook2B08() < due) {
       first = nullptr;
+    }
   }
   return first;
 }
 
 // ---- CommandQueue ----------------------------------------------------------------------------------------------
 
-CommandQueue::CommandQueue() : EventQueue()
+CommandQueue::CommandQueue()
+    : EventQueue()
 {
 }
 
@@ -236,7 +233,8 @@ void CommandQueue::AddCommand(EventBase* event)
 
 // ---- TypeQueue -------------------------------------------------------------------------------------------------
 
-TypeQueue::TypeQueue() : EventQueue()
+TypeQueue::TypeQueue()
+    : EventQueue()
 {
 }
 
@@ -244,8 +242,9 @@ TypeQueue::~TypeQueue() = default;
 
 bool TypeQueue::EventBefore(const EventBase* a, const EventBase* b) const
 {
-  if (a == nullptr || b == nullptr)
+  if (a == nullptr || b == nullptr) {
     return true;
+  }
   return static_cast<const PlainEvent*>(a)->GetPriority() < static_cast<const PlainEvent*>(b)->GetPriority();
 }
 

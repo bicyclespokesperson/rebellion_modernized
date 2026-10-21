@@ -55,8 +55,9 @@ int SystemType90::Validate()
 int SystemType90::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllImpl(ctx);
+  }
   return isSideView;
 }
 
@@ -73,8 +74,9 @@ int SystemType90::WriteImpl(ostream* out)
 int SystemType90::ApplyAllImpl(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     this->System::ApplyAll(ctx);
+  }
   return isSideView;
 }
 
@@ -107,18 +109,17 @@ int SystemType90::InitializeNewObject(intptr_t a)
 {
   auto* ctx = reinterpret_cast<NotifyContext*>(a);
   const int result = System::InitializeNewObject(a);
-  if (result)
-  {
+  if (result) {
     const int populated = RollSystemPopulated();
     int loyalty = 0;
-    if (populated && m_id != kSystemIdWithoutLoyaltyRoll)
-    {
+    if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
       const uint32_t side = ControlSide();
       loyalty = RollInitialLoyalty(side, this->System::GetDataFlagBit0());
     }
     SetPopulated(populated, ctx);
-    if (populated)
+    if (populated) {
       SetLoyalty(loyalty, ctx);
+    }
     SetEnergy(RollSystemEnergy(), ctx);
     SetRawMaterial(RollSystemRawMaterial(m_energy), ctx);
     SetNeverBeenControlled(0, ctx);
@@ -139,17 +140,20 @@ int SystemType90::CreateStartingUnits(NotifyContext* ctx)
 {
   int result = 1;
   const int count = m_energy;
-  ObjectKey key;
   const int rawMaterial = m_rawMaterial;
-  for (int i = 0; i < count; ++i)
-  {
+  for (int i = 0; i < count; ++i) {
     int created;
+    NullableKey unitKey;
     result = RollStartingUnitA(rawMaterial, CountProductionFacilityType2C(this, ControlSide(), 1), &created,
-                               reinterpret_cast<NullableKey*>(&key));
-    if (result && created)
+                               &unitKey);
+    if (result && created) {
+      ObjectKey key;
+      key.m_value = unitKey.m_value;
       result = CreateChild(&key, ControlSide(), ctx, 1, 1) != nullptr;
-    if (!result)
+    }
+    if (!result) {
       break;
+    }
   }
   return result;
 }
@@ -157,8 +161,7 @@ int SystemType90::CreateStartingUnits(NotifyContext* ctx)
 int SystemType90::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx)
 {
   const int result = System::OnControlKindChanged(oldKind, newKind, ctx);
-  if (result)
-  {
+  if (result) {
     NotifyContext allViews(*ctx);
     MakeAllViewsContext(&allViews);
     System* first = SystemView(this, 1);
@@ -174,8 +177,7 @@ int SystemType90::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, Notif
 int SystemType90::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = System::OnLoyaltyChanged(oldValue, newValue, ctx);
-  if (result)
-  {
+  if (result) {
     NotifyContext allViews(*ctx);
     MakeAllViewsContext(&allViews);
     SystemView(this, 1)->ApplyLoyalty(&allViews);
@@ -187,8 +189,7 @@ int SystemType90::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ct
 int SystemType90::OnPopulatedChanged(int newValue, NotifyContext* ctx)
 {
   const int result = System::OnPopulatedChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     NotifyContext allViews(*ctx);
     MakeAllViewsContext(&allViews);
     SystemView(this, 1)->ApplyPopulated(&allViews);
@@ -200,8 +201,7 @@ int SystemType90::OnPopulatedChanged(int newValue, NotifyContext* ctx)
 int SystemType90::OnUprisingChanged(int newValue, NotifyContext* ctx)
 {
   const int result = System::OnUprisingChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     NotifyContext allViews(*ctx);
     MakeAllViewsContext(&allViews);
     SystemView(this, 1)->ApplyUprising(&allViews);
@@ -216,7 +216,7 @@ int UpdateSystemType90Children(GameObj* parent, NotifyContext* ctx)
 }
 
 SystemType90Iterator::SystemType90Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kType90Families, stateFilter)
+    : ChildIterator(parent, &kType90Families, stateFilter)
 {
 }
 

@@ -55,8 +55,9 @@ AiSystemEval* FindSystem(AiMissionPlanner* planner, const ObjectKey& key)
 template <class Visit>
 void ForEachKey(ObjectKeySet& set, Visit visit)
 {
-  for (const auto& entry : set.Entries())
+  for (const auto& entry : set.Entries()) {
     visit(KeyOfNode(static_cast<ObjectKeyNode*>(entry.get())));
+  }
 }
 
 // Removes every key of the set with `remove` (taking the successor first, as the originals do).
@@ -64,30 +65,28 @@ template <class Remove>
 void RemoveAll(ObjectKeySet& set, Remove remove)
 {
   auto position = set.Entries().begin();
-  while (position != set.Entries().end())
-  {
+  while (position != set.Entries().end()) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     remove(KeyOfNode(node));
   }
 }
 
-// The system the character is at: its location if that is a system, else the system its ship is in (an unset key if none).
+// The system the character is at: its location if that is a system, else the system its ship is in (an unset key if
+// none).
 ObjectKey SystemOf(AiMissionPlanner* planner, const AiCharacterRecord* character)
 {
   ObjectKey location = character->m_location;
-  if (!IsSystemKey(location))
-  {
+  if (!IsSystemKey(location)) {
     GameObjNotifier* object = GetObjectInFamilies_01_ff(planner->m_view, &location);
-    if (object)
-    {
+    if (object) {
       bool isSystem;
-      do
-      {
+      do {
         isSystem = IsSystemKey(KeyOfObject(object));
       } while (!isSystem && (object = object->m_parent) != nullptr);
-      if (object)
+      if (object) {
         location = KeyOfObject(object);
+      }
     }
   }
   return location;
@@ -100,19 +99,20 @@ ObjectKey* AiSystemEval::GetSectorKey(ObjectKey* out)
   return m_sector->GetKey(out);
 }
 
-// ---- AiMissionPlanner -------------------------------------------------------------------------------------------------
+// ---- AiMissionPlanner
+// -------------------------------------------------------------------------------------------------
 
 AiMissionPlanner::AiMissionPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: IdNode(),
-  m_flags(0),
-  m_missionObject(),
-  m_target(),
-  m_x34(),
-  m_destination(),
-  m_leaders(),
-  m_members(),
-  m_finished(),
-  m_selector()
+    : IdNode()
+    , m_flags(0)
+    , m_missionObject()
+    , m_target()
+    , m_x34()
+    , m_destination()
+    , m_leaders()
+    , m_members()
+    , m_finished()
+    , m_selector()
 {
   m_missionKey.m_value = 0;
   m_owner = owner;
@@ -166,8 +166,9 @@ void AiMissionPlanner::Write(ostream* out)
 
 void AiMissionPlanner::OnPlannerEvent(int event)
 {
-  if (event >= 3 && event <= 10)
+  if (event >= 3 && event <= 10) {
     ResetMissionMark();
+  }
 }
 
 int AiMissionPlanner::ShouldDeferAbort()
@@ -175,9 +176,7 @@ int AiMissionPlanner::ShouldDeferAbort()
   return 0;
 }
 
-void AiMissionPlanner::OnFinished()
-{
-}
+void AiMissionPlanner::OnFinished() {}
 
 int AiMissionPlanner::CanUse(const ObjectKey*)
 {
@@ -186,8 +185,7 @@ int AiMissionPlanner::CanUse(const ObjectKey*)
 
 void AiMissionPlanner::SetMissionObject(const ObjectKey* key)
 {
-  if (!m_finished.Find(key))
-  {
+  if (!m_finished.Find(key)) {
     m_missionObject = *key;
     m_flags.m_value |= kMissionChanged;
   }
@@ -198,8 +196,7 @@ int AiMissionPlanner::AdvanceStall()
   ++m_stall;
   const int limit = GetStallLimit();
   const int stalled = limit < m_stall;
-  if (stalled)
-  {
+  if (stalled) {
     m_flags.m_value |= kStalled;
     m_stall = 0;
   }
@@ -210,60 +207,56 @@ void AiMissionPlanner::ReleaseUnfit()
 {
   m_flags.m_value &= 0x1fffffff;
   auto leaderPosition = m_leaders.Entries().begin();
-  while (leaderPosition != m_leaders.Entries().end())
-  {
+  while (leaderPosition != m_leaders.Entries().end()) {
     auto* node = static_cast<ObjectKeyNode*>((*leaderPosition).get());
     ++leaderPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
-    if (character)
-    {
+    if (character) {
       character->m_flags.m_value &= 0xffffbfff;
       character->MarkChanged();
-      if ((m_flags.m_value & kStalled) == 0 && (character->m_flags.m_value & kCharacterBusy) == 0)
+      if ((m_flags.m_value & kStalled) == 0 && (character->m_flags.m_value & kCharacterBusy) == 0) {
         keep = true;
+      }
     }
     const ObjectKey key = KeyOfNode(node);
-    if (!keep)
+    if (!keep) {
       RemoveLeader(&key);
+    }
   }
-  if ((m_flags.m_value & kStalled) != 0)
+  if ((m_flags.m_value & kStalled) != 0) {
     m_destination.Reset();
+  }
   m_flags.m_value &= ~kStalled;
   auto memberPosition = m_members.Entries().begin();
-  while (memberPosition != m_members.Entries().end())
-  {
+  while (memberPosition != m_members.Entries().end()) {
     auto* node = static_cast<ObjectKeyNode*>((*memberPosition).get());
     ++memberPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
-    if (character)
-    {
+    if (character) {
       character->m_flags.m_value &= 0xffffbfff;
       character->MarkChanged();
-      if ((character->m_flags.m_value & kCharacterBusy) == 0)
+      if ((character->m_flags.m_value & kCharacterBusy) == 0) {
         keep = true;
+      }
     }
     const ObjectKey key = KeyOfNode(node);
-    if (!keep)
+    if (!keep) {
       RemoveMember(&key);
+    }
   }
 }
 
 void AiMissionPlanner::Finish()
 {
-  if ((m_flags.m_value & kFinished) != 0 && (m_flags.m_value & 0xe0000000) == 0)
-  {
-    RemoveAll(m_leaders,
-              [this](const ObjectKey& key)
-              {
-                RemoveLeader(&key);
-              });
-    RemoveAll(m_members,
-              [this](const ObjectKey& key)
-              {
-                RemoveMember(&key);
-              });
+  if ((m_flags.m_value & kFinished) != 0 && (m_flags.m_value & 0xe0000000) == 0) {
+    RemoveAll(m_leaders, [this](const ObjectKey& key) {
+      RemoveLeader(&key);
+    });
+    RemoveAll(m_members, [this](const ObjectKey& key) {
+      RemoveMember(&key);
+    });
     m_owner->RetirePlanner(m_id);
   }
   OnFinished();
@@ -273,26 +266,26 @@ void AiMissionPlanner::RefreshTeams()
 {
   m_flags.m_value &= 0xfffffeff;
   auto leaderPosition = m_leaders.Entries().begin();
-  while (leaderPosition != m_leaders.Entries().end())
-  {
+  while (leaderPosition != m_leaders.Entries().end()) {
     auto* node = static_cast<ObjectKeyNode*>((*leaderPosition).get());
     ++leaderPosition;
     const ObjectKey key = KeyOfNode(node);
-    if (IsUsable(&key) == 0)
+    if (IsUsable(&key) == 0) {
       RemoveLeader(&key);
-    else
+    } else {
       m_flags.m_value |= 0x100;
+    }
   }
   auto memberPosition = m_members.Entries().begin();
-  while (memberPosition != m_members.Entries().end())
-  {
+  while (memberPosition != m_members.Entries().end()) {
     auto* node = static_cast<ObjectKeyNode*>((*memberPosition).get());
     ++memberPosition;
     const ObjectKey key = KeyOfNode(node);
-    if (IsUsable(&key) == 0)
+    if (IsUsable(&key) == 0) {
       RemoveMember(&key);
-    else
+    } else {
       m_flags.m_value |= 0x100;
+    }
   }
 }
 
@@ -301,22 +294,19 @@ OrderBase* AiMissionPlanner::AbortMission()
   OrderBase* order = nullptr;
   ObjectKeyValueSet team;
   auto* mission = static_cast<Mission*>(GetObjectInFamilies_40_80(m_view, &m_missionObject));
-  if (mission && mission->IsPhase8() != 0)
-  {
-    if ((m_flags.m_value & kAbortRequested) != 0 && ShouldDeferAbort() == 0)
-    {
+  if (mission && mission->IsPhase8() != 0) {
+    if ((m_flags.m_value & kAbortRequested) != 0 && ShouldDeferAbort() == 0) {
       m_flags.m_value &= 0xbfffffff;
       m_flags.m_value |= kAbortNow;
     }
-    if ((m_flags.m_value & kAbortNow) != 0)
-    {
+    if ((m_flags.m_value & kAbortNow) != 0) {
       order = static_cast<OrderBase*>(CreateMessageByKind(kMissionCancelOrder));
-      if (order)
-      {
+      if (order) {
         order->m_side = m_view;
         auto* node = NewOrNull<ObjectKeyValueNode>(m_missionObject, 0);
-        if (node)
+        if (node) {
           team.Add(node);
+        }
         order->SetTeam(&team);
       }
     }
@@ -330,33 +320,27 @@ OrderBase* AiMissionPlanner::StartMission()
   OrderBase* order = nullptr;
   ObjectKeyValueSet leaders;
   ObjectKeyValueSet members;
-  if (KeyInFamilies(m_target, 1, 0xff))
-  {
+  if (KeyInFamilies(m_target, 1, 0xff)) {
     order = static_cast<OrderBase*>(CreateMessageByKind(kMissionOrder));
-    if (order)
-    {
+    if (order) {
       auto* mission = static_cast<MissionOrder*>(order);
       order->m_side = m_view;
       order->SetTarget(&m_target);
       mission->m_missionKey.m_value = m_missionKey.m_value;
       mission->m_unk44 = m_id;
-      for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
-      {
+      for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position) {
         auto* node = static_cast<ObjectKeyNode*>((*position).get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
-        if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
-        {
+        if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0) {
           character->m_flags.m_value |= 0x4000;
           AddToTeam(&leaders, KeyOfNode(node));
         }
       }
       order->SetTeam(&leaders);
-      for (auto position = m_members.Entries().begin(); position != m_members.Entries().end(); ++position)
-      {
+      for (auto position = m_members.Entries().begin(); position != m_members.Entries().end(); ++position) {
         auto* node = static_cast<ObjectKeyNode*>((*position).get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
-        if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
-        {
+        if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0) {
           character->m_flags.m_value |= 0x4000;
           AddToTeam(&members, KeyOfNode(node));
         }
@@ -370,18 +354,13 @@ OrderBase* AiMissionPlanner::StartMission()
 int AiMissionPlanner::AddLeader(const ObjectKey* character)
 {
   int added = 0;
-  if (KeyInFamilies(*character, 0x30, 0x40) && !m_leaders.Find(character))
-  {
+  if (KeyInFamilies(*character, 0x30, 0x40) && !m_leaders.Find(character)) {
     auto* node = NewOrNull<ObjectKeyNode>(*character);
-    if (node)
-    {
+    if (node) {
       auto* record = static_cast<AiCharacterRecord*>(m_characters->Find(character));
-      if (!record)
-      {
+      if (!record) {
         delete node;
-      }
-      else
-      {
+      } else {
         record->m_flags.m_value &= 0xff7fffff;
         record->m_x24 = m_id;
         record->m_agentId = 0;
@@ -399,18 +378,13 @@ int AiMissionPlanner::AddLeader(const ObjectKey* character)
 int AiMissionPlanner::AddMember(const ObjectKey* character)
 {
   int added = 0;
-  if (KeyInFamilies(*character, 0x30, 0x40) && !m_members.Find(character))
-  {
+  if (KeyInFamilies(*character, 0x30, 0x40) && !m_members.Find(character)) {
     auto* node = NewOrNull<ObjectKeyNode>(*character);
-    if (node)
-    {
+    if (node) {
       auto* record = static_cast<AiCharacterRecord*>(m_characters->Find(character));
-      if (!record)
-      {
+      if (!record) {
         delete node;
-      }
-      else
-      {
+      } else {
         record->m_flags.m_value &= 0xff7fffff;
         record->m_x24 = m_id;
         record->m_agentId = 0;
@@ -426,11 +400,11 @@ int AiMissionPlanner::AddMember(const ObjectKey* character)
 
 int AiMissionPlanner::RemoveLeader(const ObjectKey* character)
 {
-  if (!m_leaders.Find(character))
+  if (!m_leaders.Find(character)) {
     return 0;
+  }
   auto* record = static_cast<AiCharacterRecord*>(m_characters->Find(character));
-  if (record && record->m_x24 == static_cast<int>(m_id))
-  {
+  if (record && record->m_x24 == static_cast<int>(m_id)) {
     record->m_flags.m_value |= kCharacterReleased;
     record->m_x24 = 0;
     record->m_agentId = 0;
@@ -443,11 +417,11 @@ int AiMissionPlanner::RemoveLeader(const ObjectKey* character)
 
 int AiMissionPlanner::RemoveMember(const ObjectKey* character)
 {
-  if (!m_members.Find(character))
+  if (!m_members.Find(character)) {
     return 0;
+  }
   auto* record = static_cast<AiCharacterRecord*>(m_characters->Find(character));
-  if (record && record->m_x24 == static_cast<int>(m_id))
-  {
+  if (record && record->m_x24 == static_cast<int>(m_id)) {
     record->m_flags.m_value |= kCharacterReleased;
     record->m_x24 = 0;
     record->m_agentId = 0;
@@ -461,11 +435,11 @@ int AiMissionPlanner::RemoveMember(const ObjectKey* character)
 void AiMissionPlanner::ResetMissionMark()
 {
   m_flags.m_value &= 0x7fffffff;
-  if (!m_finished.Find(&m_missionObject))
-  {
+  if (!m_finished.Find(&m_missionObject)) {
     auto* node = NewOrNull<ObjectKeyNode>(m_missionObject);
-    if (node)
+    if (node) {
       m_finished.Add(node);
+    }
   }
 }
 
@@ -479,10 +453,10 @@ int AiMissionPlanner::IsUsable(const ObjectKey* character)
 {
   int usable = 0;
   auto* record = static_cast<AiCharacterRecord*>(m_characters->Find(character));
-  if (record && (record->m_flags.m_value & kCharacterUnusable) == 0 && record->m_x24 == static_cast<int>(m_id))
-  {
-    if (IsReachable(character) != 0 && CanUse(character) != 0)
+  if (record && (record->m_flags.m_value & kCharacterUnusable) == 0 && record->m_x24 == static_cast<int>(m_id)) {
+    if (IsReachable(character) != 0 && CanUse(character) != 0) {
       usable = 1;
+    }
   }
   return usable;
 }
@@ -492,24 +466,24 @@ int AiMissionPlanner::IsReachable(const ObjectKey* character)
   int reachable = 0;
   ObjectKey location;
   auto* record = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(character));
-  if (record)
-  {
+  if (record) {
     reachable = 1;
     location = record->m_location;
-    if (IsSystemKey(location) && (record->m_flags.m_value & 0x20) == 0)
-    {
+    if (IsSystemKey(location) && (record->m_flags.m_value & 0x20) == 0) {
       AiSystemEval* system = m_owner->m_systems.FindEval(location);
-      if (system && (system->m_flags28.m_value & 2) != 0)
+      if (system && (system->m_flags28.m_value & 2) != 0) {
         reachable = 0;
+      }
     }
   }
   return reachable;
 }
 
-// ---- AiFreePlanner ----------------------------------------------------------------------------------------------------
+// ---- AiFreePlanner
+// ----------------------------------------------------------------------------------------------------
 
 AiFreePlanner::AiFreePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiMissionPlanner(view, owner, characters)
+    : AiMissionPlanner(view, owner, characters)
 {
 }
 
@@ -534,23 +508,16 @@ OrderBase* AiFreePlanner::Step(int* done)
 {
   OrderBase* order = nullptr;
   *done = 0;
-  switch (m_state)
-  {
+  switch (m_state) {
     case 1:
-      if ((m_flags.m_value & 0x60000000) == 0)
-      {
-        if ((m_flags.m_value & kFinished) == 0)
-        {
+      if ((m_flags.m_value & 0x60000000) == 0) {
+        if ((m_flags.m_value & kFinished) == 0) {
           m_state = 2;
-        }
-        else
-        {
+        } else {
           Finish();
           *done = 1;
         }
-      }
-      else
-      {
+      } else {
         order = AbortMission();
         m_state = 0;
         *done = 1;
@@ -573,8 +540,7 @@ OrderBase* AiFreePlanner::Step(int* done)
       m_state = 6;
       break;
     case 6:
-      if (ChooseDestination() != 0)
-      {
+      if (ChooseDestination() != 0) {
         m_state = 7;
         break;
       }
@@ -582,8 +548,7 @@ OrderBase* AiFreePlanner::Step(int* done)
       break;
     case 7:
       order = MoveTeams();
-      if ((m_flags.m_value & kTeamInPlace) != 0 && (m_flags.m_value & kDestinationReached) != 0)
-      {
+      if ((m_flags.m_value & kTeamInPlace) != 0 && (m_flags.m_value & kDestinationReached) != 0) {
         m_state = 8;
         break;
       }
@@ -597,22 +562,22 @@ OrderBase* AiFreePlanner::Step(int* done)
       m_state = 1;
       break;
   }
-  if (*done != 0)
+  if (*done != 0) {
     m_state = 0;
+  }
   return order;
 }
 
 int AiFreePlanner::CountMembersAtDestination()
 {
   int count = 0;
-  ForEachKey(m_members,
-             [&](const ObjectKey& key)
-             {
-               AiCharacterRecord* character = FindCharacter(this, key);
-               if (character && character->m_location.m_value == m_destination.m_value &&
-                   (character->m_flags.m_value & kCharacterUnavailable) == 0)
-                 ++count;
-             });
+  ForEachKey(m_members, [&](const ObjectKey& key) {
+    AiCharacterRecord* character = FindCharacter(this, key);
+    if (character && character->m_location.m_value == m_destination.m_value
+        && (character->m_flags.m_value & kCharacterUnavailable) == 0) {
+      ++count;
+    }
+  });
   return count;
 }
 
@@ -620,67 +585,63 @@ int AiFreePlanner::ChooseDestination()
 {
   ObjectKey scratch;
   m_flags.m_value &= ~kHasDestination;
-  if ((m_flags.m_value & kHasLeaders) == 0)
-  {
+  if ((m_flags.m_value & kHasLeaders) == 0) {
     m_destination.Reset();
     return (m_flags.m_value & kHasDestination) != 0;
   }
-  if (IsSystemKey(m_destination))
-  {
+  if (IsSystemKey(m_destination)) {
     AiSystemEval* system = FindSystem(this, m_destination);
-    if (system)
-    {
-      if ((system->m_flags30.m_value & 1) == 0 || (system->m_flags28.m_value & 2) != 0)
+    if (system) {
+      if ((system->m_flags30.m_value & 1) == 0 || (system->m_flags28.m_value & 2) != 0) {
         m_destination.Reset();
-      else
+      } else {
         m_flags.m_value |= kHasDestination;
+      }
     }
   }
-  if ((m_flags.m_value & kHasDestination) != 0)
+  if ((m_flags.m_value & kHasDestination) != 0) {
     return 1;
-  if (IsSystemKey(m_x34))
-  {
+  }
+  if (IsSystemKey(m_x34)) {
     AiSystemEval* system = FindSystem(this, m_x34);
-    if (system)
-    {
-      if ((system->m_flags30.m_value & 1) == 0 || (system->m_flags28.m_value & 2) != 0)
-      {
+    if (system) {
+      if ((system->m_flags30.m_value & 1) == 0 || (system->m_flags28.m_value & 2) != 0) {
         ObjectKey sector;
         system->GetSectorKey(&sector);
         m_selector.Add(m_owner->RankSystemsOfSectorRandomly(&sector, 0, 0, 1, 2, 0, 0, 1));
         m_destination = *m_selector.PickBest(&scratch);
         m_selector.Reset();
-        if (!IsSystemKey(m_destination))
-        {
+        if (!IsSystemKey(m_destination)) {
           system->GetSectorKey(&sector);
           m_destination = *m_owner->FindNearestSystemWithFleets(&scratch, &sector, 0, 0, 1, 0, 0, 0x200);
         }
-      }
-      else
-      {
+      } else {
         m_destination = m_x34;
       }
     }
   }
-  if (IsSystemKey(m_destination))
+  if (IsSystemKey(m_destination)) {
     m_flags.m_value |= kHasDestination;
-  if ((m_flags.m_value & kHasDestination) != 0)
+  }
+  if ((m_flags.m_value & kHasDestination) != 0) {
     return 1;
-  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
-  {
+  }
+  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
-    if ((m_flags.m_value & kHasDestination) != 0)
+    if ((m_flags.m_value & kHasDestination) != 0) {
       return 1;
+    }
     const ObjectKey leaderKey = KeyOfNode(node);
     auto* character = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(&leaderKey));
-    if (!character)
+    if (!character) {
       continue;
+    }
     ObjectKey location = SystemOf(this, character);
-    if (!IsSystemKey(location))
+    if (!IsSystemKey(location)) {
       continue;
+    }
     AiSystemEval* system = FindSystem(this, location);
-    if (system && (system->m_flags30.m_value & 1) != 0 && (system->m_flags28.m_value & 2) == 0)
-    {
+    if (system && (system->m_flags30.m_value & 1) != 0 && (system->m_flags28.m_value & 2) == 0) {
       m_flags.m_value |= kHasDestination;
       system->GetKey(&m_destination);
     }
@@ -693,28 +654,24 @@ OrderBase* AiFreePlanner::MoveTeams()
   OrderBase* order = nullptr;
   ObjectKeyValueSet team;
   m_flags.m_value &= ~kTeamInPlace;
-  ForEachKey(m_leaders,
-             [&](const ObjectKey& key)
-             {
-               AiCharacterRecord* character = FindCharacter(this, key);
-               if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
-               {
-                 if (character->m_location.m_value == m_destination.m_value)
-                   m_flags.m_value |= kTeamInPlace;
-                 else
-                   AddToTeam(&team, key);
-               }
-             });
-  ForEachKey(m_members,
-             [&](const ObjectKey& key)
-             {
-               AiCharacterRecord* character = FindCharacter(this, key);
-               if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0 &&
-                   character->m_location.m_value != m_destination.m_value)
-                 AddToTeam(&team, key);
-             });
-  if (team.First() && (order = static_cast<OrderBase*>(CreateMessageByKind(ai::kMoveOrder))))
-  {
+  ForEachKey(m_leaders, [&](const ObjectKey& key) {
+    AiCharacterRecord* character = FindCharacter(this, key);
+    if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0) {
+      if (character->m_location.m_value == m_destination.m_value) {
+        m_flags.m_value |= kTeamInPlace;
+      } else {
+        AddToTeam(&team, key);
+      }
+    }
+  });
+  ForEachKey(m_members, [&](const ObjectKey& key) {
+    AiCharacterRecord* character = FindCharacter(this, key);
+    if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0
+        && character->m_location.m_value != m_destination.m_value) {
+      AddToTeam(&team, key);
+    }
+  });
+  if (team.First() && (order = static_cast<OrderBase*>(CreateMessageByKind(ai::kMoveOrder)))) {
     order->m_side = m_view;
     order->SetTeam(&team);
     order->SetTarget(&m_destination);
@@ -722,11 +679,12 @@ OrderBase* AiFreePlanner::MoveTeams()
   return order;
 }
 
-// ---- AiSystemPlanner --------------------------------------------------------------------------------------------------
+// ---- AiSystemPlanner
+// --------------------------------------------------------------------------------------------------
 
 AiSystemPlanner::AiSystemPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiMissionPlanner(view, owner, characters),
-  m_sectorKey()
+    : AiMissionPlanner(view, owner, characters)
+    , m_sectorKey()
 {
 }
 
@@ -750,14 +708,15 @@ void AiSystemPlanner::Write(ostream* out)
 
 void AiSystemPlanner::SetTier(int tier)
 {
-  if (m_tier == tier)
+  if (m_tier == tier) {
     return;
+  }
   m_tier = tier;
-  auto retier = [&](const ObjectKey& key)
-  {
+  auto retier = [&](const ObjectKey& key) {
     auto* character = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(&key));
-    if (character && character->m_x24 == static_cast<int>(m_id))
+    if (character && character->m_x24 == static_cast<int>(m_id)) {
       character->m_eligibilityRank = tier;
+    }
   };
   ForEachKey(m_leaders, retier);
   ForEachKey(m_members, retier);
@@ -772,24 +731,17 @@ OrderBase* AiSystemPlanner::Step(int* done)
 {
   OrderBase* order = nullptr;
   *done = 0;
-  switch (m_state)
-  {
+  switch (m_state) {
     case 1:
-      if ((m_flags.m_value & 0x60000000) == 0)
-      {
-        if ((m_flags.m_value & kFinished) == 0)
-        {
+      if ((m_flags.m_value & 0x60000000) == 0) {
+        if ((m_flags.m_value & kFinished) == 0) {
           m_state = 2;
-        }
-        else
-        {
+        } else {
           Finish();
           m_state = 0;
           *done = 1;
         }
-      }
-      else
-      {
+      } else {
         order = AbortMission();
         m_state = 0;
         *done = 1;
@@ -815,8 +767,7 @@ OrderBase* AiSystemPlanner::Step(int* done)
       break;
     case 7:
       order = MoveTeams();
-      if ((m_flags.m_value & kTeamInPlace) != 0)
-      {
+      if ((m_flags.m_value & kTeamInPlace) != 0) {
         m_state = 8;
         break;
       }
@@ -837,8 +788,9 @@ OrderBase* AiSystemPlanner::Step(int* done)
       m_state = 1;
       break;
   }
-  if (*done != 0)
+  if (*done != 0) {
     m_state = 0;
+  }
   return order;
 }
 
@@ -847,15 +799,16 @@ int AiSystemPlanner::FetchOrderTargets()
   m_x34.Reset();
   m_target.Reset();
   m_flags.m_value &= ~kDestinationReached;
-  if (m_systemRecordId != 0)
-  {
+  if (m_systemRecordId != 0) {
     auto* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_systemRecordId));
-    if (record)
+    if (record) {
       record->GetOrderTargets(m_missionKey.m_value & 0xffffff, &m_x34, &m_target);
+    }
   }
   const bool found = KeyInFamilies(m_target, 1, 0xff) && IsSystemKey(m_x34);
-  if (found)
+  if (found) {
     m_flags.m_value |= kDestinationReached;
+  }
   return found;
 }
 
@@ -863,83 +816,82 @@ int AiSystemPlanner::ChooseSystem()
 {
   ObjectKey scratch;
   m_flags.m_value &= ~kHasDestination;
-  if (!IsSectorKey(m_sectorKey))
+  if (!IsSectorKey(m_sectorKey)) {
     return (m_flags.m_value & kHasDestination) != 0;
-  if (IsSystemKey(m_destination))
-  {
+  }
+  if (IsSystemKey(m_destination)) {
     AiSystemEval* system = FindSystem(this, m_destination);
-    if (system)
-    {
+    if (system) {
       ObjectKey sector;
       system->GetSectorKey(&sector);
       const bool unusable = (system->m_flags30.m_value & 1) == 0 || (system->m_flags28.m_value & 2) != 0;
-      if (sector.m_value == m_sectorKey.m_value)
-      {
-        if (unusable)
-        {
+      if (sector.m_value == m_sectorKey.m_value) {
+        if (unusable) {
           m_destination.Reset();
-        }
-        else
-        {
+        } else {
           m_flags.m_value &= ~kMoving;
           m_flags.m_value |= kHasDestination;
         }
-      }
-      else if ((m_flags.m_value & kMoving) != 0)
-      {
-        if (unusable)
+      } else if ((m_flags.m_value & kMoving) != 0) {
+        if (unusable) {
           m_destination.Reset();
-        else
+        } else {
           m_flags.m_value |= kHasDestination;
+        }
       }
     }
   }
-  if ((m_flags.m_value & kHasDestination) != 0)
+  if ((m_flags.m_value & kHasDestination) != 0) {
     return 1;
-  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
-  {
+  }
+  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
-    if ((m_flags.m_value & kHasDestination) != 0)
+    if ((m_flags.m_value & kHasDestination) != 0) {
       return 1;
+    }
     const ObjectKey leaderKey = KeyOfNode(node);
     auto* character = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(&leaderKey));
-    if (!character)
+    if (!character) {
       continue;
+    }
     ObjectKey location = SystemOf(this, character);
-    if (!IsSystemKey(location))
+    if (!IsSystemKey(location)) {
       continue;
+    }
     AiSystemEval* system = FindSystem(this, location);
-    if (!system)
+    if (!system) {
       continue;
+    }
     ObjectKey sector;
     system->GetSectorKey(&sector);
-    if (sector.m_value == m_sectorKey.m_value && (system->m_flags30.m_value & 1) != 0 &&
-        (system->m_flags28.m_value & 2) == 0)
-    {
+    if (sector.m_value == m_sectorKey.m_value && (system->m_flags30.m_value & 1) != 0
+        && (system->m_flags28.m_value & 2) == 0) {
       m_flags.m_value &= ~kMoving;
       m_flags.m_value |= kHasDestination;
       system->GetKey(&m_destination);
     }
   }
-  if ((m_flags.m_value & kHasDestination) != 0)
+  if ((m_flags.m_value & kHasDestination) != 0) {
     return 1;
+  }
   m_flags.m_value &= ~kMoving;
-  if (IsSectorKey(m_sectorKey))
-  {
+  if (IsSectorKey(m_sectorKey)) {
     m_selector.Add(m_owner->RankSystemsOfSectorRandomly(&m_sectorKey, 0, 0, 1, 2, 0, 0, 1));
     m_destination = *m_selector.PickBest(&scratch);
     m_selector.Reset();
   }
-  if (IsSystemKey(m_destination))
+  if (IsSystemKey(m_destination)) {
     m_flags.m_value |= kHasDestination;
-  if ((m_flags.m_value & kHasDestination) != 0)
+  }
+  if ((m_flags.m_value & kHasDestination) != 0) {
     return 1;
+  }
   m_flags.m_value &= ~kMoving;
-  if (IsSectorKey(m_sectorKey))
-  {
+  if (IsSectorKey(m_sectorKey)) {
     m_destination = *m_owner->FindNearestSystemWithFleets(&scratch, &m_sectorKey, 0, 0, 1, 0, 0, 0x200);
-    if (IsSystemKey(m_destination))
+    if (IsSystemKey(m_destination)) {
       m_flags.m_value |= kHasDestination | kMoving;
+    }
   }
   return (m_flags.m_value & kHasDestination) != 0;
 }
@@ -951,20 +903,16 @@ OrderBase* AiSystemPlanner::MoveTeams()
   m_flags.m_value &= ~kTeamInPlace;
   // Everyone is in place when there are leaders and no leader or member is unavailable or still away.
   bool allInPlace = static_cast<uint16_t>(m_leaders.Count()) != 0;
-  auto gather = [&](ObjectKeySet& set)
-  {
-    for (auto position = set.Entries().begin(); position != set.Entries().end(); ++position)
-    {
+  auto gather = [&](ObjectKeySet& set) {
+    for (auto position = set.Entries().begin(); position != set.Entries().end(); ++position) {
       auto* node = static_cast<ObjectKeyNode*>((*position).get());
       AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
-      if (!character)
+      if (!character) {
         continue;
-      if ((character->m_flags.m_value & kCharacterUnavailable) != 0)
-      {
-        allInPlace = false;
       }
-      else if (character->m_location.m_value != m_destination.m_value)
-      {
+      if ((character->m_flags.m_value & kCharacterUnavailable) != 0) {
+        allInPlace = false;
+      } else if (character->m_location.m_value != m_destination.m_value) {
         allInPlace = false;
         AddToTeam(&team, KeyOfNode(node));
       }
@@ -972,37 +920,33 @@ OrderBase* AiSystemPlanner::MoveTeams()
   };
   gather(m_leaders);
   gather(m_members);
-  if (team.First() && (order = static_cast<OrderBase*>(CreateMessageByKind(ai::kMoveOrder))))
-  {
+  if (team.First() && (order = static_cast<OrderBase*>(CreateMessageByKind(ai::kMoveOrder)))) {
     order->m_side = m_view;
     order->SetTeam(&team);
     order->SetTarget(&m_destination);
   }
-  if (allInPlace && (m_flags.m_value & kHasLeaders) != 0 && (m_flags.m_value & kHasMembers) != 0)
+  if (allInPlace && (m_flags.m_value & kHasLeaders) != 0 && (m_flags.m_value & kHasMembers) != 0) {
     m_flags.m_value |= kTeamInPlace;
+  }
   return order;
 }
 
 void AiMissionPlanner::HandleEvent(int event)
 {
-  if (event == 0)
-  {
+  if (event == 0) {
     m_flags.m_value |= kMissionChanged;
     return;
   }
-  if (event == 2)
-  {
+  if (event == 2) {
     ResetMissionMark();
-    if (AdvanceStall() != 0)
-    {
+    if (AdvanceStall() != 0) {
       m_flags.m_value |= kAbortNow;
       return;
     }
     m_flags.m_value |= kAbortRequested;
     return;
   }
-  if (event == 3)
-  {
+  if (event == 3) {
     ResetMissionMark();
     m_stall = 0;
     m_flags.m_value |= kAbortRequested;
@@ -1016,19 +960,16 @@ void AiMissionPlanner::MarkMembersAssigned()
 
 void AiMissionPlanner::HandleQuietEvent(int event)
 {
-  if (event == 0)
-  {
+  if (event == 0) {
     m_flags.m_value |= kMissionChanged;
     return;
   }
-  if (event == 2)
-  {
+  if (event == 2) {
     AdvanceStall();
     ResetMissionMark();
     return;
   }
-  if (event == 3)
-  {
+  if (event == 3) {
     m_stall = 0;
     ResetMissionMark();
   }
@@ -1037,22 +978,20 @@ void AiMissionPlanner::HandleQuietEvent(int event)
 void AiMissionPlanner::AssignNoMembers()
 {
   m_flags.m_value |= kHasMembers;
-  if (static_cast<uint16_t>(m_members.Count()) != 0)
+  if (static_cast<uint16_t>(m_members.Count()) != 0) {
     RemoveFirstMember();
+  }
 }
 
 void AiSystemPlanner::Disband()
 {
-  if ((m_flags.m_value & 0xe0000000) != 0)
+  if ((m_flags.m_value & 0xe0000000) != 0) {
     return;
-  RemoveAll(m_leaders,
-            [this](const ObjectKey& key)
-            {
-              RemoveLeader(&key);
-            });
-  RemoveAll(m_members,
-            [this](const ObjectKey& key)
-            {
-              RemoveMember(&key);
-            });
+  }
+  RemoveAll(m_leaders, [this](const ObjectKey& key) {
+    RemoveLeader(&key);
+  });
+  RemoveAll(m_members, [this](const ObjectKey& key) {
+    RemoveMember(&key);
+  });
 }

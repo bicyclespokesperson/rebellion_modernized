@@ -12,22 +12,23 @@
 #include "ui/sprite_stage.h"
 
 extern AnimationStep04 g_animationStep04; // 0x6b0628
-extern int g_animationStep04Registered; // 0x6b0620
+extern int g_animationStep04Registered;   // 0x6b0620
 extern AnimationStep05 g_animationStep05; // 0x6b0698
-extern int g_animationStep05Registered; // 0x6b0690
+extern int g_animationStep05Registered;   // 0x6b0690
 extern AnimationStep14 g_animationStep14; // 0x6b1258
-extern int g_animationStep14Registered; // 0x6b1250
+extern int g_animationStep14Registered;   // 0x6b1250
 extern AnimationStep15 g_animationStep15; // 0x6b12c0
-extern int g_animationStep15Registered; // 0x6b12b8
+extern int g_animationStep15Registered;   // 0x6b12b8
 extern AnimationStep11 g_animationStep11; // 0x6b1328
-extern int g_animationStep11Registered; // 0x6b1320
+extern int g_animationStep11Registered;   // 0x6b1320
 extern AnimationStep12 g_animationStep12; // 0x6b1390
-extern int g_animationStep12Registered; // 0x6b1388
+extern int g_animationStep12Registered;   // 0x6b1388
 extern AnimationStep13 g_animationStep13; // 0x6b13f0
-extern int g_animationStep13Registered; // 0x6b13e8
-extern int g_animationStepSignal; // 0x6b12b0
+extern int g_animationStep13Registered;   // 0x6b13e8
+extern int g_animationStepSignal;         // 0x6b12b0
 
-DeltaFrameList::DeltaFrameList() : m_nextId(1)
+DeltaFrameList::DeltaFrameList()
+    : m_nextId(1)
 {
 }
 
@@ -39,40 +40,40 @@ DeltaFrameList::~DeltaFrameList()
 
 uint32_t DeltaFrameList::AddWithId(DeltaFrame* frame)
 {
-  if (!frame)
+  if (!frame) {
     return 0;
+  }
   uint32_t id = frame->m_id;
   const bool assignedId = id == 0;
-  if (assignedId)
-  {
-    if (m_nextId == 0)
+  if (assignedId) {
+    if (m_nextId == 0) {
       return 0;
+    }
     id = m_nextId;
     frame->SetId(id);
   }
   std::map<uint32_t, std::unique_ptr<DeltaFrame>>::iterator position;
   bool inserted = false;
-  try
-  {
+  try {
     auto result = m_frames.try_emplace(id);
     position = result.first;
     inserted = result.second;
-  }
-  catch (...)
-  {
-    if (assignedId)
+  } catch (...) {
+    if (assignedId) {
       frame->SetId(0);
+    }
     throw;
   }
-  if (!inserted)
-  {
-    if (assignedId)
+  if (!inserted) {
+    if (assignedId) {
       frame->SetId(0);
+    }
     return 0;
   }
   position->second.reset(frame);
-  if (m_nextId != 0 && m_nextId <= id)
+  if (m_nextId != 0 && m_nextId <= id) {
     m_nextId = id + 1;
+  }
   return id;
 }
 
@@ -97,26 +98,28 @@ constexpr int kKindPositioned15 = 0x15;
 constexpr uint32_t kDroidScriptEnd = 0x2d37;
 
 // The RCDATA (type 10) resource that holds the script's words.
-struct StepResource
-{
+struct StepResource {
   HMODULE module;
   HGLOBAL handle;
   const uint16_t* words;
 
-  explicit StepResource(uint32_t script) : module(nullptr), handle(nullptr), words(nullptr)
+  explicit StepResource(uint32_t script)
+      : module(nullptr)
+      , handle(nullptr)
+      , words(nullptr)
   {
     module = FindResourceModule((script >> 16) & 0xffff);
-    HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(script & 0xffff), MAKEINTRESOURCEA(10));
-    if (info)
-    {
-      handle = LoadResource(module, info);
-      if (handle)
-        words = static_cast<const uint16_t*>(LockResource(handle));
+    HRSRC info = reb::compat::FindResourceA(module, MAKEINTRESOURCEA(script & 0xffff), MAKEINTRESOURCEA(10));
+    if (info) {
+      handle = reb::compat::LoadResource(module, info);
+      if (handle) {
+        words = static_cast<const uint16_t*>(reb::compat::LockResource(handle));
+      }
     }
   }
   void Free()
   {
-    FreeResource(handle);
+    reb::compat::FreeResource(handle);
   }
 };
 
@@ -131,30 +134,30 @@ void showBitmap(AnimationStep* step, int index, DibBitmap* bitmap)
 {
   SpriteAnimator* animator = step->m_animator;
   Sprite* existing = animator->m_sprites[index];
-  if (existing == nullptr)
-  {
+  if (existing == nullptr) {
     auto* sprite = NewOrNull<Sprite>(bitmap);
     step->m_stage->AddSprite(sprite);
     animator->SetSprite(index, sprite);
-  }
-  else
-  {
+  } else {
     existing->SetBitmap(bitmap);
   }
 }
 
-// An array of `count` frame lists with the element count in front, as the compiler lays out new[] of a class with a destructor.
+// An array of `count` frame lists with the element count in front, as the compiler lays out new[] of a class with a
+// destructor.
 constexpr size_t kArrayCookie = alignof(DeltaFrameList) > sizeof(int) ? alignof(DeltaFrameList) : sizeof(int);
 
 DeltaFrameList* newFrameLists(int count)
 {
   char* block = static_cast<char*>(::operator new(count * sizeof(DeltaFrameList) + kArrayCookie));
-  if (block == nullptr)
+  if (block == nullptr) {
     return nullptr;
+  }
   *reinterpret_cast<int*>(block) = count;
   auto* lists = reinterpret_cast<DeltaFrameList*>(block + kArrayCookie);
-  for (int i = 0; i < count; ++i)
+  for (int i = 0; i < count; ++i) {
     new (&lists[i]) DeltaFrameList();
+  }
   return lists;
 }
 
@@ -162,8 +165,9 @@ DeltaFrameList* newFrameLists(int count)
 void deleteFrameLists(DeltaFrameList* lists)
 {
   char* block = reinterpret_cast<char*>(lists) - kArrayCookie;
-  for (int i = *reinterpret_cast<int*>(block) - 1; i >= 0; --i)
+  for (int i = *reinterpret_cast<int*>(block) - 1; i >= 0; --i) {
     lists[i].~DeltaFrameList();
+  }
   ::operator delete(block);
 }
 
@@ -181,14 +185,15 @@ DibBitmap* copyOf(DibBitmap* source)
 
 } // namespace
 
-// ---- AnimationStep ----------------------------------------------------------------------------------------------------
+// ---- AnimationStep
+// ----------------------------------------------------------------------------------------------------
 
 AnimationStep::AnimationStep()
-: m_stage(nullptr),
-  m_animator(nullptr),
-  m_script(0),
-  m_sound(0, 0, 0, 0, 0, 0),
-  m_effectSound(0, 0, 0, 0, 0, 0)
+    : m_stage(nullptr)
+    , m_animator(nullptr)
+    , m_script(0)
+    , m_sound(0, 0, 0, 0, 0, 0)
+    , m_effectSound(0, 0, 0, 0, 0, 0)
 {
 }
 
@@ -204,18 +209,15 @@ void AnimationStep::SetScript(const uint32_t* sequence)
   m_script = *sequence;
 }
 
-void AnimationStep::SetStart(int x, intptr_t y)
-{
-}
+void AnimationStep::SetStart(int x, intptr_t y) {}
 
-void AnimationStep::Abort()
-{
-}
+void AnimationStep::Abort() {}
 
 int AnimationStep::PlayEffectSound(const uint16_t* pair, int loop)
 {
-  if (m_effectSound.m_handle)
+  if (m_effectSound.m_handle) {
     SoundManager::Stop(&m_effectSound, 1);
+  }
   m_effectSound = SoundRequest(0, 0, 0, 0, 0, 0);
   m_effectSound.m_kind = kSoundKindWave;
   m_effectSound.m_soundId = pair[0];
@@ -227,8 +229,9 @@ int AnimationStep::PlayEffectSound(const uint16_t* pair, int loop)
 
 int AnimationStep::PlayMainSound(const uint16_t* pair, int loop)
 {
-  if (m_sound.m_handle)
+  if (m_sound.m_handle) {
     SoundManager::Stop(&m_sound, 1);
+  }
   m_sound = SoundRequest(0, 0, 0, 0, 0, 0);
   m_sound.m_kind = kSoundKindWave;
   m_sound.m_soundId = pair[0];
@@ -241,10 +244,10 @@ int AnimationStep::PlayMainSound(const uint16_t* pair, int loop)
 int AnimationStep::IsSoundPlaying()
 {
   int result = 0;
-  if (m_sound.m_soundId != 0)
-  {
-    if (SoundManager::Query(&m_sound) == 0 && m_sound.m_playing)
+  if (m_sound.m_soundId != 0) {
+    if (SoundManager::Query(&m_sound) == 0 && m_sound.m_playing) {
       result = 1;
+    }
   }
   return result;
 }
@@ -261,16 +264,18 @@ void AnimationStep::StopSound(int sweep)
 
 int RegisterAnimationStep(AnimationStep* prototype)
 {
-  if (prototype)
+  if (prototype) {
     g_animationSteps[prototype->GetKind()] = prototype;
+  }
   return 0;
 }
 
 AnimationStep* CreateAnimationStep(int kind)
 {
   AnimationStep* result = nullptr;
-  if (kind >= kFirstKind && kind <= kLastKind)
+  if (kind >= kFirstKind && kind <= kLastKind) {
     result = g_animationSteps[kind]->Create();
+  }
   return result;
 }
 
@@ -279,15 +284,17 @@ void ScriptStep::SetScript(const uint32_t* sequence)
   AnimationStep::SetScript(sequence);
 }
 
-// ---- BitmapListStep, TimedStep, PositionedStep -----------------------------------------------------------------------------
+// ---- BitmapListStep, TimedStep, PositionedStep
+// -----------------------------------------------------------------------------
 
 void BitmapListStep::Attach(SpriteAnimator* animator)
 {
   AnimationStep::Attach(animator);
   m_spriteCount = animator->m_spriteCount;
   m_bitmaps = static_cast<DibBitmap**>(::operator new(m_spriteCount * sizeof(DibBitmap*)));
-  for (int i = 0; i < m_spriteCount; ++i)
+  for (int i = 0; i < m_spriteCount; ++i) {
     m_bitmaps[i] = nullptr;
+  }
 }
 
 void BitmapListStep::ShowBitmap(int index, DibBitmap* bitmap)
@@ -315,8 +322,7 @@ void PositionedStep::SetStart(int x, intptr_t y)
 int PositionedStep::Advance(RECT* area, int* changed)
 {
   *changed = 0;
-  if (m_wait > 0)
-  {
+  if (m_wait > 0) {
     --m_wait;
     return 0;
   }
@@ -328,7 +334,8 @@ void PositionedStep::Abort()
   m_wait = 0;
 }
 
-// ---- kind 5 ---------------------------------------------------------------------------------------------------------------
+// ---- kind 5
+// ---------------------------------------------------------------------------------------------------------------
 
 AnimationStep05::AnimationStep05()
 {
@@ -341,13 +348,12 @@ AnimationStep05::AnimationStep05()
 
 AnimationStep05::~AnimationStep05()
 {
-  if (m_bitmaps != nullptr)
-  {
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+  if (m_bitmaps != nullptr) {
+    for (int i = 0; i < m_spriteCount; ++i) {
       DibBitmap* bitmap = m_bitmaps[i];
-      if (bitmap != nullptr)
+      if (bitmap != nullptr) {
         deleteBitmap(bitmap);
+      }
     }
     ::operator delete(m_bitmaps);
   }
@@ -357,16 +363,12 @@ int AnimationStep05::Advance(RECT* area, int* changed)
 {
   *changed = 0;
   int done = 0;
-  if (m_delay != 0)
-  {
+  if (m_delay != 0) {
     --m_delay;
-  }
-  else
-  {
+  } else {
     done = 1;
   }
-  if (m_hold > 0)
-  {
+  if (m_hold > 0) {
     --m_hold;
     *changed = 1;
     area->left = m_animator->m_originX;
@@ -380,17 +382,14 @@ int AnimationStep05::Advance(RECT* area, int* changed)
 void AnimationStep05::Begin()
 {
   StepResource resource(m_script);
-  if (resource.words != nullptr)
-  {
+  if (resource.words != nullptr) {
     const uint16_t* word = resource.words;
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+    for (int i = 0; i < m_spriteCount; ++i) {
       ++word;
       m_bitmaps[i] = loadBitmap(resource.module, *word);
       showBitmap(this, i, m_bitmaps[i]);
     }
-    if (resource.words[0] != 0)
-    {
+    if (resource.words[0] != 0) {
       const uint16_t pair[2] = {resource.words[0], static_cast<uint16_t>(m_script >> 16)};
       PlayEffectSound(pair, 0);
     }
@@ -400,17 +399,17 @@ void AnimationStep05::Begin()
 
 void AnimationStep05::Finish()
 {
-  if (m_animator != nullptr)
-  {
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+  if (m_animator != nullptr) {
+    for (int i = 0; i < m_spriteCount; ++i) {
       Sprite* sprite = m_animator->m_sprites[i];
-      if (sprite != nullptr)
+      if (sprite != nullptr) {
         sprite->SetBitmap(nullptr);
+      }
     }
   }
-  if (m_callback != nullptr)
+  if (m_callback != nullptr) {
     m_callback(static_cast<int>(m_animator->m_id));
+  }
 }
 
 AnimationStep* AnimationStep05::Create()
@@ -423,7 +422,8 @@ int AnimationStep05::GetKind()
   return kKindTimed05;
 }
 
-// ---- kind 0x12 ------------------------------------------------------------------------------------------------------------
+// ---- kind 0x12
+// ------------------------------------------------------------------------------------------------------------
 
 AnimationStep12::AnimationStep12()
 {
@@ -435,13 +435,10 @@ AnimationStep12::AnimationStep12()
 
 AnimationStep12::~AnimationStep12()
 {
-  if (m_bitmaps != nullptr)
-  {
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+  if (m_bitmaps != nullptr) {
+    for (int i = 0; i < m_spriteCount; ++i) {
       DibBitmap* bitmap = m_bitmaps[i];
-      if (bitmap != nullptr)
-      {
+      if (bitmap != nullptr) {
         deleteBitmap(bitmap);
         m_bitmaps[i] = nullptr;
       }
@@ -454,8 +451,7 @@ AnimationStep12::~AnimationStep12()
 int AnimationStep12::Advance(RECT* area, int* changed)
 {
   *changed = 0;
-  if (m_delay != 0)
-  {
+  if (m_delay != 0) {
     --m_delay;
     return 0;
   }
@@ -465,17 +461,14 @@ int AnimationStep12::Advance(RECT* area, int* changed)
 void AnimationStep12::Begin()
 {
   StepResource resource(m_script);
-  if (resource.words != nullptr)
-  {
+  if (resource.words != nullptr) {
     const uint16_t* word = resource.words;
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+    for (int i = 0; i < m_spriteCount; ++i) {
       ++word;
       m_bitmaps[i] = loadBitmap(resource.module, *word);
       showBitmap(this, i, m_bitmaps[i]);
     }
-    if (resource.words[0] != 0)
-    {
+    if (resource.words[0] != 0) {
       const uint16_t pair[2] = {resource.words[0], static_cast<uint16_t>(m_script >> 16)};
       PlayEffectSound(pair, 0);
     }
@@ -486,13 +479,12 @@ void AnimationStep12::Begin()
 
 void AnimationStep12::Finish()
 {
-  if (m_animator != nullptr)
-  {
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+  if (m_animator != nullptr) {
+    for (int i = 0; i < m_spriteCount; ++i) {
       Sprite* sprite = m_animator->m_sprites[i];
-      if (sprite != nullptr)
+      if (sprite != nullptr) {
         sprite->SetBitmap(nullptr);
+      }
     }
   }
 }
@@ -507,7 +499,8 @@ int AnimationStep12::GetKind()
   return kKindTimed12;
 }
 
-// ---- kinds 0x15 and 0x11 --------------------------------------------------------------------------------------------------
+// ---- kinds 0x15 and 0x11
+// --------------------------------------------------------------------------------------------------
 
 namespace
 {
@@ -515,14 +508,12 @@ namespace
 void loadBitmapsOrFinish(PositionedStep* step)
 {
   StepResource resource(step->m_script);
-  if (resource.words == nullptr)
-  {
+  if (resource.words == nullptr) {
     step->Finish();
     return;
   }
   const uint16_t* word = resource.words;
-  for (int i = 0; i < step->m_spriteCount; ++i)
-  {
+  for (int i = 0; i < step->m_spriteCount; ++i) {
     step->m_bitmaps[i] = loadBitmap(resource.module, *word);
     showBitmap(step, i, step->m_bitmaps[i]);
     ++word;
@@ -532,13 +523,12 @@ void loadBitmapsOrFinish(PositionedStep* step)
 
 void deleteBitmapList(PositionedStep* step)
 {
-  if (step->m_bitmaps != nullptr)
-  {
-    for (int i = 0; i < step->m_spriteCount; ++i)
-    {
+  if (step->m_bitmaps != nullptr) {
+    for (int i = 0; i < step->m_spriteCount; ++i) {
       DibBitmap* bitmap = step->m_bitmaps[i];
-      if (bitmap != nullptr)
+      if (bitmap != nullptr) {
         deleteBitmap(bitmap);
+      }
     }
     ::operator delete(step->m_bitmaps);
   }
@@ -614,21 +604,25 @@ int AnimationStep11::GetKind()
   return kKindPositioned11;
 }
 
-// ---- kind 0x14 ------------------------------------------------------------------------------------------------------------
+// ---- kind 0x14
+// ------------------------------------------------------------------------------------------------------------
 
-AnimationStep14::AnimationStep14() : m_firstWord(0), m_spriteCount(0), m_bitmaps(nullptr), m_aborted(0)
+AnimationStep14::AnimationStep14()
+    : m_firstWord(0)
+    , m_spriteCount(0)
+    , m_bitmaps(nullptr)
+    , m_aborted(0)
 {
 }
 
 AnimationStep14::~AnimationStep14()
 {
-  if (m_bitmaps != nullptr)
-  {
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+  if (m_bitmaps != nullptr) {
+    for (int i = 0; i < m_spriteCount; ++i) {
       DibBitmap* bitmap = m_bitmaps[i];
-      if (bitmap != nullptr)
+      if (bitmap != nullptr) {
         deleteBitmap(bitmap);
+      }
     }
     ::operator delete(m_bitmaps);
   }
@@ -639,8 +633,9 @@ void AnimationStep14::Attach(SpriteAnimator* animator)
   AnimationStep::Attach(animator);
   m_spriteCount = animator->m_spriteCount;
   m_bitmaps = static_cast<DibBitmap**>(::operator new(m_spriteCount * sizeof(DibBitmap*)));
-  for (int i = 0; i < m_spriteCount; ++i)
+  for (int i = 0; i < m_spriteCount; ++i) {
     m_bitmaps[i] = nullptr;
+  }
 }
 
 int AnimationStep14::Advance(RECT* area, int* changed)
@@ -652,12 +647,10 @@ int AnimationStep14::Advance(RECT* area, int* changed)
 void AnimationStep14::Begin()
 {
   StepResource resource(m_script);
-  if (resource.words != nullptr)
-  {
+  if (resource.words != nullptr) {
     m_firstWord = resource.words[0];
     const uint16_t* word = resource.words;
-    for (int i = 0; i < m_spriteCount; ++i)
-    {
+    for (int i = 0; i < m_spriteCount; ++i) {
       ++word;
       m_bitmaps[i] = loadBitmap(resource.module, *word);
       showBitmap(this, i, m_bitmaps[i]);
@@ -669,9 +662,7 @@ void AnimationStep14::Begin()
   }
 }
 
-void AnimationStep14::Finish()
-{
-}
+void AnimationStep14::Finish() {}
 
 void AnimationStep14::Abort()
 {
@@ -688,7 +679,8 @@ int AnimationStep14::GetKind()
   return kKindDroid14;
 }
 
-// ---- kinds 4 and 0x13 -----------------------------------------------------------------------------------------------------
+// ---- kinds 4 and 0x13
+// -----------------------------------------------------------------------------------------------------
 
 void DeltaFrameStep::AttachImpl(SpriteAnimator* animator)
 {
@@ -698,8 +690,7 @@ void DeltaFrameStep::AttachImpl(SpriteAnimator* animator)
   m_bitmaps = static_cast<DibBitmap**>(::operator new(m_spriteCount * sizeof(DibBitmap*)));
   m_frameLists = newFrameLists(m_spriteCount);
   m_cursors = static_cast<DeltaFrame**>(::operator new(m_spriteCount * sizeof(DeltaFrame*)));
-  for (int i = 0; i < m_spriteCount; ++i)
-  {
+  for (int i = 0; i < m_spriteCount; ++i) {
     m_workBitmaps[i] = nullptr;
     m_cursors[i] = nullptr;
     m_bitmaps[i] = nullptr;
@@ -719,17 +710,14 @@ void DeltaFrameStep::Abort()
 void DeltaFrameStep::LoadFrames()
 {
   StepResource resource(m_script);
-  if (resource.words != nullptr)
-  {
+  if (resource.words != nullptr) {
     m_frameCount = resource.words[3];
     const uint16_t* word = resource.words + 4;
-    for (int i = 0; i < m_spriteCount; ++i, ++word)
-    {
+    for (int i = 0; i < m_spriteCount; ++i, ++word) {
       m_bitmaps[i] = loadBitmap(resource.module, *word);
-      for (int frame = 1; frame < m_frameCount; ++frame)
-      {
-        auto* delta =
-          NewOrNull<DeltaFrame>(resource.module, static_cast<uint32_t>(static_cast<uint16_t>(frame + *word)));
+      for (int frame = 1; frame < m_frameCount; ++frame) {
+        auto* delta
+            = NewOrNull<DeltaFrame>(resource.module, static_cast<uint32_t>(static_cast<uint16_t>(frame + *word)));
         delta->SetId(frame);
         m_frameLists[i].AddWithId(delta);
       }
@@ -737,20 +725,19 @@ void DeltaFrameStep::LoadFrames()
       m_bitmaps[i]->Blit(m_workBitmaps[i], 0, 0, 0, 0, 0, 0);
       showBitmap(this, i, m_workBitmaps[i]);
     }
-    if (resource.words[0] != 0)
-    {
+    if (resource.words[0] != 0) {
       const uint16_t pair[2] = {resource.words[0], static_cast<uint16_t>(m_script >> 16)};
       PlayEffectSound(pair, 0);
     }
-    if (resource.words[1] != 0)
-    {
+    if (resource.words[1] != 0) {
       const uint16_t pair[2] = {resource.words[1], resource.words[2]};
       PlayMainSound(pair, 0);
     }
     resource.Free();
   }
-  for (int i = 0; i < m_spriteCount; ++i)
+  for (int i = 0; i < m_spriteCount; ++i) {
     m_cursors[i] = static_cast<DeltaFrame*>(m_frameLists[i].First());
+  }
 }
 
 namespace
@@ -758,27 +745,31 @@ namespace
 
 void destroyDeltaFrameStep(DeltaFrameStep* step, bool deleteBitmapsArrayInsideLoop)
 {
-  if (step->m_workBitmaps != nullptr)
-  {
-    for (int i = 0; i < step->m_spriteCount; ++i)
-    {
+  if (step->m_workBitmaps != nullptr) {
+    for (int i = 0; i < step->m_spriteCount; ++i) {
       DibBitmap* work = step->m_workBitmaps[i];
-      if (work != nullptr)
+      if (work != nullptr) {
         deleteBitmap(work);
+      }
       DibBitmap* original = step->m_bitmaps[i];
-      if (original != nullptr)
+      if (original != nullptr) {
         deleteBitmap(original);
+      }
     }
     ::operator delete(step->m_workBitmaps);
-    if (deleteBitmapsArrayInsideLoop)
+    if (deleteBitmapsArrayInsideLoop) {
       ::operator delete(step->m_bitmaps);
+    }
   }
-  if (!deleteBitmapsArrayInsideLoop && step->m_bitmaps != nullptr)
+  if (!deleteBitmapsArrayInsideLoop && step->m_bitmaps != nullptr) {
     ::operator delete(step->m_bitmaps);
-  if (step->m_frameLists != nullptr)
+  }
+  if (step->m_frameLists != nullptr) {
     deleteFrameLists(step->m_frameLists);
-  if (step->m_cursors != nullptr)
+  }
+  if (step->m_cursors != nullptr) {
     ::operator delete(step->m_cursors);
+  }
 }
 
 int advanceDeltaFrames(DeltaFrameStep* step, RECT* area, int* changed, bool stopSoundsOnRequest)
@@ -786,33 +777,28 @@ int advanceDeltaFrames(DeltaFrameStep* step, RECT* area, int* changed, bool stop
   *changed = 0;
   int result = 0;
   int replace = 1;
-  for (int i = 0; i < step->m_spriteCount; ++i)
-  {
+  for (int i = 0; i < step->m_spriteCount; ++i) {
     DeltaFrame* frame = step->m_cursors[i];
-    if (frame != nullptr)
-    {
+    if (frame != nullptr) {
       *changed = 1;
       frame->ApplyTo(step->m_workBitmaps[i]);
       frame->GetBounds(area, replace);
       replace = 0;
       auto position = step->m_frameLists[i].PositionOf(frame);
       ++position;
-      step->m_cursors[i] =
-        position == step->m_frameLists[i].Entries().end() ? nullptr : static_cast<DeltaFrame*>((*position).get());
+      step->m_cursors[i]
+          = position == step->m_frameLists[i].Entries().end() ? nullptr : static_cast<DeltaFrame*>((*position).get());
     }
-    if (stopSoundsOnRequest)
-    {
-      if (step->m_stopRequested != 0)
-      {
+    if (stopSoundsOnRequest) {
+      if (step->m_stopRequested != 0) {
         step->StopEffectSound(1);
         step->StopSound(1);
         result = 1;
       }
-      if (step->m_cursors[i] == nullptr && !step->IsSoundPlaying())
+      if (step->m_cursors[i] == nullptr && !step->IsSoundPlaying()) {
         result = 1;
-    }
-    else if (step->m_cursors[i] == nullptr)
-    {
+      }
+    } else if (step->m_cursors[i] == nullptr) {
       result = step->IsSoundPlaying() ? step->m_stopRequested : 1;
     }
   }

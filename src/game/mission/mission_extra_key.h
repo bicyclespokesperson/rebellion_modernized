@@ -13,16 +13,16 @@
 // are the same code in both (0x5730b0, 0x5730e0, 0x573140; the classes' slots 5-7 are forwarders to them).
 class MissionExtraKeyBase : public MissionSystemTargetBase
 {
-public:
+  public:
   MissionExtraKeyBase();
   ~MissionExtraKeyBase() override;
 
-  int Read(istream* in) override; // 5, 0x5730b0 (forwarder 0x570560)
-  int Write(ostream* out) override; // 6, 0x5730e0 (forwarder 0x570570)
-  int Checksum(Crc32* crc) override; // 7, 0x573140 (forwarders 0x572f80, 0x56dee0)
-  int Validate() override; // 8, shared forwarder 0x56d460
+  int Read(istream* in) override;                                // 5, 0x5730b0 (forwarder 0x570560)
+  int Write(ostream* out) override;                              // 6, 0x5730e0 (forwarder 0x570570)
+  int Checksum(Crc32* crc) override;                             // 7, 0x573140 (forwarders 0x572f80, 0x56dee0)
+  int Validate() override;                                       // 8, shared forwarder 0x56d460
   int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, shared forwarder 0x576d10
-  virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) = 0; // 162
+  virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) = 0;  // 162
   virtual int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) = 0; // 163
 
   ObjectKey m_extraKey; // +0xa8
@@ -34,8 +34,7 @@ template <class Class>
 inline int SetExtraKeyProperty(Class* self, ObjectKey* value, NotifyContext* ctx)
 {
   const int result = self->IsMasterView();
-  if (result && self->m_extraKey.m_value != value->m_value)
-  {
+  if (result && self->m_extraKey.m_value != value->m_value) {
     ObjectKey oldKey;
     oldKey.m_value = self->m_extraKey.m_value;
     self->m_extraKey.m_value = value->m_value;
@@ -50,16 +49,15 @@ template <class Class>
 inline int ApplyExtraKeyProperty(Class* self, NotifyContext* ctx)
 {
   int result = self->IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* master = static_cast<Class*>(self->ViewAs(0));
-    if (self->MatchesSideMask(ctx->m_flag08) && self->m_extraKey.m_value != master->m_extraKey.m_value)
-    {
+    if (self->MatchesSideMask(ctx->m_flag08) && self->m_extraKey.m_value != master->m_extraKey.m_value) {
       ObjectKey oldKey;
       oldKey.m_value = self->m_extraKey.m_value;
       self->m_extraKey.m_value = master->m_extraKey.m_value;
-      if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(self->ViewSide())))
+      if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(self->ViewSide()))) {
         result = self->OnExtraKeyNotified(&oldKey, &self->m_extraKey, ctx);
+      }
     }
   }
   return result;
@@ -71,7 +69,8 @@ template <class Class>
 inline int ApplyAllWithExtraKey(Class* self, NotifyContext* ctx)
 {
   const int result = self->ApplyAllImpl(ctx);
-  if (result && ctx->m_flag04 == 1)
+  if (result && ctx->m_flag04 == 1) {
     self->ApplyExtraKey(ctx);
+  }
   return result;
 }

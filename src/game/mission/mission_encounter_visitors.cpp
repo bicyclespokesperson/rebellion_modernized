@@ -17,37 +17,53 @@ namespace
 
 constexpr FamilyRange kCharacterTargetMissions(0x60, 0x68);
 
+Character* asCharacter(Role* role)
+{
+  if (!role || role->GetFamily() < 0x30 || role->GetFamily() >= 0x3c) {
+    return nullptr;
+  }
+  return static_cast<Character*>(role);
+}
+
 } // namespace
 
-// ---- CharacterTargetMissionIterator -----------------------------------------------------------------------------------------
+// ---- CharacterTargetMissionIterator
+// -----------------------------------------------------------------------------------------
 
 CharacterTargetMissionIterator::CharacterTargetMissionIterator(GameObjNotifier* parent)
-: ChildIterator(parent, &kCharacterTargetMissions, kStateUsable)
+    : ChildIterator(parent, &kCharacterTargetMissions, kStateUsable)
 {
 }
 
 CharacterTargetMissionIterator::~CharacterTargetMissionIterator() = default;
 
-// ---- bases ------------------------------------------------------------------------------------------------------------------
+// ---- bases
+// ------------------------------------------------------------------------------------------------------------------
 
-MemberVisitorA::MemberVisitorA(EncounterContext* context) : m_context(context)
+MemberVisitorA::MemberVisitorA(EncounterContext* context)
+    : m_context(context)
 {
 }
 MemberVisitorA::~MemberVisitorA() = default;
 
-MemberVisitor::MemberVisitor(EncounterContext* context) : m_context(context)
+MemberVisitor::MemberVisitor(EncounterContext* context)
+    : m_context(context)
 {
 }
 MemberVisitor::~MemberVisitor() = default;
 
-UnitVisitor::UnitVisitor(EncounterContext* context) : m_context(context)
+UnitVisitor::UnitVisitor(EncounterContext* context)
+    : m_context(context)
 {
 }
 UnitVisitor::~UnitVisitor() = default;
 
-// ---- counters and pickers ---------------------------------------------------------------------------------------------------
+// ---- counters and pickers
+// ---------------------------------------------------------------------------------------------------
 
-MemberCounter::MemberCounter(EncounterContext* context) : MemberVisitor(context), m_count(0)
+MemberCounter::MemberCounter(EncounterContext* context)
+    : MemberVisitor(context)
+    , m_count(0)
 {
 }
 MemberCounter::~MemberCounter() = default;
@@ -59,7 +75,9 @@ int MemberCounter::Visit(Role* member, int* stop, NotifyContext* ctx)
   return 1;
 }
 
-UnitCounter::UnitCounter(EncounterContext* context) : UnitVisitor(context), m_count(0)
+UnitCounter::UnitCounter(EncounterContext* context)
+    : UnitVisitor(context)
+    , m_count(0)
 {
 }
 UnitCounter::~UnitCounter() = default;
@@ -72,10 +90,10 @@ int UnitCounter::Visit(Detector* unit, Fleet* container, int* stop, NotifyContex
 }
 
 MemberPicker::MemberPicker(EncounterContext* context)
-: MemberVisitor(context),
-  m_index(0),
-  m_target(0),
-  m_result(nullptr)
+    : MemberVisitor(context)
+    , m_index(0)
+    , m_target(0)
+    , m_result(nullptr)
 {
 }
 MemberPicker::~MemberPicker() = default;
@@ -84,11 +102,9 @@ int MemberPicker::Visit(Role* member, int* stop, NotifyContext* ctx)
 {
   *stop = 0;
   const int present = member != nullptr;
-  if (present)
-  {
+  if (present) {
     *stop = m_index == m_target;
-    if (*stop)
-    {
+    if (*stop) {
       m_result = member;
       return present;
     }
@@ -98,11 +114,11 @@ int MemberPicker::Visit(Role* member, int* stop, NotifyContext* ctx)
 }
 
 UnitPicker::UnitPicker(EncounterContext* context)
-: UnitVisitor(context),
-  m_index(0),
-  m_target(0),
-  m_result(nullptr),
-  m_resultFleet(nullptr)
+    : UnitVisitor(context)
+    , m_index(0)
+    , m_target(0)
+    , m_result(nullptr)
+    , m_resultFleet(nullptr)
 {
 }
 UnitPicker::~UnitPicker() = default;
@@ -111,11 +127,9 @@ int UnitPicker::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext
 {
   *stop = 0;
   const int present = unit != nullptr;
-  if (present)
-  {
+  if (present) {
     *stop = m_index == m_target;
-    if (*stop)
-    {
+    if (*stop) {
       m_result = unit;
       m_resultFleet = container;
       return present;
@@ -125,7 +139,9 @@ int UnitPicker::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext
   return present;
 }
 
-MemberEspionageSum::MemberEspionageSum(EncounterContext* context) : MemberVisitor(context), m_sum(0)
+MemberEspionageSum::MemberEspionageSum(EncounterContext* context)
+    : MemberVisitor(context)
+    , m_sum(0)
 {
 }
 MemberEspionageSum::~MemberEspionageSum() = default;
@@ -134,14 +150,17 @@ int MemberEspionageSum::Visit(Role* member, int* stop, NotifyContext* ctx)
 {
   *stop = 0;
   const int present = member != nullptr;
-  if (present)
+  if (present) {
     m_sum += member->GetEspionage();
+  }
   return present;
 }
 
-// ---- action visitors --------------------------------------------------------------------------------------------------------
+// ---- action visitors
+// --------------------------------------------------------------------------------------------------------
 
-ClearDecoyingVisitor::ClearDecoyingVisitor(EncounterContext* context) : MemberVisitor(context)
+ClearDecoyingVisitor::ClearDecoyingVisitor(EncounterContext* context)
+    : MemberVisitor(context)
 {
 }
 ClearDecoyingVisitor::~ClearDecoyingVisitor() = default;
@@ -153,7 +172,8 @@ int ClearDecoyingVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
   return 1;
 }
 
-BetrayalRollVisitor::BetrayalRollVisitor(EncounterContext* context) : MemberVisitor(context)
+BetrayalRollVisitor::BetrayalRollVisitor(EncounterContext* context)
+    : MemberVisitor(context)
 {
 }
 BetrayalRollVisitor::~BetrayalRollVisitor() = default;
@@ -167,7 +187,8 @@ int BetrayalRollVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
   return ok != 0;
 }
 
-ClearDecoyedVisitor::ClearDecoyedVisitor(EncounterContext* context) : UnitVisitor(context)
+ClearDecoyedVisitor::ClearDecoyedVisitor(EncounterContext* context)
+    : UnitVisitor(context)
 {
 }
 ClearDecoyedVisitor::~ClearDecoyedVisitor() = default;
@@ -179,7 +200,8 @@ int ClearDecoyedVisitor::Visit(Detector* unit, Fleet* container, int* stop, Noti
   return 1;
 }
 
-UnitAgainstMemberVisitor::UnitAgainstMemberVisitor(EncounterContext* context) : MemberVisitor(context)
+UnitAgainstMemberVisitor::UnitAgainstMemberVisitor(EncounterContext* context)
+    : MemberVisitor(context)
 {
 }
 UnitAgainstMemberVisitor::~UnitAgainstMemberVisitor() = default;
@@ -191,12 +213,14 @@ int UnitAgainstMemberVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
   Fleet* container = nullptr;
   m_context->PickRandomUnit(&unit, &container, ctx);
   *stop = unit == nullptr;
-  if (unit)
+  if (unit) {
     m_context->ResolveFailedDecoy(unit, container, member, ctx);
+  }
   return 1;
 }
 
-EncounterFightVisitor::EncounterFightVisitor(EncounterContext* context) : MemberVisitorA(context)
+EncounterFightVisitor::EncounterFightVisitor(EncounterContext* context)
+    : MemberVisitorA(context)
 {
 }
 EncounterFightVisitor::~EncounterFightVisitor() = default;
@@ -205,18 +229,22 @@ int EncounterFightVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
 {
   *stop = 0;
   int ok = 1;
-  auto* character = static_cast<Character*>(member);
-  if (character->m_encounterKey.IsSet())
-  {
+  auto* character = asCharacter(member);
+  if (!character) {
+    return ok;
+  }
+  if (character->m_encounterKey.IsSet()) {
     Role* other = static_cast<Role*>(GetMasterInFamilies_30_3c(&character->m_encounterKey));
     ok = other != nullptr;
-    if (other)
+    if (other) {
       ok = m_context->ResolveEncounterFight(member, other, ctx) && ok;
+    }
   }
   return ok;
 }
 
-EncounterDispatchVisitor::EncounterDispatchVisitor(EncounterContext* context) : MemberVisitorA(context)
+EncounterDispatchVisitor::EncounterDispatchVisitor(EncounterContext* context)
+    : MemberVisitorA(context)
 {
 }
 EncounterDispatchVisitor::~EncounterDispatchVisitor() = default;
@@ -224,23 +252,21 @@ EncounterDispatchVisitor::~EncounterDispatchVisitor() = default;
 int EncounterDispatchVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
 {
   *stop = 0;
-  auto* character = static_cast<Character*>(member);
+  auto* character = asCharacter(member);
   int ok;
-  if (!character->m_encounterKey.OrNull())
-  {
+  if (!character || !character->m_encounterKey.OrNull()) {
     UnitAgainstMemberVisitor visitor(m_context);
     ok = visitor.Visit(member, stop, ctx) != 0;
     *stop = 0;
-  }
-  else
-  {
+  } else {
     EncounterFightVisitor visitor(m_context);
     ok = visitor.Visit(member, stop, ctx) != 0;
   }
   return ok;
 }
 
-IdentifyTraitorVisitor::IdentifyTraitorVisitor(EncounterContext* context) : MemberVisitorA(context)
+IdentifyTraitorVisitor::IdentifyTraitorVisitor(EncounterContext* context)
+    : MemberVisitorA(context)
 {
 }
 IdentifyTraitorVisitor::~IdentifyTraitorVisitor() = default;
@@ -255,8 +281,8 @@ int IdentifyTraitorVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
 }
 
 BetrayalCandidateCollector::BetrayalCandidateCollector(EncounterContext* context, ObjectKeyValueSet* keys)
-: MemberVisitorA(context),
-  m_keys(keys)
+    : MemberVisitorA(context)
+    , m_keys(keys)
 {
 }
 BetrayalCandidateCollector::~BetrayalCandidateCollector() = default;
@@ -266,8 +292,7 @@ int BetrayalCandidateCollector::Visit(Role* member, int* stop, NotifyContext* ct
   *stop = 0;
   int candidate = 0;
   int ok = m_context->IsBetrayalCandidate(member, &candidate) != 0;
-  if (candidate)
-  {
+  if (candidate) {
     ObjectKey key;
     member->GetKey(&key);
     ok = m_keys->AddKeyValue(&key, 0) && ok;
@@ -275,7 +300,8 @@ int BetrayalCandidateCollector::Visit(Role* member, int* stop, NotifyContext* ct
   return ok;
 }
 
-UnitAgainstDecoyVisitor::UnitAgainstDecoyVisitor(EncounterContext* context) : UnitVisitor(context)
+UnitAgainstDecoyVisitor::UnitAgainstDecoyVisitor(EncounterContext* context)
+    : UnitVisitor(context)
 {
 }
 UnitAgainstDecoyVisitor::~UnitAgainstDecoyVisitor() = default;
@@ -286,17 +312,18 @@ int UnitAgainstDecoyVisitor::Visit(Detector* unit, Fleet* container, int* stop, 
   Role* decoy = nullptr;
   m_context->PickRandomDecoy(&decoy, ctx);
   *stop = decoy == nullptr;
-  if (decoy)
+  if (decoy) {
     m_context->TryDecoy(decoy, unit, container, ctx);
+  }
   return 1;
 }
 
 UnitFoilVisitor::UnitFoilVisitor(EncounterContext* context)
-: UnitVisitor(context),
-  m_foiled(0),
-  m_prepared(0),
-  m_averageSkill(0),
-  m_teamCount(0)
+    : UnitVisitor(context)
+    , m_foiled(0)
+    , m_prepared(0)
+    , m_averageSkill(0)
+    , m_teamCount(0)
 {
 }
 UnitFoilVisitor::~UnitFoilVisitor() = default;
@@ -304,18 +331,17 @@ UnitFoilVisitor::~UnitFoilVisitor() = default;
 int UnitFoilVisitor::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx)
 {
   *stop = 0;
-  if (m_context->m_teamCount != 0)
-  {
-    if (m_prepared == 0)
-    {
+  if (m_context->m_teamCount != 0) {
+    if (m_prepared == 0) {
       m_prepared = 1;
       m_context->AverageTeamEspionage(&m_averageSkill, ctx);
       MemberCounter counter(m_context);
       m_context->VisitTeamSpecialForces(&counter, ctx);
       m_teamCount = counter.m_count;
     }
-    if (*stop == 0)
+    if (*stop == 0) {
       m_context->RollFoil(unit, container, m_averageSkill, m_teamCount, &m_foiled, ctx);
+    }
   }
   *stop = m_foiled;
   return 1;

@@ -13,47 +13,48 @@
 //
 // The classes differ in family, the order kinds their event set accepts (slot 15/22, a per-class static set), the
 // "new empty object" factory (slot 57) and slots 122/123. The wrappers of slots 5-9 and 37 are identical code, so the
-// linker folded them: the 0xa4 class owns the addresses (0x55bc80-0x55bcd0, 0x55bca0) that all three vtables use. Slot 37
-// is the shared stub 0x55b560. The shipyard class additionally overrides slots 129 and 132 with plain forwards to
-// ManuMgr's. Slot 122 (an order kind, 0x210-0x212) lives in the order-kind classes' address range and is declared inline.
+// linker folded them: the 0xa4 class owns the addresses (0x55bc80-0x55bcd0, 0x55bca0) that all three vtables use. Slot
+// 37 is the shared stub 0x55b560. The shipyard class additionally overrides slots 129 and 132 with plain forwards to
+// ManuMgr's. Slot 122 (an order kind, 0x210-0x212) lives in the order-kind classes' address range and is declared
+// inline.
 //
 // Which in-game facility each kind is follows the Side's kind order (Shipyard, ConstructionYard, TrainingFacil) and
 // the lookup of a system's manager by slot 123; the facility family column is from ManufacturingFacility's slot 129.
 
 // Bodies of slots 5-7 and 9 (thiscall, `this` passed through; the leaves' wrappers forward to them).
-int ManuMgrReadBody(ManuMgr* self, istream* in); // 0x55bce0 (-> ManuMgr::Read)
-int ManuMgrWriteBody(ManuMgr* self, ostream* out); // 0x55bcf0 (-> ManuMgr::Write)
+int ManuMgrReadBody(ManuMgr* self, istream* in);            // 0x55bce0 (-> ManuMgr::Read)
+int ManuMgrWriteBody(ManuMgr* self, ostream* out);          // 0x55bcf0 (-> ManuMgr::Write)
 int ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx); // 0x55bd00 (-> ManuMgr::ApplyAll)
-int ManuMgrChecksumBody(ManuMgr* self, Crc32* crc); // 0x55bd10 (-> ManuMgr::Checksum)
+int ManuMgrChecksumBody(ManuMgr* self, Crc32* crc);         // 0x55bd10 (-> ManuMgr::Checksum)
 
 // The shared CreateViews stubs (thiscall): both end in GameObj's CreateViews through 0x5774f0. 0x55b560 serves the
 // manufacturing facilities and these managers, 0x55ac90 the defense facilities.
-int CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx); // 0x55b560
+int CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx);  // 0x55b560
 int CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx); // 0x55ac90
 
 // Family 0xa4.
 class TrainingFacilManuMgr : public ManuMgr
 {
-public:
-  TrainingFacilManuMgr(); // 0x55b2f0
+  public:
+  TrainingFacilManuMgr();           // 0x55b2f0
   ~TrainingFacilManuMgr() override; // 0x55b370 (scalar deleting destructor 0x55b350)
 
   uint32_t GetFamily() override
   {
     return 0xa4;
   } // 1, 0x55b390
-  int Read(istream* in) override; // 5, 0x55bc80
-  int Write(ostream* out) override; // 6, 0x55bc90
+  int Read(istream* in) override;    // 5, 0x55bc80
+  int Write(ostream* out) override;  // 6, 0x55bc90
   int Checksum(Crc32* crc) override; // 7, 0x55bcc0
   int Validate() override
   {
     return ManuMgr::Validate();
   } // 8, 0x55bcd0 (a jump chain to ManuMgr::Validate)
-  int ApplyAll(NotifyContext* ctx) override; // 9, 0x55bca0
-  int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x55b3a0
+  int ApplyAll(NotifyContext* ctx) override;                      // 9, 0x55bca0
+  int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x55b3a0
   int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x55b3c0
-  int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, 0x55b560
-  GameObj* CreateViewObject() override; // 57, 0x55b5d0
+  int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x55b560
+  GameObj* CreateViewObject() override;                           // 57, 0x55b5d0
   int GetManagerSpecificEventKind() override
   {
     return 0x212;
@@ -70,26 +71,26 @@ public:
 // Family 0xa0.
 class ConstructionYardManuMgr : public ManuMgr
 {
-public:
-  ConstructionYardManuMgr(); // 0x55b690
+  public:
+  ConstructionYardManuMgr();           // 0x55b690
   ~ConstructionYardManuMgr() override; // 0x55b710 (scalar deleting destructor 0x55b6f0)
 
   uint32_t GetFamily() override
   {
     return 0xa0;
   } // 1, 0x55b730
-  int Read(istream* in) override; // 5, shared 0x55bc80
-  int Write(ostream* out) override; // 6, shared 0x55bc90
+  int Read(istream* in) override;    // 5, shared 0x55bc80
+  int Write(ostream* out) override;  // 6, shared 0x55bc90
   int Checksum(Crc32* crc) override; // 7, shared 0x55bcc0
   int Validate() override
   {
     return ManuMgr::Validate();
   } // 8, shared 0x55bcd0
-  int ApplyAll(NotifyContext* ctx) override; // 9, shared 0x55bca0
-  int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x55b740
+  int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x55bca0
+  int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x55b740
   int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x55b760
-  int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, shared 0x55b560
-  GameObj* CreateViewObject() override; // 57, 0x55b950
+  int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x55b560
+  GameObj* CreateViewObject() override;                           // 57, 0x55b950
   int GetManagerSpecificEventKind() override
   {
     return 0x210;
@@ -106,26 +107,26 @@ public:
 // Family 0xa2.
 class ShipyardManuMgr : public ManuMgr
 {
-public:
-  ShipyardManuMgr(); // 0x55ba10
+  public:
+  ShipyardManuMgr();           // 0x55ba10
   ~ShipyardManuMgr() override; // 0x55ba90 (scalar deleting destructor 0x55ba70)
 
   uint32_t GetFamily() override
   {
     return 0xa2;
   } // 1, 0x55bab0
-  int Read(istream* in) override; // 5, shared 0x55bc80
-  int Write(ostream* out) override; // 6, shared 0x55bc90
+  int Read(istream* in) override;    // 5, shared 0x55bc80
+  int Write(ostream* out) override;  // 6, shared 0x55bc90
   int Checksum(Crc32* crc) override; // 7, shared 0x55bcc0
   int Validate() override
   {
     return ManuMgr::Validate();
   } // 8, shared 0x55bcd0
-  int ApplyAll(NotifyContext* ctx) override; // 9, shared 0x55bca0
-  int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x55bac0
+  int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x55bca0
+  int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x55bac0
   int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x55bae0
-  int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, shared 0x55b560
-  GameObj* CreateViewObject() override; // 57, 0x55bda0
+  int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x55b560
+  GameObj* CreateViewObject() override;                           // 57, 0x55bda0
   int GetManagerSpecificEventKind() override
   {
     return 0x211;
@@ -142,12 +143,12 @@ public:
 };
 
 // Registry factories: a new empty object, or null if allocation fails. Identical code to the slot-57 methods.
-GameObjNotifier* CreateTrainingFacilManuMgr(); // 0x55b4f0
+GameObjNotifier* CreateTrainingFacilManuMgr();    // 0x55b4f0
 GameObjNotifier* CreateConstructionYardManuMgr(); // 0x55b890
-GameObjNotifier* CreateShipyardManuMgr(); // 0x55bc10
+GameObjNotifier* CreateShipyardManuMgr();         // 0x55bc10
 
 // Number of children of `parent` in each manager family (cdecl; the arguments are passed through to
 // GameObj::CountChildren).
-int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter); // 0x55b480, family 0xa4
+int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter);    // 0x55b480, family 0xa4
 int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter); // 0x55b820, family 0xa0
-int CountShipyardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter); // 0x55bba0, family 0xa2
+int CountShipyardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter);         // 0x55bba0, family 0xa2

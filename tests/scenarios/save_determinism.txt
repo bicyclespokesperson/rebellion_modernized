@@ -1,6 +1,6 @@
 # Determinism baseline: load "RebelsFastStart" (Alliance), open the Saved Games screen and save into the first empty
 # row (creates SAVEGAME.005), then wait for the save command to run under the slow deterministic simulation clock
-# (REB_QPC_STEP_NS, see src/hybrid/determinism.cpp). Used by tools/determinism_check.sh. Runtime ~115 s.
+# (REB_QPC_STEP_NS, see src/port/native/native_clock.h). Runtime ~115 s.
 12 key Escape
 16 key Escape
 20 key Escape

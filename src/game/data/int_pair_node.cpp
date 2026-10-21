@@ -3,11 +3,14 @@
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 
-IntPairNode::IntPairNode() : m_value(0)
+IntPairNode::IntPairNode()
+    : m_value(0)
 {
 }
 
-IntPairNode::IntPairNode(const ObjectKey& key, const int& value) : ObjectKeyNode(key), m_value(value)
+IntPairNode::IntPairNode(const ObjectKey& key, const int& value)
+    : ObjectKeyNode(key)
+    , m_value(value)
 {
 }
 
@@ -35,8 +38,7 @@ void IntPairNode::Write(ostream* out)
 int IntPairNode::Checksum(Crc32* crc)
 {
   int ok = ObjectKeyNode::Checksum(crc);
-  if (ok)
-  {
+  if (ok) {
     crc->AddInt(m_value);
     ok = 1;
   }

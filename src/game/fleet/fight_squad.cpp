@@ -10,7 +10,7 @@
 #include "gameobj/object_family.h"
 #include "gameobj/side_bits.h"
 
-extern int g_fightSquadEventKindsReady; // 0x6b2b38
+extern int g_fightSquadEventKindsReady;     // 0x6b2b38
 extern EventKindSet g_fightSquadEventKinds; // 0x6b2b40
 
 namespace
@@ -62,40 +62,45 @@ int FightSquad::Checksum(Crc32* crc)
 int FightSquad::ApplyAll(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
+  if (result) {
     result = ApplyAllState(ctx);
+  }
   return result;
 }
 
 int FightSquad::ReadState(istream* in)
 {
   const int result = CombatUnit::Read(in);
-  if (result)
+  if (result) {
     ReadValue32(in, &m_squadSizeDamage);
+  }
   return result;
 }
 
 int FightSquad::WriteState(ostream* out)
 {
   const int result = CombatUnit::Write(out);
-  if (result)
+  if (result) {
     WriteValue32(out, &m_squadSizeDamage);
+  }
   return result;
 }
 
 int FightSquad::ApplyAllState(NotifyContext* ctx)
 {
   const int result = CombatUnit::ApplyAll(ctx);
-  if (result && ctx->m_flag04 == kApplyEverything)
+  if (result && ctx->m_flag04 == kApplyEverything) {
     ApplySquadSizeDamage(ctx);
+  }
   return result;
 }
 
 int FightSquad::ChecksumState(Crc32* crc)
 {
   const int result = CombatUnit::Checksum(crc);
-  if (result)
+  if (result) {
     crc->AddInt(m_squadSizeDamage);
+  }
   return result;
 }
 
@@ -104,21 +109,20 @@ int FightSquad::Validate()
   uint32_t valid = CombatUnit::Validate();
   GameObjIterator children(this, kAlwaysFilter);
   children.Begin();
-  if (children.Current())
+  if (children.Current()) {
     valid = 0;
-  if (valid)
-  {
+  }
+  if (valid) {
     const int damage = m_squadSizeDamage;
     valid = damage >= 0 && static_cast<int>(GetSquadSize()) >= damage;
-    if (valid && damage == static_cast<int>(GetSquadSize()))
+    if (valid && damage == static_cast<int>(GetSquadSize())) {
       valid = (m_stateFlags & kDestroyedFlag) != 0;
+    }
   }
   GameObjNotifier* parent = nullptr;
   uint32_t result = 0;
-  if (valid && (result = GetParent(&parent)) != 0)
-  {
-    if ((m_stateFlags & kDestroyedFlag) == 0 || (m_stateFlags & kLockedFlag) == 0)
-    {
+  if (valid && (result = GetParent(&parent)) != 0) {
+    if ((m_stateFlags & kDestroyedFlag) == 0 || (m_stateFlags & kLockedFlag) == 0) {
       result = (~static_cast<GameObj*>(parent)->m_stateFlags >> 3) & 1;
     }
   }
@@ -128,17 +132,16 @@ int FightSquad::Validate()
 int FightSquad::GetTransitSpeed(int arg)
 {
   int speed = 0;
-  if (m_stateFlags & kExistingFlag)
-  {
+  if (m_stateFlags & kExistingFlag) {
     const int lostField6c = GetDamageField6c();
     speed = static_cast<int>(GetField6c()) - lostField6c;
-    if (speed == 0)
-    {
+    if (speed == 0) {
       const int lostField70 = GetDamageField70();
       speed = static_cast<int>(GetField70()) - lostField70;
     }
-    if (speed == 0)
+    if (speed == 0) {
       speed = GameObj::GetTransitSpeed(arg);
+    }
   }
   return speed;
 }
@@ -146,8 +149,9 @@ int FightSquad::GetTransitSpeed(int arg)
 int FightSquad::GetEventKinds(int unused, EventKindSet* out)
 {
   const int ready = EnsureEventKinds();
-  if (ready)
+  if (ready) {
     *out = g_fightSquadEventKinds;
+  }
   return ready;
 }
 
@@ -155,8 +159,9 @@ int FightSquad::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int ready = EnsureEventKinds();
-  if (ready && g_fightSquadEventKinds.Contains(orderKind))
+  if (ready && g_fightSquadEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return ready;
 }
 
@@ -168,8 +173,9 @@ int FightSquad::CreateViews(int controlKind, NotifyContext* ctx)
 int FightSquad::HandleControlMismatch(NotifyContext* ctx)
 {
   int result = 1;
-  if ((m_stateFlags & kDestroyedFlag) == 0)
+  if ((m_stateFlags & kDestroyedFlag) == 0) {
     result = SetAutorouting(1, ctx);
+  }
   return result;
 }
 
@@ -251,8 +257,9 @@ uint32_t FightSquad::GetDamageGridValue(int row, int column)
 int FightSquad::RepairStep(NotifyContext* ctx)
 {
   int result = 1;
-  if (0 < m_squadSizeDamage)
+  if (0 < m_squadSizeDamage) {
     result = RepairSquadSizeDamage(1, ctx);
+  }
   return result;
 }
 
@@ -286,8 +293,9 @@ int FightSquad::GetSquadSizeDamage()
 int FightSquad::GetBombardmentDefenseLost()
 {
   const int squadSize = static_cast<int>(GetSquadSize());
-  if (squadSize == 0)
+  if (squadSize == 0) {
     return 0;
+  }
   const int lost = GetSquadSizeDamage();
   return ScaleRatio(static_cast<int>(GetBombardmentDefense()), lost, squadSize);
 }
@@ -300,16 +308,16 @@ int FightSquad::UpdateDamaged(NotifyContext* ctx)
 int FightSquad::OnSquadSizeDamageChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = newValue <= static_cast<int>(GetSquadSize());
-  if (result)
+  if (result) {
     result = UpdateDamaged(ctx);
+  }
   return result;
 }
 
 int FightSquad::OnSquadSizeDamageNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("FightSquadSquadSizeDamageNotif", "SquadSizeDamage", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(kSquadSizeDamageEvent, this, oldValue, newValue, ctx);
   }
@@ -325,10 +333,10 @@ int FightSquad::SetSquadSizeDamage(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int result = 0;
-  if (master)
+  if (master) {
     result = IsInRange(value, 0, static_cast<int>(GetSquadSize()), " Invalid SquadSizeDamage value!");
-  if (result && m_squadSizeDamage != value)
-  {
+  }
+  if (result && m_squadSizeDamage != value) {
     const int oldValue = m_squadSizeDamage;
     m_squadSizeDamage = value;
     static_cast<FightSquad*>(GetViewObject(1))->ApplySquadSizeDamage(ctx);
@@ -341,17 +349,13 @@ int FightSquad::SetSquadSizeDamage(int value, NotifyContext* ctx)
 int FightSquad::ApplySquadSizeDamage(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* master = static_cast<FightSquad*>(GetViewObject(0));
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_squadSizeDamage;
-      if (oldValue != master->m_squadSizeDamage)
-      {
+      if (oldValue != master->m_squadSizeDamage) {
         m_squadSizeDamage = master->m_squadSizeDamage;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnSquadSizeDamageNotified(oldValue, m_squadSizeDamage, ctx);
         }
       }
@@ -363,18 +367,18 @@ int FightSquad::ApplySquadSizeDamage(NotifyContext* ctx)
 int FightSquad::InflictSquadSizeDamage(int amount, int destroyedReason, NotifyContext* ctx)
 {
   int result = 0;
-  if (amount >= 0)
-  {
+  if (amount >= 0) {
     int total = m_squadSizeDamage + amount;
-    if (total > static_cast<int>(GetSquadSize()))
+    if (total > static_cast<int>(GetSquadSize())) {
       total = static_cast<int>(GetSquadSize());
+    }
     result = SetSquadSizeDamage(total, ctx);
   }
-  if (result)
-  {
+  if (result) {
     const int lost = GetSquadSizeDamage();
-    if (static_cast<int>(GetSquadSize()) - lost == 0)
+    if (static_cast<int>(GetSquadSize()) - lost == 0) {
       result = ChangeDestroyedReason(destroyedReason, ctx);
+    }
   }
   return result;
 }
@@ -382,11 +386,11 @@ int FightSquad::InflictSquadSizeDamage(int amount, int destroyedReason, NotifyCo
 int FightSquad::RepairSquadSizeDamage(int amount, NotifyContext* ctx)
 {
   int result = 0;
-  if (amount >= 0)
-  {
+  if (amount >= 0) {
     int remaining = m_squadSizeDamage - amount;
-    if (remaining < 0)
+    if (remaining < 0) {
       remaining = 0;
+    }
     result = SetSquadSizeDamage(remaining, ctx);
   }
   return result;
@@ -394,8 +398,7 @@ int FightSquad::RepairSquadSizeDamage(int amount, NotifyContext* ctx)
 
 int FightSquad::EnsureEventKinds()
 {
-  if (g_fightSquadEventKindsReady == 0)
-  {
+  if (g_fightSquadEventKindsReady == 0) {
     g_fightSquadEventKindsReady = 1;
     CombatUnit::InitEventKinds(0, &g_fightSquadEventKinds);
   }
@@ -413,12 +416,12 @@ GameObj* CreateFightSquad()
 }
 
 FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kFighterFamilies, stateFilter)
+    : ChildIterator(parent, &kFighterFamilies, stateFilter)
 {
 }
 
 FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kFighterFamilies, stateFilter)
+    : ChildIterator(parent, side, &kFighterFamilies, stateFilter)
 {
 }
 

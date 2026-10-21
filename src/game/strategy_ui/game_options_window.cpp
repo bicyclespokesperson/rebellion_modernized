@@ -1,12 +1,20 @@
 #include "strategy_ui/game_options_window.h"
 #include <string>
 
+#include <algorithm>
+#include <climits>
 #include <cmath>
+#include <cstdlib>
 #include <cstdint>
 
 #include "app/app_cdcheck_version.h"
+#include "app/battle_flow.h"
 #include "app/app_dialogs.h"
+#include "app/enhancements.h"
 #include "app/rebapp_globals.h"
+#include "app/rebellion_application.h"
+#include "port/native/lan_game.h"
+#include "port/native/native_clock.h"
 #include "app/saved_game_info_decl.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -14,8 +22,7 @@
 #include "gfx/dib_bitmap.h"
 #include "multiplayer/multiplayer_window.h"
 #include "strategy_ui/game_ui_facade.h"
-#include "tactical/comm2.h"
-#include "tactical/tactical_facade.h"
+#include "multiplayer/comm_helpers.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_label.h"
@@ -23,12 +30,12 @@
 #include "ui/cool_string_field.h"
 #include "ui/resource_dll.h"
 
-extern const char* g_textcommDllName; // 0x6a7edc "textcomm.dll"
-extern const char* g_commonDllName; // 0x6a7c98 "common.dll"
-extern const char* g_spaceString; // 0x6a7f40 " "
+extern const char* g_textcommDllName;            // 0x6a7edc "textcomm.dll"
+extern const char* g_commonDllName;              // 0x6a7c98 "common.dll"
+extern const char* g_spaceString;                // 0x6a7f40 " "
 extern const char* g_gameOptionsRequestLoadText; // 0x6a7eec
-extern const char* g_versionText; // 0x6a7f44 "1.01.00"
-extern const char* g_emptyText; // 0x6b120c
+extern const char* g_versionText;                // 0x6a7f44 "1.01.00"
+extern const char* g_emptyText;                  // 0x6b120c
 
 namespace
 {
@@ -53,8 +60,7 @@ constexpr uint32_t kOnOffDelta = 0x7f00;
 constexpr uint32_t kMusicOption = 0x100;
 constexpr uint32_t kOptionBits[5] = {0x10000000, 0x1000000, 0x100000, 0x10000, 0x2000000};
 
-enum Command : uint32_t
-{
+enum Command : uint32_t {
   kSaveFirst = 0x6f,
   kSaveLast = 0x74,
   kLoadFirst = 0x79,
@@ -69,15 +75,17 @@ enum Command : uint32_t
   kMusicToggle = 0x99,
   kOptionToggleFirst = 0xa1,
   kOptionToggleLast = 0xa6,
+  kDeleteFirst = 0xb1,
+  kDeleteLast = 0xb6,
 };
 
-enum Message : uint32_t
-{
+enum Message : uint32_t {
   kMessageSaved = 0x474,
   kMessageSaveFailed = 0x475,
   kMessageNoGameRunning = 0x476,
   kMessageLoad = 0x477,
   kMessageSave = 0x478,
+  kMessageDelete = 0x47e,
   kMessageCloseDialog = 0x405,
   kMessageCommandFromField = 0x407,
   kMessageDialogResult = 0x46a,
@@ -90,10 +98,17 @@ constexpr int kOptionLabelY[5] = {0x139, 0x154, 0x16f, 0x18a, 0x1a5};
 constexpr int kDialogWidth = 600;
 constexpr int kDialogHeight = 0x78;
 constexpr int kSaveHeaderIconX = 0x55;
+constexpr uint32_t kBackdropId = 0x4e22;
+constexpr int kNameFieldX = 0x77;
+constexpr int kNameFieldWidth = 0xa0;
+constexpr int kDeleteSize = 0x14;
+constexpr int kDeleteX = kNameFieldX + kNameFieldWidth - kDeleteSize - 1;
+constexpr int kShow = 5;
 
 bool IsBattleState(int state)
 {
-  return state >= kBattleStateFirst && state <= kBattleStateLast;
+  const BattleFlow* flow = GetBattleFlow();
+  return state >= kBattleStateFirst && state <= kBattleStateLast && !(flow && flow->LiveSession());
 }
 bool IsLobbyState(int state)
 {
@@ -103,8 +118,9 @@ bool IsLobbyState(int state)
 // volume (hundredths of decibel) of a slider position: floor(log10(position / 100) * 2000); 0 is silent.
 int SliderPositionToVolume(int position)
 {
-  if (position == 0)
+  if (position == 0) {
     return kMinVolume;
+  }
   const double hundredth = 0.01;
   const double scale = 2000.0;
   return reb_ftol(floor(reb_scaled_log10(position, hundredth, scale)));
@@ -113,8 +129,9 @@ int SliderPositionToVolume(int position)
 // The inverse: floor(10 ^ (volume / 2000) * 100), through the CRT's x87 pow like the original.
 int VolumeToSliderPosition(int volume)
 {
-  if (volume < kMinVolume)
+  if (volume < kMinVolume) {
     return 0;
+  }
   const double ten = 10.0;
   const double hundredth = 0.01;
   const double twentieth = 0.05;
@@ -135,44 +152,38 @@ ResourceStringId OnOffText(bool on)
 template <class T>
 void DeleteIfPresent(T* object)
 {
-  if (object)
+  if (object) {
     delete object;
+  }
 }
 
 void DeleteLabel(CoolLabel* label)
 {
-  if (label)
-  {
+  if (label) {
     label->~CoolLabel();
     operator delete(label);
   }
 }
 
-CoolLabel*
-NewLabel(uint16_t stringId, int x, int y, int width, int height, COLORREF color, UINT drawFlags, UINT layoutFlags)
+CoolLabel* NewLabel(uint16_t stringId, int x, int y, int width, int height, COLORREF color, UINT drawFlags,
+                    UINT layoutFlags)
 {
   return NewOrNull<CoolLabel>(stringId, x, y, width, height, color, kLabelFont, drawFlags, layoutFlags);
 }
 
 void DrawLabel(CoolLabel* label, HDC dc, bool dimmed)
 {
-  if (!label)
+  if (!label) {
     return;
-  if (dimmed)
+  }
+  if (dimmed) {
     label->SetColor(kLabelDisabled, nullptr);
+  }
   label->Draw(dc);
 }
 
-CoolStrobeButton* NewButton(HMODULE module,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            GameOptionsWindow* parent,
-                            uint32_t childId,
-                            uint32_t normalId,
-                            uint32_t pressedId,
-                            DibBitmap* backdrop)
+CoolStrobeButton* NewButton(HMODULE module, int x, int y, int width, int height, GameOptionsWindow* parent,
+                            uint32_t childId, uint32_t normalId, uint32_t pressedId, DibBitmap* backdrop)
 {
   return NewOrNull<CoolStrobeButton>(module, x, y, width, height, parent, childId, normalId, pressedId, backdrop, 0, 0);
 }
@@ -186,36 +197,32 @@ void AddChild(GameOptionsWindow* window, CoolStrobeButton* button)
 bool SlotUsable(int slot)
 {
   SavedGameInfo header = AppReadSaveHeader(slot, g_isNetworkGame);
-  if (!g_isNetworkGame)
+  if (!g_isNetworkGame) {
     return header.m_gameType == 1;
+  }
   return header.m_gameType == 2 && IsSlotAssigned(slot);
 }
 
 void DrawSaveIcon(GameOptionsWindow* window, const SavedGameInfo& info, int slotIndex)
 {
   uint32_t iconId;
-  if (info.m_gameType == 2)
-  {
+  if (info.m_gameType == 2) {
     iconId = 0x2749;
-  }
-  else if (info.m_side == 1)
-  {
+  } else if (info.m_side == 1) {
     iconId = 0x2748;
-  }
-  else if (info.m_side == 2)
-  {
+  } else if (info.m_side == 2) {
     iconId = 0x2747;
-  }
-  else
-  {
+  } else {
     return;
   }
   DibBitmap* background = window->GetBackground();
-  if (!background)
+  if (!background) {
     return;
+  }
   auto* icon = NewOrNull<DibBitmap>(CoolAppGetResourceModule(kCommonSlot), iconId, kBitmapKind);
-  if (!icon)
+  if (!icon) {
     return;
+  }
   icon->DrawKeyed(background, kSaveHeaderIconX, kIconY[slotIndex]);
   icon->~DibBitmap();
   operator delete(icon);
@@ -225,8 +232,7 @@ void ShowSavedName(GameOptionsWindow* window, CoolStringField* field, const Save
 {
   std::string name;
   name = info.GetName();
-  if (name.size() == 0)
-  {
+  if (name.size() == 0) {
     field->SetText(g_emptyText);
     return;
   }
@@ -234,59 +240,124 @@ void ShowSavedName(GameOptionsWindow* window, CoolStringField* field, const Save
   DrawSaveIcon(window, info, slotIndex);
 }
 
+bool AnyLoadable(const int (&loadable)[kSlotCount])
+{
+  return std::ranges::find(loadable, 1) != std::end(loadable);
+}
+
+bool IsBlank(const std::string& text)
+{
+  return text.find_first_not_of(' ') == std::string::npos;
+}
+
+std::string QuotedSaveName(int slot, int lobby)
+{
+  const std::string name = AppReadSaveHeader(slot, lobby).GetName();
+  return IsBlank(name) ? "this saved game" : "\"" + name + "\"";
+}
+
+// The palette entry of `format` closest to the colour, skipping the transparent index 0.
+uint8_t NearestPaletteIndex(const DibBitmap& format, int red, int green, int blue)
+{
+  const auto* palette
+      = reinterpret_cast<const RGBQUAD*>(reinterpret_cast<const uint8_t*>(format.m_info) + format.m_info->biSize);
+  uint8_t best = 1;
+  int bestDistance = INT_MAX;
+  for (int index = 1; index < 256; ++index) {
+    const int dr = palette[index].rgbRed - red;
+    const int dg = palette[index].rgbGreen - green;
+    const int db = palette[index].rgbBlue - blue;
+    const int distance = dr * dr + dg * dg + db * db;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = static_cast<uint8_t>(index);
+    }
+  }
+  return best;
+}
+
+// A transparent square with a two-pixel-wide cross in its middle, keyed over the name field's black box.
+DibBitmap* MakeDeleteCross(DibBitmap* format, uint8_t color)
+{
+  if (!format || format->BitCount() != 8) {
+    return nullptr;
+  }
+  auto* art = NewOrNull<DibBitmap>(kDeleteSize, kDeleteSize, format);
+  if (!art) {
+    return nullptr;
+  }
+  constexpr int kInset = 5;
+  constexpr int kLast = kDeleteSize - 1 - kInset;
+  for (int y = kInset; y <= kLast; ++y) {
+    for (int x = kInset; x <= kLast; ++x) {
+      if (std::abs(x - y) <= 1 || std::abs(x + y - (kDeleteSize - 1)) <= 1) {
+        art->m_bits[art->RowIndex(y) * art->RowStride() + x] = color;
+      }
+    }
+  }
+  art->CacheTransparentColor();
+  art->NotifyPixelsChanged();
+  return art;
+}
+
+// Puts the backdrop's original pixels back over a slot's faction icon.
+void ClearSaveIcon(DibBitmap* background, DibBitmap& pristine, int slotIndex)
+{
+  constexpr int kIconWidth = kNameFieldX - kSaveHeaderIconX - 2;
+  constexpr int kIconHeight = 0x12;
+  pristine.Blit(background, kSaveHeaderIconX, kIconY[slotIndex], kSaveHeaderIconX, kIconY[slotIndex], kIconWidth,
+                kIconHeight);
+}
+
 } // namespace
 
-GameOptionsWindow::GameOptionsWindow(HINSTANCE instance,
-                                     int x,
-                                     int y,
-                                     int width,
-                                     int height,
-                                     CoolWindow* parent,
+GameOptionsWindow::GameOptionsWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                                      int state)
-: GameWindowObject(instance, x, y, width, height, parent, nullptr, 0)
+    : GameWindowObject(instance, x, y, width, height, parent, nullptr, 0)
 {
   m_volumeSlider = nullptr;
   m_musicSlider = nullptr;
   m_unknownE4 = 0;
   m_musicTitle = nullptr;
-  for (CoolLabel*& label : m_optionTitles)
+  for (CoolLabel*& label : m_optionTitles) {
     label = nullptr;
+  }
   m_musicValue = nullptr;
-  for (CoolLabel*& label : m_optionValues)
+  for (CoolLabel*& label : m_optionValues) {
     label = nullptr;
+  }
   m_versionLabel = nullptr;
   m_state = state;
   m_battleFlowState = 0;
   const uint32_t options2 = AppGetDisplayOptions2();
   const uint32_t options = AppGetDisplayOptions();
   m_options = options2 | options;
-  for (int i = 0; i < kSlotCount; ++i)
-  {
+  for (int i = 0; i < kSlotCount; ++i) {
     m_nameFields[i] = nullptr;
     m_slotLoadable[i] = 0;
   }
   m_battleFlowState = AppGetBattleFlowState();
   char* dllLocation = GetDllLocation();
-  if (!CoolAppGetResourceModule(kTextSlot))
+  if (!CoolAppGetResourceModule(kTextSlot)) {
     LoadResourceModule(dllLocation, g_textcommDllName, kTextSlot);
+  }
   LoadResourceModule(dllLocation, g_commonDllName, kCommonSlot);
-  if (dllLocation)
+  if (dllLocation) {
     operator delete(dllLocation);
+  }
 }
 
 GameOptionsWindow::~GameOptionsWindow()
 {
-  for (CoolStringField* field : m_nameFields)
+  for (CoolStringField* field : m_nameFields) {
     DeleteIfPresent(field);
+  }
   DeleteIfPresent(m_musicSlider);
   DeleteIfPresent(m_volumeSlider);
   DeleteLabels();
-  if (!IsBattleState(m_battleFlowState))
-  {
+  if (!IsBattleState(m_battleFlowState)) {
     AppEnableSpeedAfterDialog();
-  }
-  else
-  {
+  } else {
     UiAckSync(UiGetHumanSide());
   }
 }
@@ -294,18 +365,16 @@ GameOptionsWindow::~GameOptionsWindow()
 LRESULT GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   HWND hwnd = m_hwnd;
-  const bool inBattle = IsBattleState(m_battleFlowState);
-  switch (message)
-  {
+  switch (message) {
     case WM_PAINT:
-    {
-      PAINTSTRUCT paint;
-      HDC dc = BeginPaint(hwnd, &paint);
-      Draw(dc);
-      DrawOverlay(dc);
-      EndPaint(hwnd, &paint);
-      return 0;
-    }
+      {
+        PAINTSTRUCT paint;
+        HDC dc = reb::compat::BeginPaint(hwnd, &paint);
+        Draw(dc);
+        DrawOverlay(dc);
+        reb::compat::EndPaint(hwnd, &paint);
+        return 0;
+      }
     case WM_CREATE:
       UiBeginSync(0);
       m_childId = 5;
@@ -314,137 +383,130 @@ LRESULT GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
       CreateControls();
       return 0;
     case WM_DRAWITEM:
-    {
-      const auto* item = reinterpret_cast<const DRAWITEMSTRUCT*>(lParam);
-      if (!item)
+      {
+        const auto* item = reinterpret_cast<const DRAWITEMSTRUCT*>(lParam);
+        if (!item) {
+          return 0;
+        }
+        auto* button = static_cast<CoolStrobeButton*>(m_children.FindById(item->CtlID));
+        if (!button) {
+          return 0;
+        }
+        button->Draw(item->hDC, static_cast<char>(item->itemState & 1));
         return 0;
-      auto* button = static_cast<CoolStrobeButton*>(m_children.FindById(item->CtlID));
-      if (!button)
-        return 0;
-      button->Draw(item->hDC, static_cast<char>(item->itemState & 1));
-      return 0;
-    }
+      }
     case WM_COMMAND:
-    {
-      const uint32_t id = wParam & 0xffff;
-      if (id >= kSaveFirst && id <= kSaveLast)
       {
-        m_selectedSlot = id - 0x6e;
-        const int lobby = IsLobbyState(m_state) ? 1 : 0;
-        bool noGameToReplace = false;
-        if (AppGetSavedGameType(m_selectedSlot, lobby))
-          noGameToReplace = m_slotLoadable[m_selectedSlot - 1] == 0;
-        if (noGameToReplace)
-        {
-          ShowAppDialog(kMessageSave, this, 0x121e, 0x121f, kDialogWidth, kDialogHeight);
-          return 0;
-        }
-        SaveSelectedSlot();
-        return 0;
-      }
-      if (id >= kLoadFirst && id <= kLoadLast)
-      {
-        m_selectedSlot = id - 0x78;
-        bool anyLoadable = false;
-        for (int i : m_slotLoadable)
-        {
-          if (i == 1)
-          {
-            anyLoadable = true;
-            break;
+        const uint32_t id = wParam & 0xffff;
+        if (id >= kSaveFirst && id <= kSaveLast) {
+          m_selectedSlot = id - 0x6e;
+          const int lobby = IsLobbyState(m_state) ? 1 : 0;
+          bool noGameToReplace = false;
+          if (AppGetSavedGameType(m_selectedSlot, lobby)) {
+            noGameToReplace = m_slotLoadable[m_selectedSlot - 1] == 0;
           }
-        }
-        if (!anyLoadable && m_battleFlowState != 0)
-        {
-          ShowAppDialog(kMessageLoad, this, 0x121c, 0x121d, kDialogWidth, kDialogHeight);
-          return 0;
-        }
-        LoadSelectedSlot();
-        return 0;
-      }
-      if (id >= kNameFirst && id <= kNameLast)
-      {
-        m_selectedSlot = static_cast<int>(id - kNameFirst + 1);
-        return 0;
-      }
-      switch (id)
-      {
-        case kMusicSlider:
-        {
-          const int volume =
-            static_cast<int>(lParam) == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam));
-          if (inBattle)
-            TacticalNotifySyncQuiet(static_cast<int>(lParam));
-          AppSetMusicVolume(volume);
-          return 0;
-        }
-        case kVolumeSlider:
-          AppSetVolume(lParam == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam)));
-          return 0;
-        case kBackButton:
-          AppSetState(kStateOptionsScreen);
-          return 0;
-        case kDoneButton:
-          AppSetDisplayOptions(m_options);
-          AppSetDisplayOptions2(m_options);
-          CoolUnloadResourceSlot(kCommonSlot);
-          if (IsLobbyState(m_state))
-          {
-            CommSendPlayerQuit();
-            m_state = kStateFrontEndOptions;
+          if (noGameToReplace && !EnhancementsEnabled()) {
+            ShowAppDialog(kMessageSave, this, 0x121e, 0x121f, kDialogWidth, kDialogHeight);
+            return 0;
           }
-          AppSetState(m_state);
+          if (noGameToReplace) {
+            ShowAppDialogText(kMessageSave, this, 0, 0x121f,
+                              "Saving here will replace the saved game " + QuotedSaveName(m_selectedSlot, lobby), {});
+            return 0;
+          }
+          SaveSelectedSlot();
           return 0;
-        case kStartButton:
-        {
-          AppSetDisplayOptions(m_options);
-          AppSetDisplayOptions2(m_options);
-          if (m_battleFlowState != 0)
-          {
-            bool anyLoadable = false;
-            for (int i : m_slotLoadable)
+        }
+        if (id >= kLoadFirst && id <= kLoadLast) {
+          m_selectedSlot = id - 0x78;
+          if (!AnyLoadable(m_slotLoadable) && m_battleFlowState != 0 && !EnhancementsEnabled()) {
+            ShowAppDialog(kMessageLoad, this, 0x121c, 0x121d, kDialogWidth, kDialogHeight);
+            return 0;
+          }
+          if (!AnyLoadable(m_slotLoadable) && m_battleFlowState != 0) {
+            const int lobby = IsLobbyState(m_state) ? 1 : 0;
+            ShowAppDialogText(kMessageLoad, this, 0x121c, 0,
+                              {}, "Load " + QuotedSaveName(m_selectedSlot, lobby) + " without saving?");
+            return 0;
+          }
+          LoadSelectedSlot();
+          return 0;
+        }
+        if (id >= kDeleteFirst && id <= kDeleteLast) {
+          m_selectedSlot = static_cast<int>(id - kDeleteFirst + 1);
+          const int lobby = IsLobbyState(m_state) ? 1 : 0;
+          ShowAppDialogText(kMessageDelete, this, 0, 0,
+                            "Deleting " + QuotedSaveName(m_selectedSlot, lobby) + " cannot be undone",
+                            "Delete this saved game?");
+          return 0;
+        }
+        if (id >= kNameFirst && id <= kNameLast) {
+          m_selectedSlot = static_cast<int>(id - kNameFirst + 1);
+          return 0;
+        }
+        switch (id) {
+          case kMusicSlider:
             {
-              if (i == 1)
-              {
-                anyLoadable = true;
-                break;
-              }
-            }
-            if (!anyLoadable)
-            {
-              ShowResultDialog(kMessageNoGameRunning);
+              const int volume
+                  = static_cast<int>(lParam) == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam));
+              AppSetMusicVolume(volume);
               return 0;
             }
-          }
-          AppSetState(kStateFrontEndOptions);
-          return 0;
+          case kVolumeSlider:
+            AppSetVolume(lParam == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam)));
+            return 0;
+          case kBackButton:
+            AppSetState(kStateOptionsScreen);
+            return 0;
+          case kDoneButton:
+            AppSetDisplayOptions(m_options);
+            AppSetDisplayOptions2(m_options);
+            CoolUnloadResourceSlot(kCommonSlot);
+            if (IsLobbyState(m_state)) {
+              CommSendPlayerQuit();
+              m_state = kStateFrontEndOptions;
+            }
+            AppSetState(m_state);
+            return 0;
+          case kStartButton:
+            {
+              AppSetDisplayOptions(m_options);
+              AppSetDisplayOptions2(m_options);
+              if (m_battleFlowState != 0) {
+                if (!AnyLoadable(m_slotLoadable)) {
+                  ShowResultDialog(kMessageNoGameRunning);
+                  return 0;
+                }
+              }
+              AppSetState(kStateFrontEndOptions);
+              return 0;
+            }
+          case kMusicToggle:
+            OnOptionToggled(id, 0);
+            return 0;
+          case 0xa1:
+          case 0xa2:
+          case 0xa3:
+          case 0xa4:
+          case 0xa6:
+            OnOptionToggled(id, 1);
+            return 0;
         }
-        case kMusicToggle:
-          OnOptionToggled(id, 0);
-          return 0;
-        case 0xa1:
-        case 0xa2:
-        case 0xa3:
-        case 0xa4:
-        case 0xa6:
-          OnOptionToggled(id, 1);
-          return 0;
+        return 0;
+      }
+    case kMessageCloseDialog:
+      if (wParam == 0xd) {
+        DestroyAppDialog();
       }
       return 0;
-    }
-    case kMessageCloseDialog:
-      if (wParam == 0xd)
-        DestroyAppDialog();
-      return 0;
     case kMessageCommandFromField:
-      PostMessageA(hwnd, WM_COMMAND, wParam - 0x14, 0);
+      reb::compat::PostMessageA(hwnd, WM_COMMAND, wParam - 0x14, 0);
       return 0;
     case kMessageDialogResult:
-      switch (wParam)
-      {
+      switch (wParam) {
         case kMessageSaved:
           UpdateSlotButtons();
-          InvalidateRect(m_hwnd, nullptr, FALSE);
+          reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
           return 0;
         case kMessageNoGameRunning:
           AppSetState(kStateFrontEndOptions);
@@ -454,6 +516,9 @@ LRESULT GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
           return 0;
         case kMessageSave:
           SaveSelectedSlot();
+          return 0;
+        case kMessageDelete:
+          DeleteSelectedSlot();
           return 0;
       }
       return 0;
@@ -466,10 +531,10 @@ void GameOptionsWindow::CreateBackdrop()
 {
   HWND hwnd = m_hwnd;
   auto* background = NewOrNull<DibBitmap>(CoolAppGetResourceModule(kCommonSlot), 0x4e22u, kBitmapKind);
-  HDC dc = GetDC(hwnd);
+  HDC dc = reb::compat::GetDC(hwnd);
   HPALETTE palette = background->CreatePaletteFromColorTable();
   SetIdentityPalette(dc, palette);
-  ReleaseDC(hwnd, dc);
+  reb::compat::ReleaseDC(hwnd, dc);
   SetBackground(background, 0, 0);
 }
 
@@ -482,57 +547,51 @@ void GameOptionsWindow::CreateControls()
   const bool inBattle = IsBattleState(m_battleFlowState);
   const bool lobby = IsLobbyState(m_state);
 
-  for (int i = 0; i < kSlotCount; ++i)
-  {
+  for (int i = 0; i < kSlotCount; ++i) {
     const int slot = i + 1;
     CoolStrobeButton* save = NewButton(module, 0x22, kRowY[i], 0x2a, 0x14, this, slot + 0x6e, 0x273e, 0x273f, backdrop);
-    if (save)
-    {
+    if (save) {
       save->LoadStateBitmap(kButtonDisabled, 0x2740);
       AddChild(this, save);
       AddToolFromResource(save, 0x1010);
-      if (m_battleFlowState == 0 || inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0))
+      if (m_battleFlowState == 0 || inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0)) {
         save->Disable();
+      }
     }
 
-    auto* field = NewOrNull<CoolStringField>(instance, 0x77, kRowY[i], 0xa0, 0x14, this, backdrop, 0u);
+    const int fieldWidth = EnhancementsEnabled() ? kDeleteX - kNameFieldX : kNameFieldWidth;
+    auto* field = NewOrNull<CoolStringField>(instance, kNameFieldX, kRowY[i], fieldWidth, 0x14, this, backdrop, 0u);
     m_nameFields[i] = field;
-    if (field)
-    {
+    if (field) {
       field->m_textColor = 0x2ffffff;
       field->m_shadowColor = 0x2000000;
       field->m_childId = slot + 0x82;
       field->Create(0);
       SavedGameInfo info = AppReadSaveHeader(slot, lobby ? 1 : 0);
       name = info.GetName();
-      if (name.size() == 0)
-      {
+      if (name.size() == 0) {
         field->SetText(g_emptyText);
-      }
-      else
-      {
+      } else {
         field->SetText(name.c_str());
         DrawSaveIcon(this, info, i);
       }
-      if (m_battleFlowState == 0 || inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0))
+      if (m_battleFlowState == 0 || inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0)) {
         field->Disable();
+      }
     }
 
-    CoolStrobeButton* load =
-      NewButton(module, 0x11f, kRowY[i], 0x29, 0x14, this, slot + 0x78, 0x2741, 0x2742, backdrop);
-    if (load)
-    {
+    CoolStrobeButton* load
+        = NewButton(module, 0x11f, kRowY[i], 0x29, 0x14, this, slot + 0x78, 0x2741, 0x2742, backdrop);
+    if (load) {
       load->LoadStateBitmap(kButtonDisabled, 0x2743);
       AddChild(this, load);
-      if (inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0))
-        load->Disable();
-      const bool usable = SlotUsable(slot);
-      if (!usable)
-      {
+      if (inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0)) {
         load->Disable();
       }
-      else if (AppGetSavedGameType(slot, lobby ? 1 : 0) == 0)
-      {
+      const bool usable = SlotUsable(slot);
+      if (!usable) {
+        load->Disable();
+      } else if (AppGetSavedGameType(slot, lobby ? 1 : 0) == 0) {
         load->Disable();
       }
       AddToolFromResource(load, 0x1011);
@@ -543,8 +602,7 @@ void GameOptionsWindow::CreateControls()
   m_volumeSlider = NewOrNull<CoolSlider>(module, 0x188, 0xbe, this, kVolumeSlider, 2, backdrop, 0x2745u, 0x2746u,
                                          static_cast<uint32_t>(VolumeToSliderPosition(volumeControl)),
                                          static_cast<uint32_t>(kSliderRange));
-  if (m_volumeSlider)
-  {
+  if (m_volumeSlider) {
     m_volumeSlider->Create(0);
     AddToolFromResource(m_volumeSlider, 0x1013);
   }
@@ -552,15 +610,13 @@ void GameOptionsWindow::CreateControls()
   m_musicSlider = NewOrNull<CoolSlider>(module, 0x188, 0x82, this, kMusicSlider, 2, backdrop, 0x2744u, 0x2746u,
                                         static_cast<uint32_t>(VolumeToSliderPosition(musicVolume)),
                                         static_cast<uint32_t>(kSliderRange));
-  if (m_musicSlider)
-  {
+  if (m_musicSlider) {
     m_musicSlider->Create(0);
     AddToolFromResource(m_musicSlider, 0x1012);
   }
 
   CoolStrobeButton* start = NewButton(module, 0x4c, 0x17d, 0x2a, 0x2a, this, kStartButton, 0x2733, 0x2734, backdrop);
-  if (start)
-  {
+  if (start) {
     AddChild(this, start);
     AddToolFromResource(start, 0x1014);
   }
@@ -568,8 +624,7 @@ void GameOptionsWindow::CreateControls()
   uint32_t doneNormal;
   uint32_t donePressed;
   uint32_t doneDisabled;
-  switch (m_state)
-  {
+  switch (m_state) {
     case 4:
     case 0xc:
       doneNormal = 0x272d;
@@ -577,8 +632,7 @@ void GameOptionsWindow::CreateControls()
       doneDisabled = 0x272f;
       break;
     case 8:
-      if (AppGetSide() != 1)
-      {
+      if (AppGetSide() != 1) {
         doneNormal = 0x2727;
         donePressed = 0x2728;
         doneDisabled = 0x2729;
@@ -596,63 +650,96 @@ void GameOptionsWindow::CreateControls()
       doneDisabled = 0x272c;
       break;
   }
-  CoolStrobeButton* done =
-    NewButton(module, 0xa2, 0x17e, 0x2a, 0x2a, this, kDoneButton, doneNormal, donePressed, backdrop);
-  if (done)
-  {
+  CoolStrobeButton* done
+      = NewButton(module, 0xa2, 0x17e, 0x2a, 0x2a, this, kDoneButton, doneNormal, donePressed, backdrop);
+  if (done) {
     done->LoadStateBitmap(kButtonDisabled, doneDisabled);
     AddChild(this, done);
     AddToolFromResource(done, (m_state == 4 || m_state == 5) ? 0x1019 : 0x1015);
-    if (m_battleFlowState == 0 && m_state != 4 && m_state != 5)
+    if (m_battleFlowState == 0 && m_state != 4 && m_state != 5) {
       done->Disable();
+    }
   }
 
   CoolStrobeButton* back = NewButton(module, 0xf8, 0x17d, 0x2a, 0x2a, this, kBackButton, 0x2736, 0x2737, backdrop);
-  if (back)
-  {
+  if (back) {
     AddChild(this, back);
     AddToolFromResource(back, 0x1018);
   }
 
   CoolStrobeButton* music = NewButton(module, 0x160, 0x4c, 0x13, 0x23, this, kMusicToggle, 0x2738, 0x2739, backdrop);
-  if (music)
-  {
+  if (music) {
     music->LoadStateBitmap(kButtonDisabled, 0x273a);
     music->LoadStateBitmap(kButtonChecked, 0x2739);
     music->SetStateFlags(kButtonToggle);
     AddChild(this, music);
-    if (m_options & kMusicOption)
+    if (m_options & kMusicOption) {
       music->SetStateFlags(kButtonChecked);
+    }
   }
 
   const uint32_t optionIds[5] = {0xa1, 0xa2, 0xa3, 0xa4, 0xa6};
-  for (int i = 0; i < 5; ++i)
-  {
-    CoolStrobeButton* toggle =
-      NewButton(module, 0x165, kOptionRowY[i], 0x23, 0x16, this, optionIds[i], 0x273b, 0x273c, backdrop);
-    if (!toggle)
+  for (int i = 0; i < 5; ++i) {
+    CoolStrobeButton* toggle
+        = NewButton(module, 0x165, kOptionRowY[i], 0x23, 0x16, this, optionIds[i], 0x273b, 0x273c, backdrop);
+    if (!toggle) {
       continue;
+    }
     toggle->LoadStateBitmap(kButtonDisabled, 0x273d);
     toggle->LoadStateBitmap(kButtonChecked, 0x273c);
     toggle->SetStateFlags(kButtonToggle);
     AddChild(this, toggle);
-    if (inBattle)
-    {
+    if (inBattle) {
       toggle->Disable();
-    }
-    else if (m_options & kOptionBits[i])
-    {
+    } else if (m_options & kOptionBits[i]) {
       toggle->SetStateFlags(kButtonChecked);
     }
+  }
+  if (EnhancementsEnabled()) {
+    CreateDeleteButtons();
   }
   UpdateSlotButtons();
 }
 
+void GameOptionsWindow::CreateDeleteButtons()
+{
+  DibBitmap* backdrop = GetBackground();
+  if (!backdrop) {
+    return;
+  }
+  const uint8_t red = NearestPaletteIndex(*backdrop, 0xd8, 0x18, 0x18);
+  const uint8_t brightRed = NearestPaletteIndex(*backdrop, 0xff, 0x70, 0x70);
+  for (int i = 0; i < kSlotCount; ++i) {
+    auto* button = NewOrNull<CoolStrobeButton>(m_instance, kDeleteX, kRowY[i], kDeleteSize, kDeleteSize, this,
+                                               kDeleteFirst + i, 0u, 0u, backdrop, 0, 1);
+    if (!button) {
+      continue;
+    }
+    button->ReplaceBitmap(0, MakeDeleteCross(backdrop, red));
+    button->ReplaceBitmap(1, MakeDeleteCross(backdrop, brightRed));
+    AddChild(this, button);
+    AddTool(button, "Delete Saved Game");
+  }
+}
+
+void GameOptionsWindow::DeleteSelectedSlot()
+{
+  const int lobby = IsLobbyState(m_state) ? 1 : 0;
+  if (m_selectedSlot < 1 || m_selectedSlot > kSlotCount || !AppDeleteSave(m_selectedSlot, lobby)) {
+    return;
+  }
+  m_slotLoadable[m_selectedSlot - 1] = 0;
+  UpdateSlotButtons();
+  reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
 void GameOptionsWindow::LoadSelectedSlot()
 {
+  if (auto* game = reb::native::CurrentLanGame(); game && game->Playing()) {
+    return;
+  }
   std::string name;
-  if (m_state != 4 && m_state != 5)
-  {
+  if (m_state != 4 && m_state != 5) {
     CommTrace(g_gameOptionsRequestLoadText);
     CommSendPlayerQuit();
   }
@@ -662,6 +749,13 @@ void GameOptionsWindow::LoadSelectedSlot()
 
 void GameOptionsWindow::SaveSelectedSlot()
 {
+  if (auto* game = reb::native::CurrentLanGame(); game && game->Playing()) {
+    if (auto* app = dynamic_cast<RebellionApplication*>(g_app)) {
+      game->SaveCheckpoint(*app);
+      UpdateSlotButtons();
+    }
+    return;
+  }
   std::string name;
   name = m_nameFields[m_selectedSlot - 1]->m_text.c_str();
   AppRequestSave(m_selectedSlot, name);
@@ -671,17 +765,13 @@ void GameOptionsWindow::SaveSelectedSlot()
 void GameOptionsWindow::SendSaveCommand(int kind, int slot, std::string name)
 {
   bool send = false;
-  if (kind == 1)
-  {
+  if (kind == 1) {
     send = AppGetGameType() == 2;
-  }
-  else if (kind == 2 && IsLobbyState(m_state))
-  {
+  } else if (kind == 2 && IsLobbyState(m_state)) {
     send = true;
   }
-  if (send)
-  {
-    const DWORD tick = GetTickCount();
+  if (send) {
+    const DWORD tick = native_clock::TickMs();
     AppSetAutosaveTick(tick);
     AppSendSaveCommand(kind, slot, name, tick);
   }
@@ -689,8 +779,7 @@ void GameOptionsWindow::SendSaveCommand(int kind, int slot, std::string name)
 
 void GameOptionsWindow::ShowResultDialog(uint32_t message)
 {
-  switch (message)
-  {
+  switch (message) {
     case kMessageSaved:
       ShowAppNoticeDialog(message, this, 0, 0x1217, 0x1300, kDialogWidth, kDialogHeight);
       break;
@@ -711,12 +800,11 @@ void GameOptionsWindow::ShowResultDialog(uint32_t message)
 
 void GameOptionsWindow::OnSaveResult(int saved, int slot)
 {
-  if (saved)
-  {
+  if (saved) {
     ShowAppNoticeDialog(kMessageSaved, this, 0, 0x1217, 0x1300, kDialogWidth, kDialogHeight);
     m_slotLoadable[slot - 1] = 1;
     UpdateSlotButtons();
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
     return;
   }
   ShowAppNoticeDialog(kMessageSaveFailed, this, 0, 0x1219, 0x1300, kDialogWidth, kDialogHeight);
@@ -725,24 +813,15 @@ void GameOptionsWindow::OnSaveResult(int saved, int slot)
 void GameOptionsWindow::OnOptionToggled(uint32_t buttonId, int unused)
 {
   auto* button = static_cast<CoolStrobeButton*>(m_children.FindById(buttonId));
-  const bool inBattle = IsBattleState(m_battleFlowState);
   CoolLabel* title = nullptr;
   CoolLabel* value = nullptr;
   uint32_t bit = 0;
-  switch (buttonId)
-  {
+  switch (buttonId) {
     case kMusicToggle:
       title = m_musicTitle;
       value = m_musicValue;
       bit = kMusicOption;
-      if (inBattle)
-      {
-        TacticalNotifySync(~m_options & kMusicOption);
-      }
-      else
-      {
-        AppSetMusicSwitch(~m_options & kMusicOption);
-      }
+      AppSetMusicSwitch(~m_options & kMusicOption);
       break;
     case 0xa1:
       title = m_optionTitles[0];
@@ -772,24 +851,22 @@ void GameOptionsWindow::OnOptionToggled(uint32_t buttonId, int unused)
     default:
       break;
   }
-  if (!button)
+  if (!button) {
     return;
-  const bool checked = button->HasStateFlags(kButtonChecked);
-  if (checked)
-  {
-    m_options |= bit;
   }
-  else
-  {
+  const bool checked = button->HasStateFlags(kButtonChecked);
+  if (checked) {
+    m_options |= bit;
+  } else {
     m_options &= ~bit;
   }
-  if (title)
-  {
+  if (title) {
     title->SetColor(checked ? kLabelOn : kLabelOff, nullptr);
     title->Invalidate(m_hwnd, TRUE);
   }
-  if (!value)
+  if (!value) {
     return;
+  }
   const ResourceStringId text = OnOffText(checked);
   value->SetColor(checked ? kLabelOn : kLabelOff, nullptr);
   value->SetTextFromResource(&text);
@@ -803,29 +880,27 @@ void GameOptionsWindow::CreateLabels()
   DrawStringResource(0x1026, RECT{0x16a, 0x25, 0x25b, 0x3a}, kLabelFont, kLabelOn, 0x25);
   DrawStringResource(0x1027, RECT{0x16b, 0x111, 0x25a, 0x126}, kLabelFont, kLabelOn, 0x25);
 
-  m_musicTitle =
-    NewLabel(0x1025, 0x178, 0x4f, 0xb7, 0x21, (m_options & kMusicOption ? kOnOffDelta : 0) + kLabelOff, 0x24, 3);
+  m_musicTitle
+      = NewLabel(0x1025, 0x178, 0x4f, 0xb7, 0x21, (m_options & kMusicOption ? kOnOffDelta : 0) + kLabelOff, 0x24, 3);
   static constexpr uint16_t kTitleStrings[5] = {0x101f, 0x1020, 0x1021, 0x1022, 0x1024};
-  for (int i = 0; i < 5; ++i)
-  {
+  for (int i = 0; i < 5; ++i) {
     m_optionTitles[i] = NewLabel(kTitleStrings[i], 0x18a, kOptionLabelY[i], 0xb7, 0x10,
                                  (m_options & kOptionBits[i] ? kOnOffDelta : 0) + kLabelOff, 0x10, 3);
-    if (i == 3 && m_optionTitles[i])
+    if (i == 3 && m_optionTitles[i]) {
       m_optionTitles[i]->SetFont(8);
+    }
   }
   {
     const bool on = (m_options & kMusicOption) != 0;
     m_musicValue = NewLabel(on ? 0x1031 : 0x1032, 0x245, 0x4f, 0x1f, 0x21, (on ? kOnOffDelta : 0) + kLabelOff, 0x24, 3);
   }
-  for (int i = 0; i < 5; ++i)
-  {
+  for (int i = 0; i < 5; ++i) {
     const bool on = (m_options & kOptionBits[i]) != 0;
-    m_optionValues[i] =
-      NewLabel(on ? 0x1031 : 0x1032, 0x241, kOptionLabelY[i], 0x1f, 0x10, (on ? kOnOffDelta : 0) + kLabelOff, 0x10, 3);
+    m_optionValues[i] = NewLabel(on ? 0x1031 : 0x1032, 0x241, kOptionLabelY[i], 0x1f, 0x10,
+                                 (on ? kOnOffDelta : 0) + kLabelOff, 0x10, 3);
   }
   m_versionLabel = NewOrNull<CoolLabel>(static_cast<uint16_t>(0), 0x19, 0x1b5, 0x136, 0x12, 0x2000000u, 10, 0x25u, 3u);
-  if (m_versionLabel)
-  {
+  if (m_versionLabel) {
     const ResourceStringId title = {0x100c, kStringGroup};
     std::string text = LoadStringResource(&title);
     text += StringFromText(g_versionText);
@@ -839,68 +914,106 @@ void GameOptionsWindow::CreateLabels()
 void GameOptionsWindow::DrawOverlay(HDC dc)
 {
   const bool inBattle = IsBattleState(m_battleFlowState);
-  if (m_musicTitle)
+  if (m_musicTitle) {
     m_musicTitle->Draw(dc);
-  for (CoolLabel* title : m_optionTitles)
+  }
+  for (CoolLabel* title : m_optionTitles) {
     DrawLabel(title, dc, inBattle);
-  if (m_musicValue)
+  }
+  if (m_musicValue) {
     m_musicValue->Draw(dc);
-  for (CoolLabel* value : m_optionValues)
+  }
+  for (CoolLabel* value : m_optionValues) {
     DrawLabel(value, dc, inBattle);
-  if (m_versionLabel)
+  }
+  if (m_versionLabel) {
     m_versionLabel->Draw(dc);
+  }
 }
 
 void GameOptionsWindow::DeleteLabels()
 {
   DeleteLabel(m_musicTitle);
-  for (CoolLabel* title : m_optionTitles)
+  for (CoolLabel* title : m_optionTitles) {
     DeleteLabel(title);
+  }
   DeleteLabel(m_musicValue);
-  for (CoolLabel* value : m_optionValues)
+  for (CoolLabel* value : m_optionValues) {
     DeleteLabel(value);
+  }
   DeleteLabel(m_versionLabel);
 }
 
 void GameOptionsWindow::UpdateSlotButtons()
 {
-  const int lobby = IsLobbyState(m_state) ? 1 : 0;
-  for (int slot = 1; slot <= kSlotCount; ++slot)
-  {
-    auto* load = static_cast<CoolStrobeButton*>(m_children.FindById(slot + 0x78));
-    if (load)
-    {
-      const bool usable = SlotUsable(slot);
-      if (!usable)
-      {
+  if (auto* game = reb::native::CurrentLanGame(); game && game->Playing()) {
+    const auto saves = game->Checkpoints();
+    for (int slot = 1; slot <= kSlotCount; ++slot) {
+      auto* load = static_cast<CoolStrobeButton*>(m_children.FindById(slot + 0x78));
+      if (load) {
         load->Disable();
+        UpdateToolText(load, "Resume LAN checkpoints from the multiplayer lobby.");
       }
-      else
-      {
+      if (CoolWindow* erase = m_children.FindById(kDeleteFirst + slot - 1)) {
+        erase->Hide();
+      }
+      if (auto* field = m_nameFields[slot - 1]) {
+        std::string name;
+        if (static_cast<size_t>(slot) <= saves.size()) {
+          const auto& save = saves[slot - 1];
+          name = (save.automatic ? "Auto: " : "Save: ") + save.metadata.displayName
+                 + " (tick " + std::to_string(save.metadata.gameTick) + ")";
+        }
+        field->SetText(name.c_str());
+        field->Disable();
+      }
+    }
+    return;
+  }
+  const int lobby = IsLobbyState(m_state) ? 1 : 0;
+  // Network saves belong to both players, so only single-player saves can be deleted here.
+  const bool canDelete = !lobby && !g_isNetworkGame;
+  auto* pristine = NewOrNull<DibBitmap>(CoolAppGetResourceModule(kCommonSlot), kBackdropId, kBitmapKind);
+  for (int slot = 1; slot <= kSlotCount; ++slot) {
+    const SavedGameInfo info = AppReadSaveHeader(slot, lobby);
+    if (CoolWindow* erase = m_children.FindById(kDeleteFirst + slot - 1)) {
+      if (canDelete && info.m_gameType != 0) {
+        erase->Show(kShow);
+      } else {
+        erase->Hide();
+      }
+    }
+    if (pristine && GetBackground()) {
+      ClearSaveIcon(GetBackground(), *pristine, slot - 1);
+    }
+    auto* load = static_cast<CoolStrobeButton*>(m_children.FindById(slot + 0x78));
+    if (load) {
+      const bool usable = SlotUsable(slot);
+      if (!usable) {
+        load->Disable();
+      } else {
         const int type = AppGetSavedGameType(slot, lobby);
-        if (!g_isNetworkGame)
-        {
-          if (type == 0)
+        if (!g_isNetworkGame) {
+          if (type == 0) {
             load->Disable();
-          else
+          } else {
             load->Enable();
-        }
-        else if (lobby == 0 || type == 0)
-        {
+          }
+        } else if (lobby == 0 || type == 0) {
           load->Disable();
-        }
-        else
-        {
+        } else {
           load->Enable();
         }
       }
     }
     CoolStringField* field = m_nameFields[slot - 1];
-    if (field)
-    {
-      SavedGameInfo info = AppReadSaveHeader(slot, lobby);
+    if (field) {
       ShowSavedName(this, field, info, slot - 1);
     }
+  }
+  if (pristine) {
+    pristine->~DibBitmap();
+    operator delete(pristine);
   }
 }
 

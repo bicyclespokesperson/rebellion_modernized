@@ -8,7 +8,7 @@
 // An ifstream on the stack, constructed and destroyed the way the compiler does it for a local object.
 class ScopedIfstream
 {
-public:
+  public:
   ScopedIfstream()
   {
     ifstream_ctor(&m_stream, 1);
@@ -33,14 +33,14 @@ public:
     return buffer ? buffer->m_fd : -1;
   }
 
-private:
+  private:
   ifstream m_stream;
 };
 
 // A strstream on the stack, constructed and destroyed the way the compiler does it for a local object.
 class ScopedStrstream
 {
-public:
+  public:
   ScopedStrstream()
   {
     strstream_ctor(&m_stream, 1);
@@ -59,14 +59,14 @@ public:
     return &m_stream;
   }
 
-private:
+  private:
   strstream m_stream;
 };
 
 // An ofstream on the stack, constructed and destroyed the way the compiler does it for a local object.
 class ScopedOfstream
 {
-public:
+  public:
   ScopedOfstream()
   {
     ofstream_ctor(&m_stream, 1);
@@ -85,6 +85,6 @@ public:
     return &m_stream;
   }
 
-private:
+  private:
   ofstream m_stream;
 };

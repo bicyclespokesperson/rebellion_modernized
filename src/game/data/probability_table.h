@@ -6,8 +6,7 @@
 // the rules code. Table-type numbers are the ones the registry loader assigns (0x58b420): 0xd is RLEVADTB,
 // 0x3c GNPRTB, 0x3d SDPRTB.
 
-enum TableType
-{
+enum TableType {
   kTableRlevad = 0xd,
   kTableGnprtb = 0x3c,
   kTableSdprtb = 0x3d,

@@ -25,8 +25,9 @@ int Role::OnCreatedChanged(int newValue, NotifyContext* ctx)
 {
   const int base = UnitObjBase::OnCreatedChanged(newValue, ctx);
   const auto* record = static_cast<SdRecordExt16*>(m_record);
-  if (!record)
+  if (!record) {
     return 0;
+  }
   int ok = base != 0 ? 1 : 0;
   ok = SetBaseDiplomacy(RollBaseSkill(*record, 0), ctx) && ok;
   ok = SetBaseEspionage(RollBaseSkill(*record, 1), ctx) && ok;
@@ -48,8 +49,7 @@ int Role::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent
 {
   int ok = UnitObjBase::OnParentChanged(oldParent, newParent, ctx) != 0;
   const bool existingAndCompleted = (m_stateFlags & kExistingState) && (m_stateFlags & kCompletedState);
-  if (existingAndCompleted && !HasMissionFlag(role_flag::kAdrift))
-  {
+  if (existingAndCompleted && !HasMissionFlag(role_flag::kAdrift)) {
     ObjectKey missionKey;
     ok = GetMissionKey(&missionKey)->IsSet() && ok;
   }
@@ -59,11 +59,11 @@ int Role::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent
 int Role::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 {
   int ok = UnitObjBase::OnDestroyedChanged(newValue, ctx) != 0;
-  if (newValue != 0)
-  {
+  if (newValue != 0) {
     ObjectKey missionKey;
-    if (GetMissionKey(&missionKey)->IsSet())
+    if (GetMissionKey(&missionKey)->IsSet()) {
       ok = SetMissionRemoveRequest(1, ctx) && ok;
+    }
     ok = SetAdrift(0, ctx) && ok;
   }
   return ok;
@@ -79,13 +79,13 @@ int Role::OnAutoroutingChanged(int newValue, NotifyContext* ctx)
   return UnitObjBase::OnAutoroutingChanged(newValue, ctx) != 0;
 }
 
-// ---- OnXChanged of the Role properties --------------------------------------------------------------------------------
+// ---- OnXChanged of the Role properties
+// --------------------------------------------------------------------------------
 
 int Role::OnMissionChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int ok = UpdateOnMission(ctx) != 0;
-  if (!newKey->OrNull())
-  {
+  if (!newKey->OrNull()) {
     ok = SetDecoy(0, ctx) && ok;
     ok = SetMissionRemoveRequest(0, ctx) && ok;
     ok = SetMissionResignRequest(0, ctx) && ok;
@@ -100,11 +100,11 @@ int Role::OnParentAtMissionCompletionChanged(ObjectKey* oldKey, ObjectKey* newKe
 {
   ObjectKey location;
   int ok = 1;
-  if (newKey->OrNull())
-  {
+  if (newKey->OrNull()) {
     GameObjNotifier* parent = GetMasterInFamilies_01_ff(newKey);
-    if (parent)
+    if (parent) {
       ok = parent->GetOwnerKey(&location) != 0;
+    }
   }
   return SetLocationAtMissionCompletionKey(&location, ctx) && ok;
 }
@@ -117,8 +117,9 @@ int Role::OnMovingBetweenMissionsChanged(int newValue, NotifyContext* ctx)
 int Role::OnMissionRemoveRequestChanged(int newValue, NotifyContext* ctx)
 {
   int ok = 1;
-  if (newValue != 0)
+  if (newValue != 0) {
     ok = SetMissionResignRequest(0, ctx) != 0;
+  }
   return PostSourceEventFlag(0x30b, this, newValue, ctx) && ok;
 }
 
@@ -136,12 +137,9 @@ int Role::OnOnMissionChanged(int newValue, NotifyContext* ctx)
 {
   ObjectKey parentKey;
   int ok;
-  if (newValue == 0)
-  {
+  if (newValue == 0) {
     ok = SetParentAtMissionCompletionKey(&parentKey, ctx) != 0;
-  }
-  else
-  {
+  } else {
     ok = GetValidParentKey(&parentKey) != 0;
     ok = SetParentAtMissionCompletionKey(&parentKey, ctx) && ok;
   }

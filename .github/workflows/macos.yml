@@ -2,7 +2,7 @@
 # cmake/native_platform.cmake and src/port/native/platform_macos.cpp (docs/native.md). Compiles every object of the native
 # configuration (game, port layer, SDL3 with its Cocoa/Metal backends, FreeType) and runs the unit tests that need no game data
 # (MW_INSTALL_DIR unset: the tests that read the installation skip themselves). No game data in CI: linking needs REBEXE.EXE
-# (tools/gen_native_*.py), so the executable and Rebellion.app are built on a developer's Mac.
+# (startup artwork, tools/extract_startup_assets.py), so the executable and Rebellion.app are built on a developer's Mac.
 # Runners: macos-14 is Apple silicon; macos-13 (the Intel runner) was retired by GitHub in December 2025, macos-15-intel replaces it.
 name: macos
 on: workflow_dispatch
@@ -19,13 +19,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Tools
-        run: brew install cmake ninja
+        run: brew install cmake ninja uv
       - name: Dependencies
         run: tools/fetch_deps.sh freetype liberation sdl3
       - name: Configure
         run: cmake -S . -B build/native -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DREB_NATIVE=ON -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
       - name: Build objects
         run: cmake --build build/native --target reb_native_objects
+      - name: Object cast regression checks
+        if: matrix.arch == 'arm64'
+        run: |
+          uv run tools/test_audit_object_casts.py
+          uv run tools/audit_object_casts.py --build build/native --check
       - name: Unit tests
         # Not yet verified on a Mac (some golden tests may depend on the fonts present): once green, remove continue-on-error.
         continue-on-error: true

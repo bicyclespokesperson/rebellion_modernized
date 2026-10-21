@@ -14,7 +14,9 @@ constexpr int kStatusMissingTarget = 0x12;
 
 } // namespace
 
-TimerEvent::TimerEvent() : TimedEvent(), m_spec()
+TimerEvent::TimerEvent()
+    : TimedEvent()
+    , m_spec()
 {
 }
 
@@ -67,11 +69,11 @@ int TimerEvent::CheckEnabled(StatusCode* status)
   FamilyRange scratch;
   const uint32_t family = m_key.Family();
   const FamilyRange* range = GetTargetRange(&scratch);
-  if (family < range->m_first || range->m_second <= family)
+  if (family < range->m_first || range->m_second <= family) {
     *status = StatusCode(kStatusCategory, kStatusWrongFamily);
+  }
   int result = 0;
-  if (status->m_second == static_cast<uint32_t>(kStatusOk))
-  {
+  if (status->m_second == static_cast<uint32_t>(kStatusOk)) {
     GameObjNotifier* target;
     const StatusCode missing(kStatusCategory, kStatusMissingTarget);
     result = ResolveMasterInFamilies_01_ff(&m_key, &target, &missing, status);
@@ -88,11 +90,9 @@ int TimerEvent::Execute()
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int reschedule = 0;
-  if (CheckValid(&status) != 0 && status.m_second == static_cast<uint32_t>(kStatusOk))
-  {
+  if (CheckValid(&status) != 0 && status.m_second == static_cast<uint32_t>(kStatusOk)) {
     reschedule = GetTargetSpec()->m_changeCount == m_spec.m_changeCount;
-    if (reschedule)
-    {
+    if (reschedule) {
       Fire();
       m_dueDay += RollDelay();
     }

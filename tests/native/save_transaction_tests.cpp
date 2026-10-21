@@ -1,11 +1,12 @@
-#include <cstdlib>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
@@ -17,8 +18,9 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 std::string Read(const std::filesystem::path& path)
@@ -29,8 +31,7 @@ std::string Read(const std::filesystem::path& path)
 
 void RequireNoTemporaryFiles(const std::filesystem::path& directory)
 {
-  for (const auto& entry : std::filesystem::directory_iterator(directory))
-  {
+  for (const auto& entry : std::filesystem::directory_iterator(directory)) {
     Require(entry.path().filename().string().find(".tmp.") == std::string::npos);
   }
 }
@@ -55,8 +56,7 @@ int main()
   }
   {
     ScopedStrstream stream;
-    if constexpr (sizeof(size_t) > sizeof(uint32_t))
-    {
+    if constexpr (sizeof(size_t) > sizeof(uint32_t)) {
       Require(!WriteCount32(stream.get()->Out(), static_cast<size_t>(std::numeric_limits<uint32_t>::max()) + 1));
       Require((iostream_access::State(stream.get()->Out()) & iostream_flags::kFail) != 0);
       Require(iostream_access::BufferOf(stream.get())->m_pptr == nullptr);
@@ -69,44 +69,37 @@ int main()
   const std::filesystem::path target = directory / "game.sav";
   std::ofstream(target, std::ios::binary) << "original";
 
-  const auto write = [](ostream* out)
-  {
-    constexpr char bytes[] = "replacement";
-    ostream_write(out, bytes, sizeof(bytes) - 1);
+  const auto write = [](ostream* out) {
+    constexpr std::string_view bytes = "replacement";
+    ostream_write(out, bytes.data(), static_cast<int>(bytes.size()));
     return true;
   };
-  Require(!reb::native::WriteSaveAtomically(target.c_str(),
-                                            [&](ostream* out)
-                                            {
-                                              write(out);
-                                              return false;
-                                            }));
+  Require(!reb::native::WriteSaveAtomically(target.string().c_str(), [&](ostream* out) {
+    write(out);
+    return false;
+  }));
   Require(Read(target) == "original");
   RequireNoTemporaryFiles(directory);
 
-  Require(!reb::native::WriteSaveAtomically(target.c_str(),
-                                            [](ostream* out)
-                                            {
-                                              return WriteLegacyString(out, std::string(65536, 'x'));
-                                            }));
+  Require(!reb::native::WriteSaveAtomically(target.string().c_str(), [](ostream* out) {
+    return WriteLegacyString(out, std::string(65536, 'x'));
+  }));
   Require(Read(target) == "original");
   RequireNoTemporaryFiles(directory);
 
-  Require(!reb::native::WriteSaveAtomically(target.c_str(),
-                                            [](ostream*) -> bool
-                                            {
-                                              throw std::runtime_error("serialization failed");
-                                            }));
+  Require(!reb::native::WriteSaveAtomically(target.string().c_str(), [](ostream*) -> bool {
+    throw std::runtime_error("serialization failed");
+  }));
   Require(Read(target) == "original");
   RequireNoTemporaryFiles(directory);
 
-  Require(reb::native::WriteSaveAtomically(target.c_str(), write));
+  Require(reb::native::WriteSaveAtomically(target.string().c_str(), write));
   Require(Read(target) == "replacement");
   RequireNoTemporaryFiles(directory);
 
   const auto directoryTarget = directory / "destination-directory";
   std::filesystem::create_directory(directoryTarget);
-  Require(!reb::native::WriteSaveAtomically(directoryTarget.c_str(), write));
+  Require(!reb::native::WriteSaveAtomically(directoryTarget.string().c_str(), write));
   Require(std::filesystem::is_directory(directoryTarget));
   RequireNoTemporaryFiles(directory);
   Require(!reb::native::WriteSaveAtomically(nullptr, write));

@@ -10,7 +10,7 @@ class Crc32;
 // ObjectKey too ({ObjectKey, ObjectKey} node); it is kept as a plain int until a caller shows otherwise.
 class IntPairNode : public ObjectKeyNode
 {
-public:
+  public:
   IntPairNode();
   IntPairNode(const ObjectKey& key, const int& value);
   IntPairNode(const IntPairNode& other);

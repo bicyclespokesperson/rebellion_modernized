@@ -17,14 +17,18 @@ constexpr int kMsvcExclusive = 0x400;
 int PosixOpenFlags(int flags)
 {
   int result = (flags & 3) == 0 ? O_RDONLY : (flags & 3) == 1 ? O_WRONLY : O_RDWR;
-  if ((flags & kMsvcAppend) != 0)
+  if ((flags & kMsvcAppend) != 0) {
     result |= O_APPEND;
-  if ((flags & kMsvcCreate) != 0)
+  }
+  if ((flags & kMsvcCreate) != 0) {
     result |= O_CREAT;
-  if ((flags & kMsvcTruncate) != 0)
+  }
+  if ((flags & kMsvcTruncate) != 0) {
     result |= O_TRUNC;
-  if ((flags & kMsvcExclusive) != 0)
+  }
+  if ((flags & kMsvcExclusive) != 0) {
     result |= O_EXCL;
+  }
   return result;
 }
 
@@ -55,37 +59,6 @@ long _lseek(int fd, long offset, int origin)
 int _setmode(int, int)
 {
   return 0x8000;
-}
-
-void REB_STDCALL InitializeCriticalSection(LPCRITICAL_SECTION section)
-{
-  auto* mutex = new pthread_mutex_t;
-  pthread_mutexattr_t attributes;
-  pthread_mutexattr_init(&attributes);
-  pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_RECURSIVE);
-  pthread_mutex_init(mutex, &attributes);
-  pthread_mutexattr_destroy(&attributes);
-  section->LockSemaphore = mutex;
-}
-
-void REB_STDCALL EnterCriticalSection(LPCRITICAL_SECTION section)
-{
-  pthread_mutex_lock(static_cast<pthread_mutex_t*>(section->LockSemaphore));
-}
-
-void REB_STDCALL LeaveCriticalSection(LPCRITICAL_SECTION section)
-{
-  pthread_mutex_unlock(static_cast<pthread_mutex_t*>(section->LockSemaphore));
-}
-
-void REB_STDCALL DeleteCriticalSection(LPCRITICAL_SECTION section)
-{
-  auto* mutex = static_cast<pthread_mutex_t*>(section->LockSemaphore);
-  if (mutex == nullptr)
-    return;
-  pthread_mutex_destroy(mutex);
-  delete mutex;
-  section->LockSemaphore = nullptr;
 }
 
 } // extern "C"

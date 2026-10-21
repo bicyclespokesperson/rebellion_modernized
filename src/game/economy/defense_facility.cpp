@@ -7,7 +7,7 @@
 #include "gameobj/object_family.h"
 
 extern EventKindSet g_allFacilityEventKinds; // 0x6b8ff8
-extern int g_allFacilityEventKindsReady; // 0x6b9000
+extern int g_allFacilityEventKindsReady;     // 0x6b9000
 
 namespace
 {
@@ -65,16 +65,18 @@ int AllFacility::Checksum(Crc32* crc)
 
 int AllFacility::ApplyAll(NotifyContext* ctx)
 {
-  if (IsSideView())
+  if (IsSideView()) {
     return ApplyAllStep(ctx);
+  }
   return 0;
 }
 
 int AllFacility::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_allFacilityEventKinds;
+  }
   return result;
 }
 
@@ -82,8 +84,9 @@ int AllFacility::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_allFacilityEventKinds.Contains(orderKind))
+  if (result && g_allFacilityEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -97,8 +100,9 @@ int AllFacility::CheckUnknownImpl(const ActivityRequest* request, StatusCode* ou
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -134,12 +138,12 @@ int AllFacility::ApplyAllStep(NotifyContext* ctx)
 
 int AllFacility::BuildEventKinds()
 {
-  if (g_allFacilityEventKindsReady != 0)
+  if (g_allFacilityEventKindsReady != 0) {
     return 1;
+  }
   g_allFacilityEventKindsReady = 1;
-  return UnitObjBase::InitEventKinds(0, &g_allFacilityEventKinds) &&
-         g_allFacilityEventKinds.Add(kKindAllFacility1, 1) && g_allFacilityEventKinds.Add(kKindAllFacility2, 1) &&
-         g_allFacilityEventKinds.Add(kKindAllFacility3, 1);
+  return UnitObjBase::InitEventKinds(0, &g_allFacilityEventKinds) && g_allFacilityEventKinds.Add(kKindAllFacility1, 1)
+         && g_allFacilityEventKinds.Add(kKindAllFacility2, 1) && g_allFacilityEventKinds.Add(kKindAllFacility3, 1);
 }
 
 GameObjNotifier* CreateAllFacility()
@@ -153,12 +157,12 @@ int CountAllFacilities(GameObj* parent, uint32_t side, uint32_t filter)
 }
 
 AllFacilityIterator::AllFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kAllFacilityFamilies, stateFilter)
+    : ChildIterator(parent, &kAllFacilityFamilies, stateFilter)
 {
 }
 
 AllFacilityIterator::AllFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kAllFacilityFamilies, stateFilter)
+    : ChildIterator(parent, side, &kAllFacilityFamilies, stateFilter)
 {
 }
 
@@ -187,8 +191,9 @@ int DefenseFacility::Checksum(Crc32* crc)
 
 int DefenseFacility::ApplyAll(NotifyContext* ctx)
 {
-  if (IsSideView())
+  if (IsSideView()) {
     return ApplyAllLeafStep(ctx);
+  }
   return 0;
 }
 
@@ -237,8 +242,9 @@ int DefenseFacility::ApplyAllLeafStep(NotifyContext* ctx)
 int DefenseFacility::ApplyAllBaseStep(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     ApplyAllImpl(ctx);
+  }
   return result;
 }
 
@@ -248,12 +254,12 @@ int CountDefenseFacilities(GameObj* parent, uint32_t side, uint32_t filter)
 }
 
 DefenseFacilityIterator::DefenseFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDefenseFacilityFamilies, stateFilter)
+    : ChildIterator(parent, &kDefenseFacilityFamilies, stateFilter)
 {
 }
 
 DefenseFacilityIterator::DefenseFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kDefenseFacilityFamilies, stateFilter)
+    : ChildIterator(parent, side, &kDefenseFacilityFamilies, stateFilter)
 {
 }
 
@@ -280,11 +286,11 @@ int CountDefenseFacilities22(GameObj* parent, uint32_t side, uint32_t filter)
   return parent->CountChildren(&kDefenseFacility22Families, side, filter);
 }
 DefenseFacility22Iterator::DefenseFacility22Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDefenseFacility22Families, stateFilter)
+    : ChildIterator(parent, &kDefenseFacility22Families, stateFilter)
 {
 }
 DefenseFacility22Iterator::DefenseFacility22Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kDefenseFacility22Families, stateFilter)
+    : ChildIterator(parent, side, &kDefenseFacility22Families, stateFilter)
 {
 }
 DefenseFacility22Iterator::~DefenseFacility22Iterator() = default;
@@ -308,7 +314,7 @@ int CountDefenseFacilities23(GameObj* parent, uint32_t side, uint32_t filter)
   return parent->CountChildren(&kDefenseFacility23Families, side, filter);
 }
 DefenseFacility23Iterator::DefenseFacility23Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDefenseFacility23Families, stateFilter)
+    : ChildIterator(parent, &kDefenseFacility23Families, stateFilter)
 {
 }
 DefenseFacility23Iterator::~DefenseFacility23Iterator() = default;
@@ -332,11 +338,11 @@ int CountDefenseFacilities24(GameObj* parent, uint32_t side, uint32_t filter)
   return parent->CountChildren(&kDefenseFacility24Families, side, filter);
 }
 DefenseFacility24Iterator::DefenseFacility24Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDefenseFacility24Families, stateFilter)
+    : ChildIterator(parent, &kDefenseFacility24Families, stateFilter)
 {
 }
 DefenseFacility24Iterator::DefenseFacility24Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kDefenseFacility24Families, stateFilter)
+    : ChildIterator(parent, side, &kDefenseFacility24Families, stateFilter)
 {
 }
 DefenseFacility24Iterator::~DefenseFacility24Iterator() = default;
@@ -360,7 +366,7 @@ int CountDefenseFacilities25(GameObj* parent, uint32_t side, uint32_t filter)
   return parent->CountChildren(&kDefenseFacility25Families, side, filter);
 }
 DefenseFacility25Iterator::DefenseFacility25Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDefenseFacility25Families, stateFilter)
+    : ChildIterator(parent, &kDefenseFacility25Families, stateFilter)
 {
 }
 DefenseFacility25Iterator::~DefenseFacility25Iterator() = default;

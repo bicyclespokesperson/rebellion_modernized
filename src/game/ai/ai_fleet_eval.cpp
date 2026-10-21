@@ -25,7 +25,13 @@ ObjectKey KeyOfObject(GameObjNotifier* object)
 
 } // namespace
 
-AiFleetEval::AiFleetEval() : ObjectKeyNode(), m_x2c(), m_systemKey(), m_flags(0), m_shipKeys(), m_stat()
+AiFleetEval::AiFleetEval()
+    : ObjectKeyNode()
+    , m_x2c()
+    , m_systemKey()
+    , m_flags(0)
+    , m_shipKeys()
+    , m_stat()
 {
   m_dirty = 0;
   m_view = 0;
@@ -39,11 +45,11 @@ AiFleetEval::AiFleetEval() : ObjectKeyNode(), m_x2c(), m_systemKey(), m_flags(0)
 }
 
 AiFleetEval::AiFleetEval(const int* view, GameObjNotifier* fleet, AiShipRecordSet* ships, AiSideController* owner)
-: ObjectKeyNode(KeyOfObject(fleet)),
-  m_systemKey(),
-  m_x2c(),
-  m_flags(0),
-  m_shipKeys()
+    : ObjectKeyNode(KeyOfObject(fleet))
+    , m_systemKey()
+    , m_x2c()
+    , m_flags(0)
+    , m_shipKeys()
 {
   m_view = *view;
   m_cursor = nullptr;
@@ -55,8 +61,9 @@ AiFleetEval::AiFleetEval(const int* view, GameObjNotifier* fleet, AiShipRecordSe
   m_owner = owner;
   m_dirty = 1;
   m_flags.m_value |= 4;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
 }
 
 AiFleetEval::~AiFleetEval()
@@ -84,30 +91,30 @@ void AiFleetEval::ReadRecord(istream* in, AiShipRecordSet* ships, AiSideControll
   m_shipKeys.Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
+  }
   cursorKey.Read(in);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
-  for (uint32_t i = 0; i < count; ++i)
-  {
+  }
+  for (uint32_t i = 0; i < count; ++i) {
     auto* node = NewOrNull<ObjectKeyNode>();
-    if (!node)
-    {
+    if (!node) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     node->Load(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !m_shipKeys.Add(node))
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !m_shipKeys.Add(node)) {
       delete node;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
   }
   m_cursor = m_shipKeys.Find(&cursorKey);
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     ReadValue32(in, &value);
+  }
   m_dirty = 1;
 }
 
@@ -124,27 +131,29 @@ void AiFleetEval::Save(ostream* out)
   m_systemKey.Write(out);
   m_x2c.Write(out);
   m_flags.Write(out);
-  if (!WriteCount32(out, m_shipKeys.Count()))
+  if (!WriteCount32(out, m_shipKeys.Count())) {
     return;
-  if (m_cursor)
+  }
+  if (m_cursor) {
     m_cursor->GetKey(&cursorKey);
+  }
   cursorKey.Write(out);
-  for (const auto& entry : m_shipKeys.Entries())
-  {
+  for (const auto& entry : m_shipKeys.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
   }
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     WriteValue32(out, &value);
+  }
 }
 
 void AiFleetEval::RemoveShip(ObjectKey* key)
 {
-  if (!InFamilies(key->Family(), 0x14, 0x1c))
+  if (!InFamilies(key->Family(), 0x14, 0x1c)) {
     return;
+  }
   ObjectKeyNode* node = m_shipKeys.Detach(key);
-  if (node)
-  {
+  if (node) {
     delete node;
     MarkDirty();
   }
@@ -152,10 +161,10 @@ void AiFleetEval::RemoveShip(ObjectKey* key)
 
 void AiFleetEval::AddShip(const ObjectKey* key)
 {
-  if (!InFamilies(key->Family(), 0x14, 0x1c))
+  if (!InFamilies(key->Family(), 0x14, 0x1c)) {
     return;
-  if (!m_shipKeys.Find(key))
-  {
+  }
+  if (!m_shipKeys.Find(key)) {
     auto* node = NewOrNull<ObjectKeyNode>(*key);
     m_shipKeys.Add(node);
     MarkDirty();
@@ -168,13 +177,13 @@ int AiFleetEval::HasShip(const ObjectKey* key)
 {
   int found = 0;
   auto position = m_shipKeys.Entries().begin();
-  while (position != m_shipKeys.Entries().end() && !found)
-  {
+  while (position != m_shipKeys.Entries().end() && !found) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
-    if (key->m_value == nodeKey.m_value)
+    if (key->m_value == nodeKey.m_value) {
       found = 1;
+    }
     ++position;
   }
   return found;
@@ -183,17 +192,16 @@ int AiFleetEval::HasShip(const ObjectKey* key)
 AiRankedList* AiFleetEval::RankShips(uint32_t requireFlags, uint32_t forbidFlags, uint32_t statIndex, int descending)
 {
   auto* list = NewOrNull<AiRankedList>(descending);
-  if (!list)
+  if (!list) {
     return list;
-  for (const auto& entry : m_shipKeys.Entries())
-  {
+  }
+  for (const auto& entry : m_shipKeys.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key;
     node->GetKey(&key);
     auto* record = static_cast<AiShipRecord*>(m_ships->Find(&key));
-    if (record && (requireFlags & record->m_flags.m_value) == requireFlags &&
-        (forbidFlags & record->m_flags.m_value) == 0)
-    {
+    if (record && (requireFlags & record->m_flags.m_value) == requireFlags
+        && (forbidFlags & record->m_flags.m_value) == 0) {
       ObjectKey recordKey;
       record->GetKey(&recordKey);
       auto* item = NewOrNull<AiRankedItem>(recordKey, record->m_stat[statIndex & 0xffff]);
@@ -219,41 +227,44 @@ void AiFleetEval::MarkDirty()
 int AiFleetEval::Refresh()
 {
   int refreshed = 0;
-  if (m_dirty == 0)
+  if (m_dirty == 0) {
     return refreshed;
+  }
   m_dirty = 0;
   m_flags.m_value &= 0xf000000c;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
   auto* fleet = static_cast<GameObj*>(GetObjectInFamilies_08_10(m_view, &m_key));
-  if (fleet && (fleet->m_stateFlags & 8) == 0)
-  {
+  if (fleet && (fleet->m_stateFlags & 8) == 0) {
     const int expectedControl = m_view == 1 ? 1 : (m_view == 2 ? 2 : 0);
-    if (m_control == expectedControl)
+    if (m_control == expectedControl) {
       m_flags.m_value |= 1;
-    if (fleet->m_stateFlags & 0x10)
+    }
+    if (fleet->m_stateFlags & 0x10) {
       m_flags.m_value |= 2;
+    }
     ObjectKey parentKey;
     m_systemKey = *GetObjectKey(fleet->m_parent, &parentKey);
     auto position = m_shipKeys.Entries().begin();
-    while (position != m_shipKeys.Entries().end())
-    {
+    while (position != m_shipKeys.Entries().end()) {
       m_cursor = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey key;
       m_cursor->GetKey(&key);
       auto* record = static_cast<AiShipRecord*>(m_ships->Find(&key));
-      if (record)
-      {
+      if (record) {
         record->Refresh();
         AddShipStats(record->m_stat, &record->m_flags.m_value);
       }
       ++position;
     }
     m_cursor = nullptr;
-    if (0 < Stat(0xa8))
+    if (0 < Stat(0xa8)) {
       m_flags.m_value |= 0x80000;
-    if (0 < Stat(0xac))
+    }
+    if (0 < Stat(0xac)) {
       m_flags.m_value |= 0x100000;
+    }
   }
   refreshed = 1;
   return refreshed;
@@ -263,70 +274,81 @@ void AiFleetEval::AddShipStats(const int* stats, const int* flags)
 {
   ++Stat(0x50);
   const uint32_t f = *flags;
-  if (f & 0x100)
+  if (f & 0x100) {
     m_flags.m_value |= 0x20000;
-  if (f & 0x200)
-    m_flags.m_value |= 0x40000;
-  if (f & 0x400000)
-    m_flags.m_value |= 0x4000000;
-  if (f & 0x20000000)
-    m_flags.m_value |= 0x8000000;
-  if ((f & 0x800) == 0)
-  {
-    if ((f & 0x2000) == 0)
-      m_flags.m_value |= 0x4000;
   }
-  else
-  {
+  if (f & 0x200) {
+    m_flags.m_value |= 0x40000;
+  }
+  if (f & 0x400000) {
+    m_flags.m_value |= 0x4000000;
+  }
+  if (f & 0x20000000) {
+    m_flags.m_value |= 0x8000000;
+  }
+  if ((f & 0x800) == 0) {
+    if ((f & 0x2000) == 0) {
+      m_flags.m_value |= 0x4000;
+    }
+  } else {
     m_flags.m_value |= 0x800;
   }
-  if (f & 0x10000)
+  if (f & 0x10000) {
     m_flags.m_value |= 0x200;
-  if (f & 0x2000)
+  }
+  if (f & 0x2000) {
     m_flags.m_value |= 0x400;
-  if (f & 0x8000)
+  }
+  if (f & 0x8000) {
     m_flags.m_value |= 0x100;
-  if (f & 0x80)
+  }
+  if (f & 0x80) {
     m_flags.m_value |= 0x10;
-  if (f & 0x400)
+  }
+  if (f & 0x400) {
     m_flags.m_value |= 0x20;
-  if ((f & 0x801000) == 0)
-  {
+  }
+  if ((f & 0x801000) == 0) {
     m_flags.m_value |= 0x8000;
-  }
-  else
-  {
-    if (f & 0x800000)
+  } else {
+    if (f & 0x800000) {
       m_flags.m_value |= 0x2000;
-    if (f & 0x1000)
+    }
+    if (f & 0x1000) {
       m_flags.m_value |= 0x1000;
+    }
   }
-  if ((f & 0x801000) == 0)
-  {
-    if (f & 1)
+  if ((f & 0x801000) == 0) {
+    if (f & 1) {
       ++Stat(0x98);
-    if (f & 2)
+    }
+    if (f & 2) {
       ++Stat(0x9c);
-    if (f & 4)
+    }
+    if (f & 4) {
       ++Stat(0xa0);
+    }
   }
-  if (f & 0x80000)
+  if (f & 0x80000) {
     m_flags.m_value |= 0x1000000;
-  if (f & 0x40000)
-  {
+  }
+  if (f & 0x40000) {
     m_flags.m_value |= 0x200000;
     Stat(0xb0) += stats[0x12];
   }
-  if (f & 0x100000)
+  if (f & 0x100000) {
     m_flags.m_value |= 0x400000;
-  if (f & 0x4000000)
+  }
+  if (f & 0x4000000) {
     m_flags.m_value |= 0x2000000;
-  if (f & 0x200000)
+  }
+  if (f & 0x200000) {
     m_flags.m_value |= 0x800000;
-  if ((f & 0x8000000) == 0)
+  }
+  if ((f & 0x8000000) == 0) {
     ++Stat(0x94);
-  if ((f & 0x2000) == 0)
-  {
+  }
+  if ((f & 0x2000) == 0) {
     Stat(0x58) += stats[0xe];
     Stat(0x5c) += stats[0xf];
     Stat(0x60) += stats[3];
@@ -347,10 +369,10 @@ void AiFleetEval::AddShipStats(const int* stats, const int* flags)
   Stat(0x88) += stats[0xb];
   Stat(0x8c) += stats[0xc];
   Stat(0x90) += stats[0xd];
-  if (f & 4)
+  if (f & 4) {
     Stat(0xbc) += stats[10];
-  if ((f & 0x2800) == 0)
-  {
+  }
+  if ((f & 0x2800) == 0) {
     Stat(0xa8) += stats[10];
     Stat(0xa8) -= stats[8];
     Stat(0xac) += stats[7];

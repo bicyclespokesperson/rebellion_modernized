@@ -5,11 +5,12 @@
 // the invisible first row (VT 0x65a120; the owner windows build it as CoolListItemList(2) and store the vtable).
 class VisibleItemList : public CoolListItemList
 {
-public:
-  explicit VisibleItemList(int sortMode) : CoolListItemList(sortMode)
+  public:
+  explicit VisibleItemList(int sortMode)
+      : CoolListItemList(sortMode)
   {
   }
-  ~VisibleItemList() override; // 0x466320 (scalar deleting destructor 0x466300)
+  ~VisibleItemList() override;    // 0x466320 (scalar deleting destructor 0x466300)
   CoolListItem* First() override; // slot 2, 0x466330
 };
 

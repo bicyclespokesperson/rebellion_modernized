@@ -12,19 +12,13 @@ bool sameValue(const IntPair& a, const IntPair& b)
   return a.m_first == b.m_first && a.m_second == b.m_second;
 }
 
-int setPair(Side* self,
-            IntPair Side::* field,
-            const IntPair* value,
-            NotifyContext* ctx,
-            Apply apply,
+int setPair(Side* self, IntPair Side::* field, const IntPair* value, NotifyContext* ctx, Apply apply,
             PairChanged changed)
 {
   const int result = self->IsMasterView();
-  if (result)
-  {
+  if (result) {
     IntPair& current = self->*field;
-    if (!sameValue(current, *value))
-    {
+    if (!sameValue(current, *value)) {
       const IntPair old = current;
       current = *value;
       (static_cast<Side*>(self->GetViewObject(1))->*apply)(ctx);
@@ -38,11 +32,9 @@ int setPair(Side* self,
 int setInt(Side* self, int Side::* field, int value, NotifyContext* ctx, Apply apply, IntChanged changed)
 {
   const int result = self->IsMasterView();
-  if (result)
-  {
+  if (result) {
     const int old = self->*field;
-    if (old != value)
-    {
+    if (old != value) {
       self->*field = value;
       (static_cast<Side*>(self->GetViewObject(1))->*apply)(ctx);
       (static_cast<Side*>(self->GetViewObject(2))->*apply)(ctx);
@@ -174,8 +166,7 @@ int Side::SetVictoryConditions(int value, NotifyContext* ctx)
 
 int Side::SetRdProgress(int kind, int value, NotifyContext* ctx)
 {
-  switch (kind)
-  {
+  switch (kind) {
     case rd_kind::kShipyard:
       return SetShipyardRdProgress(value, ctx);
     case rd_kind::kConstructionYard:
@@ -190,8 +181,7 @@ int Side::SetRdProgress(int kind, int value, NotifyContext* ctx)
 int Side::GetRdProgress(int kind, int* out)
 {
   *out = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case rd_kind::kShipyard:
       *out = m_shipyardRdProgress;
       return 1;
@@ -209,8 +199,7 @@ int Side::GetRdProgress(int kind, int* out)
 int Side::GetRdOrder(int kind, int* out)
 {
   *out = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case rd_kind::kShipyard:
       *out = m_shipyardRdOrder;
       return 1;
@@ -228,8 +217,7 @@ int Side::GetRdOrder(int kind, int* out)
 int Side::GetRdDone(int kind, int* out)
 {
   *out = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case rd_kind::kShipyard:
       *out = m_shipyardRdDone;
       return 1;

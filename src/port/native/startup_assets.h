@@ -9,12 +9,12 @@ namespace reb::native
 
 class StartupAssets
 {
-public:
+  public:
   explicit StartupAssets(const std::filesystem::path& path);
   StartupAssets(const StartupAssets&) = delete;
   StartupAssets& operator=(const StartupAssets&) = delete;
 
-private:
+  private:
   const char* Text(const char* identifier) const;
   std::map<std::string, std::string, std::less<>> texts_;
 };

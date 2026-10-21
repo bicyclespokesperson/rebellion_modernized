@@ -8,7 +8,7 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionRecruitEventKindsReady; // 0x6bb968
+extern int g_missionRecruitEventKindsReady;     // 0x6bb968
 extern EventKindSet g_missionRecruitEventKinds; // 0x6bb960
 
 namespace
@@ -24,14 +24,14 @@ constexpr int kOutBlockedByRecruitmentDone = 0x10;
 
 int ControlSideIndex(uint32_t controlSide)
 {
-  if (controlSide == 3)
+  if (controlSide == 3) {
     return 3;
+  }
   return controlSide == 1 ? 2 : 1;
 }
 
 template <class Set>
-struct ThreeSets
-{
+struct ThreeSets {
   Set* m_set[3];
 };
 
@@ -71,16 +71,21 @@ bool StatusIsOk(const StatusCode* status)
 template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
 int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, ThreeSets<Set> sets, int result)
 {
-  if (!result)
+  if (!result) {
     return result;
-  if (StatusIsOk(status))
+  }
+  if (StatusIsOk(status)) {
     result = Check(sets.m_set[0], check, status, out);
-  if (!result)
+  }
+  if (!result) {
     return result;
-  if (StatusIsOk(status))
+  }
+  if (StatusIsOk(status)) {
     result = Check(sets.m_set[1], check, status, out);
-  if (result && StatusIsOk(status))
+  }
+  if (result && StatusIsOk(status)) {
     result = Check(sets.m_set[2], check, status, out);
+  }
   return result;
 }
 } // namespace
@@ -91,23 +96,27 @@ MissionRecruit::~MissionRecruit() = default;
 
 int MissionRecruit::Read(istream* in)
 {
-  if (!this->Mission::ReadImpl(in))
+  if (!this->Mission::ReadImpl(in)) {
     return 0;
+  }
   return m_recruitedCharacter.Read(in);
 }
 
 int MissionRecruit::Write(ostream* out)
 {
-  if (!WriteImpl(out))
+  if (!WriteImpl(out)) {
     return 0;
+  }
   return m_recruitedCharacter.Write(out);
 }
 
 int MissionRecruit::Checksum(Crc32* crc)
 {
-  if (!this->Mission::ChecksumImpl(crc))
+  if (!this->Mission::ChecksumImpl(crc)) {
     return 0;
-  return reinterpret_cast<SideBits*>(&m_recruitedCharacter)->Checksum(crc);
+  }
+  crc->AddInt(static_cast<int>(m_recruitedCharacter.m_value));
+  return 1;
 }
 
 int MissionRecruit::Validate()
@@ -128,8 +137,9 @@ int MissionRecruit::CreateViews(int controlKind, NotifyContext* ctx)
 int MissionRecruit::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = ApplyAllImpl(ctx);
-  if (result && ctx->m_flag04 == 1)
+  if (result && ctx->m_flag04 == 1) {
     ApplyRecruitedCharacter(ctx);
+  }
   return result;
 }
 
@@ -168,8 +178,7 @@ GameObjNotifier* MissionRecruit::Create()
 int MissionRecruit::SetRecruitedCharacter(ObjectKey* key, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_recruitedCharacter.m_value != key->m_value)
-  {
+  if (result && m_recruitedCharacter.m_value != key->m_value) {
     ObjectKey oldKey(m_recruitedCharacter);
     m_recruitedCharacter = *key;
     static_cast<MissionRecruit*>(ViewAs(1))->ApplyRecruitedCharacter(ctx);
@@ -182,25 +191,30 @@ int MissionRecruit::SetRecruitedCharacter(ObjectKey* key, NotifyContext* ctx)
 int MissionRecruit::ApplyRecruitedCharacter(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (!result)
+  if (!result) {
     return result;
+  }
   auto* master = static_cast<MissionRecruit*>(GetViewObject(0));
-  if (!MatchesSideMask(ctx->m_flag08))
+  if (!MatchesSideMask(ctx->m_flag08)) {
     return result;
-  if (m_recruitedCharacter.m_value == master->m_recruitedCharacter.m_value)
+  }
+  if (m_recruitedCharacter.m_value == master->m_recruitedCharacter.m_value) {
     return result;
+  }
   ObjectKey oldKey(m_recruitedCharacter);
   m_recruitedCharacter = master->m_recruitedCharacter;
-  if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
+  if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
     result = OnRecruitedCharacterNotified(&oldKey, &m_recruitedCharacter, ctx);
+  }
   return result;
 }
 
 int MissionRecruit::OnRecruitedCharacterNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogKey("(MissionRecruitRecruitedCharacterKeyNotif)", "RecruitedCharacter", newKey, oldKey, 0, ctx);
+  }
   return result;
 }
 
@@ -208,16 +222,17 @@ int MissionRecruit::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* che
 {
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
-  for (const auto& nodeEntry : keys->Entries())
-  {
+  for (const auto& nodeEntry : keys->Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
-    if (!(StatusIsOk(status)))
+    if (!(StatusIsOk(status))) {
       break;
+    }
 
     ObjectKey key;
     node->GetKey(&key);
-    if (!IsCharacterFamily(key.Family()))
+    if (!IsCharacterFamily(key.Family())) {
       RejectNonCharacter(status, out);
+    }
   }
   return 1;
 }
@@ -226,16 +241,17 @@ int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* ch
 {
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
-  for (const auto& nodeEntry : refs->Entries())
-  {
+  for (const auto& nodeEntry : refs->Entries()) {
     auto* node = nodeEntry.get();
-    if (!(StatusIsOk(status)))
+    if (!(StatusIsOk(status))) {
       break;
+    }
 
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
-    if (!IsCharacterFamily(key.Family()))
+    if (!IsCharacterFamily(key.Family())) {
       RejectNonCharacter(status, out);
+    }
   }
   return 1;
 }
@@ -245,23 +261,20 @@ int MissionRecruit::CheckTarget(MissionCheckArgs* check, StatusCode* status, int
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
   int result = MissionSystemTargetBase::CheckTarget(check, status, out);
-  if (check->m_flag04 != 0)
-  {
-    if (check->m_flag08 == 0)
+  if (check->m_flag04 != 0) {
+    if (check->m_flag08 == 0) {
       result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, RefSetsOf(check), result);
-    else
+    } else {
       result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, KeySetsOf(check), result);
+    }
   }
-  if (check->m_flag0c != 0 && result && StatusIsOk(status))
-  {
+  if (check->m_flag0c != 0 && result && StatusIsOk(status)) {
     const int side = CheckedSideOf(check->m_controlSide);
     result = 0;
-    if (side != 0)
-    {
+    if (side != 0) {
       Side* sideObject = static_cast<Side*>(GetGameRootSideMemberThunk(side));
       result = sideObject != nullptr;
-      if (result && sideObject->m_recruitmentDone != 0)
-      {
+      if (result && sideObject->m_recruitmentDone != 0) {
         *status = StatusCode(kStatusCategoryBlocked, kStatusRecruitmentDone);
         *out = kOutBlockedByRecruitmentDone;
       }
@@ -274,10 +287,11 @@ int MissionRecruit::GetPersonSuccessChance(GameObj* person, int* out)
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   const bool ok = found != 0;
-  if (!system)
+  if (!system) {
     return ok;
+  }
   const int side = ControlSideIndex(ControlSide());
   const int loyalty = system->GetLoyaltyFor(side);
   const int leadership = static_cast<Role*>(person)->GetLeadership();
@@ -294,25 +308,29 @@ int MissionRecruit::BeforeScoringResults(NotifyContext* ctx)
 int MissionRecruit::ApplyPersonResult(GameObj* person, int roll, int* out, NotifyContext* ctx)
 {
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return 1;
+  }
   *out = 1;
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   CharacterMgr* root = GetCharacterManager();
   int ok = root != nullptr && found != 0;
-  if (!system || !root)
+  if (!system || !root) {
     return ok;
+  }
   ObjectKey recruit;
   ok = root->RecruitRandomMinor(system, ControlSide(), &recruit, ctx) != 0 && ok;
-  if (!recruit.OrNull())
+  if (!recruit.OrNull()) {
     return ok;
+  }
   ok = SetRecruitedCharacter(&recruit, ctx) != 0 && ok;
   ok = SetTaskStatus(kTaskSucceeded, ctx) != 0 && ok;
   Role* role = static_cast<Role*>(person);
-  if (role->IsCharacter())
+  if (role->IsCharacter()) {
     ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb180F, ctx) != 0 && ok;
+  }
   return ok;
 }
 
@@ -323,8 +341,7 @@ int MissionRecruit::AfterScoringResults(NotifyContext* ctx)
 
 int MissionRecruit::BuildEventKinds()
 {
-  if (!g_missionRecruitEventKindsReady)
-  {
+  if (!g_missionRecruitEventKindsReady) {
     g_missionRecruitEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionRecruitEventKinds);
   }

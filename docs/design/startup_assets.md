@@ -27,6 +27,6 @@ duplicate identifiers, truncation, trailing bytes, and all required identifiers 
 storage belongs to the entry-point asset owner and remains alive through game shutdown. Program constants such as
 grid dimensions, geometry, resource type GUIDs, and allocation sizes belong in source rather than the asset pack.
 
-The build scripts extract the pack before configuring CMake. CMake packages an available pack in the app's resource
+`create_build.sh` extracts the pack before configuring CMake. CMake packages an available pack in the app's resource
 directory (macOS) or beside the executable (Linux). CMake itself can compile without an installation or pack, allowing
 public compile checks. To use a pack stored elsewhere, configure `REB_STARTUP_ASSET_PACK` with its path.

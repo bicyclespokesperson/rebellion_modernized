@@ -1,6 +1,6 @@
 # Opens the Status window of a fleet (right-click the fleet in the fleet window, "Status") and of a character, a
 # system and a capital ship / troops. Same start as object_menu.txt (loaded game, Very Slow); see
-# docs/ui_navigation.md. Runtime ~170 s.
+# Runtime ~170 s.
 12 key Escape
 16 key Escape
 20 key Escape

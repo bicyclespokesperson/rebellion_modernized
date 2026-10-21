@@ -290,4 +290,4 @@ start,end,module,subsystem,confidence,evidence
 0x00611e90,0x00612bd0,cd_music,sound,medium,mciSendCommandA (CD audio/MIDI music); music track classes VT 0x66e398..0x66e3d0
 0x00612bd0,0x00614000,dsound_streaming,sound,medium,DirectSound buffer + streaming class (refill thread, notification positions); VT 0x66e3f8 (corrected by platform survey)
 0x00614000,0x006153b0,directx_init_errors,gfx,medium,S:"cdderr.dll"; DirectDrawCreate/Enumerate 0x614200; DX error->string 0x614530; import thunks 0x615350..0x6153a4
-0x006153b0,0x00618a70,msvc_iostream,library,high,LIBCI old iostream 0x6153b0-0x61870f (ios/strstream/fstream; ios::ios at 0x6153b0) then LIBCMT EH helpers from 0x618710 (see docs/library_code.md)
+0x006153b0,0x00618a70,msvc_iostream,library,high,LIBCI old iostream 0x6153b0-0x61870f (ios/strstream/fstream; ios::ios at 0x6153b0) then LIBCMT EH helpers from 0x618710

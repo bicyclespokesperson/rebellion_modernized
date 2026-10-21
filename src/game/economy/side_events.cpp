@@ -12,13 +12,14 @@ namespace
 // their allocations (never above the capacity).
 int recomputeMaintState(Side* side, NotifyContext* ctx)
 {
-  const uint32_t capacity = side->m_mineState.m_first < side->m_refineryState.m_first ? side->m_mineState.m_first :
-                                                                                        side->m_refineryState.m_first;
-  uint32_t allocated = static_cast<int>(side->m_mineState.m_second) > static_cast<int>(side->m_refineryState.m_second) ?
-                         side->m_mineState.m_second :
-                         side->m_refineryState.m_second;
-  if (static_cast<int>(allocated) > static_cast<int>(capacity))
+  const uint32_t capacity = side->m_mineState.m_first < side->m_refineryState.m_first ? side->m_mineState.m_first
+                                                                                      : side->m_refineryState.m_first;
+  uint32_t allocated = static_cast<int>(side->m_mineState.m_second) > static_cast<int>(side->m_refineryState.m_second)
+                           ? side->m_mineState.m_second
+                           : side->m_refineryState.m_second;
+  if (static_cast<int>(allocated) > static_cast<int>(capacity)) {
     allocated = capacity;
+  }
   const IntPair state(capacity, allocated);
   return side->SetMaintState(&state, ctx);
 }
@@ -27,14 +28,9 @@ using ResearchLookup = int (*)(int view, int level, int* found, int* foundLevel,
 
 // When the accumulated points of a kind cover the next level's (scaled) cost, advance the research order and spend
 // the points; with no next level the kind is done.
-int advanceResearch(Side* side,
-                    int order,
-                    int progress,
-                    ResearchLookup lookup,
-                    int (Side::*setDone)(int, NotifyContext*),
-                    int (Side::*setOrder)(int, NotifyContext*),
-                    int (Side::*setProgress)(int, NotifyContext*),
-                    NotifyContext* ctx)
+int advanceResearch(Side* side, int order, int progress, ResearchLookup lookup,
+                    int (Side::*setDone)(int, NotifyContext*), int (Side::*setOrder)(int, NotifyContext*),
+                    int (Side::*setProgress)(int, NotifyContext*), NotifyContext* ctx)
 {
   ObjectKey key;
   side->GetKey(&key);
@@ -42,19 +38,16 @@ int advanceResearch(Side* side,
   int nextOrder = 0;
   int cost = 0;
   int result = lookup(SideNumberFromKey(&key), order, &found, &nextOrder, &cost);
-  if (result)
-  {
+  if (result) {
     cost = RulesScalePercent(cost, side->m_rdScalePercent);
-    if (found == 0)
-    {
+    if (found == 0) {
       result = (side->*setDone)(1, ctx);
-    }
-    else if (cost <= progress)
-    {
+    } else if (cost <= progress) {
       const int orderSet = (side->*setOrder)(nextOrder, ctx);
       result = 0;
-      if (orderSet)
+      if (orderSet) {
         result = (side->*setProgress)(progress - cost, ctx);
+      }
     }
   }
   return result;
@@ -92,16 +85,18 @@ int Side::OnMaintRequiredBChanged(int oldValue, int newValue, NotifyContext* ctx
 int Side::OnRawMaterialsChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = 1;
-  if (m_waitingRefineries > 0 && newValue > 0 && oldValue == 0)
+  if (m_waitingRefineries > 0 && newValue > 0 && oldValue == 0) {
     result = ScheduleRefineryEvent();
+  }
   return result;
 }
 
 int Side::OnRefinedMaterialsChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = 1;
-  if (m_waitingManufacturers > 0 && newValue > 0 && oldValue == 0)
+  if (m_waitingManufacturers > 0 && newValue > 0 && oldValue == 0) {
     result = ScheduleManufacturerEvent();
+  }
   return result;
 }
 
@@ -134,8 +129,7 @@ int Side::OnMaintDeficitChanged(int oldValue, int newValue, NotifyContext* ctx)
 int Side::OnExistingChanged(int newValue, NotifyContext* ctx)
 {
   int result = GameObj::OnExistingChanged(newValue, ctx);
-  if (result && newValue)
-  {
+  if (result && newValue) {
     m_statCc.SetLevel(g_gnprtb1C00);
     m_statD4.SetLevel(g_gnprtb1C01);
     m_statD4.SetProgress(g_gnprtb1C02);
@@ -170,8 +164,9 @@ void appendPairText(std::string* text, const IntPair* pair)
 int Side::OnMaintStateNotified(const IntPair* oldValue, const IntPair* newValue, NotifyContext* ctx)
 {
   const int sideView = IsSideView();
-  if (!sideView)
+  if (!sideView) {
     return 0;
+  }
   std::string newText;
   std::string oldText;
   appendPairText(&newText, newValue);
@@ -183,8 +178,9 @@ int Side::OnMaintStateNotified(const IntPair* oldValue, const IntPair* newValue,
 
 int Side::OnMaintRequiredNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogInt("SideMaintRequiredNotif", "Maint Required", newValue, oldValue, 0, ctx);
   return PostPayloadInts(side_event::kMaintRequired, this, oldValue, newValue, ctx);
 }
@@ -211,70 +207,80 @@ int Side::OnWaitingManufacturersNotified(int oldValue, int newValue, NotifyConte
 
 int Side::OnShipyardRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogInt("SideShipyardRdOrderNotif", "ShipyardRdOrder", newValue, oldValue, 0, ctx);
   return PostPayloadInts(side_event::kShipyardRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnTrainingFacilRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogInt("SideTrainingFacilRdOrderNotif", "TrainingFacilRdOrder", newValue, oldValue, 0, ctx);
   return PostPayloadInts(side_event::kTrainingFacilRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnConstructionYardRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogInt("SideConstructionYardRdOrderNotif", "ConstructionYardRdOrder", newValue, oldValue, 0, ctx);
   return PostPayloadInts(side_event::kConstructionYardRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnShipyardRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogFlag("(SideShipyardRdDoneNotif)", "ShipyardRdDone", newValue, 0, ctx);
   return PostPayloadFlag(side_event::kShipyardRdDone, this, newValue, ctx);
 }
 
 int Side::OnTrainingFacilRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogFlag("(SideTrainingFacilRdDoneNotif)", "TrainingFacilRdDone", newValue, 0, ctx);
   return PostPayloadFlag(side_event::kTrainingFacilRdDone, this, newValue, ctx);
 }
 
 int Side::OnConstructionYardRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogFlag("(SideConstructionYardRdDoneNotif)", "ConstructionYardRdDone", newValue, 0, ctx);
   return PostPayloadFlag(side_event::kConstructionYardRdDone, this, newValue, ctx);
 }
 
 int Side::OnRecruitmentDoneNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   LogFlag("(SideRecruitmentDoneNotif)", "RecruitmentDone", newValue, 0, ctx);
   return PostPayloadFlag(side_event::kRecruitmentDone, this, newValue, ctx);
 }
 
 int Side::OnVictoryConditionsNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (!IsSideView())
+  if (!IsSideView()) {
     return 0;
+  }
   std::string newText;
   std::string oldText;
   int formatted = FormatVictoryConditions(static_cast<uint32_t>(oldValue), &oldText);
-  if (formatted)
+  if (formatted) {
     formatted = FormatVictoryConditions(static_cast<uint32_t>(newValue), &newText);
-  if (formatted)
+  }
+  if (formatted) {
     LogString("SideVictoryConditionsNotif", "VictoryConditions", &newText, &oldText, 0, ctx);
+  }
   return PostPayloadInts(side_event::kVictoryConditions, this, oldValue, newValue, ctx);
 }

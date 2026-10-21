@@ -15,7 +15,7 @@ set(REB_PLATFORM_SOURCE ${CMAKE_CURRENT_LIST_DIR}/../src/port/native/platform_${
 
 # Libraries the executable needs beyond SDL3 and FreeType (SDL3-static brings its own frameworks / system libraries).
 if(WIN32)
-  set(REB_PLATFORM_LIBS)
+  set(REB_PLATFORM_LIBS ws2_32)
 elseif(APPLE)
   set(REB_PLATFORM_LIBS pthread m)
 else()

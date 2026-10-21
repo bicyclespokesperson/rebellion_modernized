@@ -12,23 +12,19 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 template <typename Exception, typename Function>
 void RequireThrows(Function function)
 {
-  try
-  {
+  try {
     function();
-  }
-  catch (const Exception&)
-  {
+  } catch (const Exception&) {
     return;
-  }
-  catch (...)
-  {
+  } catch (...) {
     std::abort();
   }
   std::abort();
@@ -71,39 +67,25 @@ int main()
   Require(ClampPercent(-1) == 0);
   Require(ClampPercent(101) == 100);
 
-  RequireThrows<std::domain_error>(
-    []
-    {
-      IntDivide(1, 0);
-    });
-  RequireThrows<std::domain_error>(
-    []
-    {
-      DivideRoundUp(1, 0);
-    });
-  RequireThrows<std::domain_error>(
-    []
-    {
-      ScaleRatio(1, 1, 0);
-    });
-  RequireThrows<std::domain_error>(
-    []
-    {
-      RatioToPercent(1, 0);
-    });
-  RequireThrows<std::overflow_error>(
-    []
-    {
-      IntDivide(kIntMin, -1);
-    });
-  RequireThrows<std::overflow_error>(
-    []
-    {
-      DivideRoundUp(kIntMin, -1);
-    });
-  RequireThrows<std::overflow_error>(
-    []
-    {
-      ScaleRatio(kIntMax, kIntMax, 1);
-    });
+  RequireThrows<std::domain_error>([] {
+    IntDivide(1, 0);
+  });
+  RequireThrows<std::domain_error>([] {
+    DivideRoundUp(1, 0);
+  });
+  RequireThrows<std::domain_error>([] {
+    ScaleRatio(1, 1, 0);
+  });
+  RequireThrows<std::domain_error>([] {
+    RatioToPercent(1, 0);
+  });
+  RequireThrows<std::overflow_error>([] {
+    IntDivide(kIntMin, -1);
+  });
+  RequireThrows<std::overflow_error>([] {
+    DivideRoundUp(kIntMin, -1);
+  });
+  RequireThrows<std::overflow_error>([] {
+    ScaleRatio(kIntMax, kIntMax, 1);
+  });
 }

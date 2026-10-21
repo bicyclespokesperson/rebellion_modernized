@@ -29,10 +29,10 @@
 #include "ui/object_list_item.h"
 #include "ui/text_scroll_field.h"
 
-extern const char* g_encyBitmapDllName; // 0x6a8750 "encybmap.dll"
-extern const char* g_encyTextDllName; // 0x6a8760 "encytext.dll"
+extern const char* g_encyBitmapDllName;        // 0x6a8750 "encybmap.dll"
+extern const char* g_encyTextDllName;          // 0x6a8760 "encytext.dll"
 extern const char* g_encyDefaultDataDirectory; // 0x6a8770 "EDATA\\"
-extern const char* g_encyLocationValueName; // 0x6a8778 "EncyLocation"
+extern const char* g_encyLocationValueName;    // 0x6a8778 "EncyLocation"
 
 namespace
 {
@@ -98,15 +98,15 @@ ResourceStringId StringId(int16_t id)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (bitmap)
+  if (bitmap) {
     delete bitmap;
+  }
 }
 
 // Families shown by each category tab: [first, last).
 IntPair FilterRange(int tabId)
 {
-  switch (tabId)
-  {
+  switch (tabId) {
     case kSystemsTab:
       return {0x90, 0x98};
     case kCapitalShipsTab:
@@ -134,16 +134,8 @@ uint32_t EntryIdOf(GameObjNotifier* object)
   return (object->m_record->m_small & kRecordIdMask) + kEntryIdBase;
 }
 
-CoolStrobeButton* NewButton(HINSTANCE instance,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t childId,
-                            uint32_t normalId,
-                            uint32_t pressedId,
-                            DibBitmap* backdrop)
+CoolStrobeButton* NewButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                            uint32_t childId, uint32_t normalId, uint32_t pressedId, DibBitmap* backdrop)
 {
   return NewOrNull<CoolStrobeButton>(instance, x, y, width, height, parent, childId, normalId, pressedId, backdrop, 0,
                                      0);
@@ -158,16 +150,10 @@ uint32_t HiddenStyle(CoolWindow* like)
 
 // ---- Construction ----------------------------------------------------------------------------------------------
 
-EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance,
-                                       int x,
-                                       int y,
-                                       int width,
-                                       int height,
-                                       GalaxyWindow* parent,
-                                       uint32_t childId,
-                                       const ObjectKey& objectKey,
-                                       const NullableKey& typeKey)
-: CoolGameWindow(instance, x, y, width, height, parent, kStringSlot, kBitmapSlot, 0, childId, 0, kGameWindowFlags, 0, 0)
+EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
+                                       uint32_t childId, const ObjectKey& objectKey, const NullableKey& typeKey)
+    : CoolGameWindow(instance, x, y, width, height, parent, kStringSlot, kBitmapSlot, 0, childId, 0, kGameWindowFlags,
+                     0, 0)
 {
   ObjectKey object(objectKey);
   NullableKey type = typeKey;
@@ -190,82 +176,87 @@ EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance,
   m_mode = kEncyclopediaList;
 
   GameObjNotifier* found = nullptr;
-  if (object.m_value != unset.m_value)
-  {
+  if (object.m_value != unset.m_value) {
     found = GetObjectInFamilies_01_ff(parent->m_side, &object);
-    if (!found)
+    if (!found) {
       object = unset;
+    }
   }
   DatRecord* record = nullptr;
-  if (type.OrNull() && type.m_value != none.m_value && object.m_value == unset.m_value)
-  {
+  if (type.OrNull() && type.m_value != none.m_value && object.m_value == unset.m_value) {
     record = FindDataRecord(AsLookupKey(&type));
-    if (!record)
+    if (!record) {
       type = none;
+    }
   }
 
-  if (object.m_value == unset.m_value)
-  {
-    if (type.m_value == none.m_value)
-    {
+  if (object.m_value == unset.m_value) {
+    if (type.m_value == none.m_value) {
       m_selected = nullptr;
-    }
-    else
-    {
+    } else {
       m_selected = m_galaxy->m_encyclopediaItems->FindById((record->m_small & kRecordIdMask) + kEntryIdBase);
       m_mode = kEncyclopediaArticle;
     }
-  }
-  else
-  {
+  } else {
     m_selected = m_galaxy->m_encyclopediaItems->FindById(EntryIdOf(found));
-    if (!m_selected)
-    {
+    if (!m_selected) {
       ObjectKey entryKey;
       GameObjNotifier* entryObject = GetObjectInFamilies_01_ff(m_galaxy->m_side, ResolveEntryKey(&entryKey, &object));
       m_selected = entryObject ? m_galaxy->m_encyclopediaItems->FindById(EntryIdOf(entryObject)) : nullptr;
     }
     m_mode = kEncyclopediaArticle;
   }
-  if (!m_selected)
+  if (!m_selected) {
     m_mode = kEncyclopediaList;
+  }
 
   m_text = NewOrNull<std::string>();
   char* dllLocation = GetDllLocation();
   CoolAppRegisterResourceDll(dllLocation, g_encyTextDllName, kEncyTextSlot);
   CoolAppRegisterResourceDll(dllLocation, g_encyBitmapDllName, kEncyBitmapSlot);
-  if (dllLocation)
+  if (dllLocation) {
     operator delete(dllLocation);
+  }
   m_textModule = CoolAppGetResourceModule(kEncyTextSlot);
   m_bitmapModule = CoolAppGetResourceModule(kEncyBitmapSlot);
 }
 
 EncyclopediaWindow::~EncyclopediaWindow()
 {
-  if (m_filterTabs)
+  if (m_filterTabs) {
     delete m_filterTabs;
-  if (m_searchField)
+  }
+  if (m_searchField) {
     delete m_searchField;
-  if (m_list)
+  }
+  if (m_list) {
     delete m_list;
-  if (m_categoryLabel)
+  }
+  if (m_categoryLabel) {
     delete m_categoryLabel;
-  if (m_titleLabel)
+  }
+  if (m_titleLabel) {
     delete m_titleLabel;
-  if (m_picture)
+  }
+  if (m_picture) {
     delete m_picture;
-  if (m_text)
+  }
+  if (m_text) {
     delete m_text;
-  if (m_pageTabs)
+  }
+  if (m_pageTabs) {
     delete m_pageTabs;
-  if (m_articleText)
+  }
+  if (m_articleText) {
     delete m_articleText;
-  if (m_nextButton)
+  }
+  if (m_nextButton) {
     delete m_nextButton;
-  if (m_previousButton)
+  }
+  if (m_previousButton) {
     delete m_previousButton;
-  if (m_filteredItems)
-  {
+  }
+  if (m_filteredItems) {
     m_filteredItems->Clear();
     delete m_filteredItems;
   }
@@ -276,20 +267,17 @@ EncyclopediaWindow::~EncyclopediaWindow()
 ObjectKey* EncyclopediaWindow::ResolveEntryKey(ObjectKey* out, const ObjectKey* key)
 {
   uint32_t family = Family(*key);
-  if (family < 0xa0 || family > 0xaf)
-  {
+  if (family < 0xa0 || family > 0xaf) {
     new (out) ObjectKey(*key);
     return out;
   }
   GameObjNotifier* manager = GetObjectInFamilies_a0_b0(m_galaxy->m_side, key);
-  if (!manager)
-  {
+  if (!manager) {
     new (out) ObjectKey();
     return out;
   }
-  if (ManagerHasOwnerKey(manager))
-  {
-    ManufacturingManagerProductKey(reinterpret_cast<ManuMgr*>(manager), out);
+  if (ManagerHasOwnerKey(manager)) {
+    ManufacturingManagerProductKey(static_cast<ManuMgr*>(manager), out);
     return out;
   }
   GetObjectKey(manager->m_parent, out);
@@ -307,23 +295,20 @@ void EncyclopediaWindow::OnCreate1()
 
   DibBitmap* frame;
   DibBitmap* rightEdge;
-  if (m_galaxy->m_side == kAlliance)
-  {
+  if (m_galaxy->m_side == kAlliance) {
     frame = NewOrNull<DibBitmap>(art, 0x285fu, kHelperBitmapKind);
     rightEdge = NewOrNull<DibBitmap>(art, 0x2959u, kHelperBitmapKind);
-  }
-  else
-  {
+  } else {
     frame = NewOrNull<DibBitmap>(art, 0x2860u, kHelperBitmapKind);
     rightEdge = NewOrNull<DibBitmap>(art, 0x295du, kHelperBitmapKind);
   }
 
-  HDC windowDc = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(windowDc);
-  ReleaseDC(m_hwnd, windowDc);
+  HDC windowDc = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+  reb::compat::ReleaseDC(m_hwnd, windowDc);
   auto* articleBackground = NewOrNull<DibBitmap>(frame->Width(), frame->Height(), frame);
-  auto* listBackground =
-    NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
+  auto* listBackground
+      = NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
   auto* articlePanel = NewOrNull<DibBitmap>(art, 0x2861u, kHelperBitmapKind);
   auto* listPanel = NewOrNull<DibBitmap>(art, 0x2862u, kHelperBitmapKind);
 
@@ -335,17 +320,18 @@ void EncyclopediaWindow::OnCreate1()
   listPanel->Blit(listBackground, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(listBackground, 0, 0);
   rightEdge->Blit(listBackground, 0x19c, 0, 0, 0, 0, 0);
-  HGDIOBJ savedBitmap = SelectObject(dc, listBackground->DibSectionHandle());
+  HGDIOBJ savedBitmap = reb::compat::SelectObject(dc, listBackground->DibSectionHandle());
   const ResourceStringId searchCaption = StringId(0x1843);
   auto* caption = NewOrNull<CoolLabel>(&searchCaption, 0x24, 0x30, 0, 0, 0u, 0u);
   caption->SetFont(4);
   caption->SetColor(kLabelColor, nullptr);
   caption->Draw(dc);
   AddOverlay(listBackground, kListBackground);
-  SelectObject(dc, savedBitmap);
-  DeleteDC(dc);
-  if (caption)
+  reb::compat::SelectObject(dc, savedBitmap);
+  reb::compat::DeleteDC(dc);
+  if (caption) {
     delete caption;
+  }
   DeleteBitmap(frame);
   DeleteBitmap(rightEdge);
   DeleteBitmap(articlePanel);
@@ -354,10 +340,11 @@ void EncyclopediaWindow::OnCreate1()
   SetPaintBackgroundById(m_mode == kEncyclopediaList ? kListBackground : kArticleBackground);
 
   CoolStrobeButton* closeButton;
-  if (m_galaxy->m_side == kAlliance)
+  if (m_galaxy->m_side == kAlliance) {
     closeButton = NewButton(art, 0x1a7, 0x19, 0x20, 0x1f, this, kCloseId, 0x2882, 0x2883, GetPaintBackgroundIfOwned());
-  else
+  } else {
     closeButton = NewButton(art, 0x1aa, 0x15, 0x2c, 0x29, this, kCloseId, 0x2888, 0x2889, GetPaintBackgroundIfOwned());
+  }
   closeButton->Create(0);
   closeButton->SetClickSound(kClickSound);
   const ResourceStringId closeTip = StringId(0x1954);
@@ -366,8 +353,7 @@ void EncyclopediaWindow::OnCreate1()
 
   const ResourceStringId titleText = StringId(0x1842);
   m_titleLabel = NewOrNull<CoolLabel>(&titleText, 0, 0, 0, 0, 0u, 0u);
-  if (m_titleLabel)
-  {
+  if (m_titleLabel) {
     m_titleLabel->MoveTo(0x24, 0xe);
     m_titleLabel->m_width = 0x15e;
     m_titleLabel->m_layoutFlags = kLabelFixedWidth;
@@ -377,8 +363,7 @@ void EncyclopediaWindow::OnCreate1()
   }
   const ResourceStringId categoryText = StringId(0x1850);
   m_categoryLabel = NewOrNull<CoolLabel>(&categoryText, 0, 0, 0, 0, 0u, 0u);
-  if (m_categoryLabel)
-  {
+  if (m_categoryLabel) {
     m_categoryLabel->MoveTo(0x28, 0x77);
     m_categoryLabel->m_width = 0x11b;
     m_categoryLabel->m_layoutFlags = kLabelFixedWidth;
@@ -387,24 +372,21 @@ void EncyclopediaWindow::OnCreate1()
     m_categoryLabel->SetColor(kLabelColor, nullptr);
   }
 
-  if (m_galaxy->m_side == kAlliance)
-    m_pageTabs =
-      NewOrNull<CoolTabControl>(instance, 0x1a7, 0x5d, 0x20, 0x74, kPageTabsId, this, GetPaintBackgroundIfOwned());
-  else
-    m_pageTabs =
-      NewOrNull<CoolTabControl>(instance, 0x1aa, 0x59, 0x2c, 0x88, kPageTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_pageTabs)
-  {
+  if (m_galaxy->m_side == kAlliance) {
+    m_pageTabs
+        = NewOrNull<CoolTabControl>(instance, 0x1a7, 0x5d, 0x20, 0x74, kPageTabsId, this, GetPaintBackgroundIfOwned());
+  } else {
+    m_pageTabs
+        = NewOrNull<CoolTabControl>(instance, 0x1aa, 0x59, 0x2c, 0x88, kPageTabsId, this, GetPaintBackgroundIfOwned());
+  }
+  if (m_pageTabs) {
     m_pageTabs->Create(0);
     CoolStrobeButton* listTab;
     uint32_t listTabChecked;
-    if (m_galaxy->m_side == kAlliance)
-    {
+    if (m_galaxy->m_side == kAlliance) {
       listTab = NewButton(art, 0, 0x36, 0x20, 0x1f, m_pageTabs, kListTabId, 0x2884, 0x2885, m_pageTabs->m_background);
       listTabChecked = 0x2885;
-    }
-    else
-    {
+    } else {
       listTab = NewButton(art, 0, 0x36, 0x2c, 0x29, m_pageTabs, kListTabId, 0x288a, 0x288b, m_pageTabs->m_background);
       listTabChecked = 0x288b;
     }
@@ -417,16 +399,13 @@ void EncyclopediaWindow::OnCreate1()
 
     CoolStrobeButton* articleTab;
     uint32_t articleTabChecked;
-    if (m_galaxy->m_side == kAlliance)
-    {
-      articleTab =
-        NewButton(art, 0, 0, 0x20, 0x1f, m_pageTabs, kArticleTabId, 0x2886, 0x2887, m_pageTabs->m_background);
+    if (m_galaxy->m_side == kAlliance) {
+      articleTab
+          = NewButton(art, 0, 0, 0x20, 0x1f, m_pageTabs, kArticleTabId, 0x2886, 0x2887, m_pageTabs->m_background);
       articleTabChecked = 0x2887;
-    }
-    else
-    {
-      articleTab =
-        NewButton(art, 0, 0, 0x2c, 0x29, m_pageTabs, kArticleTabId, 0x288c, 0x288d, m_pageTabs->m_background);
+    } else {
+      articleTab
+          = NewButton(art, 0, 0, 0x2c, 0x29, m_pageTabs, kArticleTabId, 0x288c, 0x288d, m_pageTabs->m_background);
       articleTabChecked = 0x288d;
     }
     articleTab->Create(0);
@@ -438,8 +417,7 @@ void EncyclopediaWindow::OnCreate1()
   }
 
   m_filterTabs = NewOrNull<CoolTabControl>(instance, 0x24, 0x4e, 0x169, 0x29, kFilterTabsId, this, listBackground);
-  if (m_filterTabs)
-  {
+  if (m_filterTabs) {
     m_filterTabs->m_style = HiddenStyle(closeButton);
     m_filterTabs->Create(0);
     // The Empire's art follows the Alliance's in the bitmap DLL.
@@ -447,8 +425,7 @@ void EncyclopediaWindow::OnCreate1()
     uint32_t empire2 = side != kAlliance ? 2 : 0;
     uint32_t empireC = side != kAlliance ? 0xc : 0;
     uint32_t empireA = side != kAlliance ? 0xa : 0;
-    struct FilterTab
-    {
+    struct FilterTab {
       int x;
       uint32_t id;
       uint32_t normalId;
@@ -457,16 +434,15 @@ void EncyclopediaWindow::OnCreate1()
       int select;
     };
     const FilterTab tabs[] = {
-      {0, kAllEntriesTab, 0x2864, 0x2863, 0x1850, 1},
-      {0xd0, kMissionsTab, 0x2d60 + empire2, 0x2d5f + empire2, 0x1851, 0},
-      {0x9c, kFacilitiesTab, 0x2868 + empireC, 0x2867 + empireC, 0x1852, 0},
-      {0x138, kCharactersTab, 0x286a + empireC, 0x2869 + empireC, 0x1853, 0},
-      {0x68, kCapitalShipsTab, 0x286c + empireC, 0x286b + empireC, 0x1854, 0},
-      {0x34, kSystemsTab, 0x286e, 0x286d, 0x1855, 0},
-      {0x104, kTroopsTab, 0x2870 + empireA, 0x286f + empireA, 0x1856, 0},
+        {0, kAllEntriesTab, 0x2864, 0x2863, 0x1850, 1},
+        {0xd0, kMissionsTab, 0x2d60 + empire2, 0x2d5f + empire2, 0x1851, 0},
+        {0x9c, kFacilitiesTab, 0x2868 + empireC, 0x2867 + empireC, 0x1852, 0},
+        {0x138, kCharactersTab, 0x286a + empireC, 0x2869 + empireC, 0x1853, 0},
+        {0x68, kCapitalShipsTab, 0x286c + empireC, 0x286b + empireC, 0x1854, 0},
+        {0x34, kSystemsTab, 0x286e, 0x286d, 0x1855, 0},
+        {0x104, kTroopsTab, 0x2870 + empireA, 0x286f + empireA, 0x1856, 0},
     };
-    for (const FilterTab& tab : tabs)
-    {
+    for (const FilterTab& tab : tabs) {
       CoolStrobeButton* button = NewButton(art, tab.x, 0, 0x31, 0x29, m_filterTabs, tab.id, tab.normalId, tab.pressedId,
                                            m_filterTabs->m_background);
       button->Create(0);
@@ -485,8 +461,7 @@ void EncyclopediaWindow::OnCreate1()
 
   m_list = NewOrNull<CoolDragList>(art, 0x24, 0x89, 0x15e, 0xa0, this, listBackground, kListId, 0x15e, 0x14, 0x287f,
                                    0x2880, 0x287d, 0x287e, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_options.m_value = kDragListSingleSelect | kDragListNoDrag;
     m_list->m_style = HiddenStyle(m_list);
     m_list->Create(0);
@@ -501,8 +476,7 @@ void EncyclopediaWindow::OnCreate1()
   }
 
   m_articleText = NewOrNull<TextScrollField>(m_instance, 0x11, 0xe7, 0x18b, 0x50, this, articleBackground, 0);
-  if (m_articleText)
-  {
+  if (m_articleText) {
     m_articleText->m_style = HiddenStyle(closeButton);
     m_articleText->m_scrollBarSlot = 7;
     m_articleText->m_scrollBarId = 0x299d;
@@ -531,18 +505,15 @@ void EncyclopediaWindow::OnCreate1()
 
 LRESULT EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  switch (message)
-  {
+  switch (message) {
     case kFieldReturnMessage:
-      if (static_cast<int16_t>(wParam) == kSearchFieldId && m_selected)
-      {
+      if (static_cast<int16_t>(wParam) == kSearchFieldId && m_selected) {
         SetMode(kEncyclopediaArticle);
         return 0;
       }
       break;
     case kFieldChangedMessage:
-      if (wParam == kSearchFieldId)
-      {
+      if (wParam == kSearchFieldId) {
         uint32_t id = m_list->SelectByPrefix(&m_searchField->m_text, 0, 0);
         m_selected = m_list->FindItem(id);
         return 0;
@@ -552,8 +523,7 @@ LRESULT EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lPara
       PostCloseRequest();
       return 0;
     case kHelpMessage:
-      if (wParam == kHelpEncyclopedia && m_mode != kEncyclopediaList)
-      {
+      if (wParam == kHelpEncyclopedia && m_mode != kEncyclopediaList) {
         m_pageTabs->SelectTab(kListTabId, 1);
         return 0;
       }
@@ -568,101 +538,94 @@ void EncyclopediaWindow::OnCommand(int, int command, int)
 {
   uint32_t code = static_cast<uint32_t>(command) >> 16;
   RECT area;
-  switch (command & 0xffff)
-  {
+  switch (command & 0xffff) {
     case kListId:
-    {
-      CoolListItemList selection(kSortById);
-      m_list->CopySelectionTo(&selection);
-      if (selection.First())
       {
-        m_selected = m_list->FindItem(static_cast<CoolListItem*>(selection.First())->m_id);
-        if (m_selected)
-        {
-          if (static_cast<uint16_t>(code) == kDragListActivated)
-            m_pageTabs->SelectTab(kArticleTabId, 1);
-          else if (static_cast<uint16_t>(code) == kDragListSelectionChanged)
-            m_searchField->SetText(m_selected->m_text.c_str());
+        CoolListItemList selection(kSortById);
+        m_list->CopySelectionTo(&selection);
+        if (selection.First()) {
+          m_selected = m_list->FindItem(static_cast<CoolListItem*>(selection.First())->m_id);
+          if (m_selected) {
+            if (static_cast<uint16_t>(code) == kDragListActivated) {
+              m_pageTabs->SelectTab(kArticleTabId, 1);
+            } else if (static_cast<uint16_t>(code) == kDragListSelectionChanged) {
+              m_searchField->SetText(m_selected->m_text.c_str());
+            }
+          }
         }
+        return;
       }
-      return;
-    }
     case kPageTabsId:
-      if (code == kArticleTabId)
-      {
-        if (!m_selected)
-        {
+      if (code == kArticleTabId) {
+        if (!m_selected) {
           m_pageTabs->SelectTab(kListTabId, 1);
           return;
         }
         SetMode(kEncyclopediaArticle);
         break;
       }
-      if (code == kListTabId)
-      {
+      if (code == kListTabId) {
         SetMode(kEncyclopediaList);
-        SetFocus(m_searchField->m_hwnd);
+        reb::compat::SetFocus(m_searchField->m_hwnd);
       }
       return;
     case kFilterTabsId:
-    {
-      SetFilter(static_cast<int>(code), 0);
-      uint32_t id = m_list->SelectByPrefix(&m_searchField->m_text, 0, 0);
-      m_selected = m_list->FindItem(id);
-      SetFocus(m_list->m_hwnd);
-      return;
-    }
+      {
+        SetFilter(static_cast<int>(code), 0);
+        uint32_t id = m_list->SelectByPrefix(&m_searchField->m_text, 0, 0);
+        m_selected = m_list->FindItem(id);
+        reb::compat::SetFocus(m_list->m_hwnd);
+        return;
+      }
     case kPreviousId:
     case kNextId:
-    {
-      auto& items = *m_list->m_items;
-      auto position = items.PositionOf(m_selected);
-      if (position != items.Entries().end())
       {
-        const bool forwards = static_cast<int16_t>(command) == kNextId;
-        if (forwards)
-          position = std::next(position);
-        else if (position == items.Entries().begin())
-          position = items.Entries().end();
-        else
-          position = std::prev(position);
-        while (position != items.Entries().end() && !static_cast<ObjectListItem*>((*position).get())->m_visible)
-        {
-          if (forwards)
+        auto& items = *m_list->m_items;
+        auto position = items.PositionOf(m_selected);
+        if (position != items.Entries().end()) {
+          const bool forwards = static_cast<int16_t>(command) == kNextId;
+          if (forwards) {
             position = std::next(position);
-          else if (position == items.Entries().begin())
+          } else if (position == items.Entries().begin()) {
             position = items.Entries().end();
-          else
+          } else {
             position = std::prev(position);
+          }
+          while (position != items.Entries().end() && !static_cast<ObjectListItem*>((*position).get())->m_visible) {
+            if (forwards) {
+              position = std::next(position);
+            } else if (position == items.Entries().begin()) {
+              position = items.Entries().end();
+            } else {
+              position = std::prev(position);
+            }
+          }
         }
+        if (position != items.Entries().end()) {
+          auto* item = static_cast<CoolListItem*>((*position).get());
+          reb::compat::SetRect(&area, 0xc, 0x1f, 0x19c, 0xe7);
+          m_list->SelectById(item->m_id, 0);
+          m_searchField->SetText(item->m_text.c_str());
+          m_selected = item;
+          LoadArticle();
+          reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
+          reb::compat::SetRect(&area, 0x24, 0xe, 0x182, 0x1e);
+          reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
+        }
+        break;
       }
-      if (position != items.Entries().end())
-      {
-        auto* item = static_cast<CoolListItem*>((*position).get());
-        SetRect(&area, 0xc, 0x1f, 0x19c, 0xe7);
-        m_list->SelectById(item->m_id, 0);
-        m_searchField->SetText(item->m_text.c_str());
-        m_selected = item;
-        LoadArticle();
-        InvalidateRect(m_hwnd, &area, FALSE);
-        SetRect(&area, 0x24, 0xe, 0x182, 0x1e);
-        InvalidateRect(m_hwnd, &area, FALSE);
-      }
-      break;
-    }
     case kCloseId:
       PostCloseRequest();
       return;
     default:
       return;
   }
-  SetFocus(m_articleText->m_hwnd);
+  reb::compat::SetFocus(m_articleText->m_hwnd);
 }
 
 void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  switch (key)
-  {
+  switch (key) {
     case VK_TAB:
       return;
     case VK_ESCAPE:
@@ -672,55 +635,51 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     case VK_NEXT:
     case VK_UP:
     case VK_DOWN:
-      SetFocus(m_list->m_hwnd);
-      PostMessageA(m_list->m_hwnd, WM_KEYDOWN, key, lParam);
+      reb::compat::SetFocus(m_list->m_hwnd);
+      reb::compat::PostMessageA(m_list->m_hwnd, WM_KEYDOWN, key, lParam);
       return;
     case VK_LEFT:
     case VK_RIGHT:
-      if (m_mode == kEncyclopediaList)
-      {
+      if (m_mode == kEncyclopediaList) {
         CoolStrobeButton* current = m_filterTabs->m_selected;
         uint32_t currentId = current ? current->m_childId : 0;
         auto* tab = m_filterTabs->m_children.FindById(currentId);
         auto position = m_filterTabs->m_children.PositionOf(tab);
-        if (position == m_filterTabs->m_children.Entries().end())
-        {
+        if (position == m_filterTabs->m_children.Entries().end()) {
           auto* first = m_filterTabs->m_children.First();
-          if (first)
+          if (first) {
             m_filterTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
-        }
-        else
-        {
-          if (key == VK_LEFT)
-            position = position == m_filterTabs->m_children.Entries().begin() ?
-                         m_filterTabs->m_children.Entries().end() :
-                         std::prev(position);
-          else
+          }
+        } else {
+          if (key == VK_LEFT) {
+            position = position == m_filterTabs->m_children.Entries().begin() ? m_filterTabs->m_children.Entries().end()
+                                                                              : std::prev(position);
+          } else {
             position = std::next(position);
-          while (position != m_filterTabs->m_children.Entries().end())
-          {
+          }
+          while (position != m_filterTabs->m_children.Entries().end()) {
             tab = (*position).get();
             auto* window = static_cast<CoolWindow*>(tab);
-            if (IsWindowVisible(window->m_hwnd))
-            {
+            if (reb::compat::IsWindowVisible(window->m_hwnd)) {
               m_filterTabs->SelectTab(window->m_childId, 1);
               break;
             }
-            if (key == VK_LEFT)
-              position = position == m_filterTabs->m_children.Entries().begin() ?
-                           m_filterTabs->m_children.Entries().end() :
-                           std::prev(position);
-            else
+            if (key == VK_LEFT) {
+              position = position == m_filterTabs->m_children.Entries().begin()
+                             ? m_filterTabs->m_children.Entries().end()
+                             : std::prev(position);
+            } else {
               position = std::next(position);
+            }
           }
         }
       }
-      if (m_mode == kEncyclopediaArticle)
-      {
-        if (key == VK_RIGHT)
+      if (m_mode == kEncyclopediaArticle) {
+        if (key == VK_RIGHT) {
           OnCommand(kNextId, kNextId, 0);
-        else
+        } else {
           OnCommand(kPreviousId, kPreviousId, 0);
+        }
       }
       return;
     default:
@@ -739,8 +698,7 @@ void EncyclopediaWindow::PostCloseRequest()
 
 void EncyclopediaWindow::DrawOverlay(HDC dc)
 {
-  if (m_mode == kEncyclopediaArticle && m_picture)
-  {
+  if (m_mode == kEncyclopediaArticle && m_picture) {
     m_picture->DrawToDc(dc, kBitBltMode, SRCCOPY, 0xc, 0x1f, 0, 0, 0, 0);
     m_titleLabel->Draw(dc);
     return;
@@ -751,34 +709,32 @@ void EncyclopediaWindow::DrawOverlay(HDC dc)
 
 void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload)
 {
-  if (m_filterTab == tabId)
+  if (m_filterTab == tabId) {
     return;
-  if (m_mode == kEncyclopediaArticle && !reload)
+  }
+  if (m_mode == kEncyclopediaArticle && !reload) {
     return;
-  if (tabId == kAllEntriesTab || reload)
-  {
+  }
+  if (tabId == kAllEntriesTab || reload) {
     m_list->SetItemList(m_galaxy->m_encyclopediaItems);
     m_list->Refresh();
-    if (reload && m_mode != kEncyclopediaArticle)
+    if (reload && m_mode != kEncyclopediaArticle) {
       m_selected = nullptr;
-  }
-  else
-  {
+    }
+  } else {
     IntPair range = FilterRange(tabId);
     m_filteredItems->Clear();
-    for (const auto& ownedItem : m_galaxy->m_encyclopediaItems->Entries())
-    {
+    for (const auto& ownedItem : m_galaxy->m_encyclopediaItems->Entries()) {
       auto* item = static_cast<CoolListItem*>(ownedItem.get());
       ObjectKey key;
       static_cast<ObjectListItem*>(item)->GetKey(&key);
       uint32_t family = Family(key);
-      if (range.m_first <= family && family < range.m_second)
-      {
+      if (range.m_first <= family && family < range.m_second) {
         ObjectKey itemKey;
-        auto* copy =
-          NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
-        if (!copy)
+        auto* copy = NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
+        if (!copy) {
           continue;
+        }
         copy->m_text = item->m_text.c_str();
         m_filteredItems->Insert(copy);
       }
@@ -790,14 +746,13 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload)
   CoolWindow* tab = m_filterTabs->m_children.FindById(static_cast<uint32_t>(tabId));
   m_categoryLabel->SetText(tab->m_tooltipText);
   RECT area;
-  SetRect(&area, 0x28, 0x77, 0x143, 0x8a);
-  InvalidateRect(m_hwnd, &area, FALSE);
+  reb::compat::SetRect(&area, 0x28, 0x77, 0x143, 0x8a);
+  reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
 }
 
 void EncyclopediaWindow::SetMode(int mode)
 {
-  if (mode == kEncyclopediaList)
-  {
+  if (mode == kEncyclopediaList) {
     SetPaintBackgroundById(kListBackground);
     m_articleText->Hide();
     m_previousButton->Hide();
@@ -807,8 +762,7 @@ void EncyclopediaWindow::SetMode(int mode)
     m_filterTabs->Show(SW_SHOW);
     m_pageTabs->m_children.FindById(kArticleTabId)->Enable();
     m_pageTabs->m_children.FindById(kListTabId)->Disable();
-    if (m_selected)
-    {
+    if (m_selected) {
       m_list->SelectById(m_selected->m_id, 0);
       m_list->ScrollIntoView(m_selected->m_id);
       m_searchField->Clear();
@@ -817,17 +771,16 @@ void EncyclopediaWindow::SetMode(int mode)
     }
     const ResourceStringId title = StringId(0x1842);
     m_titleLabel->SetTextFromResource(&title);
-  }
-  else if (mode == kEncyclopediaArticle)
-  {
-    if (!m_selected)
+  } else if (mode == kEncyclopediaArticle) {
+    if (!m_selected) {
       return;
+    }
     SetPaintBackgroundById(kArticleBackground);
     m_list->Hide();
     m_searchField->Hide();
     m_filterTabs->Hide();
     m_articleText->Show(SW_SHOW);
-    SetFocus(m_articleText->m_hwnd);
+    reb::compat::SetFocus(m_articleText->m_hwnd);
     m_nextButton->Show(SW_SHOW);
     m_previousButton->Show(SW_SHOW);
     m_pageTabs->m_children.FindById(kArticleTabId)->Disable();
@@ -835,15 +788,15 @@ void EncyclopediaWindow::SetMode(int mode)
     LoadArticle();
   }
   m_mode = mode;
-  InvalidateRect(m_hwnd, nullptr, FALSE);
+  reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
 int EncyclopediaWindow::SystemPictureId(int pictureIndex)
 {
-  if (pictureIndex >= 1 && pictureIndex <= 0x17)
+  if (pictureIndex >= 1 && pictureIndex <= 0x17) {
     return 0x2b5b + pictureIndex;
-  switch (pictureIndex)
-  {
+  }
+  switch (pictureIndex) {
     case 0x18:
       return 0x2b75;
     case 0x19:
@@ -857,8 +810,7 @@ int EncyclopediaWindow::SystemPictureId(int pictureIndex)
 
 void EncyclopediaWindow::LoadArticle()
 {
-  if (m_picture)
-  {
+  if (m_picture) {
     delete m_picture;
     m_picture = nullptr;
   }
@@ -866,41 +818,36 @@ void EncyclopediaWindow::LoadArticle()
   static_cast<ObjectListItem*>(m_selected)->GetKey(&key);
   uint32_t family = Family(key);
   uint32_t pictureId;
-  if (family >= 0x90 && family < 0x98)
-  {
+  if (family >= 0x90 && family < 0x98) {
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &key);
     pictureId = static_cast<uint32_t>(SystemPictureId(static_cast<System*>(system)->System::GetRecordField44()));
-  }
-  else if ((family >= 0x40 && family < 0x80) || (family >= 0x08 && family < 0x10))
-  {
+  } else if ((family >= 0x40 && family < 0x80) || (family >= 0x08 && family < 0x10)) {
     // Missions and fleets have one picture per side.
     uint32_t recordId = m_selected->m_id & kRecordIdMask;
     pictureId = recordId + (m_galaxy->m_side == kEmpire ? kEmpireEntryIdBase : kEntryIdBase);
-  }
-  else
-  {
+  } else {
     pictureId = m_selected->m_id;
   }
   m_picture = LoadEncyclopediaPicture(pictureId, m_bitmapModule);
 
-  if (m_textModule)
-  {
-    HRSRC resource = FindResourceA(m_textModule, MAKEINTRESOURCEA(m_selected->m_id & 0xffff), RT_RCDATA);
-    if (resource)
-    {
-      HGLOBAL handle = LoadResource(m_textModule, resource);
-      const char* text = static_cast<const char*>(LockResource(handle));
-      if (m_text)
+  if (m_textModule) {
+    HRSRC resource = reb::compat::FindResourceA(m_textModule, MAKEINTRESOURCEA(m_selected->m_id & 0xffff), RT_RCDATA);
+    if (resource) {
+      HGLOBAL handle = reb::compat::LoadResource(m_textModule, resource);
+      const char* text = static_cast<const char*>(reb::compat::LockResource(handle));
+      if (m_text) {
         delete m_text;
+      }
       m_text = NewOrNull<std::string>(StringFromText(text));
-      FreeResource(handle);
+      reb::compat::FreeResource(handle);
       TextScrollField* field = m_articleText;
       field->m_text = *m_text;
       field->m_caret.m_index = 0;
       field->Reset();
       m_articleText->Show(SW_SHOW);
-      if (m_text)
+      if (m_text) {
         delete m_text;
+      }
       m_text = nullptr;
     }
   }
@@ -910,8 +857,7 @@ void EncyclopediaWindow::LoadArticle()
 
 void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item)
 {
-  if (!item)
-  {
+  if (!item) {
     m_previousButton->Disable();
     m_nextButton->Disable();
     return;
@@ -919,24 +865,27 @@ void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item)
   auto& items = *m_list->m_items;
   auto position = items.PositionOf(item);
   auto previous = position;
-  while (previous != items.Entries().begin() && previous != items.Entries().end())
-  {
+  while (previous != items.Entries().begin() && previous != items.Entries().end()) {
     --previous;
-    if (static_cast<ObjectListItem*>((*previous).get())->m_visible)
+    if (static_cast<ObjectListItem*>((*previous).get())->m_visible) {
       break;
+    }
   }
-  if (position != items.Entries().end() && previous != position &&
-      static_cast<ObjectListItem*>((*previous).get())->m_visible)
+  if (position != items.Entries().end() && previous != position
+      && static_cast<ObjectListItem*>((*previous).get())->m_visible) {
     m_previousButton->Enable();
-  else
+  } else {
     m_previousButton->Disable();
+  }
   auto next = position == items.Entries().end() ? position : std::next(position);
-  while (next != items.Entries().end() && !static_cast<ObjectListItem*>((*next).get())->m_visible)
+  while (next != items.Entries().end() && !static_cast<ObjectListItem*>((*next).get())->m_visible) {
     ++next;
-  if (next != items.Entries().end())
+  }
+  if (next != items.Entries().end()) {
     m_nextButton->Enable();
-  else
+  } else {
     m_nextButton->Disable();
+  }
 }
 
 // ---- EData files -----------------------------------------------------------------------------------------------
@@ -954,15 +903,16 @@ std::string GetEncyclopediaDataPath()
     key += product;
   }
   uint8_t* location = ReadRegistryValue(key.c_str(), g_encyLocationValueName);
-  if (location)
-  {
+  if (location) {
     path = StringFromText(reinterpret_cast<const char*>(location));
     operator delete(location);
   }
-  if (path.empty())
+  if (path.empty()) {
     path = StringFromText(g_encyDefaultDataDirectory);
-  if (!path.empty() && path.back() != '\\')
+  }
+  if (!path.empty() && path.back() != '\\') {
     path.push_back('\\');
+  }
   return path;
 }
 

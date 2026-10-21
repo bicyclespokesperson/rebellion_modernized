@@ -16,7 +16,7 @@ class Crc32;
 // base implementations first.
 class DatRecord : public IdNode, public ObjectBase
 {
-public:
+  public:
   DatRecord();
   ~DatRecord() override;
   virtual int Write(ostream* out) = 0;
@@ -29,19 +29,19 @@ public:
   void WriteName(std::string* out, int kind) override;
   std::string* GetNameCopy(std::string* out); // 0x4486d0, constructs a copy of m_name into out
 
-  int m_hasData; // +0x20, set to 1 by ParseFields
-  uint32_t m_first; // +0x24
-  uint32_t m_second; // +0x28
-  uint32_t m_third; // +0x2c
-  uint16_t m_small; // +0x30
-  uint16_t m_small2; // +0x32
+  int m_hasData;      // +0x20, set to 1 by ParseFields
+  uint32_t m_first;   // +0x24
+  uint32_t m_second;  // +0x28
+  uint32_t m_third;   // +0x2c
+  uint16_t m_small;   // +0x30
+  uint16_t m_small2;  // +0x32
   std::string m_name; // +0x34, "<not set>" until set
 };
 
 // Record base with six more numbers. 0x48 and 0x4c have getters.
 class SdRecord : public DatRecord
 {
-public:
+  public:
   SdRecord();
   ~SdRecord() override;
   int Write(ostream* out) override = 0;
@@ -62,8 +62,7 @@ public:
 
 // Entries of the record-factory registry: records are created from the (low, high) pair registered for their
 // class (a range of object types the SD tables use).
-struct RecordFactoryEntry
-{
+struct RecordFactoryEntry {
   int m_low;
   int m_high;
   void* (*m_factory)();

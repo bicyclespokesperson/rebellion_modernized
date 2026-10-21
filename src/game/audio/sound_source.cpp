@@ -35,8 +35,7 @@ SoundSourceList::~SoundSourceList()
 void SoundSourceList::DeleteByKey(uint32_t key)
 {
   KeyedSoundNode* node = Find(key);
-  if (node)
-  {
+  if (node) {
     Remove(node);
     delete node;
   }
@@ -109,10 +108,10 @@ SoundSource::SoundSource(const char* fileName, long seekPosition, int mode, Soun
 SoundSource::~SoundSource()
 {
   m_buffers.Clear();
-  if (m_stream)
-  {
-    if (IsOpen(m_stream))
+  if (m_stream) {
+    if (IsOpen(m_stream)) {
       fstreambase_close(m_stream->In());
+    }
     delete m_stream;
   }
   SoundSource::Reset();
@@ -129,26 +128,30 @@ void SoundSource::Reset()
 
 void SoundSource::LoadFromFile(const char* fileName, long seekPosition, int mode, SoundRequest* request)
 {
-  if (!fileName)
+  if (!fileName) {
     return;
+  }
   auto* stream = new (std::nothrow) ifstream();
-  if (stream)
+  if (stream) {
     ifstream_ctor_open(stream, fileName, kBinaryInputMode, g_filebufOpenprot, 1);
-  if (!stream)
+  }
+  if (!stream) {
     return;
+  }
   AttachFile(stream, seekPosition, mode, request);
-  if (m_stream == nullptr)
+  if (m_stream == nullptr) {
     delete stream;
+  }
 }
 
 void SoundSource::AttachFile(ifstream* stream, long seekPosition, int mode, SoundRequest* request)
 {
   Reset();
   m_key = request->SourceKey();
-  if (IsOpen(stream))
-  {
-    if (seekPosition)
+  if (IsOpen(stream)) {
+    if (seekPosition) {
       istream_seekg_pos(stream->In(), seekPosition);
+    }
     m_streamPosition = istream_tellg(stream->In());
     m_stream = stream;
     m_wave.ParseStream(stream->In());
@@ -161,8 +164,7 @@ void SoundSource::LoadFromMemory(const void* waveImage, int mode, SoundRequest* 
 {
   Reset();
   m_key = request->SourceKey();
-  if (waveImage)
-  {
+  if (waveImage) {
     m_wave.ParseMemory(waveImage);
     const auto* dataChunk = static_cast<const uint8_t*>(waveImage);
     m_wave.FindDataChunkInMemory(&dataChunk, 0);
@@ -173,12 +175,12 @@ void SoundSource::LoadFromMemory(const void* waveImage, int mode, SoundRequest* 
 uint32_t SoundSource::CreateFileBuffer(istream* stream, int* mode)
 {
   SoundBuffer* buffer = AcquireBuffer(mode);
-  if (!buffer)
+  if (!buffer) {
     return 0;
+  }
   istream_seekg_off(stream, kStreamHeaderBytes, kSeekCurrent);
   buffer->Refill(stream, static_cast<long>(m_wave.m_dataOffset) + kStreamHeaderBytes);
-  if (*mode == kBufferStatic)
-  {
+  if (*mode == kBufferStatic) {
     fstreambase_close(stream);
     m_stream = nullptr;
     m_streamPosition = 0;
@@ -191,8 +193,9 @@ uint32_t SoundSource::CreateFileBuffer(istream* stream, int* mode)
 uint32_t SoundSource::CreateMemoryBuffer(const void* data, int* mode)
 {
   SoundBuffer* buffer = AcquireBuffer(mode);
-  if (!buffer)
+  if (!buffer) {
     return 0;
+  }
   buffer->FillFromMemory(static_cast<const uint8_t*>(data) + kStreamHeaderBytes);
   return buffer->m_key;
 }
@@ -200,82 +203,71 @@ uint32_t SoundSource::CreateMemoryBuffer(const void* data, int* mode)
 int SoundSource::Play(int* handle, int loop)
 {
   HRESULT result = kFailure;
-  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(*handle)))
-  {
+  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(*handle))) {
     result = buffer->Play(loop);
-  }
-  else if (*handle == 0)
-  {
-    if (auto* first = static_cast<SoundBuffer*>(m_buffers.Find(kFirstBufferKey)))
-    {
-      if (first->IsPlaying() == 1)
-      {
+  } else if (*handle == 0) {
+    if (auto* first = static_cast<SoundBuffer*>(m_buffers.Find(kFirstBufferKey))) {
+      if (first->IsPlaying() == 1) {
         int mode = first->m_mode;
-        if (SoundBuffer* duplicate = AcquireBuffer(&mode))
-        {
+        if (SoundBuffer* duplicate = AcquireBuffer(&mode)) {
           *handle = static_cast<int>(duplicate->m_key);
           result = duplicate->Play(loop);
         }
-      }
-      else
-      {
+      } else {
         result = first->Play(loop);
         *handle = static_cast<int>(first->m_key);
       }
     }
   }
-  if (result == 0)
+  if (result == 0) {
     ++m_users;
+  }
   return result;
 }
 
 int SoundSource::Stop(int* handle, int release)
 {
   HRESULT result = kFailure;
-  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(*handle)))
-  {
+  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(*handle))) {
     result = buffer->Stop();
-    if (release == 1 && *handle != static_cast<int>(kFirstBufferKey))
-    {
+    if (release == 1 && *handle != static_cast<int>(kFirstBufferKey)) {
       m_buffers.RemoveNode(buffer);
       *handle = 0;
     }
   }
-  if (result == 0)
+  if (result == 0) {
     --m_users;
+  }
   return result;
 }
 
 int SoundSource::SetVolume(int handle, LONG volume)
 {
   HRESULT result = kFailure;
-  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(handle)))
+  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(handle))) {
     result = buffer->SetVolume(volume);
+  }
   return result;
 }
 
 SoundBuffer* SoundSource::AcquireBuffer(int* mode)
 {
   auto* first = static_cast<SoundBuffer*>(m_buffers.Find(kFirstBufferKey));
-  if (!first)
-  {
-    uint32_t bufferBytes =
-      m_wave.m_format.nAvgBytesPerSec * (kBufferSeconds * kMillisecondsPerSecond) / kMillisecondsPerSecond;
-    if (*mode == kBufferStatic || m_wave.m_dataSize < bufferBytes)
-    {
+  if (!first) {
+    uint32_t bufferBytes
+        = m_wave.m_format.nAvgBytesPerSec * (kBufferSeconds * kMillisecondsPerSecond) / kMillisecondsPerSecond;
+    if (*mode == kBufferStatic || m_wave.m_dataSize < bufferBytes) {
       bufferBytes = m_wave.m_dataSize;
       *mode = kBufferStatic;
     }
     auto* buffer = NewOrNull<SoundBuffer>(m_key, &m_wave.m_format, bufferBytes, *mode, m_wave.m_dataSize);
-    if (buffer)
-    {
+    if (buffer) {
       buffer->m_key = kFirstBufferKey;
       m_buffers.Add(buffer);
     }
     return buffer;
   }
-  if (auto* duplicate = NewOrNull<SoundBuffer>(*first))
-  {
+  if (auto* duplicate = NewOrNull<SoundBuffer>(*first)) {
     m_buffers.Add(duplicate);
     return duplicate;
   }
@@ -285,12 +277,10 @@ SoundBuffer* SoundSource::AcquireBuffer(int* mode)
 int SoundSource::QueryPlaying(SoundRequest* request)
 {
   HRESULT result = kFailure;
-  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(static_cast<uint32_t>(request->m_handle))))
-  {
+  if (auto* buffer = static_cast<SoundBuffer*>(m_buffers.Find(static_cast<uint32_t>(request->m_handle)))) {
     DWORD status;
     result = buffer->GetStatus(&status);
-    if (result == 0)
-    {
+    if (result == 0) {
       request->m_loop = 0;
       request->m_playing = status & kStatusPlaying;
     }
@@ -301,12 +291,12 @@ int SoundSource::QueryPlaying(SoundRequest* request)
 int SoundSource::IsAnyPlaying()
 {
   int anyPlaying = 0;
-  for (const auto& entry : m_buffers.Entries())
-  {
+  for (const auto& entry : m_buffers.Entries()) {
     KeyedSoundNode* node = entry.second.get();
     DWORD status;
-    if (static_cast<SoundBuffer*>(node)->GetStatus(&status) == 0 && (anyPlaying || (status & kStatusPlaying)))
+    if (static_cast<SoundBuffer*>(node)->GetStatus(&status) == 0 && (anyPlaying || (status & kStatusPlaying))) {
       anyPlaying = 1;
+    }
   }
   return anyPlaying;
 }

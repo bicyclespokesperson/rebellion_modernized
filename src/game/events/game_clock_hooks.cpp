@@ -13,8 +13,9 @@ T* fromHookArgument(HookArg value)
 
 void AssignGameTime(GameTime* self, const GameTime* other)
 {
-  if (self != other)
+  if (self != other) {
     self->m_value = other->m_value;
+  }
 }
 
 void ReadGameTime(GameTime* self, istream* in)
@@ -44,8 +45,7 @@ void InstallGameManagerHooks()
 
 int GetGameSettings(GameSettings* out)
 {
-  if (GameManager* manager = GetGameManager())
-  {
+  if (GameManager* manager = GetGameManager()) {
     manager->GetSettings(out);
     return 1;
   }
@@ -68,8 +68,9 @@ int GameHookDay()
 
 void BuildAvailableOrdersViaManager(int side, ObjectKeyValueSet* team, EventKindSet* orders)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     manager->BuildAvailableOrders(side, team, orders);
+  }
 }
 
 int QueryBattleState(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d)
@@ -80,64 +81,73 @@ int QueryBattleState(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d)
   int result = 1;
   *d = 0;
   const int mappedSide = side == 1 ? 1 : (side == 2 ? 2 : 0);
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = manager->QueryRootBattle(mappedSide, a, b, c, d);
+  }
   return result;
 }
 
 void GameHookScheduleTimer(HookArg timer, int delay)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     manager->ScheduleTimer(fromHookArgument<TimedEvent>(timer), delay);
+  }
 }
 
 void GameHookScheduleCommand(HookArg event)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     manager->ScheduleCommand(fromHookArgument<EventBase>(event));
+  }
 }
 
 void GameHookScheduleEvent(HookArg event)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     manager->ScheduleEvent(fromHookArgument<EventBase>(event));
+  }
 }
 
 int GameHookDispatchPostedEvent(HookArg event)
 {
   int result = 1;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = manager->DispatchPostedEvent(fromHookArgument<NotifPayload>(event));
+  }
   return result;
 }
 
 int GameHookIsSetupDone()
 {
   int result = 0;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = manager->m_setupDone;
+  }
   return result;
 }
 
 void CopyCurrentSnapshot(GameStateSnapshot* out)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     *out = manager->m_snapshot[0];
+  }
 }
 
 int SetSideSnapshot(GameStateSnapshot* snapshot, int which)
 {
   int result = 1;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = manager->SetSnapshot(snapshot, which);
+  }
   return result;
 }
 
 int GameHookNoteDispatch(HookArg item)
 {
   int result = 1;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = manager->NoteDispatch(fromHookArgument<void>(item));
+  }
   return result;
 }
 
@@ -152,8 +162,9 @@ int readManagerField(int GameManager::* field)
 
 void writeManagerField(int GameManager::* field, int value)
 {
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     manager->*field = value;
+  }
 }
 
 } // namespace
@@ -197,10 +208,10 @@ void SetManagerUnk44(int value)
 
 int AddManagerNotice(MessageBase* notice)
 {
-  if (GameManager* manager = GetGameManager())
-  {
-    if (notice)
+  if (GameManager* manager = GetGameManager()) {
+    if (notice) {
       manager->AddNotice(notice);
+    }
   }
   return 1;
 }
@@ -208,15 +219,17 @@ int AddManagerNotice(MessageBase* notice)
 int GameHookNextSerialA()
 {
   int result = 0;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = ++manager->m_serialA;
+  }
   return result;
 }
 
 int GameHookNextSerialB()
 {
   int result = 0;
-  if (GameManager* manager = GetGameManager())
+  if (GameManager* manager = GetGameManager()) {
     result = ++manager->m_serialB;
+  }
   return result;
 }

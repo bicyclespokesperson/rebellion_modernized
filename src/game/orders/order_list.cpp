@@ -14,23 +14,22 @@ void MessageTree::Read(istream* in)
 {
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  }
+  for (uint32_t index = 0; index < count; ++index) {
     int kind = 0;
     ReadValue32(in, &kind);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return;
+    }
     auto* message = static_cast<MessageBase*>(CreateMessageByKind(kind));
-    if (!message)
-    {
+    if (!message) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     message->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(message))
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(message)) {
       delete message;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
@@ -40,10 +39,10 @@ void MessageTree::Read(istream* in)
 
 void MessageTree::Write(ostream* out)
 {
-  if (!WriteCount32(out, Count()))
+  if (!WriteCount32(out, Count())) {
     return;
-  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
-  {
+  }
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();) {
     auto* node = (*(nodePosition++)).get();
 
     auto* message = static_cast<MessageBase*>(node);
@@ -55,10 +54,10 @@ void MessageTree::Write(ostream* out)
 
 void MessageTree::Adopt(MessageBase* message)
 {
-  if (!message)
+  if (!message) {
     return;
-  if (message->m_id == 0 || FindById(message->m_id))
-  {
+  }
+  if (message->m_id == 0 || FindById(message->m_id)) {
     delete message;
     return;
   }

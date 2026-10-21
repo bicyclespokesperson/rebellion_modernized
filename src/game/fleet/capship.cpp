@@ -14,7 +14,7 @@
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
 
-extern int g_capShipEventKindsReady; // 0x6b2b20
+extern int g_capShipEventKindsReady;     // 0x6b2b20
 extern EventKindSet g_capShipEventKinds; // 0x6b2b28
 
 namespace
@@ -85,8 +85,9 @@ int setStatusAndCheckRequest(GameObj* object, const ActivityRequest* request, St
 {
   *out = StatusCode(kStatusCategory, kStatusOk);
   const int result = object->CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     *out = StatusCode(kStatusCategory, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -98,23 +99,16 @@ bool wantsNotification(CapShip* view, NotifyContext* ctx)
 using ApplyFn = int (CapShip::*)(NotifyContext*);
 using ChangedFn = int (CapShip::*)(int, int, NotifyContext*);
 
-int setCriticalHit(CapShip* self,
-                   int shift,
-                   uint32_t value,
-                   int maxValue,
-                   const char* message,
-                   ApplyFn apply,
-                   ChangedFn changed,
-                   NotifyContext* ctx)
+int setCriticalHit(CapShip* self, int shift, uint32_t value, int maxValue, const char* message, ApplyFn apply,
+                   ChangedFn changed, NotifyContext* ctx)
 {
   int result = 0;
-  if (self->IsMasterView())
+  if (self->IsMasterView()) {
     result = IsInRange(value, 0, maxValue, message);
-  if (result)
-  {
+  }
+  if (result) {
     const uint32_t oldBits = self->m_criticalHits;
-    if (self->GetCriticalHit(shift) != value)
-    {
+    if (self->GetCriticalHit(shift) != value) {
       const uint32_t mask = 0xfu << shift;
       self->m_criticalHits = (oldBits & ~mask) | ((value & 0xf) << shift);
       (static_cast<CapShip*>(self->GetViewObject(1))->*apply)(ctx);
@@ -128,18 +122,14 @@ int setCriticalHit(CapShip* self,
 int applyCriticalHit(CapShip* self, int shift, NotifyContext* ctx, ChangedFn notified)
 {
   int result = self->IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* const master = static_cast<CapShip*>(self->GetViewObject(kMasterView));
-    if (self->MatchesSideMask(ctx->m_flag08))
-    {
+    if (self->MatchesSideMask(ctx->m_flag08)) {
       const uint32_t mask = 0xfu << shift;
       const uint32_t oldBits = self->m_criticalHits;
-      if (((master->m_criticalHits ^ oldBits) & mask) != 0)
-      {
+      if (((master->m_criticalHits ^ oldBits) & mask) != 0) {
         self->m_criticalHits = (oldBits & ~mask) | (master->m_criticalHits & mask);
-        if (wantsNotification(self, ctx))
-        {
+        if (wantsNotification(self, ctx)) {
           result = (self->*notified)((oldBits >> shift) & 0xf, self->GetCriticalHit(shift), ctx);
         }
       }
@@ -148,17 +138,11 @@ int applyCriticalHit(CapShip* self, int shift, NotifyContext* ctx, ChangedFn not
   return result;
 }
 
-int notifyCriticalHit(CapShip* self,
-                      uint32_t eventId,
-                      const char* tag,
-                      const char* property,
-                      int oldValue,
-                      int newValue,
-                      NotifyContext* ctx)
+int notifyCriticalHit(CapShip* self, uint32_t eventId, const char* tag, const char* property, int oldValue,
+                      int newValue, NotifyContext* ctx)
 {
   const int result = self->IsSideView();
-  if (result)
-  {
+  if (result) {
     self->LogInt(tag, property, newValue, oldValue, 0, ctx);
     PostPayloadInts(eventId, self, oldValue, newValue, ctx);
   }
@@ -177,17 +161,16 @@ CapShip::~CapShip() = default;
 int CapShip::GetTransitSpeed(int arg)
 {
   int speed = 0;
-  if (m_stateFlags & kExistingFlag)
-  {
+  if (m_stateFlags & kExistingFlag) {
     const int primaryLoss = GetDamageField6c();
     speed = GetField6c() - primaryLoss;
-    if (speed == 0)
-    {
+    if (speed == 0) {
       const int backupLoss = GetDamageField70();
       speed = GetField70() - backupLoss;
     }
-    if (speed == 0 && ((m_packed >> 8) & 0xff) == 0)
+    if (speed == 0 && ((m_packed >> 8) & 0xff) == 0) {
       speed = GameObj::GetTransitSpeed(arg);
+    }
   }
   return speed;
 }
@@ -195,8 +178,9 @@ int CapShip::GetTransitSpeed(int arg)
 int CapShip::GetEventKinds(int unused, EventKindSet* out)
 {
   const int ready = EnsureEventKinds();
-  if (ready)
+  if (ready) {
     *out = g_capShipEventKinds;
+  }
   return ready;
 }
 
@@ -204,8 +188,9 @@ int CapShip::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int ready = EnsureEventKinds();
-  if (ready && g_capShipEventKinds.Contains(orderKind))
+  if (ready && g_capShipEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return ready;
 }
 
@@ -231,26 +216,19 @@ int CapShip::GetIncomingUnitCapacity(const FamilyRange* range, int b, int* o1, i
   *o2 = 0;
   *o3 = 0;
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
-  if (rangeWithin(range, 0x1c, 0x20))
-  {
+  if (rangeWithin(range, 0x1c, 0x20)) {
     *o2 = 0;
     ChildIterator squadrons(this, &family::kFighterSquadrons, b);
     *o3 = GetFighterCapacity() - squadrons.Count();
     *out = StatusCode(kStatusCategoryCapacity, kStatusNoFighterRoom);
-  }
-  else if (rangeWithin(range, 0x10, 0x14))
-  {
+  } else if (rangeWithin(range, 0x10, 0x14)) {
     *o2 = 0;
     ChildIterator regiments(this, &family::kTroopRegiments, b);
     *o3 = GetTroopCapacity() - regiments.Count();
     *out = StatusCode(kStatusCategoryCapacity, kStatusNoTroopRoom);
-  }
-  else if (rangeWithin(range, 0x30, 0x40))
-  {
+  } else if (rangeWithin(range, 0x30, 0x40)) {
     *o2 = 1;
-  }
-  else
-  {
+  } else {
     *o1 = 0;
   }
   return 1;
@@ -275,13 +253,10 @@ int CapShip::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 {
   bool ok = CombatUnit::OnDestroyedChanged(newValue, ctx) != 0;
   const uint32_t reason = m_packed & 0xff;
-  if (reason != 0 && reason <= kMaxRepairedDestroyedReason)
-  {
+  if (reason != 0 && reason <= kMaxRepairedDestroyedReason) {
     ChildIterator characters(this, &kCharacterFamilies, kExistingChildren);
-    for (characters.Begin(); characters.Current(); characters.Advance())
-    {
-      if ((asObject(characters.Current())->m_stateFlags & kEnrouteActiveFlag) == 0)
-      {
+    for (characters.Begin(); characters.Current(); characters.Advance()) {
+      if ((asObject(characters.Current())->m_stateFlags & kEnrouteActiveFlag) == 0) {
         ok = notifyCharacterOfShipLoss(characters.Current(), ctx) != 0 && ok;
       }
     }
@@ -303,8 +278,7 @@ int CapShip::GetDefenseLeft()
 int CapShip::LostShare(int base, int criticalHits)
 {
   int remaining = base;
-  if (GetMaxCriticalHits() != 0 && GetHull() != 0)
-  {
+  if (GetMaxCriticalHits() != 0 && GetHull() != 0) {
     const int maxHits = GetMaxCriticalHits();
     const int afterHits = ScaleRatio(base, maxHits - criticalHits, maxHits);
     const int hullLeft = GetHull() - GetHullValueDamage();
@@ -326,8 +300,7 @@ uint32_t CapShip::GetDamageField64()
 uint32_t CapShip::GetDamageField6c()
 {
   int lost = 0;
-  if (HasPrimaryHyperdrive())
-  {
+  if (HasPrimaryHyperdrive()) {
     lost = ScaleRatio(GetField6c(), GetCriticalHit(kPrimaryHyperdriveShift), HasPrimaryHyperdrive());
   }
   return lost;
@@ -336,8 +309,7 @@ uint32_t CapShip::GetDamageField6c()
 uint32_t CapShip::GetDamageField70()
 {
   int lost = 0;
-  if (HasBackupHyperdrive())
-  {
+  if (HasBackupHyperdrive()) {
     lost = ScaleRatio(GetField70(), GetCriticalHit(kBackupHyperdriveShift), HasBackupHyperdrive());
   }
   return lost;
@@ -367,16 +339,16 @@ int CapShip::GetBombardmentModifierLoss()
 {
   const int hull = GetHull();
   int lost = hull == 0 ? 0 : ScaleRatio(GetBombardmentModifier(), GetHullValueDamage(), hull);
-  if ((m_flags & kViewMask) == 0 && GetDataWord20() != 0)
+  if ((m_flags & kViewMask) == 0 && GetDataWord20() != 0) {
     lost = GetBombardmentModifier();
+  }
   return lost;
 }
 
 int CapShip::GetWeaponRechargeRateLoss()
 {
   int lost = 0;
-  if (GetMaxCriticalHits() != 0)
-  {
+  if (GetMaxCriticalHits() != 0) {
     lost = ScaleRatio(GetWeaponRechargeRate(), GetCriticalHit(kWeaponRechargeShift), GetMaxCriticalHits());
   }
   return lost;
@@ -385,8 +357,7 @@ int CapShip::GetWeaponRechargeRateLoss()
 int CapShip::GetShieldRechargeRateLoss()
 {
   int lost = 0;
-  if (GetMaxCriticalHits() != 0)
-  {
+  if (GetMaxCriticalHits() != 0) {
     lost = ScaleRatio(GetShieldRechargeRate(), GetCriticalHit(kShieldRechargeShift), GetMaxCriticalHits());
   }
   return lost;
@@ -505,8 +476,7 @@ int CapShip::OnBackupHyperdriveCHChanged(int oldValue, int newValue, NotifyConte
 int CapShip::OnHullValueDamageNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("CapShipHullValueDamageNotif", "HullValueDamage", newValue, oldValue, 0, ctx);
     PostPayloadInts(kHullEventId, this, oldValue, newValue, ctx);
   }
@@ -565,9 +535,9 @@ int CapShip::HasBackupHyperdrive()
 
 int CapShip::GetTotalCriticalHits()
 {
-  return GetCriticalHit(kTractorBeamShift) + GetCriticalHit(kSpeedShift) + GetCriticalHit(kWeaponRechargeShift) +
-         GetCriticalHit(kPrimaryHyperdriveShift) + GetCriticalHit(kBackupHyperdriveShift) +
-         GetCriticalHit(kShieldRechargeShift);
+  return GetCriticalHit(kTractorBeamShift) + GetCriticalHit(kSpeedShift) + GetCriticalHit(kWeaponRechargeShift)
+         + GetCriticalHit(kPrimaryHyperdriveShift) + GetCriticalHit(kBackupHyperdriveShift)
+         + GetCriticalHit(kShieldRechargeShift);
 }
 
 int CapShip::GetDataWord20()
@@ -577,24 +547,31 @@ int CapShip::GetDataWord20()
 
 void CapShip::SetDataWord20(int value)
 {
-  if (m_data)
+  if (m_data) {
     static_cast<CapShipData*>(m_data)->m_word20 = value;
+  }
+}
+
+int CapShip::GetDataWord24()
+{
+  return m_data ? static_cast<CapShipData*>(m_data)->m_word24 : 0;
 }
 
 void CapShip::SetDataWord24(int value)
 {
-  if (m_data)
+  if (m_data) {
     static_cast<CapShipData*>(m_data)->m_word24 = value;
+  }
 }
 
 int CapShip::FindCharacterById(int id, GameObjNotifier** out)
 {
   *out = nullptr;
   ChildIterator characters(this, ControlSide(), &kCharacterFamilies, kExistingChildren);
-  for (characters.Begin(); characters.Current() && *out == nullptr; characters.Advance())
-  {
-    if (characterId(characters.Current()) == id)
+  for (characters.Begin(); characters.Current() && *out == nullptr; characters.Advance()) {
+    if (characterId(characters.Current()) == id) {
       *out = characters.Current();
+    }
   }
   return 1;
 }
@@ -603,8 +580,7 @@ int CapShip::CountCharacters(int* out, int unused1, int unused2)
 {
   *out = 0;
   ChildIterator characters(this, &kCharacterFamilies, kExistingChildren);
-  for (characters.Begin(); characters.Current(); characters.Advance())
-  {
+  for (characters.Begin(); characters.Current(); characters.Advance()) {
   }
   return 1;
 }
@@ -612,10 +588,10 @@ int CapShip::CountCharacters(int* out, int unused1, int unused2)
 int CapShip::SetHullValueDamage(int value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
+  if (result) {
     result = IsInRange(value, 0, GetHull(), "Invalid HullValueDamage value!");
-  if (result && m_hullValueDamage != value)
-  {
+  }
+  if (result && m_hullValueDamage != value) {
     const int oldValue = m_hullValueDamage;
     m_hullValueDamage = value;
     static_cast<CapShip*>(GetViewObject(1))->ApplyHullValueDamage(ctx);
@@ -669,18 +645,18 @@ int CapShip::SetBackupHyperdriveCH(uint32_t value, NotifyContext* ctx)
 int CapShip::DamageHull(int amount, int destroyedReason, NotifyContext* ctx)
 {
   int result = 0;
-  if (amount >= 0)
-  {
+  if (amount >= 0) {
     int damage = m_hullValueDamage + amount;
-    if (damage > GetHull())
+    if (damage > GetHull()) {
       damage = GetHull();
+    }
     result = SetHullValueDamage(damage, ctx) != 0;
   }
-  if (result)
-  {
+  if (result) {
     const int hullDamage = GetHullValueDamage();
-    if (GetHull() == hullDamage)
+    if (GetHull() == hullDamage) {
       result = ChangeDestroyedReason(destroyedReason, ctx);
+    }
   }
   return result;
 }
@@ -688,11 +664,11 @@ int CapShip::DamageHull(int amount, int destroyedReason, NotifyContext* ctx)
 int CapShip::RepairHullDamage(int amount, NotifyContext* ctx)
 {
   int result = 0;
-  if (amount >= 0)
-  {
+  if (amount >= 0) {
     int damage = m_hullValueDamage - amount;
-    if (damage < 0)
+    if (damage < 0) {
       damage = 0;
+    }
     result = SetHullValueDamage(damage, ctx) != 0;
   }
   return result;
@@ -701,17 +677,15 @@ int CapShip::RepairHullDamage(int amount, NotifyContext* ctx)
 int CapShip::ApplyHullValueDamage(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* const master = static_cast<CapShip*>(GetViewObject(kMasterView));
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_hullValueDamage;
-      if (oldValue != master->m_hullValueDamage)
-      {
+      if (oldValue != master->m_hullValueDamage) {
         m_hullValueDamage = master->m_hullValueDamage;
-        if (wantsNotification(this, ctx))
+        if (wantsNotification(this, ctx)) {
           result = OnHullValueDamageNotified(oldValue, m_hullValueDamage, ctx);
+        }
       }
     }
   }
@@ -756,8 +730,7 @@ int CapShip::CreateViewsState(int controlKind, NotifyContext* ctx)
 int CapShip::ReadState(istream* in)
 {
   const int result = CombatUnit::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_hullValueDamage);
     ReadValue32(in, &m_criticalHits);
   }
@@ -767,8 +740,7 @@ int CapShip::ReadState(istream* in)
 int CapShip::WriteState(ostream* out)
 {
   const int result = CombatUnit::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_hullValueDamage);
     WriteValue32(out, &m_criticalHits);
   }
@@ -778,8 +750,7 @@ int CapShip::WriteState(ostream* out)
 int CapShip::ApplyAllState(NotifyContext* ctx)
 {
   const int result = CombatUnit::ApplyAll(ctx);
-  if (result && ctx->m_flag04 == kApplyEverything)
-  {
+  if (result && ctx->m_flag04 == kApplyEverything) {
     ApplyHullValueDamage(ctx);
     ApplyShieldRechargeRateCH(ctx);
     ApplyWeaponRechargeRateCH(ctx);
@@ -794,8 +765,7 @@ int CapShip::ApplyAllState(NotifyContext* ctx)
 int CapShip::ChecksumState(Crc32* crc)
 {
   const int result = CombatUnit::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_hullValueDamage);
     crc->AddInt(m_criticalHits);
   }
@@ -805,39 +775,38 @@ int CapShip::ChecksumState(Crc32* crc)
 int CapShip::RepairStep(NotifyContext* ctx)
 {
   int ok = 1;
-  if (m_hullValueDamage > 0)
+  if (m_hullValueDamage > 0) {
     ok = RepairHullDamage(GetHull() / kHullRepairDivisor, ctx);
+  }
   int roll = 0;
-  if (!ok)
+  if (!ok) {
     return ok;
+  }
   const int totalHits = GetTotalCriticalHits();
-  if (totalHits != 0)
-  {
+  if (totalHits != 0) {
     const int controlLoss = GetDamageControlLoss();
     ok = RollPercentChance(GetDamageControl() - controlLoss, &roll);
   }
-  if (!ok || !roll)
+  if (!ok || !roll) {
     return ok;
+  }
 
   int pick = GameRandom(totalHits - 1);
   using Setter = int (CapShip::*)(uint32_t, NotifyContext*);
-  static const struct
-  {
+  static const struct {
     int shift;
     Setter set;
   } kSubsystems[] = {
-    {kShieldRechargeShift, &CapShip::SetShieldRechargeRateCH},
-    {kWeaponRechargeShift, &CapShip::SetWeaponRechargeRateCH},
-    {kTractorBeamShift, &CapShip::SetTractorBeamPowerCH},
-    {kSpeedShift, &CapShip::SetSpeedCH},
-    {kPrimaryHyperdriveShift, &CapShip::SetPrimaryHyperdriveCH},
-    {kBackupHyperdriveShift, &CapShip::SetBackupHyperdriveCH},
+      {kShieldRechargeShift, &CapShip::SetShieldRechargeRateCH},
+      {kWeaponRechargeShift, &CapShip::SetWeaponRechargeRateCH},
+      {kTractorBeamShift, &CapShip::SetTractorBeamPowerCH},
+      {kSpeedShift, &CapShip::SetSpeedCH},
+      {kPrimaryHyperdriveShift, &CapShip::SetPrimaryHyperdriveCH},
+      {kBackupHyperdriveShift, &CapShip::SetBackupHyperdriveCH},
   };
-  for (const auto& subsystem : kSubsystems)
-  {
+  for (const auto& subsystem : kSubsystems) {
     const int hits = static_cast<int>(GetCriticalHit(subsystem.shift));
-    if (hits != 0 && pick < hits)
-    {
+    if (hits != 0 && pick < hits) {
       (this->*subsystem.set)(hits - 1, ctx);
       return 1;
     }
@@ -850,27 +819,26 @@ int CapShip::ValidateState()
 {
   int valid = CombatUnit::Validate();
   GameObjIterator children(this, kEveryChild);
-  for (children.Begin(); children.Current(); children.Advance())
-  {
-    if (!valid)
+  for (children.Begin(); children.Current(); children.Advance()) {
+    if (!valid) {
       return 0;
+    }
     GameObjNotifier* const child = children.Current();
     valid = isUnitFamily(child->GetFamily()) && ((child->m_flags ^ m_flags) & 0xc0) == 0;
   }
-  if (!valid)
+  if (!valid) {
     return 0;
+  }
 
   int characterCount = 0;
   valid = CountCharacters(&characterCount, 0, 0) && characterCount <= 1;
-  if (valid)
-  {
+  if (valid) {
     valid = m_hullValueDamage >= 0 && m_hullValueDamage <= GetHull();
-    if (valid)
-    {
-      if (m_hullValueDamage == GetHull())
+    if (valid) {
+      if (m_hullValueDamage == GetHull()) {
         valid = (m_stateFlags & kDestroyedFlag) != 0;
-      if (valid)
-      {
+      }
+      if (valid) {
         valid = GetMaxCriticalHits() != 0;
         valid = valid && GetMaxCriticalHits() != 0;
         valid = valid && GetMaxCriticalHits() != 0;
@@ -880,8 +848,9 @@ int CapShip::ValidateState()
       }
     }
   }
-  if (!valid)
+  if (!valid) {
     return 0;
+  }
   return ValidateParentAndCargo();
 }
 
@@ -889,29 +858,30 @@ int CapShip::ValidateParentAndCargo()
 {
   GameObjNotifier* parent = nullptr;
   int valid = GetParent(&parent);
-  if (!valid)
+  if (!valid) {
     return 0;
+  }
 
   int locked = (m_stateFlags & kLockedFlag) != 0;
   {
     GameObjIterator children(this, kEveryChild);
-    for (children.Begin(); children.Current() && !locked; children.Advance())
-    {
+    for (children.Begin(); children.Current() && !locked; children.Advance()) {
       locked = (asObject(children.Current())->m_stateFlags & kLockedFlag) != 0;
     }
-    if ((m_stateFlags & kDestroyedFlag) == 0 || !locked)
-    {
+    if ((m_stateFlags & kDestroyedFlag) == 0 || !locked) {
       valid = (~asObject(parent)->m_stateFlags & kDestroyedFlag) != 0;
     }
   }
-  if (!valid)
+  if (!valid) {
     return 0;
+  }
 
   const int fighterCapacity = GetFighterCapacity();
   ChildIterator squadrons(this, &family::kFighterSquadrons, kExistingChildren);
   valid = squadrons.Count() <= fighterCapacity;
-  if (!valid)
+  if (!valid) {
     return 0;
+  }
 
   const int troopCapacity = GetTroopCapacity();
   ChildIterator regiments(this, &family::kTroopRegiments, kExistingChildren);
@@ -920,8 +890,9 @@ int CapShip::ValidateParentAndCargo()
 
 int CapShip::EnsureEventKinds()
 {
-  if (g_capShipEventKindsReady != 0)
+  if (g_capShipEventKindsReady != 0) {
     return 1;
+  }
   g_capShipEventKindsReady = 1;
   const int combatUnitKinds = CombatUnit::InitEventKinds(0, &g_capShipEventKinds);
   const bool addedFirst = g_capShipEventKinds.Add(kKindCapShip203, 1) != nullptr && combatUnitKinds != 0;
@@ -929,17 +900,18 @@ int CapShip::EnsureEventKinds()
   return addedSecond && addedFirst;
 }
 
-CapShipIterator::CapShipIterator(GameObjNotifier* parent) : ChildIterator(parent, &family::kCapitalShips, 1)
+CapShipIterator::CapShipIterator(GameObjNotifier* parent)
+    : ChildIterator(parent, &family::kCapitalShips, 1)
 {
 }
 
 CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kCapitalShips, stateFilter)
+    : ChildIterator(parent, &family::kCapitalShips, stateFilter)
 {
 }
 
 CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &family::kCapitalShips, stateFilter)
+    : ChildIterator(parent, side, &family::kCapitalShips, stateFilter)
 {
 }
 
@@ -984,32 +956,31 @@ int RollCriticalHitType(int hullLeft, int damage, int* hitType)
 {
   int ok = 1;
   *hitType = kHitTypeNone;
-  if (hullLeft <= 0)
-  {
+  if (hullLeft <= 0) {
     *hitType = kHitTypeDestroyed;
     return 1;
   }
-  if (damage == 0)
-  {
+  if (damage == 0) {
     *hitType = kHitTypeNone;
     return 1;
   }
   const int bonus = GameRandom(g_gnprtb0801);
   const int chance = RatioToPercent(damage, damage + hullLeft) + bonus;
-  if (chance >= g_gnprtb0802)
-  {
+  if (chance >= g_gnprtb0802) {
     const TableEntry* record = FindTableRecord(kHitTypeTable, GameRandom(g_gnprtb0803));
     ok = record != nullptr;
-    if (ok)
+    if (ok) {
       *hitType = TableRecordFirstValue(record);
+    }
   }
   return ok;
 }
 
 void CapShip::SetDataWord28(int value)
 {
-  if (m_data)
+  if (m_data) {
     static_cast<CapShipData*>(m_data)->m_word28 = value;
+  }
 }
 
 int CapShip::InflictCriticalHit(int damage, int destroyedReason, NotifyContext* ctx)
@@ -1018,44 +989,39 @@ int CapShip::InflictCriticalHit(int damage, int destroyedReason, NotifyContext* 
   const int hullDamage = GetHullValueDamage();
   const int hullLeft = GetHull() - hullDamage;
   int ok = RollCriticalHitType(hullLeft, damage, &hitType);
-  if (ok)
+  if (ok) {
     ok = hitType > 0 && hitType < 8;
-  if (!ok)
+  }
+  if (!ok) {
     return ok;
+  }
 
-  switch (hitType)
-  {
+  switch (hitType) {
     case kHitTypeShield:
-      if (GetMaxCriticalHits() - GetCriticalHit(kShieldRechargeShift) != 0)
-      {
+      if (GetMaxCriticalHits() - GetCriticalHit(kShieldRechargeShift) != 0) {
         return SetShieldRechargeRateCH(GetCriticalHit(kShieldRechargeShift) + 1, ctx) != 0;
       }
       break;
     case kHitTypeWeapon:
-      if (GetMaxCriticalHits() - GetCriticalHit(kWeaponRechargeShift) != 0)
-      {
+      if (GetMaxCriticalHits() - GetCriticalHit(kWeaponRechargeShift) != 0) {
         return SetWeaponRechargeRateCH(GetCriticalHit(kWeaponRechargeShift) + 1, ctx) != 0;
       }
       break;
     case kHitTypeTractorBeam:
-      if (GetMaxCriticalHits() - GetCriticalHit(kTractorBeamShift) != 0)
-      {
+      if (GetMaxCriticalHits() - GetCriticalHit(kTractorBeamShift) != 0) {
         return SetTractorBeamPowerCH(GetCriticalHit(kTractorBeamShift) + 1, ctx) != 0;
       }
       break;
     case kHitTypeSpeed:
-      if (GetMaxCriticalHits() - GetCriticalHit(kSpeedShift) != 0)
-      {
+      if (GetMaxCriticalHits() - GetCriticalHit(kSpeedShift) != 0) {
         return SetSpeedCH(GetCriticalHit(kSpeedShift) + 1, ctx) != 0;
       }
       break;
     case kHitTypeHyperdrive:
-      if (HasPrimaryHyperdrive() - GetCriticalHit(kPrimaryHyperdriveShift) != 0)
-      {
+      if (HasPrimaryHyperdrive() - GetCriticalHit(kPrimaryHyperdriveShift) != 0) {
         return SetPrimaryHyperdriveCH(GetCriticalHit(kPrimaryHyperdriveShift) + 1, ctx) != 0;
       }
-      if (HasBackupHyperdrive() - GetCriticalHit(kBackupHyperdriveShift) != 0)
-      {
+      if (HasBackupHyperdrive() - GetCriticalHit(kBackupHyperdriveShift) != 0) {
         return SetBackupHyperdriveCH(GetCriticalHit(kBackupHyperdriveShift) + 1, ctx) != 0;
       }
       break;

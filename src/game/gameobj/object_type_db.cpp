@@ -29,9 +29,9 @@ DatRecord* AsRecord(AvlNode* node)
   return static_cast<DatRecord*>(static_cast<IdNode*>(node));
 }
 
-const ResourceStringId* NameResource(const DatRecord* record)
+ResourceStringId NameResource(const DatRecord* record)
 {
-  return reinterpret_cast<const ResourceStringId*>(&record->m_small);
+  return {static_cast<int16_t>(record->m_small), static_cast<int16_t>(record->m_small2)};
 }
 
 bool Available(const SdRecord* record, int view)
@@ -43,15 +43,15 @@ bool Available(const SdRecord* record, int view)
 
 // ---- ObjectTypeDb ------------------------------------------------------------------------------------------
 
-ObjectTypeDb::ObjectTypeDb() : m_families(nullptr)
+ObjectTypeDb::ObjectTypeDb()
+    : m_families(nullptr)
 {
   m_ok = BuildFamilies();
 }
 
 ObjectTypeDb::~ObjectTypeDb()
 {
-  if (m_families)
-  {
+  if (m_families) {
     delete m_families;
     m_families = nullptr;
   }
@@ -59,8 +59,7 @@ ObjectTypeDb::~ObjectTypeDb()
 
 int ObjectTypeDb::BuildFamilies()
 {
-  if (m_families)
-  {
+  if (m_families) {
     delete m_families;
     m_families = nullptr;
   }
@@ -72,36 +71,47 @@ int ObjectTypeDb::BuildFamilies()
 int ObjectTypeDb::LoadFamilies()
 {
   int ok = BuildFamilies();
-  if (!ok)
+  if (!ok) {
     return 0;
-  for (int nameResource : kFamilyNameResources)
-  {
+  }
+  for (int nameResource : kFamilyNameResources) {
     ok = AddFamily(kFamilyResourceBase, nameResource);
-    if (!ok)
+    if (!ok) {
       return 0;
+    }
   }
   int unique = 1;
   ok = AreLevelsUnique(1, 0x28, &unique);
-  if (!ok)
+  if (!ok) {
     return 0;
-  if (unique)
+  }
+  if (unique) {
     ok = AreLevelsUnique(1, 0x29, &unique);
-  if (!ok)
+  }
+  if (!ok) {
     return 0;
-  if (unique)
+  }
+  if (unique) {
     ok = AreLevelsUnique(1, 0x2a, &unique);
-  if (!ok)
+  }
+  if (!ok) {
     return 0;
-  if (unique)
+  }
+  if (unique) {
     ok = AreLevelsUnique(2, 0x28, &unique);
-  if (!ok)
+  }
+  if (!ok) {
     return 0;
-  if (unique)
+  }
+  if (unique) {
     ok = AreLevelsUnique(2, 0x29, &unique);
-  if (!ok)
+  }
+  if (!ok) {
     return 0;
-  if (unique)
+  }
+  if (unique) {
     ok = AreLevelsUnique(2, 0x2a, &unique);
+  }
   return ok;
 }
 
@@ -110,34 +120,35 @@ int ObjectTypeDb::AddFamily(int a, int b)
   void* memory = ::operator new(sizeof(SeedListFile));
   void* entry = memory ? new (memory) SeedListFile() : nullptr;
   int ok = entry != nullptr;
-  if (ok)
-  {
+  if (ok) {
     ok = static_cast<SeedListFile*>(entry)->m_version;
-    if (ok)
+    if (ok) {
       ok = static_cast<SeedListFile*>(entry)->Load(a, b);
-  }
-  if (entry)
-  {
-    for (const auto& ownedRecord : RecordsOf(entry)->Records())
-    {
-      if (!ok)
-        break;
-      DatRecord* datRecord = AsRecord(ownedRecord.get());
-      datRecord->m_name = LoadStringResource(NameResource(datRecord));
     }
   }
-  if (ok)
+  if (entry) {
+    for (const auto& ownedRecord : RecordsOf(entry)->Records()) {
+      if (!ok) {
+        break;
+      }
+      DatRecord* datRecord = AsRecord(ownedRecord.get());
+      const ResourceStringId nameResource = NameResource(datRecord);
+      datRecord->m_name = LoadStringResource(&nameResource);
+    }
+  }
+  if (ok) {
     ok = static_cast<int>(m_families->AddWithId(static_cast<SeedListFile*>(entry)));
+  }
   return ok;
 }
 
 int ObjectTypeDb::ForEachFamily(Crc32* crc)
 {
   int ok = 1;
-  for (const auto& family : m_families->Entries())
-  {
-    if (!ok)
+  for (const auto& family : m_families->Entries()) {
+    if (!ok) {
       break;
+    }
     auto* entry = family.get();
     ok = static_cast<SeedListFile*>(entry)->m_list.Checksum(crc);
   }
@@ -147,8 +158,7 @@ int ObjectTypeDb::ForEachFamily(Crc32* crc)
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key)
 {
   DatRecord* record = nullptr;
-  if (SeedListFile* entry = m_families->FindByFamily(key->m_key >> 24))
-  {
+  if (SeedListFile* entry = m_families->FindByFamily(key->m_key >> 24)) {
     record = AsRecord(RecordsOf(entry)->FindRecord(key->m_key & 0xffffff));
   }
   return record;
@@ -158,12 +168,14 @@ std::vector<DatRecord*> ObjectTypeDb::RecordsOfFamily(uint32_t family)
 {
   std::vector<DatRecord*> records;
   SeedListFile* entry = m_families ? m_families->FindByFamily(family) : nullptr;
-  if (!entry)
+  if (!entry) {
     return records;
+  }
   const auto& storedRecords = RecordsOf(entry)->Records();
   records.reserve(storedRecords.size());
-  for (const auto& storedRecord : storedRecords)
+  for (const auto& storedRecord : storedRecords) {
     records.push_back(AsRecord(storedRecord.get()));
+  }
   return records;
 }
 
@@ -171,17 +183,18 @@ int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out)
 {
   out->Clear();
   int ok = m_families != nullptr;
-  if (!ok)
+  if (!ok) {
     return 0;
-  for (const auto& family : m_families->Entries())
-  {
-    if (!ok)
+  }
+  for (const auto& family : m_families->Entries()) {
+    if (!ok) {
       break;
+    }
     auto* entry = family.get();
-    for (const auto& storedRecord : RecordsOf(entry)->Records())
-    {
-      if (!ok)
+    for (const auto& storedRecord : RecordsOf(entry)->Records()) {
+      if (!ok) {
         break;
+      }
       auto* record = storedRecord.get();
       ObjectKey key;
       key = ObjectKey::Make(AsRecord(record)->m_third, AsRecord(record)->m_id);
@@ -191,58 +204,59 @@ int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out)
   return ok;
 }
 
-int ObjectTypeDb::CollectRecords(int view,
-                                 uint32_t kind,
-                                 int level,
-                                 int whenBelow,
-                                 int whenEqual,
-                                 int whenAbove,
-                                 ObjectNameList* out,
-                                 int* maxLevel)
+int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove,
+                                 ObjectNameList* out, int* maxLevel)
 {
   *maxLevel = 0;
   bool valid = false;
-  if (view >= 1 && view <= 2)
+  if (view >= 1 && view <= 2) {
     valid = kind >= kFirstLevelKind && kind < kEndLevelKind;
-  if (!valid)
+  }
+  if (!valid) {
     return 0;
+  }
 
   int ok = m_families != nullptr;
-  if (!ok)
+  if (!ok) {
     return 0;
-  for (const auto& family : m_families->Entries())
-  {
-    for (const auto& ownedRecord : RecordsOf(family.get())->Records())
-    {
+  }
+  for (const auto& family : m_families->Entries()) {
+    for (const auto& ownedRecord : RecordsOf(family.get())->Records()) {
       auto* node = ownedRecord.get();
       DatRecord* record = AsRecord(node);
       IntPair range;
       GetRecordKindRange(record, &range);
       const bool kindMatches = kind >= range.m_first && kind < range.m_second;
-      if (!kindMatches)
+      if (!kindMatches) {
         continue;
+      }
       auto* levelRecord = dynamic_cast<SdRecord*>(record);
-      if (!levelRecord || !levelRecord->GetField48() || !Available(levelRecord, view))
+      if (!levelRecord || !levelRecord->GetField48() || !Available(levelRecord, view)) {
         continue;
+      }
 
       const int recordLevel = static_cast<int>(levelRecord->m_field50);
-      if (*maxLevel < recordLevel)
+      if (*maxLevel < recordLevel) {
         *maxLevel = recordLevel;
+      }
       int wanted = whenBelow;
-      if (level <= recordLevel)
+      if (level <= recordLevel) {
         wanted = recordLevel == level ? whenEqual : whenAbove;
-      if (!wanted)
+      }
+      if (!wanted) {
         continue;
+      }
 
       auto* nameNode = NewOrNull<ObjectNameNode>();
       ok = nameNode != nullptr;
-      if (nameNode)
-      {
+      if (nameNode) {
         ok = nameNode->Load(record);
-        if (ok)
+        if (ok) {
           ok = out->AddWithId(nameNode) != 0;
-        if (!ok)
+        }
+        if (!ok) {
           delete nameNode;
+        }
       }
     }
   }
@@ -255,16 +269,13 @@ int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecor
   ObjectNameList names;
   int maxLevel = 0;
   int ok = CollectRecords(view, kind, level, 0, 1, 0, &names, &maxLevel);
-  if (ok)
-  {
-    if (auto* first = names.First())
-    {
+  if (ok) {
+    if (auto* first = names.First()) {
       ObjectKey key;
       GetObjectNameNodeKey(static_cast<ObjectNameNode*>(first), &key);
       const uint32_t family = key.Family();
       ok = 0;
-      if (family >= kUnitFamilyFirst && family < kUnitFamilyEnd)
-      {
+      if (family >= kUnitFamilyFirst && family < kUnitFamilyEnd) {
         SeedKey seed;
         seed.m_key = key.m_value;
         *out = FindRecord(&seed);
@@ -284,18 +295,14 @@ int ObjectTypeDb::FindNextLevel(int view, int kind, int level, int* found, int* 
   int maxLevel = 0;
   DatRecord* record = nullptr;
   int ok = CollectRecords(view, static_cast<uint32_t>(kind), 0, 0, 0, 0, &names, &maxLevel);
-  for (int candidate = level + 1; ok && candidate <= maxLevel && *found == 0; ++candidate)
-  {
+  for (int candidate = level + 1; ok && candidate <= maxLevel && *found == 0; ++candidate) {
     ok = FindRecordAtLevel(view, static_cast<uint32_t>(kind), candidate, &record);
-    if (ok)
-    {
+    if (ok) {
       *found = record != nullptr;
-      if (*found)
-      {
+      if (*found) {
         *foundLevel = candidate;
         auto* levelRecord = dynamic_cast<SdRecord*>(record);
-        if (!levelRecord)
-        {
+        if (!levelRecord) {
           ok = 0;
           break;
         }
@@ -312,15 +319,14 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique)
   ObjectNameList names;
   int maxLevel = 0;
   int ok = CollectRecords(view, kind, 0, 0, 0, 0, &names, &maxLevel);
-  for (int level = 1; ok && level <= maxLevel; ++level)
-  {
+  for (int level = 1; ok && level <= maxLevel; ++level) {
     ObjectNameList atLevel;
     ok = CollectRecords(view, kind, level, 0, 1, 0, &atLevel, &maxLevel);
-    if (ok)
-    {
+    if (ok) {
       const int count = atLevel.Count();
-      if (count != 0 && count != 1)
+      if (count != 0 && count != 1) {
         *unique = 0;
+      }
     }
   }
   return ok;
@@ -329,15 +335,14 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique)
 void ObjectTypeDb::DescribeKey(const SeedKey* key, std::string* out)
 {
   out->clear();
-  if (key->m_key == 0)
-  {
+  if (key->m_key == 0) {
     *out = "<empty SeedKey>";
     return;
   }
   const uint32_t id = key->m_key & 0xffffff;
-  if (DatRecord* record = FindRecord(key))
-  {
-    *out += LoadStringResource(NameResource(record));
+  if (DatRecord* record = FindRecord(key)) {
+    const ResourceStringId nameResource = NameResource(record);
+    *out += LoadStringResource(&nameResource);
     *out += std::string(" (ID=");
     out->append(std::to_string(id));
     *out += std::string(")");
@@ -362,15 +367,15 @@ void CreateObjectTypeDb()
 {
   DestroyObjectTypeDb();
   g_objectTypeDb = NewOrNull<ObjectTypeDb>();
-  if (g_objectTypeDb && g_objectTypeDb->m_ok && g_objectTypeDb->LoadFamilies())
+  if (g_objectTypeDb && g_objectTypeDb->m_ok && g_objectTypeDb->LoadFamilies()) {
     return;
+  }
   DestroyObjectTypeDb();
 }
 
 void DestroyObjectTypeDb()
 {
-  if (g_objectTypeDb)
-  {
+  if (g_objectTypeDb) {
     delete g_objectTypeDb;
     g_objectTypeDb = nullptr;
   }
@@ -403,14 +408,8 @@ int ListAllDataRecordKeys(ObjectRefList* out)
   return db ? db->ListAllRecordKeys(out) : 0;
 }
 
-int CollectDataRecords(int view,
-                       uint32_t kind,
-                       int level,
-                       int whenBelow,
-                       int whenEqual,
-                       int whenAbove,
-                       ObjectNameList* out,
-                       int* maxLevel)
+int CollectDataRecords(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove,
+                       ObjectNameList* out, int* maxLevel)
 {
   ObjectTypeDb* db = GetObjectTypeDb();
   return db ? db->CollectRecords(view, kind, level, whenBelow, whenEqual, whenAbove, out, maxLevel) : 0;
@@ -461,8 +460,9 @@ int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraV
 void DescribeDataKey(const SeedKey* key, std::string* out)
 {
   ObjectTypeDb* db = GetObjectTypeDb();
-  if (db)
+  if (db) {
     db->DescribeKey(key, out);
+  }
 }
 
 int ForEachDataFamily(Crc32* crc)

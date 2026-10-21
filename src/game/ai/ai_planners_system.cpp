@@ -11,10 +11,11 @@ constexpr uint32_t kForbidUnusableAndKilled = 0x47400051;
 
 } // namespace
 
-// ---- 0x69 Sabotage -----------------------------------------------------------------------------------------------------
+// ---- 0x69 Sabotage
+// -----------------------------------------------------------------------------------------------------
 
 AiSabotagePlanner::AiSabotagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiSystemPlanner(view, owner, characters)
+    : AiSystemPlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x69, 0x12);
 }
@@ -24,15 +25,14 @@ AiSabotagePlanner::~AiSabotagePlanner() = default;
 int AiSabotagePlanner::GetPriority()
 {
   int sum = 0;
-  if ((m_flags.m_value & 0x20) == 0)
-  {
-    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
-    {
+  if ((m_flags.m_value & 0x20) == 0) {
+    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position) {
       auto* node = static_cast<ObjectKeyNode*>((*position).get());
       const ObjectKey key = ai::KeyOfNode(node);
       auto* character = static_cast<AiCharacterRecord*>(m_characters->Find(&key));
-      if (character)
+      if (character) {
         sum += (character->m_values[1] + character->m_values[5]) / 2;
+      }
     }
   }
   return sum;
@@ -48,10 +48,11 @@ void AiSabotagePlanner::PickMembers()
   ChooseMembers(this, MembersWantedAtTarget(this), 4);
 }
 
-// ---- 0x54 (system planner) ---------------------------------------------------------------------------------------------------
+// ---- 0x54 (system planner)
+// ---------------------------------------------------------------------------------------------------
 
 AiMission54Planner::AiMission54Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiSystemPlanner(view, owner, characters)
+    : AiSystemPlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x54, 0x15);
 }
@@ -65,21 +66,19 @@ int AiMission54Planner::GetPriority()
 
 void AiMission54Planner::OnMissionEvent(int event)
 {
-  if (event == 0)
-  {
+  if (event == 0) {
     m_flags.m_value |= 0x80000000;
     return;
   }
-  if (event == 2)
-  {
+  if (event == 2) {
     ResetMissionMark();
     return;
   }
-  if (event == 3)
-  {
+  if (event == 3) {
     AiSystemEval* system = m_owner->FindSystemEval(&m_x34);
-    if (system)
+    if (system) {
       system->NoteTouched();
+    }
     m_stall = 0;
     ResetMissionMark();
   }
@@ -90,10 +89,11 @@ void AiMission54Planner::PickLeaders()
   ChooseSystemLeaders(this, {0x800002, 0x200, kForbidUnusable, 1, 0, -1, 1});
 }
 
-// ---- 0x52 Espionage (system planner) ------------------------------------------------------------------------------------------
+// ---- 0x52 Espionage (system planner)
+// ------------------------------------------------------------------------------------------
 
 AiEspionagePlanner::AiEspionagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiSystemPlanner(view, owner, characters)
+    : AiSystemPlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x52, 0x13);
 }
@@ -107,22 +107,20 @@ int AiEspionagePlanner::GetPriority()
 
 void AiEspionagePlanner::OnMissionEvent(int event)
 {
-  if (event == 0)
-  {
+  if (event == 0) {
     m_flags.m_value |= 0x80000000;
     return;
   }
-  if (event == 2)
-  {
+  if (event == 2) {
     AdvanceStall();
     ResetMissionMark();
     return;
   }
-  if (event == 3)
-  {
+  if (event == 3) {
     AiSystemEval* system = m_owner->FindSystemEval(&m_x34);
-    if (system)
+    if (system) {
       system->NoteTouched();
+    }
     m_stall = 0;
     ResetMissionMark();
   }
@@ -138,18 +136,16 @@ void AiEspionagePlanner::PickMembers()
   ChooseMembers(this, MembersWantedAtTarget(this), 8);
 }
 
-// ---- 0x62 Abduction / 0x63 Assassination (system planner) -----------------------------------------------------------------------
+// ---- 0x62 Abduction / 0x63 Assassination (system planner)
+// -----------------------------------------------------------------------
 
 AiAbductionPlanner::AiAbductionPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiSystemPlanner(view, owner, characters)
+    : AiSystemPlanner(view, owner, characters)
 {
-  if (view == 2)
-  {
+  if (view == 2) {
     m_missionKey = ObjectKey::Make(0x63, 0x81);
     m_capability = 0x40;
-  }
-  else
-  {
+  } else {
     m_missionKey = ObjectKey::Make(0x62, 0x17);
     m_capability = 0x10;
   }

@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionSubdueEventKindsReady; // 0x6bb918
+extern int g_missionSubdueEventKindsReady;     // 0x6bb918
 extern EventKindSet g_missionSubdueEventKinds; // 0x6bb910
 
 namespace
@@ -13,8 +13,9 @@ constexpr int kTaskSucceeded = 3;
 
 int ControlSideIndex(uint32_t controlSide)
 {
-  if (controlSide == 3)
+  if (controlSide == 3) {
     return 3;
+  }
   return controlSide == 1 ? 2 : 1;
 }
 } // namespace
@@ -68,10 +69,11 @@ int MissionSubdue::GetPersonSuccessChance(GameObj* person, int* out)
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   bool ok = found != 0;
-  if (!system)
+  if (!system) {
     return ok;
+  }
   const int side = ControlSideIndex(ControlSide());
   const int regiments = system->CountEmpireRegimentsOfKey6();
   const int loyalty = system->GetLoyaltyFor(side);
@@ -94,24 +96,27 @@ int MissionSubdue::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
-  if (!system)
+      &system);
+  if (!system) {
     return found != 0;
+  }
   const bool inUprising = (system->m_flags & 4) != 0;
   bool ok = inUprising && found;
-  if (!inUprising)
+  if (!inUprising) {
     return ok;
-  if (!PercentChance(roll))
+  }
+  if (!PercentChance(roll)) {
     return ok;
+  }
   *out = 1;
   const uint32_t side = ControlSide();
   const int bonus = ComputeSubdueBonus(side, system->ControlSide());
   ok = system->AdjustLoyalty(bonus, side, ctx) && ok;
-  if (system->m_flags & 4)
+  if (system->m_flags & 4) {
     ok = system->EndUprisingIfQuelled(ctx) && ok;
+  }
   ok = SetTaskStatus((system->m_flags & 4) ? kTaskStarted : kTaskSucceeded, ctx) && ok;
-  if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->IsCharacter())
-  {
+  if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->IsCharacter()) {
     Role* role = static_cast<Role*>(person);
     ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb1811, ctx) && ok;
   }
@@ -120,8 +125,7 @@ int MissionSubdue::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 
 int MissionSubdue::BuildEventKinds()
 {
-  if (!g_missionSubdueEventKindsReady)
-  {
+  if (!g_missionSubdueEventKindsReady) {
     g_missionSubdueEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionSubdueEventKinds);
   }

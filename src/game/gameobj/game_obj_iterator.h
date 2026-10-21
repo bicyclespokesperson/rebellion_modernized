@@ -5,7 +5,7 @@
 // (VT 0x65d41c, destructor only).
 class GameObjIterator : public ChildIterator
 {
-public:
+  public:
   GameObjIterator(GameObjNotifier* parent, uint32_t stateFilter);
   ~GameObjIterator() override;
 };

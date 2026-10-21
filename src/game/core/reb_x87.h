@@ -4,8 +4,8 @@
 
 // The x87 floating point operations whose exact results the game's behaviour depends on (volume curves, the tactical
 // simulation's trigonometry), behind one small API. On i386 they are the original instruction sequences (inline x87
-// assembly, or a call to the game's own CRT `_CIpow`); every other target gets the C library's implementation, whose results
-// may differ in the last bits (the decision for the 64-bit ports: float drift is acceptable, see docs/phase3_plan.md).
+// assembly, or a call to the game's own CRT `_CIpow`); every other target gets the C library's implementation, whose
+// results may differ in the last bits (the decision for the 64-bit ports: float drift is acceptable).
 //
 // Code outside this header and crt/ must not contain x87 assembly.
 
@@ -36,7 +36,8 @@ inline double reb_acos(double value)
   return std::acos(value);
 }
 
-// fsin / fcos / fsqrt as single x87 instructions (the original has no library call; the C library would round differently).
+// fsin / fcos / fsqrt as single x87 instructions (the original has no library call; the C library would round
+// differently).
 inline double reb_cos(double angle)
 {
 #if REB_X87_NATIVE
@@ -106,21 +107,24 @@ inline int32_t reb_ftol(double value)
 #if REB_X87_NATIVE
   return static_cast<int32_t>(value);
 #else
-  if (!(value > -2147483649.0 && value < 2147483648.0))
+  if (!(value > -2147483649.0 && value < 2147483648.0)) {
     return INT32_MIN;
+  }
   return static_cast<int32_t>(value);
 #endif
 }
 
-// double -> uint32 as the original and x86-64 do it: truncate to 64 bits (the CRT's _ftol, cvttsd2si with a 64-bit destination) and keep
-// the low word, so a negative value wraps and NaN / out-of-range values give 0. arm64 would saturate a negative value to 0 instead.
+// double -> uint32 as the original and x86-64 do it: truncate to 64 bits (the CRT's _ftol, cvttsd2si with a 64-bit
+// destination) and keep the low word, so a negative value wraps and NaN / out-of-range values give 0. arm64 would
+// saturate a negative value to 0 instead.
 inline uint32_t reb_ftou(double value)
 {
 #if REB_X87_NATIVE
   return static_cast<uint32_t>(value);
 #else
-  if (!(value > -9223372036854775809.0 && value < 9223372036854775808.0))
+  if (!(value > -9223372036854775809.0 && value < 9223372036854775808.0)) {
     return 0;
+  }
   return static_cast<uint32_t>(static_cast<int64_t>(value));
 #endif
 }

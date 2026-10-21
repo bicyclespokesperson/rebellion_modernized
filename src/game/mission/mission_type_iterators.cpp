@@ -9,21 +9,21 @@ constexpr uint32_t kStateFilter = 1;
 } // namespace
 
 MissionSubdueIterator::MissionSubdueIterator(GameObjNotifier* parent)
-: ChildIterator(parent, &kFamilySubdue, kStateFilter)
+    : ChildIterator(parent, &kFamilySubdue, kStateFilter)
 {
 }
 
 MissionSubdueIterator::~MissionSubdueIterator() = default;
 
 MissionResearchIterator::MissionResearchIterator(GameObjNotifier* parent)
-: ChildIterator(parent, &kFamilyResearch, kStateFilter)
+    : ChildIterator(parent, &kFamilyResearch, kStateFilter)
 {
 }
 
 MissionResearchIterator::~MissionResearchIterator() = default;
 
 MissionInciteIterator::MissionInciteIterator(GameObjNotifier* parent)
-: ChildIterator(parent, &kFamilyIncite, kStateFilter)
+    : ChildIterator(parent, &kFamilyIncite, kStateFilter)
 {
 }
 

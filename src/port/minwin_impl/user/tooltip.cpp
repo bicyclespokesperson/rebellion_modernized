@@ -1,7 +1,7 @@
-// The tooltips_class32 control, as comctl32 v5 (the one Wine ships) behaves for the messages the game sends: tools are windows
-// (TTF_IDISHWND) or rectangles of an owner window; the pointer resting on a tool for the initial delay shows the tool's text in a
-// small yellow popup under the pointer, a button message, leaving the tool or the auto-pop time hides it again.
-#define MINWIN_IMPLEMENTATION 1
+// The tooltips_class32 control, as comctl32 v5 (the one Wine ships) behaves for the messages the game sends: tools are
+// windows (TTF_IDISHWND) or rectangles of an owner window; the pointer resting on a tool for the initial delay shows
+// the tool's text in a small yellow popup under the pointer, a button message, leaving the tool or the auto-pop time
+// hides it again.
 #include <cstring>
 
 #include <string>
@@ -25,8 +25,7 @@ constexpr unsigned kDtExternalLeading = 0x200;
 constexpr int kTextPadding = 2, kBorder = 1, kPointerHeight = 20;
 constexpr int kSysColorInfoText = 23, kSysColorInfoBk = 24, kSysColorWindowFrame = 6;
 
-struct Tool
-{
+struct Tool {
   HWND owner;
   UINT flags;
   UINT_PTR id;
@@ -34,8 +33,7 @@ struct Tool
   std::string text;
 };
 
-struct Tip
-{
+struct Tip {
   HWND hwnd = nullptr;
   bool active = true;
   unsigned initialMs = kDefaultInitialMs, reshowMs = kDefaultInitialMs / 5, autopopMs = kDefaultInitialMs * 10;
@@ -54,16 +52,17 @@ std::vector<Tip*>& AllTips()
 
 Tip* TipOf(HWND hwnd)
 {
-  for (Tip* t : AllTips())
-    if (t->hwnd == hwnd)
+  for (Tip* t : AllTips()) {
+    if (t->hwnd == hwnd) {
       return t;
+    }
+  }
   return nullptr;
 }
 
 COLORREF SystemColor(int index)
 {
-  switch (index)
-  {
+  switch (index) {
     case kSysColorInfoBk:
       return RGB(255, 255, 225);
     case kSysColorWindowFrame:
@@ -81,16 +80,16 @@ HFONT StatusFont()
   lf.lfWeight = 400;
   lf.lfCharSet = 1;
   strcpy(lf.lfFaceName, "Tahoma");
-  return CreateFontIndirectA(&lf);
+  return reb::compat::CreateFontIndirectA(&lf);
 }
 
 int FindTool(const Tip& tip, const TTTOOLINFOA* info)
 {
-  for (size_t i = 0; i < tip.tools.size(); ++i)
-  {
+  for (size_t i = 0; i < tip.tools.size(); ++i) {
     const Tool& t = tip.tools[i];
-    if (t.owner == info->hwnd && t.id == info->uId)
+    if (t.owner == info->hwnd && t.id == info->uId) {
       return static_cast<int>(i);
+    }
   }
   return kNoTool;
 }
@@ -103,46 +102,48 @@ void StoreText(Tool* tool, const char* text)
 int ToolUnderPointer(const Tip& tip)
 {
   POINT pt;
-  GetCursorPos(&pt);
-  HWND under = WindowFromPoint(pt);
-  for (size_t i = 0; i < tip.tools.size(); ++i)
-  {
+  reb::compat::GetCursorPos(&pt);
+  HWND under = reb::compat::WindowFromPoint(pt);
+  for (size_t i = 0; i < tip.tools.size(); ++i) {
     const Tool& t = tip.tools[i];
-    if (t.flags & TTF_IDISHWND)
-    {
-      if (reinterpret_cast<HWND>(t.id) == under)
+    if (t.flags & TTF_IDISHWND) {
+      if (reinterpret_cast<HWND>(t.id) == under) {
         return static_cast<int>(i);
+      }
       continue;
     }
-    if (t.owner != under)
+    if (t.owner != under) {
       continue;
+    }
     POINT client = pt;
-    ScreenToClient(t.owner, &client);
-    if (PtInRect(&t.rect, client))
+    reb::compat::ScreenToClient(t.owner, &client);
+    if (reb::compat::PtInRect(&t.rect, client)) {
       return static_cast<int>(i);
+    }
   }
   return kNoTool;
 }
 
 void Hide(Tip* tip)
 {
-  if (tip->shownTool == kNoTool)
+  if (tip->shownTool == kNoTool) {
     return;
-  KillTimer(tip->hwnd, kTimerPop);
-  KillTimer(tip->hwnd, kTimerLeave);
+  }
+  reb::compat::KillTimer(tip->hwnd, kTimerPop);
+  reb::compat::KillTimer(tip->hwnd, kTimerLeave);
   tip->shownTool = kNoTool;
-  SetWindowPos(tip->hwnd, nullptr, 0, 0, 0, 0,
+  reb::compat::SetWindowPos(tip->hwnd, nullptr, 0, 0, 0, 0,
                kSwpNoMove | kSwpNoSize | kSwpNoZOrder | kSwpNoActivate | kSwpHideWindow);
 }
 
 SIZE MeasureText(Tip* tip, const std::string& text)
 {
-  HDC dc = GetDC(tip->hwnd);
-  HGDIOBJ old = SelectObject(dc, tip->font);
+  HDC dc = reb::compat::GetDC(tip->hwnd);
+  HGDIOBJ old = reb::compat::SelectObject(dc, tip->font);
   RECT rc = MakeRect(0, 0, 0x7fff, 0);
-  DrawTextA(dc, text.c_str(), -1, &rc, DT_CALCRECT | DT_NOPREFIX | kDtExternalLeading);
-  SelectObject(dc, old);
-  ReleaseDC(tip->hwnd, dc);
+  reb::compat::DrawTextA(dc, text.c_str(), -1, &rc, DT_CALCRECT | DT_NOPREFIX | kDtExternalLeading);
+  reb::compat::SelectObject(dc, old);
+  reb::compat::ReleaseDC(tip->hwnd, dc);
   SIZE size;
   size.cx = Width(rc);
   size.cy = Height(rc);
@@ -151,62 +152,64 @@ SIZE MeasureText(Tip* tip, const std::string& text)
 
 void Show(Tip* tip)
 {
-  if (tip->hovered == kNoTool || !tip->active)
+  if (tip->hovered == kNoTool || !tip->active) {
     return;
+  }
   const std::string text = tip->tools[static_cast<size_t>(tip->hovered)].text;
-  if (text.empty())
+  if (text.empty()) {
     return;
-  if (!tip->font)
+  }
+  if (!tip->font) {
     tip->font = StatusFont();
+  }
   const SIZE textSize = MeasureText(tip, text);
   const int width = textSize.cx + 2 * (kTextPadding + kBorder);
   const int height = textSize.cy + 2 * (kTextPadding + kBorder);
   POINT pt;
-  GetCursorPos(&pt);
+  reb::compat::GetCursorPos(&pt);
   int x = pt.x - kBorder, y = pt.y + kPointerHeight - kBorder;
-  const int screenW = GetSystemMetrics(SM_CXSCREEN), screenH = GetSystemMetrics(SM_CYSCREEN);
-  if (x + width > screenW)
+  const int screenW = reb::compat::GetSystemMetrics(SM_CXSCREEN), screenH = reb::compat::GetSystemMetrics(SM_CYSCREEN);
+  if (x + width > screenW) {
     x = screenW - width;
-  if (x < 0)
+  }
+  if (x < 0) {
     x = 0;
-  if (y + height > screenH)
+  }
+  if (y + height > screenH) {
     y = pt.y - height;
+  }
   tip->shownTool = tip->hovered;
   tip->shownText = text;
-  SetWindowPos(tip->hwnd, reinterpret_cast<HWND>(static_cast<intptr_t>(-1)), x, y, width, height,
+  reb::compat::SetWindowPos(tip->hwnd, reinterpret_cast<HWND>(static_cast<intptr_t>(-1)), x, y, width, height,
                kSwpNoActivate | kSwpShowWindow);
-  InvalidateRect(tip->hwnd, nullptr, TRUE);
-  SetTimer(tip->hwnd, kTimerPop, tip->autopopMs, nullptr);
-  SetTimer(tip->hwnd, kTimerLeave, kLeaveCheckMs, nullptr);
+  reb::compat::InvalidateRect(tip->hwnd, nullptr, TRUE);
+  reb::compat::SetTimer(tip->hwnd, kTimerPop, tip->autopopMs, nullptr);
+  reb::compat::SetTimer(tip->hwnd, kTimerLeave, kLeaveCheckMs, nullptr);
 }
 
 void StartShowTimer(Tip* tip, unsigned delayMs)
 {
-  if (tip->active)
-    SetTimer(tip->hwnd, kTimerShow, delayMs, nullptr);
+  if (tip->active) {
+    reb::compat::SetTimer(tip->hwnd, kTimerShow, delayMs, nullptr);
+  }
 }
 
 void RelayMouseMove(Tip* tip)
 {
   const int previous = tip->hovered;
   tip->hovered = ToolUnderPointer(*tip);
-  if (tip->hovered == previous)
-  {
-    if (tip->hovered != kNoTool && tip->shownTool == kNoTool)
+  if (tip->hovered == previous) {
+    if (tip->hovered != kNoTool && tip->shownTool == kNoTool) {
       StartShowTimer(tip, tip->initialMs);
+    }
     return;
   }
-  if (tip->hovered == kNoTool)
-  {
-    KillTimer(tip->hwnd, kTimerShow);
+  if (tip->hovered == kNoTool) {
+    reb::compat::KillTimer(tip->hwnd, kTimerShow);
     Hide(tip);
-  }
-  else if (previous == kNoTool)
-  {
+  } else if (previous == kNoTool) {
     StartShowTimer(tip, tip->initialMs);
-  }
-  else
-  {
+  } else {
     Hide(tip);
     StartShowTimer(tip, tip->reshowMs);
   }
@@ -214,16 +217,15 @@ void RelayMouseMove(Tip* tip)
 
 void RelayEvent(Tip* tip, const MSG* msg)
 {
-  if (!msg)
+  if (!msg) {
     return;
-  if (msg->message >= WM_LBUTTONDOWN && msg->message <= WM_RBUTTONUP)
-  {
-    Hide(tip);
-    if (tip->hovered != kNoTool)
-      StartShowTimer(tip, tip->initialMs);
   }
-  else if (msg->message == WM_MOUSEMOVE)
-  {
+  if (msg->message >= WM_LBUTTONDOWN && msg->message <= WM_RBUTTONUP) {
+    Hide(tip);
+    if (tip->hovered != kNoTool) {
+      StartShowTimer(tip, tip->initialMs);
+    }
+  } else if (msg->message == WM_MOUSEMOVE) {
     RelayMouseMove(tip);
   }
 }
@@ -231,8 +233,7 @@ void RelayEvent(Tip* tip, const MSG* msg)
 void SetDelay(Tip* tip, WPARAM which, LPARAM value)
 {
   const auto ms = static_cast<unsigned>(value & 0xffff);
-  switch (static_cast<unsigned>(which))
-  {
+  switch (static_cast<unsigned>(which)) {
     case kDelayAutomatic:
       tip->initialMs = ms ? ms : kDefaultInitialMs;
       tip->reshowMs = tip->initialMs / 5;
@@ -254,12 +255,10 @@ void SetDelay(Tip* tip, WPARAM which, LPARAM value)
 
 void OnTimer(Tip* tip, UINT_PTR id)
 {
-  switch (id)
-  {
+  switch (id) {
     case kTimerShow:
-      KillTimer(tip->hwnd, kTimerShow);
-      if (tip->shownTool == kNoTool)
-      {
+      reb::compat::KillTimer(tip->hwnd, kTimerShow);
+      if (tip->shownTool == kNoTool) {
         tip->hovered = ToolUnderPointer(*tip);
         Show(tip);
       }
@@ -268,8 +267,7 @@ void OnTimer(Tip* tip, UINT_PTR id)
       Hide(tip);
       break;
     case kTimerLeave:
-      if (ToolUnderPointer(*tip) != tip->shownTool)
-      {
+      if (ToolUnderPointer(*tip) != tip->shownTool) {
         tip->hovered = ToolUnderPointer(*tip);
         Hide(tip);
       }
@@ -279,49 +277,47 @@ void OnTimer(Tip* tip, UINT_PTR id)
   }
 }
 
-// Wine draws the tooltip's WS_BORDER as it comes out on an 8-bit display: the top and right edges in the static grey, the left and
-// bottom edges dithered with white (read off the real control's pixels, not derived from the SDK).
+// Wine draws the tooltip's WS_BORDER as it comes out on an 8-bit display: the top and right edges in the static grey,
+// the left and bottom edges dithered with white (read off the real control's pixels, not derived from the SDK).
 void DrawBorder(HDC dc, const RECT& box)
 {
-  HBRUSH grey = CreateSolidBrush(RGB(128, 128, 128));
-  HBRUSH white = CreateSolidBrush(RGB(255, 255, 255));
+  HBRUSH grey = reb::compat::CreateSolidBrush(RGB(128, 128, 128));
+  HBRUSH white = reb::compat::CreateSolidBrush(RGB(255, 255, 255));
   RECT top = MakeRect(box.left, box.top, box.right, box.top + kBorder);
   RECT right = MakeRect(box.right - kBorder, box.top, box.right, box.bottom);
-  FillRect(dc, &top, grey);
-  FillRect(dc, &right, grey);
-  for (int y = box.top + kBorder; y < box.bottom; ++y)
-  {
+  reb::compat::FillRect(dc, &top, grey);
+  reb::compat::FillRect(dc, &right, grey);
+  for (int y = box.top + kBorder; y < box.bottom; ++y) {
     RECT left = MakeRect(box.left, y, box.left + kBorder, y + 1);
-    FillRect(dc, &left, ((y - box.top) & 1) ? white : grey);
+    reb::compat::FillRect(dc, &left, ((y - box.top) & 1) ? white : grey);
   }
-  for (int x = box.left; x < box.right - kBorder; ++x)
-  {
+  for (int x = box.left; x < box.right - kBorder; ++x) {
     RECT bottom = MakeRect(x, box.bottom - kBorder, x + 1, box.bottom);
-    FillRect(dc, &bottom, ((x - box.left) & 1) ? white : grey);
+    reb::compat::FillRect(dc, &bottom, ((x - box.left) & 1) ? white : grey);
   }
-  DeleteObject(grey);
-  DeleteObject(white);
+  reb::compat::DeleteObject(grey);
+  reb::compat::DeleteObject(white);
 }
 
 void Paint(Tip* tip)
 {
   PAINTSTRUCT ps;
-  HDC dc = BeginPaint(tip->hwnd, &ps);
+  HDC dc = reb::compat::BeginPaint(tip->hwnd, &ps);
   RECT client;
-  GetClientRect(tip->hwnd, &client);
+  reb::compat::GetClientRect(tip->hwnd, &client);
   DrawBorder(dc, client);
   RECT inner = MakeRect(client.left + kBorder, client.top + kBorder, client.right - kBorder, client.bottom - kBorder);
-  HBRUSH background = CreateSolidBrush(SystemColor(kSysColorInfoBk));
-  FillRect(dc, &inner, background);
-  DeleteObject(background);
+  HBRUSH background = reb::compat::CreateSolidBrush(SystemColor(kSysColorInfoBk));
+  reb::compat::FillRect(dc, &inner, background);
+  reb::compat::DeleteObject(background);
   RECT textRect = MakeRect(inner.left + kTextPadding, inner.top + kTextPadding, inner.right - kTextPadding,
                            inner.bottom - kTextPadding);
-  HGDIOBJ old = SelectObject(dc, tip->font);
-  SetBkMode(dc, 1);
-  SetTextColor(dc, SystemColor(kSysColorInfoText));
-  DrawTextA(dc, tip->shownText.c_str(), -1, &textRect, DT_NOPREFIX | kDtExternalLeading);
-  SelectObject(dc, old);
-  EndPaint(tip->hwnd, &ps);
+  HGDIOBJ old = reb::compat::SelectObject(dc, tip->font);
+  reb::compat::SetBkMode(dc, 1);
+  reb::compat::SetTextColor(dc, SystemColor(kSysColorInfoText));
+  reb::compat::DrawTextA(dc, tip->shownText.c_str(), -1, &textRect, DT_NOPREFIX | kDtExternalLeading);
+  reb::compat::SelectObject(dc, old);
+  reb::compat::EndPaint(tip->hwnd, &ps);
 }
 
 } // namespace
@@ -329,82 +325,89 @@ void Paint(Tip* tip)
 LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   Tip* tip = TipOf(hwnd);
-  switch (message)
-  {
+  switch (message) {
     case WM_NCCREATE:
-    {
-      Tip* created = new Tip;
-      created->hwnd = hwnd;
-      AllTips().push_back(created);
-      return TRUE;
-    }
-    case WM_NCDESTROY:
-    {
-      std::vector<Tip*>& tips = AllTips();
-      for (size_t i = 0; i < tips.size(); ++i)
       {
-        if (tips[i] != tip)
-          continue;
-        if (tip->font)
-          DeleteObject(tip->font);
-        delete tip;
-        tips.erase(tips.begin() + static_cast<long>(i));
-        break;
+        Tip* created = new Tip;
+        created->hwnd = hwnd;
+        AllTips().push_back(created);
+        return TRUE;
       }
-      return DefWindowProcA(hwnd, message, wParam, lParam);
-    }
+    case WM_NCDESTROY:
+      {
+        std::vector<Tip*>& tips = AllTips();
+        for (size_t i = 0; i < tips.size(); ++i) {
+          if (tips[i] != tip) {
+            continue;
+          }
+          if (tip->font) {
+            reb::compat::DeleteObject(tip->font);
+          }
+          delete tip;
+          tips.erase(tips.begin() + static_cast<long>(i));
+          break;
+        }
+        return reb::compat::DefWindowProcA(hwnd, message, wParam, lParam);
+      }
     default:
       break;
   }
-  if (!tip)
-    return DefWindowProcA(hwnd, message, wParam, lParam);
-  switch (message)
-  {
+  if (!tip) {
+    return reb::compat::DefWindowProcA(hwnd, message, wParam, lParam);
+  }
+  switch (message) {
     case TTM_ACTIVATE:
       tip->active = wParam != 0;
-      if (!tip->active)
+      if (!tip->active) {
         Hide(tip);
+      }
       return 0;
     case TTM_SETDELAYTIME:
       SetDelay(tip, wParam, lParam);
       return 0;
     case TTM_ADDTOOLA:
-    {
-      const auto* info = reinterpret_cast<const TTTOOLINFOA*>(lParam);
-      if (!info)
-        return FALSE;
-      Tool tool;
-      tool.owner = info->hwnd;
-      tool.flags = info->uFlags;
-      tool.id = info->uId;
-      tool.rect = info->rect;
-      StoreText(&tool, info->lpszText);
-      tip->tools.push_back(tool);
-      if (Window* owner = FromHandle(info->hwnd))
-        Send(owner, kWmNotifyFormat, reinterpret_cast<WPARAM>(hwnd), 3);
-      return TRUE;
-    }
+      {
+        const auto* info = reinterpret_cast<const TTTOOLINFOA*>(lParam);
+        if (!info) {
+          return FALSE;
+        }
+        Tool tool;
+        tool.owner = info->hwnd;
+        tool.flags = info->uFlags;
+        tool.id = info->uId;
+        tool.rect = info->rect;
+        StoreText(&tool, info->lpszText);
+        tip->tools.push_back(tool);
+        if (Window* owner = FromHandle(info->hwnd)) {
+          Send(owner, kWmNotifyFormat, reinterpret_cast<WPARAM>(hwnd), 3);
+        }
+        return TRUE;
+      }
     case TTM_DELTOOLA:
-    {
-      const int index = FindTool(*tip, reinterpret_cast<const TTTOOLINFOA*>(lParam));
-      if (index == kNoTool)
+      {
+        const int index = FindTool(*tip, reinterpret_cast<const TTTOOLINFOA*>(lParam));
+        if (index == kNoTool) {
+          return 0;
+        }
+        if (tip->shownTool == index) {
+          Hide(tip);
+        }
+        tip->tools.erase(tip->tools.begin() + index);
+        tip->hovered = tip->hovered == index ? kNoTool : (tip->hovered > index ? tip->hovered - 1 : tip->hovered);
+        if (tip->shownTool > index) {
+          --tip->shownTool;
+        }
         return 0;
-      if (tip->shownTool == index)
-        Hide(tip);
-      tip->tools.erase(tip->tools.begin() + index);
-      tip->hovered = tip->hovered == index ? kNoTool : (tip->hovered > index ? tip->hovered - 1 : tip->hovered);
-      if (tip->shownTool > index)
-        --tip->shownTool;
-      return 0;
-    }
+      }
     case TTM_UPDATETIPTEXTA:
-    {
-      const auto* info = reinterpret_cast<const TTTOOLINFOA*>(lParam);
-      const int index = info ? FindTool(*tip, info) : kNoTool;
-      if (index != kNoTool)
-        StoreText(&tip->tools[static_cast<size_t>(index)], info->lpszText);
-      return 0;
-    }
+      {
+        const auto* info = reinterpret_cast<const TTTOOLINFOA*>(lParam);
+        const int index = info ? FindTool(*tip, info) : kNoTool;
+        if (index != kNoTool) {
+          StoreText(&tip->tools[static_cast<size_t>(index)], info->lpszText);
+        }
+        return 0;
+      }
     case TTM_RELAYEVENT:
       RelayEvent(tip, reinterpret_cast<const MSG*>(lParam));
       return 0;
@@ -421,7 +424,7 @@ LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
       Paint(tip);
       return 0;
     default:
-      return DefWindowProcA(hwnd, message, wParam, lParam);
+      return reb::compat::DefWindowProcA(hwnd, message, wParam, lParam);
   }
 }
 

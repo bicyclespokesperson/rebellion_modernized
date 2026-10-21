@@ -7,7 +7,7 @@
 #include "galaxy/system.h"
 #include "gameobj/object_queries.h"
 
-extern int g_missionEspionageEventKindsReady; // 0x6bba64
+extern int g_missionEspionageEventKindsReady;     // 0x6bba64
 extern EventKindSet g_missionEspionageEventKinds; // 0x6bba68
 
 namespace
@@ -28,8 +28,9 @@ bool InFamilyRange(const FamilyRange& range, uint32_t family)
 
 int OpposingSideIndex(uint32_t controlSide)
 {
-  if (controlSide == 3)
+  if (controlSide == 3) {
     return 3;
+  }
   return controlSide == 1 ? 2 : 1;
 }
 } // namespace
@@ -101,18 +102,21 @@ int MissionEspionage::OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, No
 {
   auto* system = static_cast<System*>(GetMasterInFamilies_90_98(newKey));
   int result = system != nullptr;
-  if (!system)
+  if (!system) {
     return result;
-  if (!system->SyncViewForEvent(kEventSyncMode, static_cast<int>(ControlSide()), ctx))
+  }
+  if (!system->SyncViewForEvent(kEventSyncMode, static_cast<int>(ControlSide()), ctx)) {
     return 0;
+  }
   return result;
 }
 
 int MissionEspionage::OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (!result)
+  if (!result) {
     return result;
+  }
   LogKey("MissionEspionageExtraSystemKeyNotif", "ExtraSystem", newKey, oldKey, 0, ctx);
   return PostPayloadKeysA(kEventExtraSystemChanged, this, oldKey, newKey, ctx);
 }
@@ -130,17 +134,20 @@ int MissionEspionage::BeforeScoringResults(NotifyContext* ctx)
 int MissionEspionage::ApplyPersonResult(GameObj* person, int roll, int* out, NotifyContext* ctx)
 {
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return 1;
+  }
   *out = 1;
   int result = SetTaskStatus(kTaskSucceeded, ctx) != 0;
   GameObj* leader = nullptr;
   result = GetTargetLocationSystem(&leader) && result;
-  if (!leader || ControlSide() == leader->ControlSide())
+  if (!leader || ControlSide() == leader->ControlSide()) {
     return result;
+  }
   Role* role = static_cast<Role*>(person);
-  if (!role->IsCharacter())
+  if (!role->IsCharacter()) {
     return result;
+  }
   const int raised = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb180D, ctx);
   return raised && result ? 1 : 0;
 }
@@ -148,100 +155,105 @@ int MissionEspionage::ApplyPersonResult(GameObj* person, int roll, int* out, Not
 int MissionEspionage::AfterScoringResults(NotifyContext* ctx)
 {
   int result = 1;
-  if (m_taskStatus == 0)
+  if (m_taskStatus == 0) {
     result = SetTaskStatus(kTaskStarted, ctx) != 0;
-  if (m_taskStatus != kTaskSucceeded)
+  }
+  if (m_taskStatus != kTaskSucceeded) {
     return result;
+  }
 
   GameObj* leader = nullptr;
   result = GetTargetLocationSystem(&leader) && result;
   GameObj* target = nullptr;
-  if (leader)
-  {
+  if (leader) {
     const FamilyRange systems(0x90, 0x98);
-    if (InFamilyRange(systems, leader->GetFamily()))
+    if (InFamilyRange(systems, leader->GetFamily())) {
       target = leader;
-    else
+    } else {
       result = 0;
+    }
   }
-  if (!target)
+  if (!target) {
     return result;
+  }
 
   const uint32_t side = ControlSide();
   result = static_cast<System*>(target)->SyncViewForEvent(kEventSyncMode, static_cast<int>(side), ctx) && result;
-  if (OpposingSideIndex(side) != target->ControlSide())
+  if (OpposingSideIndex(side) != target->ControlSide()) {
     return result;
+  }
 
   const FamilyRange firstType(0x90, 0x92);
   const int isCoreSystem = InFamilyRange(firstType, target->GetFamily());
   ObjectKey targetKey;
   target->GetKey(&targetKey);
-  const int isHomeSystem =
-    targetKey.m_value == kHomeSystemKey && (target->m_flags & kSideBitsControl) == kControlSideSecond;
+  const int isHomeSystem
+      = targetKey.m_value == kHomeSystemKey && (target->m_flags & kSideBitsControl) == kControlSideSecond;
   AllFacilityIterator facilities(target, 1);
   const int hasFacility = facilities.HasCurrent();
 
   int count = 0;
   int includeType90 = 0;
   int includeType92 = 0;
-  const int computed =
-    ComputeEspionageOutcome(isCoreSystem, isHomeSystem, hasFacility, &count, &includeType90, &includeType92);
+  const int computed
+      = ComputeEspionageOutcome(isCoreSystem, isHomeSystem, hasFacility, &count, &includeType90, &includeType92);
   result = computed && result ? 1 : 0;
-  if (!count)
+  if (!count) {
     return result;
+  }
   return PickExtraSystems(target, count, includeType90, includeType92, ctx) && result ? 1 : 0;
 }
 
-int MissionEspionage::PickExtraSystems(GameObj* target,
-                                       int count,
-                                       int includeType90,
-                                       int includeType92,
+int MissionEspionage::PickExtraSystems(GameObj* target, int count, int includeType90, int includeType92,
                                        NotifyContext* ctx)
 {
   int result = 1;
   FamilyRange wanted;
-  if (includeType90 && includeType92)
+  if (includeType90 && includeType92) {
     wanted = FamilyRange(0x90, 0x98);
-  else if (includeType90)
+  } else if (includeType90) {
     wanted = FamilyRange(0x90, 0x92);
-  else if (includeType92)
+  } else if (includeType92) {
     wanted = FamilyRange(0x92, 0x94);
+  }
 
   ObjectKeyValueSet candidates;
   int available = 0;
   const FamilyRange allSystems(0x90, 0x98);
   for (auto* system = static_cast<GameObj*>(GetFirstMasterInFamilies_90_98()); system;
-       system = static_cast<GameObj*>(system->FindNextSibling(&allSystems, 1)))
-  {
-    if (system->ControlSide() != target->ControlSide())
+       system = static_cast<GameObj*>(system->FindNextSibling(&allSystems, 1))) {
+    if (system->ControlSide() != target->ControlSide()) {
       continue;
+    }
     ObjectKey targetKey;
     ObjectKey systemKey;
     target->GetKey(&targetKey);
     system->GetKey(&systemKey);
-    if (systemKey.m_value == targetKey.m_value || !InFamilyRange(wanted, system->GetFamily()))
+    if (systemKey.m_value == targetKey.m_value || !InFamilyRange(wanted, system->GetFamily())) {
       continue;
+    }
     ++available;
     ObjectKey key;
     system->GetKey(&key);
     result = candidates.AddKeyValue(&key, 0) && result;
   }
 
-  if (available < count)
+  if (available < count) {
     count = available;
-  while (count != 0)
-  {
+  }
+  while (count != 0) {
     const int last = available - 1;
     const int skip = GameRandom(last);
     auto position = candidates.Entries().begin();
-    if (position == candidates.Entries().end())
+    if (position == candidates.Entries().end()) {
       continue;
-    for (int remainingSkip = skip; remainingSkip > 0 && position != candidates.Entries().end(); --remainingSkip)
-    {
+    }
+    for (int remainingSkip = skip; remainingSkip > 0 && position != candidates.Entries().end(); --remainingSkip) {
       ++position;
     }
-    if (position == candidates.Entries().end())
+    if (position == candidates.Entries().end()) {
       continue;
+    }
     auto* node = (*position).get();
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
@@ -256,8 +268,7 @@ int MissionEspionage::PickExtraSystems(GameObj* target,
 
 int MissionEspionage::BuildEventKinds()
 {
-  if (!g_missionEspionageEventKindsReady)
-  {
+  if (!g_missionEspionageEventKindsReady) {
     g_missionEspionageEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionEspionageEventKinds);
   }

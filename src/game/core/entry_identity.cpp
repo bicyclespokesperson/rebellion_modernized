@@ -10,11 +10,13 @@ AvlNode::~AvlNode() = default;
 
 // ---- IdNode -----------------------------------------------------------------------------------------------
 
-IdNode::IdNode() : m_id(0)
+IdNode::IdNode()
+    : m_id(0)
 {
 }
 
-IdNode::IdNode(uint32_t id) : m_id(id)
+IdNode::IdNode(uint32_t id)
+    : m_id(id)
 {
 }
 
@@ -43,15 +45,13 @@ LinkNode::LinkNode(const LinkNode&) = default;
 
 LinkNode::~LinkNode() = default;
 
-void LinkNode::Read(istream*)
-{
-}
+void LinkNode::Read(istream*) {}
 
-void LinkNode::Write(ostream*)
-{
-}
+void LinkNode::Write(ostream*) {}
 
-IdLinkNode::IdLinkNode() : LinkNode(), m_id(0)
+IdLinkNode::IdLinkNode()
+    : LinkNode()
+    , m_id(0)
 {
 }
 

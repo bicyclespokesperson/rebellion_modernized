@@ -6,7 +6,9 @@
 
 // ---- IntPair -----------------------------------------------------------------------------------------------
 
-IntPair::IntPair() : m_first(0), m_second(0)
+IntPair::IntPair()
+    : m_first(0)
+    , m_second(0)
 {
 }
 
@@ -72,11 +74,9 @@ size_t EventKindSet::Count() const
 
 EventKindSet& EventKindSet::Intersect(const EventKindSet& other)
 {
-  std::erase_if(m_kinds,
-                [&other](const auto& entry)
-                {
-                  return !other.m_kinds.contains(entry.first);
-                });
+  std::erase_if(m_kinds, [&other](const auto& entry) {
+    return !other.m_kinds.contains(entry.first);
+  });
   return *this;
 }
 
@@ -88,8 +88,9 @@ int EventKindSet::Contains(int kind)
 EventKindNode* EventKindSet::Add(int kind, int value)
 {
   auto [position, inserted] = m_kinds.try_emplace(kind);
-  if (!inserted)
+  if (!inserted) {
     return nullptr;
+  }
   position->second.m_key = kind;
   position->second.m_value = value;
   return &position->second;
@@ -106,14 +107,15 @@ int EventKindSet::Read(istream* in)
   Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     return 0;
-  for (uint32_t i = 0; i < count; ++i)
-  {
+  }
+  for (uint32_t i = 0; i < count; ++i) {
     EventKindNode node;
     node.Read(in);
-    if (iostream_access::State(in) != 0)
+    if (iostream_access::State(in) != 0) {
       return 0;
+    }
     m_kinds.try_emplace(node.m_key, node);
   }
   return 1;
@@ -121,16 +123,20 @@ int EventKindSet::Read(istream* in)
 
 int EventKindSet::Write(ostream* out)
 {
-  if (!WriteCount32(out, Count()))
+  if (!WriteCount32(out, Count())) {
     return 0;
-  for (auto& [kind, node] : m_kinds)
+  }
+  for (auto& [kind, node] : m_kinds) {
     node.Write(out);
+  }
   return iostream_access::State(out) == 0;
 }
 
 // ---- EventKindNode ----------------------------------------------------------------------------------------
 
-EventKindNode::EventKindNode() : m_value(1), m_unknown(0)
+EventKindNode::EventKindNode()
+    : m_value(1)
+    , m_unknown(0)
 {
 }
 

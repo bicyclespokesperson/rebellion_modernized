@@ -19,8 +19,7 @@ namespace
 constexpr uint32_t kTitleDrawFlags = 0x11;
 constexpr int kTitleHeight = 0x24;
 
-struct ManufacturingKind
-{
+struct ManufacturingKind {
   uint32_t m_firstFamily;
   uint32_t m_endFamily;
   uint16_t m_titleId;
@@ -29,9 +28,9 @@ struct ManufacturingKind
 };
 
 constexpr ManufacturingKind kKinds[] = {
-  {0xa0, 0xa2, 0x1833, CountManufacturingFacility2AChildren, 0},
-  {0xa2, 0xa4, 0x1829, CountManufacturingFacility28Children, 0},
-  {0xa4, 0xa6, 0x1831, CountManufacturingFacility29Children, 1},
+    {0xa0, 0xa2, 0x1833, CountManufacturingFacility2AChildren, 0},
+    {0xa2, 0xa4, 0x1829, CountManufacturingFacility28Children, 0},
+    {0xa4, 0xa6, 0x1831, CountManufacturingFacility29Children, 1},
 };
 
 } // namespace
@@ -44,11 +43,11 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
   auto* parent = static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent);
   int facilityCount = 0;
   int isTroopTraining = 0;
-  for (const ManufacturingKind& kind : kKinds)
-  {
+  for (const ManufacturingKind& kind : kKinds) {
     const uint32_t family = m_key.Family();
-    if (family < kind.m_firstFamily || family >= kind.m_endFamily)
+    if (family < kind.m_firstFamily || family >= kind.m_endFamily) {
       continue;
+    }
     const ResourceStringId titleId = ResourceStringId{static_cast<int16_t>(kind.m_titleId), 2};
     text = LoadStringResource(&titleId);
     facilityCount = kind.m_countFacilities(parent, (static_cast<GameObjRoot*>(parent)->m_flags >> 6) & 3, 3);
@@ -70,18 +69,13 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
   AddStatusRow(3, &text, labels);
   text.clear();
 
-  if (facilityCount == 0)
-  {
+  if (facilityCount == 0) {
     SetText(&text, 0x8772);
     AddStatusRow(3, &text, values);
-  }
-  else if (manager->m_remainingGameObjCount == 0)
-  {
+  } else if (manager->m_remainingGameObjCount == 0) {
     SetText(&text, 0x8769);
     AddStatusRow(3, &text, values);
-  }
-  else
-  {
+  } else {
     SetText(&text, isTroopTraining == 0 ? 0x8770 : 0x8771);
     AddStatusRow(3, &text, values);
     text.clear();
@@ -91,8 +85,7 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
     text.append(std::to_string(static_cast<long>(manager->m_remainingGameObjCount)));
     AddStatusRow(4, &text, values);
     const bool sameSide = ((static_cast<GameObjRoot*>(parent)->m_flags ^ manager->m_flags) & 0xc0) == 0;
-    if (manager->m_remainingGameObjCount != 0 && sameSide)
-    {
+    if (manager->m_remainingGameObjCount != 0 && sameSide) {
       text.clear();
       SetText(&text, 0x8765);
       AddStatusRow(5, &text, labels);

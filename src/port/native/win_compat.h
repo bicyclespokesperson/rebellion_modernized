@@ -1,5 +1,5 @@
-// The few Win32 calls the headless simulation harness (src/port/sim_harness.cpp) makes beyond minwin, as thin POSIX wrappers
-// (win_compat.cpp). Used instead of <windows.h> by the native build.
+// The few Win32 calls the headless simulation harness (src/port/sim_harness.cpp) makes beyond minwin, as thin POSIX
+// wrappers (win_compat.cpp). Used instead of <windows.h> by the native build.
 #pragma once
 #include "platform/win32.h"
 
@@ -13,13 +13,8 @@
 
 extern "C" {
 DWORD REB_STDCALL GetEnvironmentVariableA(LPCSTR name, LPSTR buffer, DWORD size);
-HANDLE REB_STDCALL CreateFileA(LPCSTR path,
-                               DWORD access,
-                               DWORD share,
-                               void* security,
-                               DWORD disposition,
-                               DWORD attributes,
-                               HANDLE template_);
+HANDLE REB_STDCALL CreateFileA(LPCSTR path, DWORD access, DWORD share, void* security, DWORD disposition,
+                               DWORD attributes, HANDLE template_);
 BOOL REB_STDCALL WriteFile(HANDLE file, const void* data, DWORD bytes, DWORD* written, void* overlapped);
 [[noreturn]] void REB_STDCALL ExitProcess(UINT code);
 }

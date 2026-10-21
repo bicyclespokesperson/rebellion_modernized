@@ -1,6 +1,7 @@
 #include "port/native/game_context.h"
 
 #include "port/native/audio_context.h"
+#include "port/native/lan_game.h"
 #include <utility>
 
 #include "app/app_control_cmds.h"
@@ -14,15 +15,8 @@
 #include "events/game_manager_state.h"
 #include "gfx/directdraw_host.h"
 #include "multiplayer/multiplayer_window.h"
-#include "tactical/tactical_externals.h"
-#include "tactical/tactical_formation.h"
-#include "tactical/tactical_math.h"
 #include "ui/animation_step.h"
 #include "ui/resource_dll.h"
-
-extern float g_tacticalFacadeScaleSquared;
-extern float g_tacticalGameScaleSquared;
-extern float g_tacticalSideScaleSquared;
 
 namespace reb::native
 {
@@ -31,24 +25,12 @@ GameContext::GameContext() = default;
 
 void GameContext::Start()
 {
-  if (started_)
+  if (started_) {
     return;
+  }
   started_ = true;
 
-  // Scalar defaults which the old executable encoded as partial stores.
-  g_tacticalFacadeScaleSquared = 9.0f;
-  g_tacticalGameScaleSquared = 9.0f;
-  g_tacticalSideScaleSquared = 9.0f;
-  g_shipMinTurnStep = 0x1.0c1524p-4f;
-
-  // Geometry and UI metrics are derived from their typed source values.
-  InitFlowRange2Span();
-  InitFlowScaleC();
-  InitFlowScaleA();
-  InitFlowScaleB();
   InitFlowRangeSpan();
-  ComputeRectAWidth();
-  ComputeRectBWidth();
   g_legacyBlockA.Reset();
 
   // Register the two table factories; this replaces the old final count store.
@@ -67,6 +49,7 @@ void GameContext::Start()
 
   // This host depends on platform wiring and must be created after Install().
   audio_ = std::make_unique<AudioContext>();
+  lan_ = std::make_unique<LanGame>();
   uiResources_ = std::make_unique<UiResources>();
   directDrawHost_ = std::make_unique<DirectDrawHost>(GetDllLocation(), 1);
 }
@@ -78,11 +61,13 @@ GameContext::~GameContext()
 
 void GameContext::Shutdown() noexcept
 {
-  if (!started_)
+  if (!started_) {
     return;
+  }
 
   ReleaseApplication();
 
+  lan_.reset();
   audio_.reset();
   uiResources_.reset();
 
@@ -92,21 +77,27 @@ void GameContext::Shutdown() noexcept
 
 RebellionApplication& GameContext::CreateApplication(HINSTANCE instance, uint32_t flags, const std::string& commandLine)
 {
-  application_ =
-    std::make_unique<RebellionApplication>(instance, flags, &commandLine, *directDrawHost_, *this, *uiResources_);
+  application_
+      = std::make_unique<RebellionApplication>(instance, flags, &commandLine, *directDrawHost_, *this, *uiResources_);
   return *application_;
 }
 
 void GameContext::ReleaseApplication() noexcept
 {
-  if (audio_)
+  if (audio_) {
     audio_->Shutdown();
+  }
   application_.reset();
 }
 
 AudioContext& GameContext::GetAudioContext() noexcept
 {
   return *audio_;
+}
+
+LanGame& GameContext::GetLanGame() noexcept
+{
+  return *lan_;
 }
 
 BattleFlow* GameContext::GetBattleFlow() const noexcept

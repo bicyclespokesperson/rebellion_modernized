@@ -30,8 +30,7 @@ void RegisterTableEntryClasses()
 
 int EnsureTableEntryClassesRegistered()
 {
-  if (g_tableEntryClassesRegistered == 0)
-  {
+  if (g_tableEntryClassesRegistered == 0) {
     RegisterTableEntryClasses();
     g_tableEntryClassesRegistered = 1;
   }
@@ -61,8 +60,7 @@ void RegisterRecordFactories()
 
 int EnsureRecordFactoriesRegistered()
 {
-  if (g_recordFactoriesRegistered == 0)
-  {
+  if (g_recordFactoriesRegistered == 0) {
     RegisterRecordFactories();
     g_recordFactoriesRegistered = 1;
   }

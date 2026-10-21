@@ -6,8 +6,7 @@
 //   vfw       AVIFile                                         comctl32  tooltips
 //   advapi32  registry, user name                             version   file version resources
 //   ddraw     DirectDraw (mode switch only)                   dsound    DirectSound
-// The names are the inventory in tools/minwin_inventory.txt; tools/minwin_check.sh compares every layout and value with
-// the real SDK. Declarations are written for ILP32 and LP64 alike (see core.h).
+// Declarations are written for ILP32 and LP64 alike (see core.h).
 #pragma once
 #include "port/minwin/advapi32.h"
 #include "port/minwin/base.h"

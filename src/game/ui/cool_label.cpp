@@ -35,33 +35,20 @@ void CoolLabel::InitializeRect(int left, int top, int width, int height, UINT dr
   m_hidden = 0;
 }
 
-CoolLabel::CoolLabel(uint16_t stringId,
-                     int left,
-                     int top,
-                     int width,
-                     int height,
-                     COLORREF color,
-                     int fontSlot,
-                     UINT drawFlags,
-                     UINT layoutFlags)
+CoolLabel::CoolLabel(uint16_t stringId, int left, int top, int width, int height, COLORREF color, int fontSlot,
+                     UINT drawFlags, UINT layoutFlags)
 {
   InitializeRect(left, top, width, height, drawFlags, layoutFlags);
   SetColor(color, nullptr);
   SetFont(fontSlot);
-  if (stringId != 0)
-  {
+  if (stringId != 0) {
     char text[0x100] = {};
     LoadResourceString(stringId, text, sizeof(text));
     m_text = NewOrNull<std::string>(StringFromText(static_cast<const char*>(text)));
   }
 }
 
-CoolLabel::CoolLabel(const ResourceStringId* stringId,
-                     int left,
-                     int top,
-                     int width,
-                     int height,
-                     UINT drawFlags,
+CoolLabel::CoolLabel(const ResourceStringId* stringId, int left, int top, int width, int height, UINT drawFlags,
                      UINT layoutFlags)
 {
   InitializeRect(left, top, width, height, drawFlags, layoutFlags);
@@ -87,34 +74,40 @@ CoolLabel::CoolLabel(const char* text, int left, int top, int width, int height,
 
 CoolLabel::~CoolLabel()
 {
-  if (m_text)
+  if (m_text) {
     delete m_text;
+  }
 }
 
 void CoolLabel::SetTextFromResource(const ResourceStringId* stringId)
 {
-  if (m_text)
+  if (m_text) {
     delete m_text;
+  }
   m_text = NewOrNull<std::string>(LoadStringResource(stringId));
-  if ((m_layoutFlags & kLabelFixedWidth) == 0)
+  if ((m_layoutFlags & kLabelFixedWidth) == 0) {
     m_rect.right = m_rect.left;
-  if ((m_layoutFlags & kLabelFixedHeight) == 0)
+  }
+  if ((m_layoutFlags & kLabelFixedHeight) == 0) {
     m_rect.bottom = m_rect.top;
+  }
 }
 
 void CoolLabel::SetText(const char* text)
 {
-  if (m_text)
-  {
+  if (m_text) {
     delete m_text;
     m_text = nullptr;
   }
-  if (text)
+  if (text) {
     m_text = NewOrNull<std::string>(StringFromText(text));
-  if ((m_layoutFlags & kLabelFixedWidth) == 0)
+  }
+  if ((m_layoutFlags & kLabelFixedWidth) == 0) {
     m_rect.right = m_rect.left;
-  if ((m_layoutFlags & kLabelFixedHeight) == 0)
+  }
+  if ((m_layoutFlags & kLabelFixedHeight) == 0) {
     m_rect.bottom = m_rect.top;
+  }
 }
 
 void CoolLabel::SetTextFromStream(StrStream* stream)
@@ -143,89 +136,98 @@ void CoolLabel::MoveTo(int left, int top)
 
 void CoolLabel::Measure(HDC dc)
 {
-  if (!m_text || m_text->empty())
+  if (!m_text || m_text->empty()) {
     return;
+  }
   HGDIOBJ previousFont = nullptr;
-  if (m_font)
-    previousFont = SelectObject(dc, m_font);
+  if (m_font) {
+    previousFont = reb::compat::SelectObject(dc, m_font);
+  }
   const UINT format = (m_drawFlags & ~kDrawTextTabStop) | kDrawTextCalcRect;
   const LONG previousRight = m_rect.right;
-  DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
-  if ((m_drawFlags & DT_CENTER) != 0 && (m_layoutFlags & kLabelFixedWidth) == 0)
-  {
+  reb::compat::DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
+  if ((m_drawFlags & DT_CENTER) != 0 && (m_layoutFlags & kLabelFixedWidth) == 0) {
     m_drawFlags &= ~static_cast<UINT>(DT_CENTER);
     const LONG measuredRight = m_rect.right;
-    if (measuredRight < previousRight)
-    {
+    if (measuredRight < previousRight) {
       m_rect.right = previousRight;
-    }
-    else
-    {
+    } else {
       m_rect.left = m_rect.left - 1;
       m_rect.right = measuredRight + 1;
     }
   }
-  if ((m_layoutFlags & kLabelFixedWidth) != 0)
+  if ((m_layoutFlags & kLabelFixedWidth) != 0) {
     m_rect.right = m_width + m_rect.left;
-  if ((m_layoutFlags & kLabelFixedHeight) != 0)
+  }
+  if ((m_layoutFlags & kLabelFixedHeight) != 0) {
     m_rect.bottom = m_rect.top + m_height;
-  if (m_font)
-    SelectObject(dc, previousFont);
+  }
+  if (m_font) {
+    reb::compat::SelectObject(dc, previousFont);
+  }
 }
 
 void CoolLabel::SetFont(int fontSlot)
 {
   m_fontSlot = fontSlot;
   m_font = CoolGetFont(fontSlot);
-  if ((m_layoutFlags & kLabelFixedWidth) == 0)
+  if ((m_layoutFlags & kLabelFixedWidth) == 0) {
     m_rect.right = m_rect.left;
-  if ((m_layoutFlags & kLabelFixedHeight) == 0)
+  }
+  if ((m_layoutFlags & kLabelFixedHeight) == 0) {
     m_rect.bottom = m_rect.top;
+  }
 }
 
 void CoolLabel::SetColor(COLORREF color, HWND invalidateIn)
 {
-  if (m_color == color)
+  if (m_color == color) {
     return;
+  }
   m_color = color;
-  if (invalidateIn)
-  {
+  if (invalidateIn) {
     RECT area = m_rect;
-    InvalidateRect(invalidateIn, &area, FALSE);
+    reb::compat::InvalidateRect(invalidateIn, &area, FALSE);
   }
 }
 
 void CoolLabel::Draw(HDC dc)
 {
-  if (m_hidden != 0)
+  if (m_hidden != 0) {
     return;
-  if (!m_text || m_text->empty())
-    return;
-  bool measured = false;
-  if (m_rect.right != m_rect.left)
-  {
-    const LONG bottom = m_rect.bottom;
-    if (bottom != m_rect.top && m_rect.right != 0 && bottom != 0 && m_rect.left <= m_rect.right && m_rect.top <= bottom)
-      measured = true;
   }
-  if (!measured)
+  if (!m_text || m_text->empty()) {
+    return;
+  }
+  bool measured = false;
+  if (m_rect.right != m_rect.left) {
+    const LONG bottom = m_rect.bottom;
+    if (bottom != m_rect.top && m_rect.right != 0 && bottom != 0 && m_rect.left <= m_rect.right
+        && m_rect.top <= bottom) {
+      measured = true;
+    }
+  }
+  if (!measured) {
     Measure(dc);
+  }
 
   HGDIOBJ previousFont = nullptr;
-  if (m_font)
-    previousFont = SelectObject(dc, m_font);
-  SetBkMode(dc, TRANSPARENT);
-  const COLORREF previousColor = SetTextColor(dc, m_color);
+  if (m_font) {
+    previousFont = reb::compat::SelectObject(dc, m_font);
+  }
+  reb::compat::SetBkMode(dc, TRANSPARENT);
+  const COLORREF previousColor = reb::compat::SetTextColor(dc, m_color);
   const UINT format = ((~m_layoutFlags & kLabelClip) << 4) | m_drawFlags;
-  DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
-  SetTextColor(dc, previousColor);
-  if (m_font)
-    SelectObject(dc, previousFont);
+  reb::compat::DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
+  reb::compat::SetTextColor(dc, previousColor);
+  if (m_font) {
+    reb::compat::SelectObject(dc, previousFont);
+  }
 }
 
 void CoolLabel::Invalidate(HWND hwnd, BOOL erase)
 {
-  InvalidateRect(hwnd, &m_rect, erase);
+  reb::compat::InvalidateRect(hwnd, &m_rect, erase);
 }
 
 void CoolLabel::ReplaceTextFromResource(HWND hwnd, HDC dc, const ResourceStringId* stringId)
@@ -265,22 +267,20 @@ void RectTree::Clear()
 
 void RectTree::Insert(RectNode* node)
 {
-  auto position = std::find_if(m_rectangles.begin(), m_rectangles.end(),
-                               [node](const auto& other)
-                               {
-                                 return std::tie(node->m_left, node->m_right, node->m_top, node->m_bottom) <
-                                        std::tie(other->m_left, other->m_right, other->m_top, other->m_bottom);
-                               });
+  auto position = std::find_if(m_rectangles.begin(), m_rectangles.end(), [node](const auto& other) {
+    return std::tie(node->m_left, node->m_right, node->m_top, node->m_bottom)
+           < std::tie(other->m_left, other->m_right, other->m_top, other->m_bottom);
+  });
   m_rectangles.emplace(position, node);
 }
 
 RectNode* RectTree::FindContaining(int x, int y)
 {
-  for (const auto& entry : m_rectangles)
-  {
+  for (const auto& entry : m_rectangles) {
     auto* node = entry.get();
-    if (x >= node->m_left && node->m_right >= x && y >= node->m_top && node->m_bottom >= y)
+    if (x >= node->m_left && node->m_right >= x && y >= node->m_top && node->m_bottom >= y) {
       return node;
+    }
   }
   return nullptr;
 }

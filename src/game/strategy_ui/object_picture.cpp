@@ -28,8 +28,7 @@ constexpr uint32_t kCharacterCaptured = 0x1;
 
 constexpr uint32_t kCharacterFrameBitmap = 0x2cec;
 
-struct FamilyRange
-{
+struct FamilyRange {
   uint32_t m_first;
   uint32_t m_end;
   bool Contains(uint32_t family) const
@@ -60,8 +59,9 @@ DibBitmap* LoadPicture(HMODULE module, uint32_t id)
 
 void DeletePicture(DibBitmap* picture)
 {
-  if (!picture)
+  if (!picture) {
     return;
+  }
   picture->~DibBitmap();
   ::operator delete(picture);
 }
@@ -69,8 +69,9 @@ void DeletePicture(DibBitmap* picture)
 void DrawOverlay(HMODULE module, uint32_t id, DibBitmap* target)
 {
   DibBitmap* overlay = LoadPicture(module, id);
-  if (overlay->IsLoaded())
+  if (overlay->IsLoaded()) {
     overlay->DrawKeyed(target, 0, 0);
+  }
   DeletePicture(overlay);
 }
 
@@ -86,27 +87,24 @@ uint32_t IdForSide(uint32_t side, bool alternate, uint32_t allianceBase, uint32_
 
 } // namespace
 
-DibBitmap*
-CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int alternateArg, int decorateArg)
+DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int alternateArg,
+                               int decorateArg)
 {
   const bool alternate = alternateArg != 0;
   const bool decorate = decorateArg != 0;
   HMODULE spriteModule = CoolAppGetResourceModule(kSpriteSlot);
-  if (!object)
-  {
+  if (!object) {
     object = GetObjectInFamilies_01_ff(g_galaxyWindow->m_side, key);
-  }
-  else
-  {
+  } else {
     ObjectKey objectKey;
-    if (GetObjectKey(object, &objectKey)->m_value != key->m_value)
-    {
+    if (GetObjectKey(object, &objectKey)->m_value != key->m_value) {
       object = GetObjectInFamilies_01_ff(g_galaxyWindow->m_side, key);
     }
   }
   const uint32_t family = key->Family();
-  if (!object)
+  if (!object) {
     return nullptr;
+  }
   const uint32_t recordBits = static_cast<GameObj*>(object)->GetRecordTypeBits();
   ObjectKey typeKey;
   GetObjectRecordKey(object, &typeKey);
@@ -115,35 +113,24 @@ CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* objec
 
   HMODULE pictureModule = module;
   uint32_t pictureId;
-  if (kMissionFamilies.Contains(family))
-  {
+  if (kMissionFamilies.Contains(family)) {
     pictureId = recordBits & kRecordIdMask;
-    if (objectSide == kAlliance)
-    {
+    if (objectSide == kAlliance) {
       pictureId += alternate ? 0 : 0x4000;
-    }
-    else if (objectSide == kEmpire)
-    {
+    } else if (objectSide == kEmpire) {
       pictureId += alternate ? 0x1000 : 0x5000;
     }
-  }
-  else if (kPlanetaryFamilies.Contains(family))
-  {
+  } else if (kPlanetaryFamilies.Contains(family)) {
     pictureModule = spriteModule;
     pictureId = IdForSide(objectSide, alternate, 0x28a0, 0x28d2, 0x19);
-  }
-  else if (!alternate)
-  {
+  } else if (!alternate) {
     pictureId = (recordBits & kRecordIdMask) + 0x4000;
-  }
-  else
-  {
+  } else {
     pictureId = recordBits & kRecordIdMask;
   }
 
   DibBitmap* picture = LoadPicture(pictureModule, pictureId);
-  if (!picture->IsLoaded())
-  {
+  if (!picture->IsLoaded()) {
     DeletePicture(picture);
     return nullptr;
   }
@@ -158,95 +145,76 @@ CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* objec
     const int resultWidth = result->Width();
     result->FillRect(0, 0, resultWidth, resultHeight, colorKey);
 
-    if (kCharacterFamilies.Contains(family) && !alternate)
-    {
+    if (kCharacterFamilies.Contains(family) && !alternate) {
       DibBitmap* frame = LoadPicture(spriteModule, kCharacterFrameBitmap);
       frame->Blit(result, 0, 0, 0, 0, 0, 0);
       DeletePicture(frame);
-    }
-    else if (kUnitFamilies.Contains(family))
-    {
+    } else if (kUnitFamilies.Contains(family)) {
       DibBitmap* frame = LoadPicture(spriteModule, (alternate ? 1 : 0) + 0x2cf9);
       frame->Blit(result, 0, 0, 0, 0, 0, 0);
       DeletePicture(frame);
     }
 
-    if ((stateFlags & kStateEnroute) && !(stateFlags & kStateDestroyed) && decorate)
-    {
+    if ((stateFlags & kStateEnroute) && !(stateFlags & kStateDestroyed) && decorate) {
       HMODULE overlayModule = module;
       int overlayId = (recordBits & kRecordIdMask) + (alternate ? 0x1000 : 0x5000);
-      if (kMajorCharacterFamilies.Contains(family))
-      {
-        if (typeKey.m_value != kTypeKeyCharacterA && typeKey.m_value != kTypeKeyCharacterB)
-        {
+      if (kMajorCharacterFamilies.Contains(family)) {
+        if (typeKey.m_value != kTypeKeyCharacterA && typeKey.m_value != kTypeKeyCharacterB) {
           overlayId = (alternate ? 0x13 : 0) + 0x2ced;
           overlayModule = spriteModule;
         }
       }
-      if (kMinorCharacterFamilies.Contains(family))
-      {
+      if (kMinorCharacterFamilies.Contains(family)) {
         overlayId = alternate ? 0 : 0x2ced;
         overlayModule = spriteModule;
-      }
-      else if (kShieldFamilies.Contains(family))
-      {
+      } else if (kShieldFamilies.Contains(family)) {
         overlayId = (alternate ? 1 : 0) + 0x2cf5;
         overlayModule = spriteModule;
-      }
-      else if (kDefenseFamilies.Contains(family))
-      {
+      } else if (kDefenseFamilies.Contains(family)) {
         overlayId = (alternate ? 1 : 0) + 0x2cf1;
         overlayModule = spriteModule;
-      }
-      else if (kUnitFamilies.Contains(family))
-      {
-        if (typeKey.m_value != kTypeKeyUnitA && typeKey.m_value != kTypeKeyUnitB)
-        {
+      } else if (kUnitFamilies.Contains(family)) {
+        if (typeKey.m_value != kTypeKeyUnitA && typeKey.m_value != kTypeKeyUnitB) {
           overlayId = (alternate ? 1 : 0) + 0x2cfb;
           overlayModule = spriteModule;
         }
-      }
-      else if (kPlanetaryFamilies.Contains(family))
-      {
+      } else if (kPlanetaryFamilies.Contains(family)) {
         overlayId = (alternate ? 3 : 0) + (objectSide == kAlliance ? 0x28b7 : 0x28e9);
         overlayModule = spriteModule;
       }
-      if (static_cast<int16_t>(overlayId) != 0)
+      if (static_cast<int16_t>(overlayId) != 0) {
         DrawOverlay(overlayModule, overlayId, result);
+      }
     }
 
-    if ((stateFlags & kStateHasOrders) && decorate)
-    {
+    if ((stateFlags & kStateHasOrders) && decorate) {
       HMODULE overlayModule = module;
       int overlayId = (recordBits & kRecordIdMask) + (alternate ? 0x2000 : 0x6000);
-      if (kCharacterFamilies.Contains(family))
-      {
+      if (kCharacterFamilies.Contains(family)) {
         overlayId = alternate ? 0 : 0x2cee;
         overlayModule = spriteModule;
-      }
-      else if (kPlanetaryFamilies.Contains(family))
-      {
+      } else if (kPlanetaryFamilies.Contains(family)) {
         overlayId = (alternate ? 3 : 0) + (objectSide == kAlliance ? 0x28b8 : 0x28ea);
         overlayModule = spriteModule;
       }
-      if (static_cast<int16_t>(overlayId) != 0)
+      if (static_cast<int16_t>(overlayId) != 0) {
         DrawOverlay(overlayModule, overlayId, result);
+      }
     }
 
-    if (!(stateFlags & kStateCompleted) && decorate)
-    {
-      const auto overlayId =
-        static_cast<int16_t>((alternate ? 1 : 0) + ((objectSide & 3) == kAlliance ? 0x2d32 : 0x2d34));
-      if (overlayId != 0)
+    if (!(stateFlags & kStateCompleted) && decorate) {
+      const auto overlayId
+          = static_cast<int16_t>((alternate ? 1 : 0) + ((objectSide & 3) == kAlliance ? 0x2d32 : 0x2d34));
+      if (overlayId != 0) {
         DrawOverlay(spriteModule, overlayId, result);
+      }
     }
   }
 
   picture->DrawKeyed(result, 0, 0);
   DeletePicture(picture);
-  if (kMinorCharacterFamilies.Contains(family) && !alternate &&
-      (static_cast<Character*>(object)->m_flagsAc & kCharacterCaptured) && decorate)
-  {
+  if (kMinorCharacterFamilies.Contains(family) && !alternate
+      && (static_cast<Character*>(object)->m_flagsAc & kCharacterCaptured) && decorate) {
     DrawOverlay(module, (recordBits & kRecordIdMask) + 0x7000, result);
   }
   return result;

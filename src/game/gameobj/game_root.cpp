@@ -21,8 +21,7 @@ constexpr int kSideViews = 3;
 constexpr uint32_t kMasterSideRootId = 3;
 
 // The setup stages that do something other than "call one helper with the setup context".
-enum SetupStage
-{
+enum SetupStage {
   kStageInstallHook = 2,
   kStageCreateTypeDb = 3,
   kStageCreateTables = 4,
@@ -40,8 +39,9 @@ enum SetupStage
 
 void deleteView(GameRoot* root, int view)
 {
-  if (GameObjNotifier* object = root->GetViewObject(view))
+  if (GameObjNotifier* object = root->GetViewObject(view)) {
     delete object;
+  }
 }
 
 GameObjNotifier* findMaster(uint32_t family, uint32_t id)
@@ -60,33 +60,33 @@ int allOf(int condition, int result)
 // ---- GameRoot ----------------------------------------------------------------------------------------------
 
 GameRoot::GameRoot()
-: GameObj(),
-  m_settings(),
-  m_unk6c(0x500),
-  m_unk70(0),
-  m_unk74(0),
-  m_unk78{0, 0, 0, 0, 0},
-  m_key8c(),
-  m_ctx90(),
-  m_random(nullptr),
-  m_master_f2000003(nullptr),
-  m_master_20000005(nullptr),
-  m_master_f8000006(nullptr),
-  m_master_f9000007(nullptr),
-  m_master_fa000008(nullptr),
-  m_master_f300000f(nullptr),
-  m_master_f3000010(nullptr),
-  m_master_98000440(nullptr),
-  m_master_98000441(nullptr),
-  m_master_98000442(nullptr),
-  m_master_98000480(nullptr),
-  m_master_98000481(nullptr),
-  m_refLists(),
-  m_key150(ObjectKey::Make(0, 0)),
-  m_key154(),
-  m_ctx15c(),
-  m_ctx178(),
-  m_ctx194()
+    : GameObj()
+    , m_settings()
+    , m_unk6c(0x500)
+    , m_unk70(0)
+    , m_unk74(0)
+    , m_unk78{0, 0, 0, 0, 0}
+    , m_key8c()
+    , m_ctx90()
+    , m_random(nullptr)
+    , m_master_f2000003(nullptr)
+    , m_master_20000005(nullptr)
+    , m_master_f8000006(nullptr)
+    , m_master_f9000007(nullptr)
+    , m_master_fa000008(nullptr)
+    , m_master_f300000f(nullptr)
+    , m_master_f3000010(nullptr)
+    , m_master_98000440(nullptr)
+    , m_master_98000441(nullptr)
+    , m_master_98000442(nullptr)
+    , m_master_98000480(nullptr)
+    , m_master_98000481(nullptr)
+    , m_refLists()
+    , m_key150(ObjectKey::Make(0, 0))
+    , m_key154()
+    , m_ctx15c()
+    , m_ctx178()
+    , m_ctx194()
 {
   SetId(4);
   m_parent = nullptr;
@@ -95,8 +95,7 @@ GameRoot::GameRoot()
 
 GameRoot::~GameRoot()
 {
-  if ((m_flags & kViewSideMask) == 0)
-  {
+  if ((m_flags & kViewSideMask) == 0) {
     deleteView(this, 1);
     deleteView(this, 2);
     DestroyObjectTypeDb();
@@ -148,8 +147,9 @@ int GameRoot::Validate()
 int GameRoot::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return GameObj::ApplyAll(ctx);
+  }
   return isSideView;
 }
 
@@ -176,8 +176,9 @@ GameSettings& GameRoot::SetSettings(const GameSettings& settings)
 int GameRoot::BeginSetup()
 {
   const GameSettings defaults;
-  if (defaults == m_settings)
+  if (defaults == m_settings) {
     m_settings.m_field04 = 1;
+  }
   SetSetupStage(kStageInstallHook);
   return 1;
 }
@@ -192,15 +193,14 @@ int GameRoot::StepSetup(int* status)
   int flag = 0;
   *status = 1;
   bool advance = true;
-  switch (GetSetupStage())
-  {
+  switch (GetSetupStage()) {
     case kStageInstallHook:
-    {
-      g_gameHook2AEC = AllocateObjectId;
-      const NotifyContext fresh;
-      m_ctx15c = fresh;
-      break;
-    }
+      {
+        g_gameHook2AEC = AllocateObjectId;
+        const NotifyContext fresh;
+        m_ctx15c = fresh;
+        break;
+      }
     case kStageCreateTypeDb:
       CreateObjectTypeDb();
       break;
@@ -273,8 +273,9 @@ int GameRoot::StepSetup(int* status)
       advance = false;
       break;
   }
-  if (advance)
+  if (advance) {
     AdvanceSetupStage();
+  }
   return IsSetupComplete();
 }
 
@@ -288,12 +289,9 @@ int GameRoot::LoadGame(istream* in, GameRoot** out)
   CreateObjectDatabase();
   int ok = LoadUnresolvedKeySet(in);
   GameRoot* root = nullptr;
-  for (int view = 0; view < kSideViews; ++view)
-  {
-    if (auto* created = NewOrNull<GameRoot>())
-    {
-      if (view == 0)
-      {
+  for (int view = 0; view < kSideViews; ++view) {
+    if (auto* created = NewOrNull<GameRoot>()) {
+      if (view == 0) {
         root = created;
         *out = root;
       }
@@ -303,8 +301,7 @@ int GameRoot::LoadGame(istream* in, GameRoot** out)
   }
   *out = root;
   int result = allOf(root != nullptr, ok);
-  if (root)
-  {
+  if (root) {
     root->m_master_f2000003 = findMaster(family::kSideRoot, kMasterSideRootId);
     root->m_master_20000005 = findMaster(0x20, 5);
     root->m_master_f8000006 = findMaster(family::kMissionManager, 6);
@@ -327,12 +324,10 @@ int GameRoot::LoadGame(istream* in, GameRoot** out)
 int GameRoot::SaveGame(ostream* out, GameRoot* root)
 {
   int ok = SaveUnresolvedKeySet(out) != 0;
-  for (int view = 0; view < kSideViews; ++view)
-  {
+  for (int view = 0; view < kSideViews; ++view) {
     GameObjNotifier* object = view == 0 ? root : root->GetViewObject(view);
     ok = allOf(object != nullptr, ok);
-    if (object)
-    {
+    if (object) {
       ok = allOf(object->Write(out), ok);
       ok = allOf(object->WriteTree(out), ok);
     }
@@ -343,15 +338,14 @@ int GameRoot::SaveGame(ostream* out, GameRoot* root)
 int GameRoot::ChecksumGame(Crc32* crc, GameRoot* root)
 {
   int result = 1;
-  for (int view = 0; view < kSideViews && result; ++view)
-  {
+  for (int view = 0; view < kSideViews && result; ++view) {
     GameObjNotifier* object = view == 0 ? root : root->GetViewObject(view);
     result = object != nullptr;
-    if (result)
-    {
+    if (result) {
       result = object->Checksum(crc);
-      if (result)
+      if (result) {
         result = object->ChecksumTree(crc);
+      }
     }
   }
   return result;

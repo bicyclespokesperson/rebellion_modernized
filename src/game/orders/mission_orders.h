@@ -17,8 +17,8 @@ class ObjectNameList;
 
 class Order242 : public OrderBase
 {
-public:
-  Order242(); // 0x4f4560
+  public:
+  Order242();           // 0x4f4560
   ~Order242() override; // 0x4f45a0 (deleting 0x4f4580)
 
   int Read(istream* in) override
@@ -38,12 +38,12 @@ public:
 
 class MissionOrder : public OrderBase
 {
-public:
-  MissionOrder(); // 0x4f4690
+  public:
+  MissionOrder();           // 0x4f4690
   ~MissionOrder() override; // 0x4f4720 (deleting 0x4f4700)
 
-  int Read(istream* in) override; // 1, 0x4f4790
-  int Write(ostream* out) override; // 2, 0x4f47f0
+  int Read(istream* in) override;    // 1, 0x4f4790
+  int Write(ostream* out) override;  // 2, 0x4f47f0
   Command* CreateCommand() override; // 18, 0x4f4990: a MissionOrderCommand
   // Queues the command: replaces the order's commands with one command carrying the team, the characters and the
   // request. Fails with {1, 1} if no command can be made.
@@ -55,17 +55,17 @@ public:
   // Validates the order, then lets the mission manager list the characters that can take part into *out.
   int CollectCandidates(StatusCode* status, ObjectKeyValueSet* out); // 0x4f4850
 
-  int m_unk44; // +0x44
-  int m_unk48; // +0x48
-  NullableKey m_missionKey; // +0x4c, 0 for none
-  ObjectKeyValueSet m_unusedSet; // +0x50, never read or written
+  int m_unk44;                    // +0x44
+  int m_unk48;                    // +0x48
+  NullableKey m_missionKey;       // +0x4c, 0 for none
+  ObjectKeyValueSet m_unusedSet;  // +0x50, never read or written
   ObjectKeyValueSet m_characters; // +0x58
 };
 
 class MissionOrder240 : public MissionOrder
 {
-public:
-  MissionOrder240(); // 0x4f5200
+  public:
+  MissionOrder240();           // 0x4f5200
   ~MissionOrder240() override; // 0x4f5240 (deleting 0x4f5220)
 
   int GetKind() override
@@ -75,14 +75,16 @@ public:
 
   // Ask the mission manager for the characters of the team and of the mission that qualify (the two differ in the
   // manager function used, 0x5420d0 / 0x5422f0). Both clear *out first and return 0 without a mission manager.
-  int CollectCandidatesA(ObjectRefList* out); // 0x4f52c0
+  int CollectCandidatesA(ObjectRefList* out);  // 0x4f52c0
   int CollectCandidatesB(ObjectNameList* out); // 0x4f5380
+  // Keeps the single agent in GetTeam(); replaces decoys with eligible characters at the same planet or fleet.
+  bool PopulateCharacterDecoys();
 };
 
 class MissionOrder241 : public MissionOrder
 {
-public:
-  MissionOrder241(); // 0x4f5440
+  public:
+  MissionOrder241();           // 0x4f5440
   ~MissionOrder241() override; // 0x4f5480 (deleting 0x4f5460, a second copy at 0x4f5454)
 
   int GetKind() override
@@ -95,6 +97,6 @@ public:
   } // 4, shared 0x6158b0
 };
 
-Order242* CreateOrder242(); // 0x4f45b0
+Order242* CreateOrder242();               // 0x4f45b0
 MissionOrder240* CreateMissionOrder240(); // 0x4f5250
 MissionOrder241* CreateMissionOrder241(); // 0x4f5490

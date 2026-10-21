@@ -19,6 +19,7 @@
 #include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "mission/mission.h"
+#include "strategy_ui/eta_display.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/sector_window.h"
 #include "ui/cool_app.h"
@@ -68,16 +69,18 @@ ResourceStringId StringId(uint16_t id)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
 
 void DeleteLabel(CoolLabel* label)
 {
-  if (!label)
+  if (!label) {
     return;
+  }
   label->~CoolLabel();
   ::operator delete(label);
 }
@@ -97,18 +100,8 @@ DibBitmap* LoadBitmap(HMODULE module, uint32_t id, uint32_t kind)
   return NewOrNull<DibBitmap>(module, id, kind);
 }
 
-CoolStrobeButton* NewButton(HMODULE art,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t id,
-                            uint32_t normal,
-                            uint32_t pressed,
-                            DibBitmap* backdrop,
-                            int repeatRate,
-                            int pixelHit)
+CoolStrobeButton* NewButton(HMODULE art, int x, int y, int width, int height, CoolWindow* parent, uint32_t id,
+                            uint32_t normal, uint32_t pressed, DibBitmap* backdrop, int repeatRate, int pixelHit)
 {
   return NewOrNull<CoolStrobeButton>(art, x, y, width, height, parent, id, normal, pressed, backdrop, repeatRate,
                                      pixelHit);
@@ -140,22 +133,19 @@ CoolListItem* FirstItem(CoolListItemList* list)
 
 // ---- Construction ---------------------------------------------------------------------------------------------
 
-SystemMissionsWindow::SystemMissionsWindow(HINSTANCE instance,
-                                           int x,
-                                           int y,
-                                           CoolWindow* parent,
-                                           uint32_t childId,
+SystemMissionsWindow::SystemMissionsWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId,
                                            GameObjNotifier* system)
-: CustomDialogBox(instance, x, y, 0xeb, 0x130, parent, childId, nullptr),
-  m_titleLabel(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
+    : CustomDialogBox(instance, x, y, 0xeb, 0x130, parent, childId, nullptr)
+    , m_titleLabel(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   CoolGameWindow::m_flags |= kGameWindowDraggable;
   m_stringSlot = kStringSlot;
   m_bitmapSlot = kBitmapSlot;
   m_galaxy = static_cast<GalaxyWindow*>(parent);
   ObjectKey key;
-  if (system)
+  if (system) {
     system->GetKey(&key);
+  }
   m_systemKey = key;
   m_closeButton = nullptr;
   m_sideButton = nullptr;
@@ -173,12 +163,12 @@ SystemMissionsWindow::SystemMissionsWindow(HINSTANCE instance,
   m_headerActive = nullptr;
   m_selectedMission = nullptr;
   m_gokres = FindResourceModule(kGokresSlot);
-  if (!m_gokres)
-  {
+  if (!m_gokres) {
     char* dllLocation = GetDllLocation();
     m_gokres = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
 }
 
@@ -202,8 +192,9 @@ void SystemMissionsWindow::OnCreate1()
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
+  }
 
   SetDragLimits(m_galaxy->m_panelArea, nullptr);
   SetDragMode(kDragOutline);
@@ -213,26 +204,22 @@ void SystemMissionsWindow::OnCreate1()
   LoadHeaderBitmaps();
   m_titleLeft = 2;
 
-  if (DibBitmap* shape = LoadBitmap(art, 0x27e1, kPictureKind))
-  {
+  if (DibBitmap* shape = LoadBitmap(art, 0x27e1, kPictureKind)) {
     m_sectorButton = NewButton(art, 3, 3, shape->Width(), shape->Height(), this, kSectorId, 0x27e1, 0x27e0,
                                GetPaintBackgroundIfOwned(), 0, 1);
-    if (m_sectorButton)
-    {
+    if (m_sectorButton) {
       m_sectorButton->Create(0);
       m_titleLeft = shape->Width() + 5;
     }
     DeleteBitmap(shape);
   }
-  if (DibBitmap* shape = LoadBitmap(art, 0x277c, kPictureKind))
-  {
+  if (DibBitmap* shape = LoadBitmap(art, 0x277c, kPictureKind)) {
     m_closeButton = NewButton(art, m_width - shape->Width() - 3, 3, shape->Width(), shape->Height(), this, kCloseId,
                               0x277c, 0x277d, GetPaintBackgroundIfOwned(), 0, 1);
     m_closeButton->Create(0);
     DeleteBitmap(shape);
   }
-  if (DibBitmap* shape = LoadBitmap(art, 0x280d, kPictureKind))
-  {
+  if (DibBitmap* shape = LoadBitmap(art, 0x280d, kPictureKind)) {
     m_sideButton = NewButton(art, m_closeButton->m_x - shape->Width(), 3, shape->Width(), shape->Height(), this,
                              kSideId, 0x280d, 0x280e, GetPaintBackgroundIfOwned(), 0, 1);
     m_sideButton->Create(0);
@@ -242,8 +229,7 @@ void SystemMissionsWindow::OnCreate1()
   m_missions = NewOrNull<CoolListItemList>(4);
   m_missionList = NewOrNull<CoolDragList>(art, 5, 0x18, 0x5e, 0x113, this, GetPaintBackgroundIfOwned(), kMissionListId,
                                           0x5a, 0x32, 0, 0, 0, 0, 10, 1, nullptr);
-  if (m_missionList)
-  {
+  if (m_missionList) {
     m_missionList->m_style &= ~kHiddenStyle;
     m_missionList->Create(0);
     m_missionList->m_options.m_value |= 0x20000;
@@ -257,9 +243,8 @@ void SystemMissionsWindow::OnCreate1()
 
   m_characters = NewOrNull<CoolListItemList>(4);
   m_characterList = NewOrNull<CoolDragList>(art, 0x6b, 0x91, 0x75, 0x93, this, GetPaintBackgroundIfOwned(),
-                                            kCharacterListId, 0x73, 0x2b, 0, 0, 0, 0, 10, 1, nullptr);
-  if (m_characterList)
-  {
+                                            kCharacterListId, 0x73, EnhancementsEnabled() ? 70 : 0x2b, 0, 0, 0, 0, 10, 1, nullptr);
+  if (m_characterList) {
     m_characterList->m_style &= ~kHiddenStyle;
     m_characterList->Create(0);
     m_characterList->m_options.m_value |= 0xa0000;
@@ -271,18 +256,17 @@ void SystemMissionsWindow::OnCreate1()
   }
 
   m_tabs = NewOrNull<CoolTabControl>(m_instance, 0x69, 0x7f, 0x7a, 0x10, kTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_tabs)
-  {
+  if (m_tabs) {
     m_tabs->Create(0);
     m_children.Insert(m_tabs);
-    CoolStrobeButton* agents =
-      NewButton(art, 0, 0, 0x3d, 0x2b, m_tabs, kAgentsTabId, 0x2d28, 0x2d29, GetPaintBackgroundIfOwned(), 0, 0);
+    CoolStrobeButton* agents
+        = NewButton(art, 0, 0, 0x3d, 0x2b, m_tabs, kAgentsTabId, 0x2d28, 0x2d29, GetPaintBackgroundIfOwned(), 0, 0);
     agents->Create(0);
     const ResourceStringId agentsTip = StringId(0x8500);
     AddToolFromString(agents, &agentsTip);
     m_tabs->AddTab(agents, 1, 0);
-    CoolStrobeButton* decoys =
-      NewButton(art, 0x3d, 0, 0x3d, 0x2b, m_tabs, kDecoysTabId, 0x2d2a, 0x2d2b, GetPaintBackgroundIfOwned(), 0, 0);
+    CoolStrobeButton* decoys
+        = NewButton(art, 0x3d, 0, 0x3d, 0x2b, m_tabs, kDecoysTabId, 0x2d2a, 0x2d2b, GetPaintBackgroundIfOwned(), 0, 0);
     decoys->Create(0);
     const ResourceStringId decoysTip = StringId(0x8501);
     AddToolFromString(decoys, &decoysTip);
@@ -317,16 +301,15 @@ void SystemMissionsWindow::OnCreate1()
   m_systemKey = systemKey;
   m_objects.Add(NewOrNull<ObjectKeyIdNode>(&m_systemKey, 0u), 0);
 
-  if (FillMissionList() != 0)
-  {
+  if (FillMissionList() != 0) {
     m_missionList->Show(kShow);
     CoolListItem* first = m_missions->First();
-    if (first)
+    if (first) {
       m_missionList->SelectById(first->m_id, 1);
+    }
   }
-  SetFocus(m_missionList->m_hwnd);
-  if ((m_galaxy->m_mouseMode & 4) == 0)
-  {
+  reb::compat::SetFocus(m_missionList->m_hwnd);
+  if ((m_galaxy->m_mouseMode & 4) == 0) {
     SoundRequest request(0, 0, 0, 0, 0, 0);
     request.m_kind = 1;
     request.m_soundId = kOpenSound;
@@ -339,14 +322,14 @@ void SystemMissionsWindow::OnCreate1()
 
 LRESULT SystemMissionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (message != WM_LBUTTONDOWN && message != WM_RBUTTONDOWN)
-  {
-    if (message != kRedrawHeaderMessage)
+  if (message != WM_LBUTTONDOWN && message != WM_RBUTTONDOWN) {
+    if (message != kRedrawHeaderMessage) {
       return CustomDialogBox::WindowProc(message, wParam, lParam);
-    InvalidateRect(m_hwnd, &m_titleRect, 0);
+    }
+    reb::compat::InvalidateRect(m_hwnd, &m_titleRect, 0);
     return 0;
   }
-  PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+  reb::compat::PostMessageA(m_parent->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
   return CustomDialogBox::WindowProc(message, wParam, lParam);
 }
 
@@ -354,42 +337,42 @@ void SystemMissionsWindow::OnCommand(int, int command, int)
 {
   HWND galaxyWindow = m_galaxy->m_hwnd;
   const uint32_t code = static_cast<uint32_t>(command) >> 16;
-  switch (static_cast<uint32_t>(command) & 0xffff)
-  {
+  switch (static_cast<uint32_t>(command) & 0xffff) {
     case kMissionListId:
-    {
-      CoolListItemList unusedSelection(1);
-      if (code == kDragListSelectionChanged)
-        SelectMission(GetSelectedMission(), 0);
-      PostMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
-      return;
-    }
+      {
+        CoolListItemList unusedSelection(1);
+        if (code == kDragListSelectionChanged) {
+          SelectMission(GetSelectedMission(), 0);
+        }
+        reb::compat::PostMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+        return;
+      }
     case kCharacterListId:
-      SetFocus(m_missionList->m_hwnd);
-      PostMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      reb::compat::SetFocus(m_missionList->m_hwnd);
+      reb::compat::PostMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       return;
     case kCloseId:
       PostCloseRequest();
       return;
     case kSideId:
-      PostMessageA(galaxyWindow, kCommandMessage, (m_childId & 0xffff) | (kRedrawHeaderCommand << 16), 0);
+      reb::compat::PostMessageA(galaxyWindow, kCommandMessage, (m_childId & 0xffff) | (kRedrawHeaderCommand << 16), 0);
       return;
     case kTabsId:
-      SendMessageA(galaxyWindow, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      reb::compat::SendMessageA(galaxyWindow, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       FillCharacterList(static_cast<int>(code), 0);
-      SetFocus(m_characterList->m_hwnd);
+      reb::compat::SetFocus(m_characterList->m_hwnd);
       return;
     case kSectorId:
-    {
-      GameObjNotifier* system = GetSystem();
-      if (system && m_galaxy)
       {
-        ObjectKey sectorKey;
-        if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey) != 0)
-          m_galaxy->OpenSectorWindow(&sectorKey);
+        GameObjNotifier* system = GetSystem();
+        if (system && m_galaxy) {
+          ObjectKey sectorKey;
+          if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey) != 0) {
+            m_galaxy->OpenSectorWindow(&sectorKey);
+          }
+        }
+        return;
       }
-      return;
-    }
     default:
       return;
   }
@@ -397,8 +380,9 @@ void SystemMissionsWindow::OnCommand(int, int command, int)
 
 void SystemMissionsWindow::OnKeyDown(WPARAM key, LPARAM)
 {
-  if (key == VK_ESCAPE)
+  if (key == VK_ESCAPE) {
     PostCloseRequest();
+  }
 }
 
 void SystemMissionsWindow::SaveState(ostream* out)
@@ -421,26 +405,24 @@ void SystemMissionsWindow::LoadState(istream* in)
 
 void SystemMissionsWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* source)
 {
-  if (!source)
+  if (!source) {
     return;
+  }
   CoolListItemList selection(1);
   CoolListItemList* items = nullptr;
-  if (source->m_childId == m_characterList->m_childId && IsWindowVisible(m_characterList->m_hwnd) != 0)
-  {
+  if (source->m_childId == m_characterList->m_childId && reb::compat::IsWindowVisible(m_characterList->m_hwnd) != 0) {
     m_characterList->CopySelectionTo(&selection);
     items = m_characters;
-  }
-  else if (source->m_childId == m_missionList->m_childId)
-  {
+  } else if (source->m_childId == m_missionList->m_childId) {
     m_missionList->CopySelectionTo(&selection);
     items = m_missions;
   }
-  for (const auto& ownedPicked : selection.Entries())
-  {
+  for (const auto& ownedPicked : selection.Entries()) {
     auto* picked = static_cast<CoolListItem*>(ownedPicked.get());
     auto* row = static_cast<ObjectListItem*>(items->FindById(picked->m_id));
-    if (!row)
+    if (!row) {
       continue;
+    }
     ObjectKey key;
     row->GetKey(&key);
     out->Add(NewOrNull<ObjectKeyValueNode>(key, 0));
@@ -449,59 +431,68 @@ void SystemMissionsWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* sour
 
 void SystemMissionsWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     object = GetObjectInFamilies_01_ff(m_galaxy->m_side, key);
-  if (!object)
+  }
+  if (!object) {
     return;
-  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd))
+  }
+  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd)) {
     return;
+  }
   Role* role = AsRole(object);
   ObjectKey missionKey;
   role->GetMissionKey(&missionKey);
-  if (!missionKey.IsSet() || (role->m_flags78 & role_flag::kOnHiddenMission) != 0)
+  if (!missionKey.IsSet() || (role->m_flags78 & role_flag::kOnHiddenMission) != 0) {
     return;
+  }
   CoolListItem* row = m_missions->FindById(missionKey.Id());
-  if (!row)
-  {
+  if (!row) {
     FillMissionList();
     ObjectKey refreshedKey;
     role->GetMissionKey(&refreshedKey);
     row = m_missions->FindById(refreshedKey.Id());
-    if (!row)
+    if (!row) {
       return;
+    }
   }
-  if ((row->m_state.m_value & kListItemSelected) != 0)
+  if ((row->m_state.m_value & kListItemSelected) != 0) {
     SelectMission(static_cast<ObjectListItem*>(row), 1);
+  }
 }
 
-void SystemMissionsWindow::OnChildMoved(const ObjectKey* key,
-                                        GameObjNotifier* object,
-                                        const ObjectKey* otherKey,
+void SystemMissionsWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                                         GameObjNotifier*)
 {
   (void)object;
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
-  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd))
+  }
+  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd)) {
     return;
-  if (!otherKey)
+  }
+  if (!otherKey) {
     return;
-  if (otherKey->Family() < 0x40 || otherKey->Family() >= 0x80)
+  }
+  if (otherKey->Family() < 0x40 || otherKey->Family() >= 0x80) {
     return;
+  }
   CoolListItem* row = m_missions->FindById(otherKey->Id());
-  if (!row)
+  if (!row) {
     return;
-  if ((row->m_state.m_value & kListItemSelected) != 0)
+  }
+  if ((row->m_state.m_value & kListItemSelected) != 0) {
     UpdateTabs();
+  }
   RoleIterator roles(system, 3);
   roles.Begin();
-  while (roles.Current())
-  {
+  while (roles.Current()) {
     ObjectKey missionKey;
     AsRole(roles.Current())->GetMissionKey(&missionKey);
-    if (missionKey.m_value == otherKey->m_value)
+    if (missionKey.m_value == otherKey->m_value) {
       return;
+    }
     roles.Advance();
   }
   FillMissionList();
@@ -509,22 +500,27 @@ void SystemMissionsWindow::OnChildMoved(const ObjectKey* key,
 
 void SystemMissionsWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     object = GetObjectInFamilies_01_ff(m_galaxy->m_side, key);
-  if (!object)
+  }
+  if (!object) {
     return;
-  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd))
+  }
+  if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd)) {
     return;
+  }
   Role* role = AsRole(object);
   ObjectKey missionKey;
   role->GetMissionKey(&missionKey);
-  if (!missionKey.IsSet() || (role->m_flags78 & role_flag::kOnHiddenMission) != 0)
+  if (!missionKey.IsSet() || (role->m_flags78 & role_flag::kOnHiddenMission) != 0) {
     return;
+  }
   CoolListItem* row = m_characters->FindById(role->m_id);
-  if (!row)
+  if (!row) {
     return;
+  }
   row->SetImages(CreateObjectPicture(m_gokres, key, object, 0, 1), nullptr);
-  row->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
+  row->m_text = strategy_ui::DisplayName(static_cast<GameObj*>(object));
   m_characterList->Refresh();
   UpdateTabs();
 }
@@ -532,22 +528,20 @@ void SystemMissionsWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier
 ObjectKey SystemMissionsWindow::GetKeyAt(int x, int y)
 {
   ObjectKey result = m_systemKey;
-  if (m_objectivePicture)
-  {
+  if (m_objectivePicture) {
     const int bottom = (0x32 - m_objectivePicture->Height()) / 2 + 0x25;
     const int right = (0x7a - m_objectivePicture->Width()) / 2 + 0x6c;
     RECT area;
-    SetRect(&area, 0x6c, 0x25, right, bottom);
+    reb::compat::SetRect(&area, 0x6c, 0x25, right, bottom);
     POINT point = {x, y};
-    if (PtInRect(&area, point) != 0)
+    if (reb::compat::PtInRect(&area, point) != 0) {
       result = m_objectiveKey;
+    }
   }
-  if (m_characterList)
-  {
+  if (m_characterList) {
     POINTS inList = {static_cast<SHORT>(x - 0x6b), static_cast<SHORT>(y - 0x91)};
     CoolListItem* hit = m_characterList->HitTest(m_characterList->ClientToList(inList));
-    if (hit)
-    {
+    if (hit) {
       ObjectKey itemKey;
       static_cast<ObjectListItem*>(hit)->GetKey(&itemKey);
       result = itemKey;
@@ -558,25 +552,22 @@ ObjectKey SystemMissionsWindow::GetKeyAt(int x, int y)
 
 void SystemMissionsWindow::ShowObjectPage(const ObjectKey* key)
 {
-  if (FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd))
-  {
+  if (FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd)) {
     GameObjNotifier* character = GetObjectInFamilies_30_40(m_galaxy->m_side, key);
-    if (character)
-    {
+    if (character) {
       FillCharacterList((AsRole(character)->m_flags78 & role_flag::kDecoy) == 0 ? kAgentsTabId : kDecoysTabId, 1);
       ObjectKey characterKey;
       character->GetKey(&characterKey);
-      if (CoolListItem* row = m_characterList->FindItem(characterKey.Id()))
-      {
+      if (CoolListItem* row = m_characterList->FindItem(characterKey.Id())) {
         row->m_state.m_value |= kListItemSelected;
         m_characterList->Refresh();
       }
     }
   }
-  if (key->Family() >= 0x50 && key->Family() < 0x80)
-  {
-    if (CoolListItem* row = m_missions->FindById(key->Id()))
+  if (key->Family() >= 0x50 && key->Family() < 0x80) {
+    if (CoolListItem* row = m_missions->FindById(key->Id())) {
       SelectMission(static_cast<ObjectListItem*>(row), 1);
+    }
   }
 }
 
@@ -588,10 +579,10 @@ ObjectKey SystemMissionsWindow::GetDropKeyAt(int, int)
 int SystemMissionsWindow::GetMinimizedIconBitmapId()
 {
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return 0;
-  switch (DominantMissionSide(system, m_galaxy->m_side))
-  {
+  }
+  switch (DominantMissionSide(system, m_galaxy->m_side)) {
     case 1:
       return 0x2d13;
     case 2:
@@ -607,10 +598,10 @@ void SystemMissionsWindow::DrawOverlay(HDC dc)
 {
   std::string title;
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
-  if (m_objectivePicture)
-  {
+  }
+  if (m_objectivePicture) {
     const int width = m_objectivePicture->Width();
     const int height = m_objectivePicture->Height();
     m_objectivePicture->DrawToDc(dc, 0x40, 0xcc0020, (0x7a - width) / 2 + 0x6c, (0x32 - height) / 2 + 0x25, 0, 0, 0, 0);
@@ -638,15 +629,15 @@ void SystemMissionsWindow::DrawOverlay(HDC dc)
 void SystemMissionsWindow::LoadHeaderBitmaps()
 {
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
+  }
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   DeleteBitmap(m_headerInactive);
   DeleteBitmap(m_headerActive);
   m_headerInactive = nullptr;
   m_headerActive = nullptr;
-  switch (DominantMissionSide(system, m_galaxy->m_side))
-  {
+  switch (DominantMissionSide(system, m_galaxy->m_side)) {
     case 1:
       m_headerActive = LoadBitmap(art, 0x283b, kHeaderKind);
       m_headerInactive = LoadBitmap(art, 0x27d8, kHeaderKind);
@@ -662,8 +653,8 @@ void SystemMissionsWindow::LoadHeaderBitmaps()
   }
   const int bottom = m_headerActive->Height() + 2;
   const int right = m_headerInactive->Width() + 2;
-  SetRect(&m_titleRect, 2, 2, right, bottom);
-  InvalidateRect(m_hwnd, &m_titleRect, 0);
+  reb::compat::SetRect(&m_titleRect, 2, 2, right, bottom);
+  reb::compat::InvalidateRect(m_hwnd, &m_titleRect, 0);
 }
 
 // ---- The lists ------------------------------------------------------------------------------------------------
@@ -671,8 +662,9 @@ void SystemMissionsWindow::LoadHeaderBitmaps()
 GameObjNotifier* SystemMissionsWindow::GetSystem()
 {
   GameObjNotifier* system = GetObjectInFamilies_90_98(AppGetSide(), &m_systemKey);
-  if (!system)
+  if (!system) {
     PostCloseRequest();
+  }
   return system;
 }
 
@@ -681,8 +673,7 @@ ObjectListItem* SystemMissionsWindow::GetSelectedMission()
   CoolListItemList selection(1);
   ObjectListItem* row = nullptr;
   m_missionList->CopySelectionTo(&selection);
-  if (selection.First())
-  {
+  if (selection.First()) {
     row = static_cast<ObjectListItem*>(m_missions->FindById(static_cast<CoolListItem*>(selection.First())->m_id));
   }
   return row;
@@ -692,24 +683,25 @@ uint32_t SystemMissionsWindow::SelectedMissionSide()
 {
   GameObjNotifier* system = GetSystem();
   uint32_t side = 0;
-  if (!system)
+  if (!system) {
     return 0;
-  if (m_selectedMission)
-  {
+  }
+  if (m_selectedMission) {
     RoleIterator roles(system, 3);
     roles.Begin();
-    while (roles.Current())
-    {
+    while (roles.Current()) {
       ObjectKey selectedKey;
       m_selectedMission->GetKey(&selectedKey);
       ObjectKey missionKey;
       AsRole(roles.Current())->GetMissionKey(&missionKey);
-      if (missionKey.m_value == selectedKey.m_value)
+      if (missionKey.m_value == selectedKey.m_value) {
         break;
+      }
       roles.Advance();
     }
-    if (roles.Current())
+    if (roles.Current()) {
       side = ControlSideOf(roles.Current());
+    }
   }
   return side;
 }
@@ -718,8 +710,7 @@ void SystemMissionsWindow::ClearSelectedMission(ObjectListItem* row)
 {
   const uint32_t id = row ? row->m_id : 0;
   const uint32_t selectedId = m_selectedMission ? m_selectedMission->m_id : 0;
-  if (id == selectedId)
-  {
+  if (id == selectedId) {
     m_selectedMission = nullptr;
     UpdateTabs();
   }
@@ -729,8 +720,7 @@ void SystemMissionsWindow::SelectMission(ObjectListItem* row, int force)
 {
   const uint32_t id = row ? row->m_id : 0;
   const uint32_t selectedId = m_selectedMission ? m_selectedMission->m_id : 0;
-  if (id != selectedId || force != 0)
-  {
+  if (id != selectedId || force != 0) {
     m_selectedMission = row;
     UpdateTabs();
   }
@@ -739,21 +729,18 @@ void SystemMissionsWindow::SelectMission(ObjectListItem* row, int force)
 void SystemMissionsWindow::UpdateTabs()
 {
   int side = ViewSideOf(m_galaxy->m_side);
-  if (m_selectedMission)
-  {
+  if (m_selectedMission) {
     const int missionSide = static_cast<int>(SelectedMissionSide());
-    if (missionSide != 0)
+    if (missionSide != 0) {
       side = missionSide;
+    }
     uint32_t agentsNormal = 0, agentsPressed = 0, decoysNormal = 0, decoysPressed = 0;
-    if (side == 1)
-    {
+    if (side == 1) {
       agentsNormal = 0x2d28;
       agentsPressed = 0x2d29;
       decoysNormal = 0x2d2a;
       decoysPressed = 0x2d2b;
-    }
-    else if (side == 2)
-    {
+    } else if (side == 2) {
       agentsNormal = 0x2d2d;
       agentsPressed = 0x2d2e;
       decoysNormal = 0x2d2f;
@@ -768,7 +755,7 @@ void SystemMissionsWindow::UpdateTabs()
     m_tabs->ReloadSelectedBitmaps();
     m_characterList->Show(kShow);
     m_tabs->Show(kShow);
-    InvalidateRect(m_tabs->m_hwnd, nullptr, 0);
+    reb::compat::InvalidateRect(m_tabs->m_hwnd, nullptr, 0);
     FillCharacterList(kAgentsTabId, 1);
     UpdateObjective();
     return;
@@ -780,12 +767,10 @@ void SystemMissionsWindow::UpdateTabs()
 
 void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, const std::string* heading)
 {
-  if (!object)
-  {
+  if (!object) {
     ObjectKey blank;
     auto* item = NewOrNull<ObjectListItem>(&blank);
-    if (heading != nullptr)
-    {
+    if (heading != nullptr) {
       item->m_text = heading->c_str();
       item->m_textFormat = 0x25;
       item->m_fontSlot = 10;
@@ -810,9 +795,9 @@ void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, 
   item->SetImages(image, nullptr);
   item->m_textOffsetY = picture->Height() + spare / 2;
   item->m_state.m_value |= kListItemDisabled;
-  item->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
+  item->m_text = strategy_ui::DisplayName(static_cast<GameObj*>(object));
   item->m_fontSlot = 10;
-  item->m_textFormat = 0x21;
+  item->m_textFormat = EnhancementsEnabled() ? DT_CENTER | DT_WORDBREAK : DT_CENTER | DT_SINGLELINE;
   m_characterList->m_fillColor = picture->m_colorKey;
   m_characters->Insert(item);
   DeleteBitmap(picture);
@@ -821,71 +806,58 @@ void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, 
 void SystemMissionsWindow::UpdateObjective()
 {
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
-  if (m_objectiveKey.IsSet() != 0)
-  {
+  }
+  if (m_objectiveKey.IsSet() != 0) {
     ObjectKey systemKey;
     system->GetKey(&systemKey);
-    if (m_objectiveKey.m_value != systemKey.m_value)
-    {
-      if (m_objects.Find(&m_objectiveKey))
+    if (m_objectiveKey.m_value != systemKey.m_value) {
+      if (m_objects.Find(&m_objectiveKey)) {
         m_objects.RemoveKey(&m_objectiveKey);
+      }
     }
   }
   m_objectiveKey.Reset();
-  if (m_objectivePicture)
-  {
+  if (m_objectivePicture) {
     DeleteBitmap(m_objectivePicture);
     m_objectivePicture = nullptr;
   }
-  if (!m_selectedMission)
-  {
+  if (!m_selectedMission) {
     m_objectiveLabel->m_hidden = 1;
     m_captionLabel->m_hidden = 1;
-  }
-  else
-  {
+  } else {
     const int viewSide = ViewSideOf(m_galaxy->m_side);
-    if (static_cast<int>(SelectedMissionSide()) == viewSide)
-    {
+    if (static_cast<int>(SelectedMissionSide()) == viewSide) {
       ObjectKey selectedKey;
       m_selectedMission->GetKey(&selectedKey);
-      if (GameObjNotifier* mission = GetObjectInFamilies_40_80(m_galaxy->m_side, &selectedKey))
+      if (GameObjNotifier* mission = GetObjectInFamilies_40_80(m_galaxy->m_side, &selectedKey)) {
         m_objectiveKey = static_cast<Mission*>(mission)->m_objectiveKey;
-    }
-    else
-    {
+      }
+    } else {
       ObjectKey selectedKey;
       m_selectedMission->GetKey(&selectedKey);
-      if (FamilyIn(selectedKey, 0x50, 0x60))
-      {
+      if (FamilyIn(selectedKey, 0x50, 0x60)) {
         ObjectKey systemKey;
         system->GetKey(&systemKey);
         m_objectiveKey = systemKey;
       }
     }
     GameObjNotifier* objective = nullptr;
-    if (m_objectiveKey.OrNull())
-    {
+    if (m_objectiveKey.OrNull()) {
       m_objects.Add(NewOrNull<ObjectKeyIdNode>(&m_objectiveKey, 0u), 0);
       objective = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_objectiveKey);
-      if (objective)
-      {
+      if (objective) {
         DibBitmap* picture;
-        if (FamilyIn(m_objectiveKey, kSystemFamilyFirst, kSystemFamilyEnd))
-        {
+        if (FamilyIn(m_objectiveKey, kSystemFamilyFirst, kSystemFamilyEnd)) {
           HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
           const uint32_t pictureId = SectorSystemPictureId(static_cast<System*>(objective)->GetRecordField44());
           picture = LoadBitmap(art, pictureId, kPictureKind);
-        }
-        else
-        {
+        } else {
           const bool character = FamilyIn(m_objectiveKey, kAgentsFamilyFirst, kCharacterFamilyEnd);
           picture = CreateObjectPicture(m_gokres, &m_objectiveKey, objective, !character, 1);
         }
-        if (picture)
-        {
+        if (picture) {
           DibBitmap* background = GetPaintBackgroundIfOwned();
           m_objectivePicture = NewOrNull<DibBitmap>(picture->Width(), picture->Height(), background);
           const int width = picture->Width();
@@ -898,13 +870,10 @@ void SystemMissionsWindow::UpdateObjective()
     }
     m_objectiveLabel->m_hidden = 0;
     m_captionLabel->m_hidden = 0;
-    if (!objective)
-    {
+    if (!objective) {
       const ResourceStringId unknown = StringId(0x8527);
       m_objectiveLabel->SetTextFromResource(&unknown);
-    }
-    else
-    {
+    } else {
       m_objectiveLabel->SetText(static_cast<GameObj*>(objective)->GetName()->c_str());
     }
     const ResourceStringId caption = StringId(0x8521);
@@ -912,8 +881,8 @@ void SystemMissionsWindow::UpdateObjective()
     m_captionLabel->SetColor(0xffffff, nullptr);
   }
   RECT area;
-  SetRect(&area, 0x6c, 0x25, 0xe6, 0x57);
-  InvalidateRect(m_hwnd, &area, 0);
+  reb::compat::SetRect(&area, 0x6c, 0x25, 0xe6, 0x57);
+  reb::compat::InvalidateRect(m_hwnd, &area, 0);
   m_captionLabel->Invalidate(m_hwnd, 0);
   m_objectiveLabel->Invalidate(m_hwnd, 0);
 }
@@ -922,23 +891,25 @@ int SystemMissionsWindow::FillMissionList()
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return 0;
+  }
   DibBitmap sideMark(art, static_cast<uint32_t>(m_galaxy->m_side != 1) + 0x2b77, kPictureKind);
   int processed = 0;
   uint8_t colorKey = 0;
   ObjectKeyIntSet seeds;
   ObjectKeyValueSet sides;
   RoleIterator roles(system, 3);
-  for (roles.Begin(); roles.Current(); roles.Advance())
-  {
+  for (roles.Begin(); roles.Current(); roles.Advance()) {
     Role* role = AsRole(roles.Current());
-    if (!CountsAsMission(role))
+    if (!CountsAsMission(role)) {
       continue;
+    }
     ObjectKey missionKey;
     role->GetMissionKey(&missionKey);
-    if (seeds.Find(&missionKey))
+    if (seeds.Find(&missionKey)) {
       continue;
+    }
     ObjectKey seedKey;
     role->GetMissionSeedKey(&seedKey);
     ObjectKey key;
@@ -951,14 +922,12 @@ int SystemMissionsWindow::FillMissionList()
   }
 
   auto rowPosition = m_missions->Entries().begin();
-  while (rowPosition != m_missions->Entries().end())
-  {
+  while (rowPosition != m_missions->Entries().end()) {
     auto current = rowPosition++;
     auto* row = static_cast<ObjectListItem*>((*current).get());
     ObjectKey rowKey;
     row->GetKey(&rowKey);
-    if (!seeds.Find(&rowKey))
-    {
+    if (!seeds.Find(&rowKey)) {
       ClearSelectedMission(row);
       m_missions->Remove(row);
       delete row;
@@ -968,8 +937,7 @@ int SystemMissionsWindow::FillMissionList()
 
   auto seedPosition = seeds.Entries().begin();
   auto sidePosition = sides.Entries().begin();
-  while (seedPosition != seeds.Entries().end() && sidePosition != sides.Entries().end())
-  {
+  while (seedPosition != seeds.Entries().end() && sidePosition != sides.Entries().end()) {
     auto* seedNode = static_cast<IntPairNode*>((*seedPosition).get());
     auto* sideNode = static_cast<ObjectKeyValueNode*>((*sidePosition).get());
     processed = 1;
@@ -979,8 +947,7 @@ int SystemMissionsWindow::FillMissionList()
     ObjectKey seedKey;
     seedKey.m_value = static_cast<uint32_t>(seedNode->m_value);
     DatRecord* record = FindDataRecord(AsLookupKey(&seedKey));
-    if (record && !m_missions->FindById(missionKey.Id()))
-    {
+    if (record && !m_missions->FindById(missionKey.Id())) {
       m_objects.Add(NewOrNull<ObjectKeyIdNode>(&missionKey, 0u), m_missionList->m_childId);
       auto* item = NewOrNull<ObjectListItem>(&missionKey);
       const uint32_t pictureId = (record->m_small & 0xfff) + (side == 1 ? 0x4000 : 0x5000);
@@ -1000,8 +967,7 @@ int SystemMissionsWindow::FillMissionList()
     ++sidePosition;
   }
   LoadHeaderBitmaps();
-  if (processed != 0)
-  {
+  if (processed != 0) {
     m_missionList->m_fillColor = colorKey;
     m_missionList->Refresh();
   }
@@ -1011,37 +977,40 @@ int SystemMissionsWindow::FillMissionList()
 void SystemMissionsWindow::FillCharacterList(int tab, int force)
 {
   GameObjNotifier* system = GetSystem();
-  if (!system)
+  if (!system) {
     return;
-  if ((m_tab == tab && force == 0) || !m_selectedMission)
+  }
+  if ((m_tab == tab && force == 0) || !m_selectedMission) {
     return;
+  }
   m_tab = tab;
   m_tabs->SelectTab(static_cast<uint32_t>(tab), 1);
   const bool decoys = m_tab == static_cast<int>(kDecoysTabId);
-  for (const auto& ownedRow : m_characters->Entries())
-  {
+  for (const auto& ownedRow : m_characters->Entries()) {
     auto* row = static_cast<CoolListItem*>(ownedRow.get());
     ObjectKey rowKey;
     static_cast<ObjectListItem*>(row)->GetKey(&rowKey);
-    if (ObjectKeyNode* node = m_objects.Find(&rowKey))
+    if (ObjectKeyNode* node = m_objects.Find(&rowKey)) {
       m_objects.Remove(static_cast<ObjectKeyIdNode*>(node));
+    }
   }
   m_characters->Clear();
   RoleIterator roles(system, 3);
   ObjectKey selectedKey;
   m_selectedMission->GetKey(&selectedKey);
-  for (roles.Begin(); roles.Current(); roles.Advance())
-  {
+  for (roles.Begin(); roles.Current(); roles.Advance()) {
     Role* role = AsRole(roles.Current());
     ObjectKey roleKey;
     role->GetKey(&roleKey);
     ObjectKey missionKey;
     role->GetMissionKey(&missionKey);
-    if (missionKey.m_value != selectedKey.m_value)
+    if (missionKey.m_value != selectedKey.m_value) {
       continue;
+    }
     m_objects.Add(NewOrNull<ObjectKeyIdNode>(&roleKey, 0u), 0);
-    if (((role->m_flags78 & role_flag::kDecoy) != 0) != decoys)
+    if (((role->m_flags78 & role_flag::kDecoy) != 0) != decoys) {
       continue;
+    }
     AddCharacterRow(GetObjectInFamilies_01_ff(m_galaxy->m_side, &roleKey), 1, nullptr);
   }
   m_characterList->Refresh();
@@ -1049,33 +1018,33 @@ void SystemMissionsWindow::FillCharacterList(int tab, int force)
 
 int DominantMissionSide(GameObjNotifier* system, int viewSide)
 {
-  if (!system)
+  if (!system) {
     return 0;
+  }
   const auto side = static_cast<uint32_t>(ViewSideOf(viewSide));
   const uint32_t otherSide = side == 3 ? 3 : 2 - (side != 1);
   ObjectKeyValueSet ownMissions;
   ObjectKeyValueSet otherMissions;
   RoleIterator roles(system, 3);
-  for (roles.Begin(); roles.Current(); roles.Advance())
-  {
+  for (roles.Begin(); roles.Current(); roles.Advance()) {
     Role* role = AsRole(roles.Current());
-    if (!CountsAsMission(role))
+    if (!CountsAsMission(role)) {
       continue;
-    ObjectKeyValueSet* target = nullptr;
-    if (ControlSideOf(role) == side)
-    {
-      target = &ownMissions;
     }
-    else if (ControlSideOf(role) == otherSide)
-    {
+    ObjectKeyValueSet* target = nullptr;
+    if (ControlSideOf(role) == side) {
+      target = &ownMissions;
+    } else if (ControlSideOf(role) == otherSide) {
       target = &otherMissions;
     }
-    if (!target)
+    if (!target) {
       continue;
+    }
     ObjectKey missionKey;
     role->GetMissionKey(&missionKey);
-    if (target->Find(&missionKey))
+    if (target->Find(&missionKey)) {
       continue;
+    }
     ObjectKey addKey;
     role->GetMissionKey(&addKey);
     target->AddKeyValue(&addKey, 0);
@@ -1083,21 +1052,21 @@ int DominantMissionSide(GameObjNotifier* system, int viewSide)
   const auto ownCount = static_cast<uint16_t>(ownMissions.Count());
   auto otherCount = static_cast<uint16_t>(otherMissions.Count());
   uint32_t result = otherSide;
-  if (otherCount == 0)
-  {
+  if (otherCount == 0) {
     otherCount = 0;
-    if (ownCount != 0)
-    {
+    if (ownCount != 0) {
       result = side;
       otherCount = ownCount;
     }
-    if (otherCount == 0)
+    if (otherCount == 0) {
       result = 3;
+    }
   }
   return static_cast<int>(result);
 }
 
-// Key getters that the linker folded across classes (the Role and list-node ones among them): copy the key at +0x6c / +0x1c.
+// Key getters that the linker folded across classes (the Role and list-node ones among them): copy the key at +0x6c /
+// +0x1c.
 ObjectKey* ObjectKeyAtOffset6c(const void* object, ObjectKey* out)
 {
   out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x6c);

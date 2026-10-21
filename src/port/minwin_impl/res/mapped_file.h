@@ -10,7 +10,7 @@ namespace mw::res
 // A read-only memory mapping of a whole file.
 class MappedFile
 {
-public:
+  public:
   static MappedFile* Open(const std::string& nativePath);
   ~MappedFile();
   const uint8_t* data() const
@@ -22,7 +22,7 @@ public:
     return m_size;
   }
 
-private:
+  private:
   MappedFile() = default;
   const uint8_t* m_data = nullptr;
   size_t m_size = 0;

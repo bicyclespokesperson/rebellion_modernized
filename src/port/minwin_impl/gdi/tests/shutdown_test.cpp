@@ -1,25 +1,27 @@
-#define MINWIN_IMPLEMENTATION 1
 #include "port/minwin/gdi32.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace {
+namespace
+{
 struct GlobalGraphicsOwner {
-    HBRUSH brush = nullptr;
+  HBRUSH brush = nullptr;
 
-    ~GlobalGraphicsOwner() {
-        if (!DeleteObject(brush)) {
-            fprintf(stderr, "Failed to delete a graphics object during static cleanup\n");
-            _Exit(1);
-        }
+  ~GlobalGraphicsOwner()
+  {
+    if (!reb::compat::DeleteObject(brush)) {
+      fprintf(stderr, "Failed to delete a graphics object during static cleanup\n");
+      _Exit(1);
     }
+  }
 };
 
 GlobalGraphicsOwner owner;
-}
+} // namespace
 
-int main() {
-    owner.brush = CreateSolidBrush(0x123456);
-    return owner.brush ? 0 : 1;
+int main()
+{
+  owner.brush = reb::compat::CreateSolidBrush(0x123456);
+  return owner.brush ? 0 : 1;
 }

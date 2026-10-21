@@ -7,16 +7,17 @@
 // CapShip::CreateData; word20-word28 are accessed through CapShip.
 class CapShipData : public CombatUnitData
 {
-public:
-  CapShipData(); // 0x5586a0
-  ~CapShipData() override; // 0x5586c0 (scalar deleting destructor), 0x5586e0
-  int Read(istream* in) override; // 0x5586f0
-  int Write(ostream* out) override; // 0x558740
+  public:
+  CapShipData();                     // 0x5586a0
+  ~CapShipData() override;           // 0x5586c0 (scalar deleting destructor), 0x5586e0
+  int Read(istream* in) override;    // 0x5586f0
+  int Write(ostream* out) override;  // 0x558740
   int Checksum(Crc32* crc) override; // 0x558790
   // Slot 4 (IsValid) is 0x5587d0, a jump to the shared "return 1" stub.
 
-  // Written by the tactical battle simulation after a fight (CapShip::SetDataWord20/24/28, 0x58d540/0x58dc10); a nonzero
-  // word20 makes the master view count the whole bombardment modifier as lost (CapShip::GetBombardmentModifierLoss).
+  // Written by the tactical battle simulation after a fight (CapShip::SetDataWord20/24/28, 0x58d540/0x58dc10); a
+  // nonzero word20 makes the master view count the whole bombardment modifier as lost
+  // (CapShip::GetBombardmentModifierLoss).
   int m_word20; // +0x20
   int m_word24; // +0x24
   int m_word28; // +0x28, set to shield strength minus its lost share minus the shield damage of the fight
@@ -26,15 +27,15 @@ public:
 // destructor 0x558460, destructor 0x558500).
 class CombatUnitIterator : public ChildIterator
 {
-public:
+  public:
   CombatUnitIterator(GameObjNotifier* parent, uint32_t stateFilter); // 0x558480
-  ~CombatUnitIterator() override; // 0x558500
+  ~CombatUnitIterator() override;                                    // 0x558500
 };
 
-// GNPRTB 0x800-0x805 (the "rules 8" block; 0x804/0x805 are the repair levels CapShip and FightSquad pick by FastRepair).
-// 0x800 is the largest critical-hit (CH) value a capital-ship subsystem can take; 0x801-0x803 drive RollCriticalHitType:
-// a random bonus range added to the damage percentage, the threshold it must reach, and the range of the roll that
-// picks the hit type from table 5.
+// GNPRTB 0x800-0x805 (the "rules 8" block; 0x804/0x805 are the repair levels CapShip and FightSquad pick by
+// FastRepair). 0x800 is the largest critical-hit (CH) value a capital-ship subsystem can take; 0x801-0x803 drive
+// RollCriticalHitType: a random bonus range added to the damage percentage, the threshold it must reach, and the range
+// of the roll that picks the hit type from table 5.
 extern int g_gnprtb0800; // 0x6bb388
 extern int g_gnprtb0801; // 0x6bb378
 extern int g_gnprtb0802; // 0x6bb380

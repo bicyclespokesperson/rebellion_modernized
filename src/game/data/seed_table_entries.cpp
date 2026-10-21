@@ -20,7 +20,8 @@ uint32_t makeKey(uint32_t family, uint32_t id)
 
 // ---- SeedTableEntry ----------------------------------------------------------------------------------------
 
-SeedTableEntry::SeedTableEntry() : m_key(0)
+SeedTableEntry::SeedTableEntry()
+    : m_key(0)
 {
 }
 
@@ -57,8 +58,7 @@ int SeedTableEntry::ParseText(istream* in)
   ScopedStrstream token;
   int endOfLine = 0;
   const int ok = ParseHeader(in, &endOfLine);
-  if (ok)
-  {
+  if (ok) {
     unsigned int family;
     unsigned int id;
     ParseUnsignedField(in, token.get(), &endOfLine, &family);
@@ -71,7 +71,8 @@ int SeedTableEntry::ParseText(istream* in)
 
 // ---- SeedFamilyTableEntry ----------------------------------------------------------------------------------
 
-SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0)
+SeedFamilyTableEntry::SeedFamilyTableEntry()
+    : m_field24(0)
 {
 }
 
@@ -111,8 +112,7 @@ int SeedFamilyTableEntry::ParseText(istream* in)
   ScopedStrstream token;
   int endOfLine = 0;
   bool ok = ParseHeader(in, &endOfLine);
-  if (ok)
-  {
+  if (ok) {
     unsigned int family;
     unsigned int id;
     ParseLongField(in, token.get(), &endOfLine, &m_field24);
@@ -120,16 +120,16 @@ int SeedFamilyTableEntry::ParseText(istream* in)
     ParseUnsignedField(in, token.get(), &endOfLine, &id);
     ok = m_items.AddKey(ObjectKey::Make(family, id)) != nullptr;
   }
-  for (int group = 0; ok && group < kSeedGroupCount; ++group)
-  {
+  for (int group = 0; ok && group < kSeedGroupCount; ++group) {
     unsigned int family;
     unsigned int id;
     int count;
     ParseUnsignedField(in, token.get(), &endOfLine, &family);
     ParseUnsignedField(in, token.get(), &endOfLine, &id);
     ParseLongField(in, token.get(), &endOfLine, &count);
-    for (int i = 0; ok && i < count; ++i)
+    for (int i = 0; ok && i < count; ++i) {
       ok = m_items.AddKey(ObjectKey::Make(family, id)) != nullptr;
+    }
   }
   SkipRestOfLine(in, &endOfLine);
   return ok;
@@ -137,7 +137,8 @@ int SeedFamilyTableEntry::ParseText(istream* in)
 
 // ---- IntTableEntry -----------------------------------------------------------------------------------------
 
-IntTableEntry::IntTableEntry() : m_value(0)
+IntTableEntry::IntTableEntry()
+    : m_value(0)
 {
 }
 
@@ -174,8 +175,9 @@ int IntTableEntry::ParseText(istream* in)
   ScopedStrstream token;
   int endOfLine = 0;
   const int ok = ParseHeader(in, &endOfLine);
-  if (ok)
+  if (ok) {
     ParseLongField(in, token.get(), &endOfLine, &m_value);
+  }
   SkipRestOfLine(in, &endOfLine);
   return ok;
 }

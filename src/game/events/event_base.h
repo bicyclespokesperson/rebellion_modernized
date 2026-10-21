@@ -23,48 +23,48 @@ class Crc32;
 
 class EventBase : public AvlNode
 {
-public:
-  EventBase(); // 0x54eee0
+  public:
+  EventBase();                       // 0x54eee0
   EventBase(const EventBase& other); // 0x54ef60
-  ~EventBase() override; // 0x54efe0
+  ~EventBase() override;             // 0x54efe0
 
-  virtual EventBase* Clone() = 0; // 1
-  virtual void Read(istream* in) = 0; // 2: body ReadBase (0x54f040)
-  virtual void Write(ostream* out) = 0; // 3: body WriteBase (0x54f080)
+  virtual EventBase* Clone() = 0;        // 1
+  virtual void Read(istream* in) = 0;    // 2: body ReadBase (0x54f040)
+  virtual void Write(ostream* out) = 0;  // 3: body WriteBase (0x54f080)
   virtual void Checksum(Crc32* crc) = 0; // 4: body ChecksumBase (0x54f0c0)
   virtual int IsChecked()
   {
     return 0;
   } // 5: 0x6158b0
   virtual int CheckEnabled(StatusCode* status) = 0; // 6
-  virtual int CheckValid(StatusCode* status) = 0; // 7
-  virtual int Execute() = 0; // 8: queued events return non-zero to be queued again
-  virtual int GetKind() = 0; // 9: the id the factory table knows the class by
+  virtual int CheckValid(StatusCode* status) = 0;   // 7
+  virtual int Execute() = 0;                        // 8: queued events return non-zero to be queued again
+  virtual int GetKind() = 0;                        // 9: the id the factory table knows the class by
 
   // The fields common to every event: flag, +0x1c, the object key and the context.
-  void ReadBase(istream* in); // 0x54f040
-  void WriteBase(ostream* out); // 0x54f080
+  void ReadBase(istream* in);    // 0x54f040
+  void WriteBase(ostream* out);  // 0x54f080
   void ChecksumBase(Crc32* crc); // 0x54f0c0
 
-  int m_flag; // +0x18, 1
-  int m_unk1c; // +0x1c
+  int m_flag;              // +0x18, 1
+  int m_unk1c;             // +0x1c
   NotifyContext m_context; // +0x20
-  ObjectKey m_key; // +0x3c, the object the event acts on
+  ObjectKey m_key;         // +0x3c, the object the event acts on
 };
 
 class TimedEvent : public EventBase
 {
-public:
-  TimedEvent(); // 0x54f1b0
+  public:
+  TimedEvent();                        // 0x54f1b0
   TimedEvent(const TimedEvent& other); // 0x54f200
-  ~TimedEvent() override; // 0x54f1f0
+  ~TimedEvent() override;              // 0x54f1f0
 
-  void Read(istream* in) override = 0; // body 0x54f230
-  void Write(ostream* out) override = 0; // body 0x54f260
+  void Read(istream* in) override = 0;    // body 0x54f230
+  void Write(ostream* out) override = 0;  // body 0x54f260
   void Checksum(Crc32* crc) override = 0; // body 0x54f290
 
-  int ReadTimed(istream* in); // 0x54f230
-  int WriteTimed(ostream* out); // 0x54f260
+  int ReadTimed(istream* in);    // 0x54f230
+  int WriteTimed(ostream* out);  // 0x54f260
   int ChecksumTimed(Crc32* crc); // 0x54f290
 
   int m_dueDay; // +0x40, the game day the event is due
@@ -74,18 +74,18 @@ public:
 // from it.
 class Command : public EventBase
 {
-public:
-  Command(); // 0x54f2c0
+  public:
+  Command();                     // 0x54f2c0
   Command(const Command& other); // 0x54f380
-  ~Command() override; // 0x54f330
+  ~Command() override;           // 0x54f330
 
   Command* Clone() override = 0; // 1: a fresh copy, 0x50 bytes
 
-  void Read(istream* in) override = 0; // body 0x54f470
-  void Write(ostream* out) override = 0; // body 0x54f490
+  void Read(istream* in) override = 0;    // body 0x54f470
+  void Write(ostream* out) override = 0;  // body 0x54f490
   void Checksum(Crc32* crc) override = 0; // body 0x54f4b0
 
-  void ReadCommand(istream* in); // 0x54f470
+  void ReadCommand(istream* in);   // 0x54f470
   void WriteCommand(ostream* out); // 0x54f490
   int ChecksumCommand(Crc32* crc); // 0x54f4b0
 
@@ -99,13 +99,13 @@ public:
 
 class PlainEvent : public EventBase
 {
-public:
-  PlainEvent(); // 0x54f4e0
+  public:
+  PlainEvent();                        // 0x54f4e0
   PlainEvent(const PlainEvent& other); // 0x54f530
-  ~PlainEvent() override; // 0x54f520
+  ~PlainEvent() override;              // 0x54f520
 
-  void Read(istream* in) override = 0; // body 0x54f550
-  void Write(ostream* out) override = 0; // body 0x54f570
+  void Read(istream* in) override = 0;    // body 0x54f550
+  void Write(ostream* out) override = 0;  // body 0x54f570
   void Checksum(Crc32* crc) override = 0; // body 0x54f590
 
   // Slot 10, introduced by the concrete classes (PlainEvent's own vtable stops at slot 9): the sort key of the
@@ -115,44 +115,44 @@ public:
     return 0x10;
   }
 
-  int ReadPlain(istream* in); // 0x54f550
-  int WritePlain(ostream* out); // 0x54f570
+  int ReadPlain(istream* in);    // 0x54f550
+  int WritePlain(ostream* out);  // 0x54f570
   int ChecksumPlain(Crc32* crc); // 0x54f590
 };
 
 class KeyedEvent : public PlainEvent
 {
-public:
-  KeyedEvent(); // 0x594a30
+  public:
+  KeyedEvent();                        // 0x594a30
   KeyedEvent(const KeyedEvent& other); // 0x594b10
-  ~KeyedEvent() override; // 0x594ab0
+  ~KeyedEvent() override;              // 0x594ab0
 
-  void Read(istream* in) override = 0; // body 0x594b80
-  void Write(ostream* out) override = 0; // body 0x594bd0
+  void Read(istream* in) override = 0;    // body 0x594b80
+  void Write(ostream* out) override = 0;  // body 0x594bd0
   void Checksum(Crc32* crc) override = 0; // body 0x594c20
 
-  int ReadKeyed(istream* in); // 0x594b80
-  int WriteKeyed(ostream* out); // 0x594bd0
+  int ReadKeyed(istream* in);    // 0x594b80
+  int WriteKeyed(ostream* out);  // 0x594bd0
   int ChecksumKeyed(Crc32* crc); // 0x594c20
 
   ObjectKey m_keyA; // +0x40
   ObjectKey m_keyB; // +0x44
-  int m_value; // +0x48
+  int m_value;      // +0x48
 };
 
 class SourceEvent : public KeyedEvent
 {
-public:
-  SourceEvent(); // 0x5863b0
+  public:
+  SourceEvent();                         // 0x5863b0
   SourceEvent(const SourceEvent& other); // 0x586400
-  ~SourceEvent() override; // 0x5863f0
+  ~SourceEvent() override;               // 0x5863f0
 
-  void Read(istream* in) override = 0; // body 0x586430
-  void Write(ostream* out) override = 0; // body 0x586470
+  void Read(istream* in) override = 0;    // body 0x586430
+  void Write(ostream* out) override = 0;  // body 0x586470
   void Checksum(Crc32* crc) override = 0; // body 0x5864b0
 
-  int ReadSource(istream* in); // 0x586430
-  int WriteSource(ostream* out); // 0x586470
+  int ReadSource(istream* in);    // 0x586430
+  int WriteSource(ostream* out);  // 0x586470
   int ChecksumSource(Crc32* crc); // 0x5864b0
 
   int m_valueA; // +0x4c
@@ -161,16 +161,16 @@ public:
 
 class TwoKeyEvent : public KeyedEvent
 {
-public:
-  TwoKeyEvent(); // 0x5864e0
+  public:
+  TwoKeyEvent();                         // 0x5864e0
   TwoKeyEvent(const TwoKeyEvent& other); // 0x5865c0
-  ~TwoKeyEvent() override; // 0x586560
+  ~TwoKeyEvent() override;               // 0x586560
 
-  void Read(istream* in) override = 0; // body 0x586630
-  void Write(ostream* out) override = 0; // body 0x586660
+  void Read(istream* in) override = 0;    // body 0x586630
+  void Write(ostream* out) override = 0;  // body 0x586660
   void Checksum(Crc32* crc) override = 0; // body 0x586690
 
-  void ReadTwoKey(istream* in); // 0x586630
+  void ReadTwoKey(istream* in);   // 0x586630
   void WriteTwoKey(ostream* out); // 0x586660
   int ChecksumTwoKey(Crc32* crc); // 0x586690
 

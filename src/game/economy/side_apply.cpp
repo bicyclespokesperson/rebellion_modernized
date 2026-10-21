@@ -16,17 +16,13 @@ bool sameValue(const IntPair& a, const IntPair& b)
 int applyInt(Side* self, int Side::* field, IntNotified notified, NotifyContext* ctx)
 {
   int result = self->IsSideView();
-  if (result)
-  {
+  if (result) {
     Side* master = static_cast<Side*>(self->GetViewObject(0));
-    if (self->MatchesSideMask(ctx->m_flag08))
-    {
+    if (self->MatchesSideMask(ctx->m_flag08)) {
       const int old = self->*field;
-      if (old != master->*field)
-      {
+      if (old != master->*field) {
         self->*field = master->*field;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(self->ViewSide()))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(self->ViewSide())) {
           result = (self->*notified)(old, self->*field, ctx);
         }
       }
@@ -38,18 +34,14 @@ int applyInt(Side* self, int Side::* field, IntNotified notified, NotifyContext*
 int applyPair(Side* self, IntPair Side::* field, PairNotified notified, NotifyContext* ctx)
 {
   int result = self->IsSideView();
-  if (result)
-  {
+  if (result) {
     Side* master = static_cast<Side*>(self->GetViewObject(0));
-    if (self->MatchesSideMask(ctx->m_flag08))
-    {
+    if (self->MatchesSideMask(ctx->m_flag08)) {
       IntPair& current = self->*field;
-      if (!sameValue(current, master->*field))
-      {
+      if (!sameValue(current, master->*field)) {
         const IntPair old = current;
         current = master->*field;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(self->ViewSide()))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(self->ViewSide())) {
           result = (self->*notified)(&old, &current, ctx);
         }
       }

@@ -1,11 +1,15 @@
-# Native builds: Linux and macOS, x86-64 and arm64 (phase 3, P3/P4)
+# Native builds: macOS, Linux and Windows
 
-The top-level `CMakeLists.txt` builds the native executable by default; `tools/build_native.sh` drives Linux builds and
-`tools/build_macos.sh` drives macOS builds. Both include `cmake/native.cmake`. Everything that differs between the operating systems is in
-`cmake/native_platform.cmake`, `src/port/native/platform{.h,_linux.cpp,_macos.cpp}` and `packaging/macos/`. The Linux x86-64 details (what is
-where, globals, sanitizer findings) are in [native_linux.md](native_linux.md); this file lists the deltas and the arm64/macOS status.
+Building and configuring are in the [README](../README.md): `./create_build.sh` configures `build/native` and
+`./launch_game.sh` compiles and launches; the config keys are listed there. The top-level `CMakeLists.txt` includes
+`cmake/native.cmake`. Everything that differs between operating systems is in `cmake/native_platform.cmake`,
+`src/port/native/platform{.h,_linux.cpp,_macos.cpp,_windows.cpp}` and `packaging/macos/`. The executable is
+`build/native/rebellion` on Linux, `build/native/Rebellion.app` on macOS and `build/native/rebellion.exe` on Windows.
 
-## The OS deltas (all of them)
+Ninja and Makefile builds copy their compilation database to an ignored `compile_commands.json` at the repository
+root for editor tooling.
+
+## The OS deltas
 
 | What | Linux | macOS | Where |
 |---|---|---|---|
@@ -13,191 +17,229 @@ where, globals, sanitizer findings) are in [native_linux.md](native_linux.md); t
 | saves, game data | `install_dir` of the config file (the player's own game directory, `SaveGame/` inside it) on both: nothing OS-specific | | |
 | system font directories (Arial search) | `~/.fonts`, `~/.local/share/fonts`, `$XDG_DATA_HOME/fonts`, `/usr/share/fonts`, `/usr/local/share/fonts` | `/System/Library/Fonts/Supplemental` (has Arial), `/Library/Fonts`, `~/Library/Fonts` | `SystemFontDirs` |
 | bundled fallback fonts (Liberation Sans) | `<executable dir>/fonts` | `Rebellion.app/Contents/Resources/fonts` | `BundledFontDir`, `reb_native_platform_package` |
-| thread id / name | `gettid`, `pthread_setname_np(thread, name)` | `pthread_threadid_np`, `pthread_setname_np(name)` | `CurrentThreadId`, `SetCurrentThreadName` |
+| thread id / name / priority | `gettid`, `pthread_setname_np(thread, name)`; priority is not raised | `pthread_threadid_np`, `pthread_setname_np(name)`; priority is not raised | `CurrentThreadId`, `SetCurrentThreadName`, `RaiseCurrentThreadPriority` |
 | link libraries | `pthread dl m`; SDL3 finds X11/Wayland/ALSA/Pulse | `pthread m`; SDL3 links Cocoa/Metal/CoreAudio frameworks itself | `REB_PLATFORM_LIBS` |
 | deployment target | n/a | 11.0 for arm64 and x86-64 (set before `project()`) | top-level `CMakeLists.txt` |
-| packaging | plain binary `build/native/rebellion` | `Rebellion.app` (Info.plist from `packaging/macos`, Liberation fonts, ad-hoc `codesign`) | `reb_native_platform_package` |
+| packaging | plain binary `build/native/rebellion` | `Rebellion.app` (Info.plist from `packaging/macos`, Liberation fonts, the game's icon converted to `Rebellion.icns` or `REB_BUNDLE_ICON`, ad-hoc `codesign`) | `reb_native_platform_package` |
 | cross builds | `--arch arm64`: clang-19 + Ubuntu cross libc/libstdc++, SDL3 with only its dummy drivers (`REB_SDL_HEADLESS`) | none (macOS is built on a Mac or a macOS runner) | `cmake/toolchain-linux-aarch64.cmake` |
 
-Size: `platform_linux.cpp` 50 lines, `platform_macos.cpp` 39, `platform.h` 31, `native_platform.cmake` 54, `Info.plist.in` 18. No `#ifdef __APPLE__` /
-`__linux__` remains in `src/port` or `src/game` (the shared `config.cpp` and `font_files.cpp` call `reb::platform::`; their Windows branches
-are the i686 builds'). Not deltas, because they work the same: path translation (`mw::res::ResolvePath` tries the exact name first, so the
-case-insensitive default of APFS works; case-sensitive volumes fall back to a directory scan), `clock_gettime(CLOCK_MONOTONIC)`, POSIX
-threads and condition variables, `mmap`.
+Windows uses `%APPDATA%\Rebellion\config.ini`, the Windows SDK and the MSVC-compatible CRT, and builds with `clang-cl`.
 
-Known semantic difference: `TerminateThread` is `pthread_cancel` with asynchronous cancellation on Linux; macOS does not honour the
-asynchronous type, so the cancel acts at the next cancellation point (`nanosleep`, condition waits: every place the game's two threads block).
+The SDL-backed compatibility functions use C++ linkage in `reb::compat` on every platform. Game and port callers
+qualify these calls explicitly; they must not define plain Windows API symbols or use global API-renaming macros.
+Resource module handles belong to the PE reader, not the Windows loader. Real OS calls stay separate in platform
+implementation files that use SDK declarations. The Windows link does not permit duplicate definitions.
 
-## Playing on a desktop (window, audio, pacing, first run)
+Building `rebellion` or `reb_battle_runner` checks the compatibility objects with `llvm-nm` (or `nm` on POSIX);
+keep LLVM's symbol tools installed alongside Clang on Windows. The same check is available as the
+`reb_compat_symbols` build target and the `native_compat_symbols` CTest. It rejects bare compatibility API and GUID
+symbols, including decorated 32-bit Windows names, while allowing genuine host imports.
 
-The hidden developer menu opens with **D** in the shuttle cockpit or on the strategic screen. It lets you choose
-**Classic** (the game default) or **Codex Strategist** for the Alliance and Empire independently. Choices are saved in
-`config.ini` as `alliance_ai` and `empire_ai` and apply to new games. In a running single-player game, changing an AI
-side replaces its controller immediately; changing the human side sets its preference for future AI control. The star
-marks the running personality for an AI side, or the saved preference for a human side and in the cockpit.
-**Switch sides**, available on the strategic screen, exchanges human/AI control and rebuilds the faction UI. Existing
-orders continue; open panels and controller planning state reset.
-For its integration check, set `REB_SWITCH_SIDES_SMOKE=1` when running `tools/modern_smoke.py`. Each process exercises the
-menu click, deferred switching, both factions, queued-order preservation and speed/pause preservation before advancing and
-saving; the second process loads that save and repeats the check.
+`create_build.sh` refuses to run there without the MSVC environment (`INCLUDE`/`LIB`), which is why Git Bash must be
+started from the developer prompt; `launch_game.sh` converts the paths it exports to Windows form with `cygpath`.
 
-For an asset-dependent list regression check without desktop input, prefix a `tools/modern_smoke.py` invocation with
-`REB_UI_SMOKE=1`. After loading the save, each process checks fleet-row collapse/expansion, layout, rendered pixels,
-hit testing, keyboard navigation, selection and sorting. It uses the configured installation's STRATEGY.DLL resources
-and logs `UI visibility checks passed` before running the usual simulation and save/reload checks.
-It also rebuilds empty battle-participant lists for both sides and all four kinds, and checks the outcome artwork IDs
-for total destruction, retreat and victory/defeat.
-Status-table checks cover blank labels/values, minimum row spacing, multiline wrapping, rendered text and label resets
-at nonzero coordinates.
-Report checks exercise actual Notice7 and Notice15 payloads, including empty participant sections, and create the
-assault report window in both faction skins to verify separately that its title and body render. They also check
-missing assault targets and the story report's artwork before and after Luke completes Dagobah. Victory checks
-temporarily change and restore loaded game state to verify HQ-only victory without character captures, Alliance
-control of Coruscant, and the additional capture requirements in standard mode.
+Not deltas, because they work the same: path translation (`mw::res::ResolvePath` tries the exact name first, so the
+case-insensitive default of APFS works; case-sensitive volumes fall back to a directory scan), `clock_gettime(CLOCK_MONOTONIC)`, `mmap`.
 
-All of it is in the presentation path: `src/port/minwin_impl/user/present.{h,cpp}` (new), small hooks in `user/platform.cpp`, `user/misc.cpp`
-(cursor) and `user/message.cpp` (idle pacing), `audio/sdl_audio.cpp`, and `src/port/native/first_run.{h,cpp}`. Game code and simulation are untouched.
+## What is where
+
+| Piece | Where | Notes |
+|---|---|---|
+| kernel32 on POSIX | `src/port/native/kernel32_posix.cpp` | only what has no standard-library form: `CloseHandle` for the descriptor handles of `win_compat.cpp`, `GetCurrentThreadId`, QPC (`CLOCK_MONOTONIC`) and a constant `GetLastError`. Threads, events and locks are `std::thread` / `std::mutex` / `std::condition_variable` in the callers; `port/native/thread_sync.h` has the event group and the timed join the audio threads use. `GetTickCount` is `native_clock::TickMs()`. `timeGetTime/timeSetEvent` are in `main.cpp` (the window manager's pump-driven timers). |
+| MSVC CRT names | `src/port/native/crt_posix.cpp`, `crt_windows.cpp`, `crt/` | `_sopen/_read/_write/_lseek/_close/_setmode/_chdir/_mkdir/_chdrive`, `_stricmp/_strnicmp`, `<io.h>`/`<direct.h>` shims. All paths go through `mw::res::ResolvePath` (backslashes, drive letters, any case). There is no text mode: every file the game opens is opened binary. Game installation paths use the explicit `OpenGameFile` adapter. |
+| iostream library | `src/game/iostream` | streams own typed `ios`, input/output views and virtual `streambuf` implementations |
+| program globals | typed definitions in `src/game` | |
+| initialization | `src/port/native/game_context.cpp` | named dependencies and scoped platform teardown |
+| entry | `src/port/native/main.cpp` | asset owner, `minwin_wiring::Install()`, scoped context, `RunApplication` and exception boundary |
+| startup text | `tools/extract_startup_assets.py` | a [versioned asset pack](design/startup_assets.md) extracted from the installation by `create_build.sh` |
+| config | `src/port/minwin_impl/config` | on POSIX the derived `*Location` registry values are `C:` + install dir, so the game's "drop the drive letter, chdir" code works |
+
+## Desktop behaviour
+
+The presentation path is `src/port/minwin_impl/user/present.{h,cpp}`, small hooks in `user/platform.cpp`, `user/misc.cpp`
+(cursor) and `user/message.cpp` (idle pacing), `audio/sdl_audio.cpp`, and `src/port/native/first_run.{h,cpp}`.
 
 | Topic | Behaviour |
 |---|---|
-| Config keys | `upscale_filter` (`sharp` default, `nearest`, `integer`), `render_scale` (0: automatic device scale, 1–4: override), `window_scale` (0/absent: largest integer scale that fits the display's usable area, leaving 48 px for the title bar), `fullscreen`, `widescreen` (1: adaptive gameplay, 0: classic), `hd_asset_dir` (optional indexed pack), `renderer`, `vsync`, `audio_buffer` (`config/config.h`). Environment overrides for tests: `REB_MINWIN_SCALE`, `REB_MINWIN_FULLSCREEN`, `REB_MINWIN_PACING_US`, `SDL_RENDER_DRIVER`, `SDL_AUDIODRIVER` |
-| Window | Decorated, resizable (minimum 640x480), high pixel density on (macOS Retina). The renderer fits a device-resolution frame to the output. Gameplay expands to the output aspect ratio, from 640×480 to 1280×480 logical pixels; other scenes retain 4:3. The default sharp mode uses fractional fitting; nearest and integer modes are configurable. Live text and line geometry render at device scale; the gameplay canvas keeps a logical height of 480. SDL's default renderer (GPU) is tried first, then `software`; the Windows native backend uses the same renderer selection |
+| Test overrides | `REB_MINWIN_SCALE`, `REB_MINWIN_FULLSCREEN`, `REB_MINWIN_PACING_US`, `SDL_RENDER_DRIVER`, `SDL_AUDIODRIVER` |
+| Window | Decorated, resizable (minimum 640x480), high pixel density on (macOS Retina). The renderer fits a device-resolution frame to the output. Gameplay expands to the output aspect ratio, from 640×480 to 1280×480 logical pixels; other scenes retain 4:3. The default sharp mode uses fractional fitting; nearest and integer modes are configurable. Live text and line geometry render at device scale; the gameplay canvas keeps a logical height of 480. SDL's default renderer (GPU) is tried first, then `software` |
 | Fullscreen | Borderless desktop fullscreen (`SDL_SetWindowFullscreen`), toggled by Alt+Enter (the key pair is swallowed, the game never sees the Return) |
-| Mouse | One shared presentation viewport (accounts for the letterbox offset, the selected filter and pixel density), floored, clamped to 0..639 / 0..479. `REB_MINWIN_TRACE=mouse` prints window and game coordinates. Unit of the check: windowed 1x and fullscreen 2x, edges (0, 1, 2, 639, 479 and outside) |
+| Mouse | One shared presentation viewport (accounts for the letterbox offset, the selected filter and pixel density), floored, clamped to 0..639 / 0..479. `REB_MINWIN_TRACE=mouse` prints window and game coordinates |
 | Cursors | The game's own cursors are enlarged by the current integer scale (nearest neighbour; hot spot scaled) and rebuilt when the scale changes (resize, fullscreen, moving to another display); with pixel density above 1 an alternate image at the pixel scale is attached |
 | Mouse capture | `SDL_CaptureMouse` follows the game's `SetCapture`/`ReleaseCapture` (synchronised once per message pump); nothing is grabbed otherwise, also not in fullscreen |
 | Close / Alt+F4 | The window's close button, `SDL_EVENT_QUIT` and Alt+F4 (when the window manager does not take it) post `WM_SYSCOMMAND/SC_CLOSE`: the game's quit confirmation, as in the original |
 | Focus | Focus lost or minimised: keys and mouse buttons still held are released toward the game (no stuck keys), then `WM_ACTIVATEAPP(FALSE)`; regained or restored with focus: `WM_ACTIVATEAPP(TRUE)` |
-| Idle pacing | The game's main loop is `PeekMessage(PM_REMOVE)` until empty, one game step, repeat. When the queue is empty at nesting depth 0, `PeekMessage` sleeps so that two consecutive empty returns are at least 250 us apart (`REB_MINWIN_PACING_US`; 0 disables; off with `REB_DETERMINISTIC=1`). Do not make it coarser: game progress per real second depends on the loop's latency (see Results) |
+| Window dragging | Native game windows use live dragging; Windows builds keep the original outline mode |
+| Idle pacing | The game's main loop is `PeekMessage(PM_REMOVE)` until empty, one game step, repeat. When the queue is empty at nesting depth 0, `PeekMessage` sleeps so that two consecutive empty returns are at least 250 us apart (`REB_MINWIN_PACING_US`; 0 disables; off with `REB_DETERMINISTIC=1`). Do not make it coarser: game progress per real second depends on the loop's latency (the game's tick scheduler re-arms from "now"); 2000 us was measurably slower |
 | Audio | SDL3 audio stream at 44.1 kHz s16 stereo, device buffer 1024 frames (23 ms, `audio_buffer`), rendered in SDL's audio callback by the mixer. No device: a message on stderr and the real-time pacing thread keeps play cursors and refill threads running |
 | First run | `CheckInstallation()` (before anything else): config file present, `install_dir` set and a folder, `REBEXE.EXE` (its resources are read at run time), the 14 resource DLLs (`ALBRIEF ALSPRITE CDDERR COMMON EMBRIEF EMSPRITE ENCYBMAP ENCYTEXT GOKRES REBDLOG STRATEGY TEXTCOMM TEXTSTRA TEXTTACT`), `GData/`, `EData/`, `MDATA/MDATA.000` (in `data_dir`), `SaveGame/` (created if missing). Anything wrong: `SDL_ShowSimpleMessageBox` plus stderr naming the setting, the file and the config path, exit status 1. `SMACKW32.DLL`, `TACTICAL.DLL`, `VOICEFX*.DLL` are not needed natively |
 
-Testing recipe (no window manager exists in the `rebellion-native` image; the checks of fullscreen, close, focus and minimise need one):
+Encyclopedia artwork uses `EData` under `data_dir` (or `install_dir`); an explicit registry `EncyLocation` still
+overrides this. The graphics handle registry stays alive until process exit because global game font tables delete
+their fonts during static cleanup (`gdi_shutdown_test` covers the order).
 
+Known rough edges: the game does not know the window can be resized or go fullscreen (its own "windowed" command-line
+flag is unrelated); the idle loop wakes up to 4,000 times a second, about 9% of a core at the galaxy screen; vsync is
+off by default (`vsync=1`); when minimised the loop keeps pacing at 250 us.
+
+## Developer menu
+
+**D** in the shuttle cockpit or on the strategic screen opens a hidden developer menu. It chooses the AI controller
+for the Alliance and Empire independently: **Classic** (the game default), **Codex Strategist** or **Claude Admiral**
+([ai_matches.md](ai_matches.md)). Choices are saved as `alliance_ai` and `empire_ai` and apply to new games. In a running
+single-player game, changing an AI side replaces its controller immediately; changing the human side sets its
+preference for future AI control. The star marks the running personality for an AI side, or the saved preference for a
+human side and in the cockpit. **Switch sides**, on the strategic screen, exchanges human/AI control and rebuilds the
+faction UI; existing orders continue, open panels and controller planning state reset.
+
+**Enhancements** (`src/game/app/enhancements.h`, config key `enhancements`, default on) toggles the port's interface
+additions as a group: ETAs and completion days, speed keys 1-4, Repeat mission, the decoys menu entry, extra ship damage
+and fleet capacity detail, maintenance totals and economy tooltips, the Saved Games delete cross and named questions,
+"Captured - location unknown", and the newer idle markers. Off, those views behave as in the original. It is a local
+display preference: simulation, saves and LAN traffic never read it. Panels whose layout differs pick it up when reopened.
+
+## Smoke tests
+
+All need a game installation and run without a window (`SDL_VIDEODRIVER=dummy`). The base check is
+`tools/modern_smoke.py`: two processes that load a save, advance, save and reload it.
+
+```sh
+uv run tools/modern_smoke.py --exe build/native/Rebellion.app/Contents/MacOS/Rebellion \
+  --config work/macos/config.ini --load "<install_dir>/SaveGame/SAVEGAME.003" --output-dir work/smoke
 ```
+
+Prefix it with these to add checks:
+
+- `REB_UI_SMOKE=1`: fleet-list layout, rendering, hit testing, keyboard navigation, selection and sorting; battle
+  participant lists and outcome artwork; status tables; Notice7/Notice15 and assault/story report windows; HQ-only and
+  standard victory conditions. Logs `UI visibility checks passed`. The HD review variables (`REB_HD_REVIEW_DIR`,
+  `REB_FACILITY_REVIEW_DIR` and others) are in [hd_artwork.md](hd_artwork.md).
+- `REB_SWITCH_SIDES_SMOKE=1`: the developer menu click, deferred switching for both factions, queued-order and
+  speed/pause preservation, then the same after reload.
+
+These advance the game themselves, so they run as one process:
+
+- **Repeat mission** (`src/game/strategy_ui/mission_repeat.{h,cpp}`) plays a sabotage mission from the "Rebels Fast
+  Start" save to its report, presses Repeat, saves and reloads while the team travels home, and checks the second
+  mission (about 20 s; `REB_MISSION_REPEAT_REVIEW_DIR` adds captures):
+
+  ```sh
+  REBELLION_CONFIG=... SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy REB_DETERMINISTIC=1 REB_MISSION_REPEAT_SMOKE=1 \
+    REB_SIM="load:<install_dir>/SaveGame/SAVEGAME.002,ticks:10,save:/tmp/repeat.sav" \
+    build/native/Rebellion.app/Contents/MacOS/Rebellion   # exit 0 and "Mission repeat checks passed" in /tmp/repeat.sav.log
+  ```
+
+- **Saved Games** (`REB_SAVE_SLOTS_SMOKE=1`, same form) opens the screen over the loaded game, answers each question
+  both ways, deletes slot 5 and saves into slot 6. It writes into `<install_dir>/SaveGame`, so point `REBELLION_CONFIG`
+  at a scratch install (symlinked game files and a copied `SaveGame` holding saves 1-5 only);
+  `REB_SAVE_SLOTS_REVIEW_DIR` adds captures.
+- **Campaign space battle** forces a pending battle, votes Take Command, issues orders, saves and reloads mid-battle,
+  finishes with Get Immediate Result and checks the strategic results. `REB_LIVE_BATTLE_SMOKE=1`, which the script
+  sets, is the test-only exception to the dummy-driver live gate.
+
+  ```sh
+  python3 tools/live_battle_smoke.py --exe build/native/Rebellion.app/Contents/MacOS/Rebellion \
+    --config /path/to/config.ini --output-dir work/live-smoke
+  ```
+
+LAN smokes are in [multiplayer.md](multiplayer.md).
+
+## Object cast regression checks
+
+The native object-cast audit reads the actual compilation database with libclang, including class inheritance and
+pointer depth. It checks game and platform sources and the project headers they include; no game assets are needed.
+
+```sh
+uv run tools/test_audit_object_casts.py
+uv run tools/audit_object_casts.py --build build/native --check
+uv run tools/audit_object_casts.py --build build/native --include-downcasts --json work/cast-audit/inventory.json
+```
+
+The check rejects unrelated class-pointer casts, inheritance casts made with `reinterpret_cast` (which can lose base
+pointer adjustments), pointer-to-pointer output aliases, and casts involving incomplete record types. Parse errors
+also fail the check. The checked-in `tools/object_cast_exceptions.json` contains individual reviewed platform API
+exceptions with reasons: opaque handles, versioned DirectSound/DirectDraw buffers, DIB/palette buffers and socket
+addresses. Removed exceptions fail the full check too. Do not add an exception for a game object accessed through
+another class's methods. The macOS arm64 workflow runs these checks after building the native objects; configurations
+with different conditional source paths may need their platform exceptions reviewed separately.
+
+`--include-downcasts` inventories ordinary static and C-style downcasts for review. A cast from a base class to the
+wrong subclass can still compile, so those require family/registry checks and runtime coverage. The audit does not
+track pointers through `void*`, raw byte arithmetic, or function-pointer conversions; it is not proof that every
+runtime downcast is safe.
+
+For asset-backed runtime coverage, build the native target with `-DREB_NATIVE_SANITIZE=undefined`, then run:
+
+```sh
+uv run tools/native_ubsan_survey.py \
+  --exe build/native_ubsan/Rebellion.app/Contents/MacOS/Rebellion \
+  --config work/macos/config.ini \
+  --load "orig_game_files/Star Wars - Rebellion/SaveGame/SAVEGAME.003" \
+  --output-dir work/cast-audit/survey --ticks 1000 --timeout 180
+```
+
+Use the corresponding executable path on other native hosts. The survey runs a loaded save and reload with actual
+UI and side-switch checks, three fresh galaxy sizes with different AI combinations, and a fresh-campaign reload.
+It records sanitizer reports, saves, reference validation, normal teardown and executable identity, and fails for
+any report or incomplete case. Output stays under ignored `work/`; installation assets and saves stay out of Git.
+
+## Linux container tooling
+
+The `rebellion-native` container (`docker/Dockerfile.native`) provides sanitizer builds, the arm64 cross build and
+Xvfb-driven scenario runs:
+
+```sh
+tools/fetch_deps.sh                      # third_party/: SDL3, FreeType, Liberation fonts (sha256 pinned)
+tools/build_native.sh --image            # once: the rebellion-native image
+tools/build_native.sh                    # build/native/rebellion (RelWithDebInfo)
+REB_SANITIZE=1 tools/build_native.sh     # build/native_asan/rebellion (ASan + UBSan)
+REB_NATIVE_IMAGE=... tools/build_native.sh --arch arm64   # build/native_arm64/rebellion
+tools/run_native.sh tests/scenarios/smoke.txt            # Xvfb + xdotool; screenshots in work/run_native/smoke/
+tools/run_native.sh --exe build/native_asan/rebellion --out work/run_native/x_asan tests/scenarios/load_game.txt
+python3 tools/native_triage.py work/run_native/x_asan/game.log   # distinct sanitizer reports with counts
+```
+
+`tools/container/native_gdb.sh <rundir>` and `REB_GDB=1 tools/run_native.sh ...` give backtraces; `tools/save_diff.py`
+compares saves. Useful environment: `REB_MINWIN_SCALE`, `REB_MINWIN_TRACE`, `REB_MSG_TRACE=<file>`,
+`SDL_RENDER_DRIVER=software`, `REB_AUDIO_CAPTURE=<file>`.
+
+The image has no window manager. To check fullscreen, close, focus and minimise:
+
+```sh
 docker build -t rebellion-native-wm - <<< $'FROM rebellion-native\nUSER root\nRUN apt-get update && apt-get install -y --no-install-recommends openbox wmctrl x11-xserver-utils'
 REB_NATIVE_IMAGE=rebellion-native-wm REB_WM=openbox REB_XVFB_GEOMETRY=1920x1080x24 REB_MINWIN_SCALE=1 REB_MINWIN_TRACE=mouse \
   tools/run_native.sh tests/scenarios/native_window.txt          # scaling, Alt+Enter, mouse mapping at the edges
 REB_NATIVE_IMAGE=rebellion-native-wm REB_WM=openbox REB_XVFB_GEOMETRY=1920x1080x24 \
   tools/run_native.sh tests/scenarios/native_desktop.txt         # auto scale, close button, Alt+F4, focus, minimise
-tools/run_native.sh tests/scenarios/native_cpu.txt; cat work/run_native/native_cpu/cpu.log   # CPU per thread (driver action `cpu <s>`)
+tools/run_native.sh tests/scenarios/native_cpu.txt; cat work/run_native/native_cpu/cpu.log   # CPU per thread
 ```
 
-The driver (`tools/container/native_driver.sh`) gained the actions `cpu`, `wmove`, `wclick`, `minimize`, `restore`, `close`, `geometry`, `focus-away`,
-`focus-back` and the environment `REB_XVFB_GEOMETRY`, `REB_WM`. The container's ALSA default is a `null` PCM that consumes audio as fast as it is
-written, so under it SDL's audio thread spins a core; use `SDL_AUDIODRIVER=dummy` (paced in real time) for CPU measurements.
-
-### Measured (Oct 9 2026, Linux x86-64 in the container, Xvfb)
-
-* **CPU** at the galaxy screen (`load_game`, game speed Fast, `tests/scenarios/native_cpu.txt`, SDL dummy audio): the main thread went from **98% to 8-9%**
-  of a core; the whole process from 116% to 27%, of which about 16% are Mesa llvmpipe worker threads of the container's software GL that a desktop
-  with a GPU does not have. With the container's ALSA default (a `null` PCM that swallows audio as fast as it is written) SDL's audio thread spins
-  at 100%: that is the container, not the game.
-* **Game speed is unchanged only for a fine pacing period.** Game progress per real second depends on the loop's latency (the game's own tick scheduler
-  re-arms from "now"). Resources 72 s after setting speed Fast, same save: no pacing 147 / 1549; 100 us 147 / 1549; 250 us 147 / 1549 (default);
-  500 us 146 / 1535; 1000 us 144 / 1518; 2000 us 141 / 1476 (about 5% slower). Main-thread CPU: 12% (100 us), 9% (250 us), 8% (1000 us).
-* **Sim goldens** (`tools/native_sim.sh`, virtual clocks, pacing off): 17/17 identical to the i686 goldens.
-* **Window**: windowed 1x and fullscreen (2x on 1920x1080) mouse mapping exact at 0, 1, 2, 639/479 and outside the frame (clamped); automatic scale on
-  1920x1080 is 2 (1280x960 decorated window); close button, Alt+F4 and focus loss/regain/minimise/restore ran without a crash and the quit
-  confirmation appears; a key held while the focus leaves is released toward the game (one `WM_KEYUP`).
-* **Sanitizers** (`REB_SANITIZE=1`, SDL dummy audio): 44 scenarios of `tests/scenarios` (all but `mp_*`, `long_*`, `*_long`, `soak_*`) and the four `native_*`
-  scenarios: 0 reports, except the two below.
-
-### Rough edges
-
-* Real audio devices, HiDPI (macOS Retina, Wayland fractional scaling) and a real GPU renderer were not exercised: this machine's container has no sound
-  card, no display server of the host and no GPU. The code paths are SDL's documented ones (`SDL_RenderCoordinatesFromWindow`, pixel density, alternate
-  cursor images).
-* The game does not know the window can be resized or go fullscreen; its own "windowed" command-line flag is unrelated.
-* The idle loop wakes up to 4,000 times a second (about 9% of a core at the galaxy screen); the floor is the game's own busy `PeekMessage` loop.
-* No vsync by default (tearing is possible with a GPU renderer); `vsync=1` enables it. When the window is minimised the loop keeps pacing at 250 us.
-
-## Build
-
-Native Ninja and Makefile builds also copy their generated compilation database to
-`compile_commands.json` at the repo root for editor tooling. It is ignored by Git
-and refreshed from the build directory used for the latest build, including objects-only builds.
-
-```
-tools/fetch_deps.sh freetype liberation sdl3                  # third_party/
-tools/build_native.sh                                         # Linux x86-64, in the container (as before)
-REB_NATIVE_IMAGE=... tools/build_native.sh --arch arm64       # Linux aarch64 cross build, build/native_arm64/rebellion
-tools/native_sim.sh -a arm64                                  # the sim goldens on it under qemu-user
-```
-
-macOS (on a Mac with Xcode command-line tools, CMake and `uv`):
-
-```sh
-REB_GAME_EXE="/path/to/Star Wars - Rebellion/REBEXE.EXE" tools/build_macos.sh
-```
-
-The script downloads pinned dependencies, creates `build/tools-venv` for Python asset extraction and Ninja, extracts the
-startup asset pack and original application icon from your EXE, configures the native CMake build, and links and signs
-`build/native/Rebellion.app`. The icon is converted locally to `Rebellion.icns` and bundled for Finder and the Dock;
-original game artwork stays out of git. `REB_BUNDLE_ICON` can point CMake at a different `.icns` file.
-`REB_GAME_EXE` defaults to `orig_game_files/Star Wars - Rebellion/REBEXE.EXE` in this checkout.
-
-Set `install_dir` in a config file as described in the README. `tools/run_macos.command` is a double-clickable launcher;
-it defaults to `work/macos/config.ini`, or uses `$REBELLION_CONFIG` when set. The installation must be writable for saves.
-
-**Historical host verification (Oct 10, 2026):** on Apple silicon, Apple clang compiled the game and port objects, the ARM64 app linked
-and passed signature verification, and the intro and main menu rendered. A headless saved game loaded, advanced ten ticks, and saved.
-This records the earlier build state; current validation should use the native CMake build and a host smoke run.
-
-Empire gameplay sector selection, the message droid and centered exit dialogs were manually verified after two repairs:
-the galaxy's show handler now clears mouse mode bit 8, matching the original executable, and DirectDraw restores a minimized
-window when reacquiring exclusive mode. Task switching also preserves the active top-level window while changing keyboard
-focus during deactivation, preventing a nested reactivation before minimization finishes. `focus_test` reproduces that
-sequence, fails against the previous implementation, and passes with the repair.
-
-Encyclopedia artwork uses `EData` under `data_dir` (or `install_dir` when `data_dir` is absent); an explicit registry
-`EncyLocation` still overrides this default. Native game windows use live dragging, while Windows builds keep the original
-outline mode. The outline reconstruction also uses the original white pen, so its preview is visible.
-Encyclopedia pictures and live system-window dragging were manually verified in the rebuilt Mac app. The input trace
-also confirms repeated window-position changes while the mouse button is held, before release.
-
-The graphics handle registry stays alive until process exit because global game font tables delete their fonts during
-static cleanup. Destroying the registry earlier caused a shutdown crash in `FontTable::~FontTable` / `DeleteObject`.
-`gdi_shutdown_test` reproduces that destruction order, crashes before the repair, and exits successfully afterward;
-the regular GDI tests also pass. The rebuilt Mac app was also launched on the desktop and exited through its normal
-quit confirmation with status 0 and no crash output.
-
-`tools/build_native.sh` remains the Linux container build. Windows and Linux host validation are deferred; current requested validation
-is macOS host-only.
+The container's ALSA default is a `null` PCM that consumes audio as fast as it is written, so SDL's audio thread spins
+a core there; use `SDL_AUDIODRIVER=dummy` for CPU measurements.
 
 ## arm64
 
-* **Float to int**: `cvttsd2si` gives `0x80000000` for overflow and NaN; arm64 saturates. `reb_ftol` (`core/reb_x87.h`) has the x86 result on every
-  target. The native x86-64 build run with `-fsanitize=float-cast-overflow` (`REB_NATIVE_SANITIZE=address,undefined,float-cast-overflow`) shows the
-  places that rely on it; results in the phase 3 plan.
-* No x86 intrinsics or inline assembly in the native build: the remaining `__asm__` is limited to empty compiler barriers
-  (`game_string.cpp`, `galaxy_display.cpp`); the x87 code in `reb_x87.h` and `crt/floor.cpp` is `#if` i386.
+* **Float to int**: `cvttsd2si` gives `0x80000000` for overflow and NaN; arm64 saturates. `reb_ftol`
+  (`core/reb_x87.h`) gives the x86 result on every target; `tools/find_float_casts.py` lists the conversions, and a build with
+  `-DREB_NATIVE_SANITIZE=address,undefined,float-cast-overflow` reports the ones that overflow.
+* No x86 intrinsics or inline assembly: the remaining `__asm__` is limited to empty compiler barriers.
 * `char` is signed (`-fsigned-char`), `-ffp-contract=off` so arm64 does not fuse multiply-adds, `-fwrapv`.
-* **Memory ordering**: arm64 is weakly ordered, x86 is not. The game's two helper threads (sound refill, movie) share a few plain flags with the
-  main thread, written for x86. qemu-user runs them with the host's ordering, so only real arm64 hardware can show a race there.
+* **Memory ordering**: arm64 is weakly ordered, x86 is not. The game's two helper threads (sound refill, movie) share
+  a few plain flags with the main thread, written for x86. qemu-user runs them with the host's ordering, so only real
+  arm64 hardware can show a race there.
 
 ## CI
 
-`.github/workflows/linux.yml` (ubuntu-24.04: x86-64 and aarch64 cross, compile every object of the native configuration; unit tests of
-`src/port/minwin_impl` on x86-64) and `.github/workflows/macos.yml` (macos-14 arm64 and macos-15-intel x86-64: compile every object; the same unit
-tests). Both fetch dependencies with `tools/fetch_deps.sh`. Neither uses game data: the tests that read the installation skip when
-`MW_INSTALL_DIR` is unset, and linking (which reads `REBEXE.EXE`) is not part of CI.
+All three workflows run by hand (`workflow_dispatch`) and use no game data; tests that read the installation skip
+when `MW_INSTALL_DIR` is unset.
 
-osxcross / the Apple SDK was not set up: the Xcode and Apple SDKs agreement licenses the SDK for use on Apple-branded hardware, so extracting
-it to cross-compile on Linux is not permitted. macOS builds therefore happen on macOS runners or a Mac.
+- `.github/workflows/linux.yml` (ubuntu-24.04, x86-64 and aarch64 cross): compiles every native object and runs the
+  `src/port/minwin_impl` unit tests on x86-64.
+- `.github/workflows/macos.yml` (macos-14 arm64, macos-15-intel x86-64): compiles every native object, runs the object
+  cast checks on arm64 and the `src/port/minwin_impl` unit tests.
+- `.github/workflows/windows.yml` (windows-latest, `clang-cl` and the Windows SDK): compiles the native objects and
+  runs the resource-free tests. The Windows build has not yet been through a startup/load/save/reload smoke on a
+  Windows host, so Windows support is not considered verified.
 
-## Results (Oct 9 2026)
-
-* Historical aarch64 Linux cross build: all 504 objects compiled and linked. `tools/native_sim.sh -a arm64` under qemu-user: all three
-  sim goldens identical to the i686 goldens (17/17 files), same as x86-64 native.
-* Float to int: `tools/find_float_casts.py` lists 29 conversions (25 in game code, now `reb_ftol` / new `reb_ftou`; 4 in the port: mouse
-  coordinates and two bounded volume curves in dsound/smack, left alone). The `float-cast-overflow` build reported 0 overflows on the three sims
-  and 15 UI scenarios (smoke, load_game, ui_tour, new_game_*, space_battle_autoresolve, ...), so the routing is protective, not a bug fix.
-  `reb_ftol` returns INT32_MIN out of range (cvttsd2si); the original's `_ftol` truncates to 64 bits, so values in 2^31..2^63 wrap there;
-  `reb_ftou` follows the 64-bit form.
-* Unchanged: hybrid 10,706 hooks, difftest unit and integration 12,988 captures no FAIL, standalone_check OK, arg-order check clean, x86-64 sims 17/17.
-
-## Needs a real Mac / arm64 hardware
-
-The macOS ARM64 build and menu launch have been verified (see Build above). Remaining checks include full gameplay,
-real audio, Retina mouse/cursor scaling, Intel macOS, and `TerminateThread` cancellation behaviour. arm64 memory ordering (see above) needs hardware.
+macOS builds happen on macOS runners or a Mac: the Xcode and Apple SDKs agreement does not permit extracting the SDK
+to cross-compile on Linux.

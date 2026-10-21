@@ -11,14 +11,16 @@ using events::succeedWithoutChecks;
 
 MissionMgr* getMissionMgr()
 {
-  return reinterpret_cast<MissionMgr*>(GetGameRootMember_b8());
+  return static_cast<MissionMgr*>(static_cast<GameObj*>(GetGameRootMember_b8()));
 }
 
 } // namespace
 
-// ---- MissionMgrEvent30c (kind 0x30c) ---------------------------------------------------------------------------------
+// ---- MissionMgrEvent30c (kind 0x30c)
+// ---------------------------------------------------------------------------------
 
-MissionMgrEvent30c::MissionMgrEvent30c() : SourceEvent()
+MissionMgrEvent30c::MissionMgrEvent30c()
+    : SourceEvent()
 {
 }
 
@@ -44,8 +46,9 @@ int MissionMgrEvent30c::CheckValid(StatusCode* status)
 int MissionMgrEvent30c::Execute()
 {
   NotifyContext ctx(m_context);
-  if (MissionMgr* manager = getMissionMgr())
+  if (MissionMgr* manager = getMissionMgr()) {
     manager->MissionMgr::AdvanceMissionPhase(&m_key, m_valueB, &ctx);
+  }
   return 0;
 }
 
@@ -54,9 +57,11 @@ MissionMgrEvent30c* CreateMissionMgrEvent30c()
   return NewOrNull<MissionMgrEvent30c>();
 }
 
-// ---- MissionMgrEvent30d (kind 0x30d) ---------------------------------------------------------------------------------
+// ---- MissionMgrEvent30d (kind 0x30d)
+// ---------------------------------------------------------------------------------
 
-MissionMgrEvent30d::MissionMgrEvent30d() : SourceEvent()
+MissionMgrEvent30d::MissionMgrEvent30d()
+    : SourceEvent()
 {
 }
 
@@ -82,8 +87,9 @@ int MissionMgrEvent30d::CheckValid(StatusCode* status)
 int MissionMgrEvent30d::Execute()
 {
   NotifyContext ctx(m_context);
-  if (MissionMgr* manager = getMissionMgr())
+  if (MissionMgr* manager = getMissionMgr()) {
     manager->MissionMgr::RunMissionPhase(&m_key, m_valueA, m_valueB, &ctx);
+  }
   return 0;
 }
 

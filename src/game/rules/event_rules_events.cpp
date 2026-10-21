@@ -23,8 +23,8 @@
 using namespace event_rules;
 using events::asIntArg;
 
-// The event handlers (see event_rules.h). Every handler looks the object up by key and then runs its steps in a fixed order;
-// a step that fails does not stop the ones after it.
+// The event handlers (see event_rules.h). Every handler looks the object up by key and then runs its steps in a fixed
+// order; a step that fails does not stop the ones after it.
 
 namespace
 {
@@ -98,52 +98,61 @@ constexpr ContainerNotify kNotifyOwnerUsable = &GameObj::NotifyOwnerUsable;
 int ApplyEvent300(ObjectKey* key, ObjectKey* from, ObjectKey* to, int value, NotifyContext* ctx)
 {
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr)
+  if (object == nullptr) {
     return 1;
+  }
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->UpdateMissionsForObject(key, asIntArg(from), to, value, ctx), ok);
+  }
   CharacterMgr* characters = characterMgr();
   ok = both(characters != nullptr, ok);
-  if (characters != nullptr)
+  if (characters != nullptr) {
     ok = both(characters->OnFacilityOrPersonMoved(key, from, to, value, ctx), ok);
-  if ((object->m_stateFlags & kDestroyed) != 0)
+  }
+  if ((object->m_stateFlags & kDestroyed) != 0) {
     ok = both(RetargetIdleManufacturers(object, ctx), ok);
-  if ((object->m_stateFlags & kCompleted) == 0 && object->m_builderKey.IsSet())
-  {
+  }
+  if ((object->m_stateFlags & kCompleted) == 0 && object->m_builderKey.IsSet()) {
     GameObjNotifier* owner = GetMasterInFamilies_a0_b0(&object->m_builderKey);
     ok = both(owner != nullptr, ok);
-    if (owner != nullptr)
+    if (owner != nullptr) {
       ok = both(static_cast<ManuMgr*>(owner)->HandleProductEvent(key, asIntArg(from), asIntArg(to), value, ctx), ok);
+    }
   }
   GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
   ok = both(fromObject != nullptr, ok);
-  if (fromObject != nullptr)
+  if (fromObject != nullptr) {
     ok = both(notifyContainer(fromObject, kNotifyUnitDamaged, object, value, ctx), ok);
-  if (fromObject != nullptr)
+  }
+  if (fromObject != nullptr) {
     ok = both(notifyContainer(fromObject, kNotifyUnitExisting, object, value, ctx), ok);
+  }
   GameObj* toObject = nullptr;
-  if (to->IsSet())
+  if (to->IsSet()) {
     toObject = asObject(GetMasterInFamilies_01_ff(to));
-  if (toObject != nullptr)
+  }
+  if (toObject != nullptr) {
     ok = both(notifyContainer(toObject, kNotifyOwnerExisting, object, value, ctx), ok);
+  }
   ok = both(NumberUnitName(object, ctx), ok);
-  if (inFamilies(object, kUnitFamilies))
-  {
+  if (inFamilies(object, kUnitFamilies)) {
     GameObjNotifier* sideObject = nullptr;
     ok = both(GetControlSideObject(object, &sideObject), ok);
-    if (sideObject != nullptr)
-    {
+    if (sideObject != nullptr) {
       ok = both(static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx), ok);
-      if ((object->m_stateFlags & kDestroyed) != 0)
+      if ((object->m_stateFlags & kDestroyed) != 0) {
         ok = both(static_cast<Side*>(sideObject)->RefundScrappedUnit(object, ctx), ok);
+      }
     }
-    if (inFamilies(object, kFacilityFamilies) && inFamilies(object, kStationFamilies))
+    if (inFamilies(object, kFacilityFamilies) && inFamilies(object, kStationFamilies)) {
       ok = both(ApplyDepartureRules(object, value, to, ctx), ok);
+    }
   }
-  if (inFamilies(object, kSystemFamilies))
+  if (inFamilies(object, kSystemFamilies)) {
     ok = both(ApplyCoruscantRules(object, value, ctx), ok);
+  }
   return both(PostDeleteIfDestroyedAndEmpty(object, ctx), ok);
 }
 
@@ -151,35 +160,43 @@ int ApplyEvent301(ObjectKey* key, ObjectKey* from, ObjectKey* to, int value, Not
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr)
+  if (object == nullptr) {
     return result;
+  }
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->UpdateMissionsForObjective(key, asIntArg(from), asIntArg(to), value, ctx), ok);
+  }
   CharacterMgr* characters = characterMgr();
   ok = both(characters != nullptr, ok);
-  if (characters != nullptr)
+  if (characters != nullptr) {
     ok = both(characters->OnEmperorMoved(key, from, to, value, ctx), ok);
+  }
   GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
   result = both(fromObject != nullptr, ok);
-  if (fromObject != nullptr)
+  if (fromObject != nullptr) {
     result = both(notifyContainer(fromObject, kNotifyUnitUsable, object, value, ctx), result);
+  }
   GameObj* toObject = nullptr;
-  if (to->IsSet())
+  if (to->IsSet()) {
     toObject = asObject(GetMasterInFamilies_01_ff(to));
-  if (toObject != nullptr)
+  }
+  if (toObject != nullptr) {
     result = both(notifyContainer(toObject, kNotifyOwnerUsable, object, value, ctx), result);
-  if (inFamilies(object, kUnitFamilies))
-  {
+  }
+  if (inFamilies(object, kUnitFamilies)) {
     GameObjNotifier* sideObject = nullptr;
     result = both(GetControlSideObject(object, &sideObject), result);
-    if (sideObject != nullptr)
+    if (sideObject != nullptr) {
       result = both(static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx), result);
-    if (inFamilies(object, kFacilityFamilies) && inFamilies(object, kStationFamilies))
+    }
+    if (inFamilies(object, kFacilityFamilies) && inFamilies(object, kStationFamilies)) {
       result = both(ApplyEnrouteRules(object, value, to, ctx), result);
-    if (inFamilies(object, kDeathStarFamilies))
+    }
+    if (inFamilies(object, kDeathStarFamilies)) {
       result = both(UpdateDeathStarNearby(ctx), result);
+    }
   }
   return result;
 }
@@ -188,14 +205,13 @@ int ApplyEvent31d(ObjectKey* key, ObjectKey* from, ObjectKey*, int value, Notify
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object != nullptr)
-  {
+  if (object != nullptr) {
     GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
     result = fromObject != nullptr;
-    if (fromObject != nullptr)
-    {
-      if (notifyContainer(fromObject, kNotifyUnitDamaged, object, value, ctx) != 0 && result != 0)
+    if (fromObject != nullptr) {
+      if (notifyContainer(fromObject, kNotifyUnitDamaged, object, value, ctx) != 0 && result != 0) {
         return 1;
+      }
       result = 0;
     }
   }
@@ -206,24 +222,27 @@ int ApplyEvent302(ObjectKey* key, int valueA, int valueB, NotifyContext* ctx)
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr)
+  if (object == nullptr) {
     return result;
+  }
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->UpdateMissionsForTargetOrObjective(key, valueA, valueB, ctx), ok);
+  }
   result = both(RetargetIdleManufacturers(object, ctx), ok);
-  if (inFamilies(object, kUnitFamilies))
-  {
+  if (inFamilies(object, kUnitFamilies)) {
     GameObjNotifier* sideA = nullptr;
     GameObjNotifier* sideB = nullptr;
     const int first = GetSideObjectForIndex(valueA, &sideA);
     const int second = GetSideObjectForIndex(valueB, &sideB);
     result = both(second, both(first, result));
-    if (sideA != nullptr)
+    if (sideA != nullptr) {
       result = both(static_cast<Side*>(sideA)->RecomputeMaintenance(ctx), result);
-    if (sideB != nullptr)
+    }
+    if (sideB != nullptr) {
       result = both(static_cast<Side*>(sideB)->RecomputeMaintenance(ctx), result);
+    }
   }
   return result;
 }
@@ -232,30 +251,34 @@ int ApplyEvent318(ObjectKey* key, int valueA, int valueB, NotifyContext* ctx)
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object != nullptr)
+  if (object != nullptr) {
     result = object->ApplyAllToViewOf(valueA, valueB, ctx) != 0;
+  }
   return result;
 }
 
 int ApplyEvent320(ObjectKey* key, ObjectKey* keyC, ObjectKey* keyD, NotifyContext* ctx)
 {
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr)
+  if (object == nullptr) {
     return 1;
+  }
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->RunStoryPipelineForStoryKey(key, asIntArg(keyC), asIntArg(keyD), ctx), ok);
+  }
   CharacterMgr* characters = characterMgr();
   ok = both(characters != nullptr, ok);
-  if (characters != nullptr)
+  if (characters != nullptr) {
     ok = both(characters->OnLocationChanged(key, keyC, keyD, ctx), ok);
-  if ((object->m_stateFlags & kCompleted) == 0 && object->m_builderKey.IsSet())
-  {
+  }
+  if ((object->m_stateFlags & kCompleted) == 0 && object->m_builderKey.IsSet()) {
     GameObjNotifier* owner = GetMasterInFamilies_a0_b0(&object->m_builderKey);
     ok = both(owner != nullptr, ok);
-    if (owner != nullptr)
+    if (owner != nullptr) {
       ok = both(static_cast<ManuMgr*>(owner)->OnProductChanged(key, asIntArg(keyC), asIntArg(keyD), ctx), ok);
+    }
   }
   GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(keyC));
   ok = both(fromObject != nullptr, ok);
@@ -263,82 +286,86 @@ int ApplyEvent320(ObjectKey* key, ObjectKey* keyC, ObjectKey* keyD, NotifyContex
   ok = both(toObject != nullptr, ok);
   RulesMgr* rules = rulesMgr();
   ok = both(rules != nullptr, ok);
-  if (rules != nullptr)
+  if (rules != nullptr) {
     ok = both(rules->BeginTravel(object, keyC, keyD, ctx), ok);
-  if ((object->m_stateFlags & kExisting) != 0)
-  {
-    if (fromObject != nullptr)
+  }
+  if ((object->m_stateFlags & kExisting) != 0) {
+    if (fromObject != nullptr) {
       ok = both(notifyContainer(fromObject, kNotifyUnitExisting, object, 0, ctx), ok);
-    if (toObject != nullptr)
+    }
+    if (toObject != nullptr) {
       ok = both(notifyContainer(toObject, kNotifyUnitExisting, object, 1, ctx), ok);
+    }
   }
-  if ((object->m_stateFlags & kUsable) != 0)
-  {
-    if (fromObject != nullptr)
+  if ((object->m_stateFlags & kUsable) != 0) {
+    if (fromObject != nullptr) {
       ok = both(notifyContainer(fromObject, kNotifyUnitUsable, object, 0, ctx), ok);
-    if (toObject != nullptr)
+    }
+    if (toObject != nullptr) {
       ok = both(notifyContainer(toObject, kNotifyUnitUsable, object, 1, ctx), ok);
+    }
   }
-  if ((object->m_stateFlags & kDamaged) != 0)
-  {
-    if (fromObject != nullptr)
+  if ((object->m_stateFlags & kDamaged) != 0) {
+    if (fromObject != nullptr) {
       ok = both(notifyContainer(fromObject, kNotifyUnitDamaged, object, 0, ctx), ok);
-    if (toObject != nullptr)
+    }
+    if (toObject != nullptr) {
       ok = both(notifyContainer(toObject, kNotifyUnitDamaged, object, 1, ctx), ok);
+    }
   }
   GameObjNotifier* fromOwner = nullptr;
   GameObjNotifier* toOwner = nullptr;
   ok = both(GetOwnerObject(fromObject, &fromOwner), ok);
   ok = both(GetOwnerObject(toObject, &toOwner), ok);
   bool sameOwner = false;
-  if (fromOwner != nullptr && toOwner != nullptr)
-  {
+  if (fromOwner != nullptr && toOwner != nullptr) {
     ObjectKey toOwnerKey;
     ObjectKey fromOwnerKey;
     toOwner->GetKey(&toOwnerKey);
     fromOwner->GetKey(&fromOwnerKey);
     sameOwner = fromOwnerKey.m_value == toOwnerKey.m_value;
   }
-  if (!sameOwner)
-  {
-    if ((object->m_stateFlags & kExisting) != 0)
-    {
-      if (fromOwner != nullptr)
+  if (!sameOwner) {
+    if ((object->m_stateFlags & kExisting) != 0) {
+      if (fromOwner != nullptr) {
         ok = both(notifyContainer(fromOwner, kNotifyOwnerExisting, object, 0, ctx), ok);
-      if (toOwner != nullptr)
+      }
+      if (toOwner != nullptr) {
         ok = both(notifyContainer(toOwner, kNotifyOwnerExisting, object, 1, ctx), ok);
+      }
     }
-    if ((object->m_stateFlags & kUsable) != 0)
-    {
-      if (fromOwner != nullptr)
+    if ((object->m_stateFlags & kUsable) != 0) {
+      if (fromOwner != nullptr) {
         ok = both(notifyContainer(fromOwner, kNotifyOwnerUsable, object, 0, ctx), ok);
-      if (toOwner != nullptr)
+      }
+      if (toOwner != nullptr) {
         ok = both(notifyContainer(toOwner, kNotifyOwnerUsable, object, 1, ctx), ok);
+      }
     }
   }
   GameObjNotifier* afterFrom = fromObject;
-  if (ok != 0 && inFamilies(object, kUnitFamilies) && inFamilies(object, kCapitalShipFamilies) &&
-      inFamilies(object, kShipsAndFightersFamilies) && inFamilies(object, kDeathStarFamilies))
-  {
+  if (ok != 0 && inFamilies(object, kUnitFamilies) && inFamilies(object, kCapitalShipFamilies)
+      && inFamilies(object, kShipsAndFightersFamilies) && inFamilies(object, kDeathStarFamilies)) {
     GameObjNotifier* fromSector = nullptr;
     GameObjNotifier* toSector = nullptr;
     const int first = GetOwnerSector(fromObject, &fromSector);
     const int second = GetOwnerSector(toObject, &toSector);
     ok = second != 0 && first != 0;
     bool sameSector = false;
-    if (fromSector != nullptr && toSector != nullptr)
-    {
+    if (fromSector != nullptr && toSector != nullptr) {
       ObjectKey toSectorKey;
       ObjectKey fromSectorKey;
       toSector->GetKey(&toSectorKey);
       fromSector->GetKey(&fromSectorKey);
       sameSector = fromSectorKey.m_value == toSectorKey.m_value;
     }
-    if (!sameSector)
+    if (!sameSector) {
       ok = both(UpdateDeathStarNearby(ctx), ok);
+    }
   }
-  if (afterFrom != nullptr)
+  if (afterFrom != nullptr) {
     ok = both(PostDeleteIfDestroyedAndEmpty(asObject(afterFrom), ctx), ok);
+  }
   return both(ReleaseDestroyedObject(object, ctx), ok);
 }
 
@@ -346,41 +373,43 @@ int ApplyEvent308(ObjectKey* key, int value, NotifyContext* ctx)
 {
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
   int ok = object != nullptr;
-  if (object == nullptr)
+  if (object == nullptr) {
     return ok;
-  if (!inFamilies(object, kUnitFamilies))
+  }
+  if (!inFamilies(object, kUnitFamilies)) {
     return ok;
+  }
   ObjectKey* builderKey = &object->m_builderKey;
-  if (builderKey->IsSet())
-  {
+  if (builderKey->IsSet()) {
     GameObjNotifier* owner = GetMasterInFamilies_a0_b0(builderKey);
     ok = both(owner != nullptr, ok);
-    if (owner != nullptr)
+    if (owner != nullptr) {
       ok = both(static_cast<ManuMgr*>(owner)->MoveOverflowToCompleted(key, value, ctx), ok);
+    }
   }
-  if (inFamilies(object, kCharacterFamilies))
-  {
+  if (inFamilies(object, kCharacterFamilies)) {
     MissionMgr* missions = missionMgr();
     ok = both(missions != nullptr, ok);
-    if (missions == nullptr)
+    if (missions == nullptr) {
       return ok;
-    if (missions->OnCharacterEvent(key, value, ctx) != 0 && ok != 0)
+    }
+    if (missions->OnCharacterEvent(key, value, ctx) != 0 && ok != 0) {
       return 1;
-  }
-  else
-  {
+    }
+  } else {
     RulesMgr* rules = rulesMgr();
     ok = both(rules != nullptr, ok);
-    if (rules != nullptr && builderKey->IsSet())
-    {
+    if (rules != nullptr && builderKey->IsSet()) {
       ObjectKey objectKey;
       object->GetKey(&objectKey);
       ok = both(rules->BeginTravel(object, builderKey, &objectKey, ctx), ok);
     }
-    if ((object->m_stateFlags & kEnrouteActive) != 0)
+    if ((object->m_stateFlags & kEnrouteActive) != 0) {
       return ok;
-    if (rules->EnforceLocation(object, ctx) != 0 && ok != 0)
+    }
+    if (rules->EnforceLocation(object, ctx) != 0 && ok != 0) {
       return 1;
+    }
   }
   return 0;
 }
@@ -389,14 +418,13 @@ int ApplyRoleStateEvent(ObjectKey* key, int value, NotifyContext* ctx)
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object != nullptr && (object->m_stateFlags & kDestroyed) == 0 && inFamilies(object, kCharacterFamilies))
-  {
+  if (object != nullptr && (object->m_stateFlags & kDestroyed) == 0 && inFamilies(object, kCharacterFamilies)) {
     MissionMgr* missions = missionMgr();
     result = missions != nullptr;
-    if (missions != nullptr)
-    {
-      if (missions->OnPersonStateChanged(key, value, ctx) != 0 && result != 0)
+    if (missions != nullptr) {
+      if (missions->OnPersonStateChanged(key, value, ctx) != 0 && result != 0) {
         return 1;
+      }
       result = 0;
     }
   }
@@ -407,27 +435,30 @@ int ApplyEvent306(ObjectKey* key, int value, NotifyContext* ctx)
 {
   int result = 1;
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr || (object->m_stateFlags & kDestroyed) != 0)
+  if (object == nullptr || (object->m_stateFlags & kDestroyed) != 0) {
     return result;
-  if (!inFamilies(object, kCharacterFamilies))
-  {
+  }
+  if (!inFamilies(object, kCharacterFamilies)) {
     RulesMgr* rules = rulesMgr();
     result = rules != nullptr;
     uint32_t notHyperdrive = 1;
-    if (rules != nullptr)
+    if (rules != nullptr) {
       result = both(rules->ResumeTrip(object, &notHyperdrive, ctx), result);
-    if (notHyperdrive == 0)
+    }
+    if (notHyperdrive == 0) {
       return result;
-    if (object->SetEnrouteActive(0, ctx) != 0 && result != 0)
+    }
+    if (object->SetEnrouteActive(0, ctx) != 0 && result != 0) {
       return 1;
-  }
-  else
-  {
+    }
+  } else {
     MissionMgr* missions = missionMgr();
-    if (missions == nullptr)
+    if (missions == nullptr) {
       return 0;
-    if (missions->UpdatePersonMission(key, value, ctx) != 0)
+    }
+    if (missions->UpdatePersonMission(key, value, ctx) != 0) {
       return 1;
+    }
   }
   return 0;
 }
@@ -435,11 +466,11 @@ int ApplyEvent306(ObjectKey* key, int value, NotifyContext* ctx)
 int ApplyEvent316(ObjectKey* key, int value, NotifyContext* ctx)
 {
   int result = 1;
-  if (value == 0)
-  {
+  if (value == 0) {
     GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-    if (PostDeleteIfDestroyedAndEmpty(object, ctx) != 0 && object != nullptr)
+    if (PostDeleteIfDestroyedAndEmpty(object, ctx) != 0 && object != nullptr) {
       return 1;
+    }
     result = 0;
   }
   return result;
@@ -448,52 +479,50 @@ int ApplyEvent316(ObjectKey* key, int value, NotifyContext* ctx)
 int ApplyEvent307(ObjectKey* key, int value, NotifyContext* ctx)
 {
   GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-  if (object == nullptr)
+  if (object == nullptr) {
     return 1;
-  if ((object->m_stateFlags & kDestroyed) != 0)
+  }
+  if ((object->m_stateFlags & kDestroyed) != 0) {
     return 1;
-  if (inFamilies(object, kCharacterFamilies) && (object->m_stateFlags & kCompleted) != 0)
-  {
+  }
+  if (inFamilies(object, kCharacterFamilies) && (object->m_stateFlags & kCompleted) != 0) {
     MissionMgr* missions = missionMgr();
-    if (missions == nullptr)
+    if (missions == nullptr) {
       return 0;
+    }
     return missions->OnPersonStateChanged(key, value, ctx) != 0 ? 1 : 0;
   }
-  if (value == 0)
+  if (value == 0) {
     return 1;
+  }
   RulesMgr* rules = rulesMgr();
   int ok = rules != nullptr;
   ObjectKey destinationKey;
   ObjectKey parentKey;
   ObjectKey placedKey;
-  if ((object->m_stateFlags & kCompleted) == 0)
-  {
+  if ((object->m_stateFlags & kCompleted) == 0) {
     GameObjNotifier* location = nullptr;
     GameObjNotifier* builderLocation = nullptr;
     ok = both(rules->GetOwnerObject(object, &location), ok);
     GameObjNotifier* builder = GetMasterInFamilies_01_ff(&object->m_builderKey);
     ok = both(builder != nullptr, ok);
-    if (rules != nullptr && builder != nullptr)
+    if (rules != nullptr && builder != nullptr) {
       ok = both(rules->GetOwnerObject(builder, &builderLocation), ok);
-    if (location != nullptr && builderLocation != nullptr)
-    {
+    }
+    if (location != nullptr && builderLocation != nullptr) {
       ObjectKey locationKey;
       ObjectKey builderLocationKey;
       builderLocation->GetKey(&builderLocationKey);
       location->GetKey(&locationKey);
-      if (locationKey.m_value != builderLocationKey.m_value)
-      {
+      if (locationKey.m_value != builderLocationKey.m_value) {
         builderLocation->GetKey(&builderLocationKey);
         new (&destinationKey) ObjectKey(builderLocationKey);
       }
     }
-  }
-  else if ((object->m_stateFlags & kEnrouteActive) != 0)
-  {
+  } else if ((object->m_stateFlags & kEnrouteActive) != 0) {
     ok = both(object->GetDataKey(&destinationKey), ok);
     ok = both(object->GetParentKey(&parentKey), ok);
-    if (destinationKey.m_value == parentKey.m_value)
-    {
+    if (destinationKey.m_value == parentKey.m_value) {
       destinationKey.Reset();
       ObjectKey cleared;
       ok = both(object->SetDataKey(&cleared), ok);
@@ -501,30 +530,28 @@ int ApplyEvent307(ObjectKey* key, int value, NotifyContext* ctx)
   }
   ObjectKey ownerKeyValue;
   GetOwnerKeyValue(object, &ownerKeyValue);
-  const bool ownerIsSystem =
-    ownerKeyValue.Family() >= kSystemFamilies.m_first && ownerKeyValue.Family() < kSystemFamilies.m_second;
+  const bool ownerIsSystem
+      = ownerKeyValue.Family() >= kSystemFamilies.m_first && ownerKeyValue.Family() < kSystemFamilies.m_second;
   int result = ownerIsSystem && ok != 0;
-  if (rules != nullptr)
-  {
-    if (ownerIsSystem)
-    {
+  if (rules != nullptr) {
+    if (ownerIsSystem) {
       StatusCode status;
       GetOwnerKeyValue(object, &ownerKeyValue);
       result = both(rules->FindDestination(object, &ownerKeyValue, &destinationKey, 0, 1, &placedKey, &status), result);
-      if (status.m_second != 0xffffffff)
+      if (status.m_second != 0xffffffff) {
         result = both(object->ChangeDestroyedReason(kDestroyedReasonLostLocation, ctx), result);
+      }
     }
-    if ((object->m_stateFlags & kDestroyed) == 0 && (object->m_stateFlags & kCompleted) != 0)
-    {
+    if ((object->m_stateFlags & kDestroyed) == 0 && (object->m_stateFlags & kCompleted) != 0) {
       uint32_t sameOwner = 1;
       ObjectKey objectKey;
       object->GetKey(&objectKey);
       result = both(rules->AreKeysInSameOwner(&objectKey, &placedKey, &sameOwner), result);
-      if (sameOwner == 0 && object->GetTransitSpeed((object->m_stateFlags & kEnrouteActive) != 0) == 0)
+      if (sameOwner == 0 && object->GetTransitSpeed((object->m_stateFlags & kEnrouteActive) != 0) == 0) {
         result = both(object->ChangeDestroyedReason(kDestroyedReasonStranded, ctx), result);
+      }
     }
-    if ((object->m_stateFlags & kDestroyed) == 0)
-    {
+    if ((object->m_stateFlags & kDestroyed) == 0) {
       ObjectKey objectKey;
       object->GetKey(&objectKey);
       result = both(rules->MoveUnitTo(&objectKey, &placedKey, ctx), result);
@@ -539,15 +566,17 @@ int ApplySystemEvent31b(ObjectKey* key, SideBits* from, SideBits* to, NotifyCont
 {
   int result = 1;
   GameObjNotifier* system = nullptr;
-  if (key->Family() >= kSystemFamilies.m_first && key->Family() < kSystemFamilies.m_second)
+  if (key->Family() >= kSystemFamilies.m_first && key->Family() < kSystemFamilies.m_second) {
     system = GetMasterInFamilies_90_98(key);
-  if (system != nullptr)
-  {
+  }
+  if (system != nullptr) {
     CharacterMgr* characters = characterMgr();
-    if (characters != nullptr)
+    if (characters != nullptr) {
       result = characters->OnSystemControlChanged(key, &from->m_value, &to->m_value, ctx) != 0;
-    if (ApplySideBitsChangeRules(asObject(system), from, to, ctx) != 0 && result != 0)
+    }
+    if (ApplySideBitsChangeRules(asObject(system), from, to, ctx) != 0 && result != 0) {
       return 1;
+    }
     result = 0;
   }
   return result;
@@ -557,20 +586,23 @@ int ApplySystemEvent303(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->UpdateMissionsAtLocation50to60(key, value, ctx), ok);
+  }
   int system = 0;
-  if (ok != 0)
+  if (ok != 0) {
     system = GetMasterInFamilies_90_98(key) != nullptr;
+  }
   GameObjNotifier* sideObject = nullptr;
   int result = both(GetSideObjectForIndex(1, &sideObject), system);
-  if (sideObject != nullptr)
+  if (sideObject != nullptr) {
     result = both(static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx), result);
+  }
   result = both(GetSideObjectForIndex(2, &sideObject), result);
-  if (sideObject != nullptr)
-  {
-    if (static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx) != 0 && result != 0)
+  if (sideObject != nullptr) {
+    if (static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx) != 0 && result != 0) {
       return 1;
+    }
     result = 0;
   }
   return result;
@@ -580,14 +612,15 @@ int ApplySystemEvent304(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->OnSystemEvent(key, value, ctx), ok);
-  if (value != 0)
-  {
+  }
+  if (value != 0) {
     auto* root = static_cast<GameRoot*>(GetGameRootObjectCached());
     ok = both(root != nullptr, ok);
-    if (root != nullptr)
+    if (root != nullptr) {
       root->m_unk70 = 1;
+    }
   }
   return ok;
 }
@@ -596,10 +629,10 @@ int ApplySystemEvent309(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
-  {
-    if (missions->OnSystemEventNoop(asIntArg(key), value, asIntArg(ctx)) != 0 && ok != 0)
+  if (missions != nullptr) {
+    if (missions->OnSystemEventNoop(asIntArg(key), value, asIntArg(ctx)) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -609,10 +642,10 @@ int ApplySystemEvent310(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
-  {
-    if (missions->UpdateMissionsAtSystemA(key, value, ctx) != 0 && ok != 0)
+  if (missions != nullptr) {
+    if (missions->UpdateMissionsAtSystemA(key, value, ctx) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -622,10 +655,10 @@ int ApplySystemEvent30f(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
-  {
-    if (missions->UpdateMissionsAtSystemB(key, value, ctx) != 0 && ok != 0)
+  if (missions != nullptr) {
+    if (missions->UpdateMissionsAtSystemB(key, value, ctx) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -635,10 +668,10 @@ int ApplySystemEvent311(ObjectKey* key, int value, NotifyContext* ctx)
 {
   GameObjNotifier* system = GetMasterInFamilies_90_98(key);
   int ok = system != nullptr;
-  if (system != nullptr && value != 0)
-  {
-    if (static_cast<System*>(system)->RecomputeBlockadeAndBattlePending(ctx) != 0 && ok != 0)
+  if (system != nullptr && value != 0) {
+    if (static_cast<System*>(system)->RecomputeBlockadeAndBattlePending(ctx) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -648,43 +681,46 @@ int ApplySystemEvent305(ObjectKey* key, int value, NotifyContext* ctx)
 {
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->UpdateMissionsAtLocation53(key, value, ctx), ok);
+  }
   CharacterMgr* characters = characterMgr();
   ok = both(characters != nullptr, ok);
-  if (characters != nullptr)
+  if (characters != nullptr) {
     ok = both(characters->OnSystemOwnerChanged(key, value, ctx), ok);
+  }
   RulesMgr* rules = rulesMgr();
   ok = both(rules != nullptr, ok);
   auto* system = static_cast<System*>(GetMasterInFamilies_90_98(key));
   ok = both(system != nullptr, ok);
-  if (system != nullptr && value != 0)
+  if (system != nullptr && value != 0) {
     ok = both(RetargetIdleManufacturers(system, ctx), ok);
-  if (system != nullptr && value != 0)
-  {
+  }
+  if (system != nullptr && value != 0) {
     UnitIterator units(system, 3);
-    for (units.Begin(); units.Current() != nullptr; units.Advance())
-    {
+    for (units.Begin(); units.Current() != nullptr; units.Advance()) {
       GameObj* unit = asObject(units.Current());
-      if ((unit->m_stateFlags & kCompleted) == 0 || (unit->m_stateFlags & kEnroute) != 0)
+      if ((unit->m_stateFlags & kCompleted) == 0 || (unit->m_stateFlags & kEnroute) != 0) {
         ok = both(rules->EnforceLocation(unit, ctx), ok);
+      }
     }
   }
   GameObjNotifier* sideObject = nullptr;
   ok = both(GetSideObjectForIndex(1, &sideObject), ok);
-  if (sideObject != nullptr)
+  if (sideObject != nullptr) {
     ok = both(static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx), ok);
+  }
   int result = both(GetSideObjectForIndex(2, &sideObject), ok);
-  if (sideObject != nullptr)
+  if (sideObject != nullptr) {
     result = both(static_cast<Side*>(sideObject)->RecomputeMaintenance(ctx), result);
-  if (system != nullptr && value == 0)
-  {
+  }
+  if (system != nullptr && value == 0) {
     uint32_t side = system->GetDataWord60();
     result = side != 3 && result != 0;
-    if (side != 3)
-    {
-      if ((system->m_stateFlags & kDestroyed) == 0 && side != system->ControlSide())
+    if (side != 3) {
+      if ((system->m_stateFlags & kDestroyed) == 0 && side != system->ControlSide()) {
         side = 2 - (side != 1);
+      }
       const int valueSide2 = system->SumWords48And54(2);
       const int valueSide1 = system->SumWords48And54(1);
       result = both(ApplyStrengthImbalance(system, side, valueSide1, valueSide2, ctx), result);
@@ -700,14 +736,17 @@ int ApplyEvent30a(ObjectKey* key, int valueA, int valueB, NotifyContext* ctx)
   GameObjNotifier* person = GetMasterInFamilies_30_3c(key);
   MissionMgr* missions = missionMgr();
   int ok = missions != nullptr && person != nullptr;
-  if (missions != nullptr)
+  if (missions != nullptr) {
     ok = both(missions->OnPersonArrived(key, valueA, valueB, ctx), ok);
+  }
   CharacterMgr* characters = characterMgr();
   int result = characters != nullptr && ok != 0;
-  if (characters != nullptr)
+  if (characters != nullptr) {
     result = both(characters->OnEmperorChanged(key, valueA, valueB, ctx), result);
-  if (person != nullptr && inFamilies(person, kMajorCharacterFamilies))
+  }
+  if (person != nullptr && inFamilies(person, kMajorCharacterFamilies)) {
     result = both(UpdateVictoryState(ctx), result);
+  }
   return result;
 }
 
@@ -718,51 +757,49 @@ int ApplyEvent315(ObjectKey* key, int, int level, NotifyContext* ctx)
   int smuggled = 0;
   GameObjNotifier* facility = GetMasterInFamilies_28_30(key);
   int ok = (level >= 1 && level <= 4 && facility != nullptr) ? 1 : 0;
-  if (facility == nullptr || level < 1 || level > 4 || (!isFirst && !isThird))
+  if (facility == nullptr || level < 1 || level > 4 || (!isFirst && !isThird)) {
     return ok;
+  }
   GameObjNotifier* ownSide = nullptr;
   GameObjNotifier* otherSide = nullptr;
-  if ((facility->m_flags & kBothSidesMask) != kBothSidesMask)
-  {
+  if ((facility->m_flags & kBothSidesMask) != kBothSidesMask) {
     const uint32_t controlSide = facility->ControlSide();
     const int index = controlSide == 1 ? 1 : (controlSide == 2 ? 2 : 0);
     ownSide = GetGameRootSideMemberThunk(index);
     otherSide = GetGameRootSideMemberThunk(2 - (index != 1));
   }
-  if (ownSide == nullptr || otherSide == nullptr)
+  if (ownSide == nullptr || otherSide == nullptr) {
     return ok;
+  }
   auto* processingFacility = static_cast<ProcFacil*>(facility);
   const uint32_t family = key->Family();
-  if (family == kMineFamily)
-  {
-    if (isFirst)
+  if (family == kMineFamily) {
+    if (isFirst) {
       ok = both(MarkFacilityWaiting(processingFacility, ctx), ok);
-    if (isThird)
-    {
+    }
+    if (isThird) {
       const int rolled = both(RollSmuggling(facility, &smuggled), ok);
       Side* side = static_cast<Side*>(smuggled == 0 ? ownSide : otherSide);
       const int released = side->ReleaseRawMaterial(processingFacility, ctx);
       return released != 0 && rolled != 0 ? 1 : 0;
     }
-  }
-  else if (family == kRefineryFamily)
-  {
-    if (isFirst)
+  } else if (family == kRefineryFamily) {
+    if (isFirst) {
       ok = both(static_cast<Side*>(ownSide)->AcquireRawMaterial(processingFacility, ctx), ok);
-    if (isThird)
-    {
+    }
+    if (isThird) {
       const int rolled = both(RollSmuggling(facility, &smuggled), ok);
       Side* side = static_cast<Side*>(smuggled == 0 ? ownSide : otherSide);
       const int released = side->ReleaseRefinedMaterial(processingFacility, ctx);
       return released != 0 && rolled != 0 ? 1 : 0;
     }
-  }
-  else if (family >= 0x28 && family < 0x2c)
-  {
-    if (isFirst)
+  } else if (family >= 0x28 && family < 0x2c) {
+    if (isFirst) {
       ok = both(static_cast<Side*>(ownSide)->AcquireRefinedMaterial(processingFacility, ctx), ok);
-    if (isThird)
+    }
+    if (isThird) {
       ok = both(static_cast<Side*>(ownSide)->ReleaseFacilityToManager(processingFacility, ctx), ok);
+    }
   }
   return ok;
 }
@@ -773,13 +810,12 @@ int RollSmuggling(GameObjNotifier* facility, int* smuggled)
   GameObjNotifier* system = nullptr;
   const int located = GetOwnerSystem(facility, &system);
   const int ok = located != 0 && system != nullptr;
-  if (ok != 0)
-  {
+  if (ok != 0) {
     int percent = static_cast<System*>(system)->m_smugglingPercent;
-    if (percent < 0)
+    if (percent < 0) {
       percent = -percent;
-    if (percent != 0 && PercentChance(percent) != 0)
-    {
+    }
+    if (percent != 0 && PercentChance(percent) != 0) {
       *smuggled = 1;
       return ok;
     }
@@ -795,10 +831,10 @@ int CheckMoveEnabled(const ObjectKey* object, StatusCode* status)
   *status = StatusCode(1, 1);
   RulesMgr* rules = rulesMgr();
   int ok = rules != nullptr;
-  if (rules != nullptr)
-  {
-    if (rules->CheckMoveEnabled(object, status) != 0 && ok != 0)
+  if (rules != nullptr) {
+    if (rules->CheckMoveEnabled(object, status) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -809,10 +845,10 @@ int CheckMoveValid(const ObjectKey* object, const ObjectKey* destination, Status
   *status = StatusCode(1, 1);
   RulesMgr* rules = rulesMgr();
   int ok = rules != nullptr;
-  if (rules != nullptr)
-  {
-    if (rules->CheckMoveValid(object, destination, status) != 0 && ok != 0)
+  if (rules != nullptr) {
+    if (rules->CheckMoveValid(object, destination, status) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -822,10 +858,10 @@ int ExecuteMove(const ObjectKey* object, const ObjectKey* destination, NotifyCon
 {
   RulesMgr* rules = rulesMgr();
   int ok = rules != nullptr;
-  if (rules != nullptr)
-  {
-    if (rules->MoveUnitTo(object, const_cast<ObjectKey*>(destination), ctx) != 0 && ok != 0)
+  if (rules != nullptr) {
+    if (rules->MoveUnitTo(object, const_cast<ObjectKey*>(destination), ctx) != 0 && ok != 0) {
       return 1;
+    }
     ok = 0;
   }
   return ok;

@@ -11,16 +11,20 @@ constexpr int kBarPlaceholderPosition = 1;
 
 } // namespace
 
-CoolScrollable::CoolScrollable() : m_verticalBar(nullptr), m_horizontalBar(nullptr)
+CoolScrollable::CoolScrollable()
+    : m_verticalBar(nullptr)
+    , m_horizontalBar(nullptr)
 {
 }
 
 CoolScrollable::~CoolScrollable()
 {
-  if (m_verticalBar)
+  if (m_verticalBar) {
     delete m_verticalBar;
-  if (m_horizontalBar)
+  }
+  if (m_horizontalBar) {
     delete m_horizontalBar;
+  }
 }
 
 int CoolScrollable::PageUp()
@@ -73,56 +77,42 @@ int CoolScrollable::ScrollHorizontal(int)
   return 0;
 }
 
-void CoolScrollable::OnScrollEnd()
-{
-}
+void CoolScrollable::OnScrollEnd() {}
 
-int CoolScrollable::CreateVerticalScrollBar(HINSTANCE instance,
-                                            CoolWindow* parent,
-                                            uint16_t resourceSlot,
-                                            uint16_t resourceId,
-                                            int total,
-                                            int first,
-                                            int last,
-                                            uint32_t unknownEc,
+int CoolScrollable::CreateVerticalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot,
+                                            uint16_t resourceId, int total, int first, int last, uint32_t unknownEc,
                                             DibBitmap* background)
 {
   int result = 0;
   m_verticalBar = NewOrNull<CoolVerticalScrollBar>(instance, kBarPlaceholderPosition, kBarPlaceholderPosition,
                                                    kBarPlaceholderPosition, kBarPlaceholderPosition, parent, this,
                                                    resourceSlot, resourceId, total, first, last, unknownEc);
-  if (m_verticalBar)
-  {
+  if (m_verticalBar) {
     m_verticalBar->Create(0);
     result = m_verticalBar->Refresh();
     m_verticalBar->SetBackground(background);
-    if (result && m_horizontalBar)
+    if (result && m_horizontalBar) {
       result = m_horizontalBar->Refresh();
+    }
   }
   return result;
 }
 
-int CoolScrollable::CreateHorizontalScrollBar(HINSTANCE instance,
-                                              CoolWindow* parent,
-                                              uint16_t resourceSlot,
-                                              uint16_t resourceId,
-                                              int total,
-                                              int first,
-                                              int last,
-                                              uint32_t unknownEc,
+int CoolScrollable::CreateHorizontalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot,
+                                              uint16_t resourceId, int total, int first, int last, uint32_t unknownEc,
                                               DibBitmap* background)
 {
   int result = 0;
   m_horizontalBar = NewOrNull<CoolHorizontalScrollBar>(instance, kBarPlaceholderPosition, kBarPlaceholderPosition,
                                                        kBarPlaceholderPosition, kBarPlaceholderPosition, parent, this,
                                                        resourceSlot, resourceId, total, first, last, unknownEc);
-  if (m_horizontalBar)
-  {
+  if (m_horizontalBar) {
     m_horizontalBar->Create(0);
     result = m_horizontalBar->Refresh();
     m_horizontalBar->SetBackground(background);
-    if (result && m_verticalBar)
+    if (result && m_verticalBar) {
       result = m_verticalBar->Refresh();
+    }
   }
   return result;
 }
@@ -130,16 +120,18 @@ int CoolScrollable::CreateHorizontalScrollBar(HINSTANCE instance,
 int CoolScrollable::ShowVerticalScrollBar()
 {
   CoolScrollBar* bar = m_verticalBar;
-  if (bar)
+  if (bar) {
     bar->Show(SW_SHOW);
+  }
   return bar != nullptr;
 }
 
 int CoolScrollable::HideVerticalScrollBar()
 {
   CoolScrollBar* bar = m_verticalBar;
-  if (bar)
+  if (bar) {
     bar->Hide();
+  }
   return bar != nullptr;
 }
 
@@ -150,30 +142,37 @@ int CoolScrollable::SetVerticalRange(int total)
 
 int CoolScrollable::SetVerticalVisibleRange(int start, int end)
 {
-  if (!m_verticalBar)
+  if (!m_verticalBar) {
     return 0;
-  if (!m_verticalBar->SetVisibleRange(start, end))
+  }
+  if (!m_verticalBar->SetVisibleRange(start, end)) {
     return 0;
+  }
   return m_verticalBar->Refresh();
 }
 
 int CoolScrollable::ScrollVerticalBar(int delta)
 {
-  if (!m_verticalBar)
+  if (!m_verticalBar) {
     return 0;
-  if (!m_verticalBar->ScrollBy(delta))
+  }
+  if (!m_verticalBar->ScrollBy(delta)) {
     return 0;
+  }
   return m_verticalBar->Refresh();
 }
 
 int CoolScrollable::GetVerticalVisibleRange(int* start, int* end)
 {
-  if (!m_verticalBar)
+  if (!m_verticalBar) {
     return 0;
-  if ((*start = m_verticalBar->m_first) == 0)
+  }
+  if ((*start = m_verticalBar->m_first) == 0) {
     return 0;
-  if ((*end = m_verticalBar->m_last) == 0)
+  }
+  if ((*end = m_verticalBar->m_last) == 0) {
     return 0;
+  }
   return 1;
 }
 
@@ -184,11 +183,14 @@ int CoolScrollable::SetHorizontalRange(int total)
 
 int CoolScrollable::GetHorizontalVisibleRange(int* start, int* end)
 {
-  if (!m_horizontalBar)
+  if (!m_horizontalBar) {
     return 0;
-  if ((*start = m_horizontalBar->m_first) == 0)
+  }
+  if ((*start = m_horizontalBar->m_first) == 0) {
     return 0;
-  if ((*end = m_horizontalBar->m_last) == 0)
+  }
+  if ((*end = m_horizontalBar->m_last) == 0) {
     return 0;
+  }
   return 1;
 }

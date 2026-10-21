@@ -16,12 +16,13 @@ constexpr uint32_t kCreated = 0x2;
 int ManuMgr::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx)
 {
   int result = GameObj::OnControlKindChanged(oldKind, newKind, ctx);
-  if (result)
-  {
-    if (m_stateFlags & kCreated)
+  if (result) {
+    if (m_stateFlags & kCreated) {
       result = DestroyProducts(ctx);
-    if (result)
+    }
+    if (result) {
       result = ClearReserved(0, ctx);
+    }
   }
   return result;
 }
@@ -29,14 +30,13 @@ int ManuMgr::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyCont
 int ManuMgr::OnExistingChanged(int newValue, NotifyContext* ctx)
 {
   int result = GameObj::OnExistingChanged(newValue, ctx);
-  if (result && newValue == 0)
-  {
+  if (result && newValue == 0) {
     result = DestroyProducts(ctx);
-    if (result)
-    {
+    if (result) {
       result = SetControlKind(kNeutralControlKind, ctx);
-      if (result)
+      if (result) {
         result = ClearReserved(newValue, ctx);
+      }
     }
   }
   return result;
@@ -47,13 +47,13 @@ int ManuMgr::OnCreatedChanged(int newValue, NotifyContext* ctx)
   GameObj::OnCreatedChanged(newValue, ctx);
   GameObjNotifier* host = GetHostSystem();
   int result = host != nullptr;
-  if (result)
-  {
+  if (result) {
     ObjectKey hostKey;
     host->GetKey(&hostKey);
     result = SetTargetKey(&hostKey, ctx);
-    if (result)
+    if (result) {
       result = UpdateDeploymentKey(ctx);
+    }
   }
   return result;
 }
@@ -62,16 +62,15 @@ int ManuMgr::OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyCo
 {
   GameObjNotifier* host = GetHostSystem();
   int result = host != nullptr;
-  if (result && newValue == 0)
-  {
+  if (result && newValue == 0) {
     ObjectKey hostKey;
     host->GetKey(&hostKey);
     result = SetTargetKey(&hostKey, ctx);
-    if (result)
-    {
+    if (result) {
       result = SetCompletedPointCount(0, ctx);
-      if (result)
+      if (result) {
         result = SetOverflowPointCount(0, ctx);
+      }
     }
   }
   return result;
@@ -81,12 +80,12 @@ int ManuMgr::OnCompletedPointCountChanged(int oldValue, int newValue, NotifyCont
 {
   GameObjNotifier* host = GetHostSystem();
   int result = host != nullptr;
-  if (result && m_completedPointCount != 0 && m_completedPointCount >= m_requiredPointCount)
-  {
+  if (result && m_completedPointCount != 0 && m_completedPointCount >= m_requiredPointCount) {
     GameObjNotifier* product = GetProduct();
     result = product != nullptr;
-    if (result)
+    if (result) {
       result = CompleteProduct(static_cast<GameObj*>(product), ctx);
+    }
   }
   return result;
 }
@@ -99,11 +98,11 @@ int ManuMgr::OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyCo
 int ManuMgr::OnProductKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int result = UpdateSeedKey(ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateDeploymentKey(ctx);
-    if (result)
+    if (result) {
       result = UpdateProductName(ctx);
+    }
   }
   return result;
 }
@@ -116,8 +115,9 @@ int ManuMgr::OnTargetKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyCont
 int ManuMgr::OnProductNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx)
 {
   GameObjNotifier* product = GetProduct();
-  if (product)
+  if (product) {
     return static_cast<GameObj*>(product)->SetName(newName, ctx);
+  }
   const std::string empty(g_emptyText);
   return CompareStrings(*newName, empty) == 0;
 }

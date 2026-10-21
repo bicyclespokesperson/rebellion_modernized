@@ -1,5 +1,4 @@
 [tools]
-java = "temurin-21"
-
-[env]
-GHIDRA_INSTALL_DIR = "{{config_root}}/tools/ghidra"
+cmake = "4"
+ninja = "1.13"
+uv = "0.11"

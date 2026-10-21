@@ -4,7 +4,8 @@
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
 
-Sector::Sector() : GameObj()
+Sector::Sector()
+    : GameObj()
 {
   SetFlag31(GetFlag31());
 }
@@ -39,18 +40,21 @@ int Sector::Validate()
 int Sector::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return GameObj::ApplyAll(ctx);
+  }
   return isSideView;
 }
 
 int Sector::SetRecord(DatRecord* record)
 {
-  if (!record)
+  if (!record) {
     return 0;
+  }
   const int familyMatches = AssignRecord(record);
-  if (familyMatches)
+  if (familyMatches) {
     SetId(record->m_id);
+  }
   return familyMatches;
 }
 
@@ -71,15 +75,15 @@ GameObjNotifier* Sector::Create()
 
 int Sector::GetGroup()
 {
-  if (!m_record)
+  if (!m_record) {
     return 1;
+  }
   return static_cast<SectorSD*>(m_record)->m_group;
 }
 
 void Sector::GetPosition(uint32_t* out)
 {
-  if (!m_record)
-  {
+  if (!m_record) {
     *out = 0;
     return;
   }
@@ -90,7 +94,7 @@ void Sector::GetPosition(uint32_t* out)
 }
 
 SectorIterator::SectorIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kSectors, stateFilter)
+    : ChildIterator(parent, &family::kSectors, stateFilter)
 {
 }
 

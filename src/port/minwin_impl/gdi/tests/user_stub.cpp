@@ -3,6 +3,10 @@
 
 int g_paletteNotifications = 0;
 
-namespace minwin_user {
-void NotifyPaletteChanged(HWND) { ++g_paletteNotifications; }
-}  // namespace minwin_user
+namespace minwin_user
+{
+void NotifyPaletteChanged(HWND)
+{
+  ++g_paletteNotifications;
+}
+} // namespace minwin_user

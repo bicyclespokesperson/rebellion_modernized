@@ -40,105 +40,84 @@ int System::CollectDependencies(void* context, int value, ObjectKeyValueSet* out
   const int side = request->m_side == 1 ? 1 : request->m_side == 2 ? 2 : 0;
   int result = side != 0;
   const uint32_t type = static_cast<uint32_t>(value) & kBothSidesBit;
-  if (type == 0)
-  {
+  if (type == 0) {
     ObjectKey key;
     GetKey(&key);
     return out->AddKeyValue(&key, 0);
   }
-  switch (type)
-  {
+  switch (type) {
     case 4:
-    {
-      const int kind = request->m_kind;
-      if (kind == 0x200)
       {
-        if (result)
-        {
-          ChildIterator it(this, &kFacilityKindBRange, kAlwaysState);
-          result = addFrom(it, out, side);
+        const int kind = request->m_kind;
+        if (kind == 0x200) {
+          if (result) {
+            ChildIterator it(this, &kFacilityKindBRange, kAlwaysState);
+            result = addFrom(it, out, side);
+          }
+        } else if (kind == 0x214 || kind == 0x216) {
+          if (result) {
+            ChildIterator it(this, &kManagerRange, kAlwaysState);
+            result = addFrom(it, out, side);
+          }
         }
+        break;
       }
-      else if (kind == 0x214 || kind == 0x216)
-      {
-        if (result)
-        {
-          ChildIterator it(this, &kManagerRange, kAlwaysState);
-          result = addFrom(it, out, side);
-        }
-      }
-      break;
-    }
     case 8:
-    {
-      const int kind = request->m_kind;
-      if (kind == 0x200)
       {
-        if (result)
-        {
-          ChildIterator troops(this, &kTroopRange, kAlwaysState);
-          int added = addFrom(troops, out, side);
-          result = 0;
-          if (added)
-          {
-            ChildIterator fighters(this, static_cast<uint32_t>(side), &kFighterRange, kAlwaysState);
-            added = addFrom(fighters, out, side);
+        const int kind = request->m_kind;
+        if (kind == 0x200) {
+          if (result) {
+            ChildIterator troops(this, &kTroopRange, kAlwaysState);
+            int added = addFrom(troops, out, side);
             result = 0;
-            if (added)
-            {
-              ChildIterator facilities(this, static_cast<uint32_t>(side), &kFacilityKindARange, kAlwaysState);
-              result = addFrom(facilities, out, side);
+            if (added) {
+              ChildIterator fighters(this, static_cast<uint32_t>(side), &kFighterRange, kAlwaysState);
+              added = addFrom(fighters, out, side);
+              result = 0;
+              if (added) {
+                ChildIterator facilities(this, static_cast<uint32_t>(side), &kFacilityKindARange, kAlwaysState);
+                result = addFrom(facilities, out, side);
+              }
             }
           }
-        }
-      }
-      else if (kind == 0x201 || kind == 0x202)
-      {
-        if (result)
-        {
-          ChildIterator troops(this, &kTroopRange, kAlwaysState);
-          int added = addFrom(troops, out, side);
-          result = 0;
-          if (added)
-          {
-            ChildIterator fighters(this, &kFighterRange, kAlwaysState);
-            added = addFrom(fighters, out, side);
+        } else if (kind == 0x201 || kind == 0x202) {
+          if (result) {
+            ChildIterator troops(this, &kTroopRange, kAlwaysState);
+            int added = addFrom(troops, out, side);
             result = 0;
-            if (added)
-            {
-              RoleIterator roles(this, kAlwaysState);
-              result = addFrom(roles, out, side);
+            if (added) {
+              ChildIterator fighters(this, &kFighterRange, kAlwaysState);
+              added = addFrom(fighters, out, side);
+              result = 0;
+              if (added) {
+                RoleIterator roles(this, kAlwaysState);
+                result = addFrom(roles, out, side);
+              }
             }
           }
+        } else if (kind == 0x240 || kind == 0x242) {
+          if (result) {
+            RoleIterator roles(this, kAlwaysState);
+            result = addFrom(roles, out, side);
+          }
         }
+        break;
       }
-      else if (kind == 0x240 || kind == 0x242)
-      {
-        if (result)
-        {
-          RoleIterator roles(this, kAlwaysState);
-          result = addFrom(roles, out, side);
-        }
-      }
-      break;
-    }
     case 0x10:
-      if (result)
-      {
+      if (result) {
         ChildIterator fleets(this, &kFleetRange, kAlwaysState);
         result = addFrom(fleets, out, side);
       }
       break;
     case 0x40:
-      if (result)
-      {
+      if (result) {
         RoleIterator roles(this, kAlwaysState, static_cast<uint32_t>(side));
-        for (roles.Begin(); roles.Current(); roles.Advance())
-        {
+        for (roles.Begin(); roles.Current(); roles.Advance()) {
           Role* role = static_cast<Role*>(roles.Current());
           const ObjectKey key = role->m_missionKey;
-          if (key.IsSet() && !(role->m_flags78 & kOnHiddenMission) && !out->Find(&key))
+          if (key.IsSet() && !(role->m_flags78 & kOnHiddenMission) && !out->Find(&key)) {
             out->AddKeyValue(&key, 0);
+          }
         }
       }
       break;
@@ -156,18 +135,20 @@ int System::CreateDefaultFleet(int initArg, int arrived, NotifyContext* ctx)
   key.m_value = kDefaultFleetKey;
   GameObj* fleet = CreateChild(&key, initArg, ctx, 0, 0);
   int result = 0;
-  if (fleet && static_cast<Fleet*>(fleet)->Fleet::SetFlag01(0, ctx))
-    result = arrived ? static_cast<Fleet*>(fleet)->Fleet::SetFlag02(1, ctx) :
-                       static_cast<Fleet*>(fleet)->Fleet::SetFlag04(1, ctx);
+  if (fleet && static_cast<Fleet*>(fleet)->Fleet::SetFlag01(0, ctx)) {
+    result = arrived ? static_cast<Fleet*>(fleet)->Fleet::SetFlag02(1, ctx)
+                     : static_cast<Fleet*>(fleet)->Fleet::SetFlag04(1, ctx);
+  }
   return result;
 }
 
-SystemIterator::SystemIterator(GameObjNotifier* parent) : ChildIterator(parent, &family::kSystems, 1)
+SystemIterator::SystemIterator(GameObjNotifier* parent)
+    : ChildIterator(parent, &family::kSystems, 1)
 {
 }
 
 SystemIterator::SystemIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kSystems, stateFilter)
+    : ChildIterator(parent, &family::kSystems, stateFilter)
 {
 }
 

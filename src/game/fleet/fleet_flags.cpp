@@ -3,7 +3,7 @@
 #include "events/event_post.h"
 #include "fleet/fleet.h"
 
-extern EventKindSet g_fleetEventKinds; // 0x6b2b10
+extern EventKindSet g_fleetEventKinds;  // 0x6b2b10
 extern uint32_t g_fleetEventKindsReady; // 0x6b2b18, set once the set has been filled
 
 namespace
@@ -37,8 +37,7 @@ Fleet* viewOf(Fleet* fleet, int view)
 int setFleetFlag(Fleet* fleet, uint32_t mask, int on, NotifyContext* ctx, ApplyFlag apply, FlagEvent changed)
 {
   const int result = fleet->IsMasterView();
-  if (result && UpdateFlagBit(mask, on, &fleet->m_fleetFlags))
-  {
+  if (result && UpdateFlagBit(mask, on, &fleet->m_fleetFlags)) {
     (viewOf(fleet, kAllianceView)->*apply)(ctx);
     (viewOf(fleet, kEmpireView)->*apply)(ctx);
     (fleet->*changed)(on, ctx);
@@ -49,15 +48,11 @@ int setFleetFlag(Fleet* fleet, uint32_t mask, int on, NotifyContext* ctx, ApplyF
 int applyFleetFlag(Fleet* fleet, uint32_t mask, NotifyContext* ctx, FlagEvent notified)
 {
   int result = fleet->IsSideView();
-  if (result)
-  {
+  if (result) {
     Fleet* master = viewOf(fleet, kMasterView);
-    if (fleet->MatchesSideMask(ctx->m_flag08))
-    {
-      if (UpdateFlagBits(mask, master->m_fleetFlags, &fleet->m_fleetFlags))
-      {
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(fleet->ViewSide())))
-        {
+    if (fleet->MatchesSideMask(ctx->m_flag08)) {
+      if (UpdateFlagBits(mask, master->m_fleetFlags, &fleet->m_fleetFlags)) {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(fleet->ViewSide()))) {
           result = (fleet->*notified)((fleet->m_fleetFlags & mask) != 0 ? 1 : 0, ctx);
         }
       }
@@ -69,8 +64,7 @@ int applyFleetFlag(Fleet* fleet, uint32_t mask, NotifyContext* ctx, FlagEvent no
 int notifyFleetFlag(Fleet* fleet, const char* tag, const char* property, int eventId, int value, NotifyContext* ctx)
 {
   int result = fleet->IsSideView();
-  if (result)
-  {
+  if (result) {
     fleet->LogFlag(tag, property, value, 0, ctx);
     result = PostPayloadFlag(eventId, fleet, value, ctx);
   }
@@ -195,8 +189,7 @@ int Fleet::OnAssaultNotified(int value, NotifyContext* ctx)
 int Fleet::InitEventKinds()
 {
   int result = 1;
-  if (g_fleetEventKindsReady == 0)
-  {
+  if (g_fleetEventKindsReady == 0) {
     g_fleetEventKindsReady = 1;
     const int initialised = ::InitEventKinds(0, &g_fleetEventKinds);
     bool ok = g_fleetEventKinds.Add(0x201, 1) && initialised;
@@ -209,8 +202,9 @@ int Fleet::InitEventKinds()
     ok = g_fleetEventKinds.Add(0x223, 1) && ok;
     ok = g_fleetEventKinds.Add(0x234, 1) && ok;
     const bool lastAdded = g_fleetEventKinds.Add(0x200, 1) != nullptr;
-    if (lastAdded && ok)
+    if (lastAdded && ok) {
       return 1;
+    }
     result = 0;
   }
   return result;

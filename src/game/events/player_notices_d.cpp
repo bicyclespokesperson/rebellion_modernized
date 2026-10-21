@@ -30,14 +30,16 @@ bool dagobahDone(GameObjNotifier* luke)
 
 // ---- Notice25 (kind 25) ----
 
-Notice25::Notice25() : UiTextNotice()
+Notice25::Notice25()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
   m_unk40 = 0;
 }
 
-Notice25::Notice25(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice25::Notice25(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -60,8 +62,9 @@ void Notice25::OnPayload(int kind, intptr_t payload)
 {
   ObjectKey characterKey;
   ObjectKey nameKey;
-  if (kind != 0x1e0)
+  if (kind != 0x1e0) {
     return;
+  }
   auto* notif = reinterpret_cast<UiNotif1e0*>(payload);
   characterKey = ObjectKey(notif->m_key);
   GameObjNotifier* character = GetObjectInFamilies_01_ff(m_owner, &characterKey);
@@ -70,80 +73,69 @@ void Notice25::OnPayload(int kind, intptr_t payload)
   GameObjNotifier* otherSide = GetSideObject(m_owner, m_owner == 1 ? 2 : 1);
   m_sound[0] = 0x44c;
   m_picture[1] = (m_owner != 1) + 0x412;
-  if (character)
-  {
+  if (character) {
     ObjectKey unset;
     ObjectKey scratch;
-    if (notif->CopySystemKey(&scratch)->m_value != unset.m_value)
-    {
+    if (notif->CopySystemKey(&scratch)->m_value != unset.m_value) {
       place = GetObjectInFamilies_01_ff(m_owner, notif->CopySystemKey(&scratch));
     }
-    if (!place)
-    {
+    if (!place) {
       ObjectKey locationCopy(notif->m_locationKey);
-      if (locationCopy.m_value != unset.m_value)
+      if (locationCopy.m_value != unset.m_value) {
         place = GetObjectInFamilies_01_ff(m_owner, &locationCopy);
-      if (!place)
-      {
-        if (notif->CopyGrandparentKey(&scratch)->m_value != unset.m_value)
+      }
+      if (!place) {
+        if (notif->CopyGrandparentKey(&scratch)->m_value != unset.m_value) {
           place = GetObjectInFamilies_01_ff(m_owner, notif->CopyGrandparentKey(&scratch));
+        }
       }
     }
-    if (notice::inFamilies(characterKey, 0x30, 0x3c))
-    {
+    if (notice::inFamilies(characterKey, 0x30, 0x3c)) {
       m_key = ObjectKey(characterKey);
       m_unk40 = 1;
       auto* subject = static_cast<Character*>(character);
       bool sameSide = subject->GetRecordSide() == 1;
-      if (m_owner == 2)
+      if (m_owner == 2) {
         sameSide = !sameSide;
+      }
       first = character;
-      if (subject->m_state == 0)
-      {
+      if (subject->m_state == 0) {
         ObjectKey parentKey;
         character->m_parent->GetKey(&parentKey);
-        if (parentKey.m_value == 0x98000481)
-        {
+        if (parentKey.m_value == 0x98000481) {
           m_picture[1] = 0x429;
           m_sound[0] = 0x478;
           m_f64 = 5;
-        }
-        else
-        {
+        } else {
           m_picture[1] = (subject->GetRecordSide() != 1) + 0x418;
           m_f64 = sameSide ? 3 : 4;
-          if (characterKey.m_value == kHanKey && (static_cast<StoryCharacter*>(character)->m_storyFlags & 2) != 0)
+          if (characterKey.m_value == kHanKey && (static_cast<StoryCharacter*>(character)->m_storyFlags & 2) != 0) {
             m_unk40 = 0;
+          }
         }
-      }
-      else
-      {
+      } else {
         m_picture[1] = 0x405;
         m_sound[0] = 0x469;
         m_f64 = sameSide ? 1 : 2;
       }
-    }
-    else
-    {
+    } else {
       m_unk40 = 0;
     }
   }
-  if (m_unk40 == 0)
+  if (m_unk40 == 0) {
     return;
+  }
   nameKey = ObjectKey(characterKey);
   bool storyCharacter = notice::inFamilies(nameKey, 0x30, 0x38);
   uint32_t id = nameKey.m_value & 0xffffff;
-  switch (m_f64)
-  {
+  switch (m_f64) {
     case 1:
       ExpandMessageTemplate(&m_text0, 0x715c, notice::nameOf(first), notice::nameOf(place), notice::nameOf(otherSide),
                             nullptr);
       ExpandMessageTemplate(&m_text1, 0x715d, notice::nameOf(first), notice::nameOf(place), notice::nameOf(otherSide),
                             nullptr);
-      if (storyCharacter)
-      {
-        switch (id)
-        {
+      if (storyCharacter) {
+        switch (id) {
           case 0x240:
             m_unk28 = 0x26;
             m_sound[1] = AdvisorPickAdviceLine(0xf6);
@@ -177,10 +169,8 @@ void Notice25::OnPayload(int kind, intptr_t payload)
                             nullptr);
       ExpandMessageTemplate(&m_text1, 0x715f, notice::nameOf(first), notice::nameOf(place), notice::nameOf(otherSide),
                             nullptr);
-      if (storyCharacter)
-      {
-        switch (id)
-        {
+      if (storyCharacter) {
+        switch (id) {
           case 0x240:
             m_unk28 = 0x26;
             break;
@@ -200,54 +190,48 @@ void Notice25::OnPayload(int kind, intptr_t payload)
             m_unk28 = 0x28;
             break;
         }
-      }
-      else
-      {
+      } else {
         m_unk28 = 0x24;
       }
       return;
     case 3:
     case 4:
-    {
-      bool pending = m_f64 == 3;
-      ExpandMessageTemplate(&m_text0, pending ? 0x7158 : 0x715a, notice::nameOf(first), notice::nameOf(place),
-                            notice::nameOf(otherSide), nullptr);
-      ExpandMessageTemplate(&m_text1, pending ? 0x7159 : 0x715b, notice::nameOf(first), notice::nameOf(place),
-                            notice::nameOf(otherSide), nullptr);
-      if (storyCharacter)
       {
-        switch (id)
-        {
-          case 0x240:
-            m_unk28 = 0x1f;
-            break;
-          case 0x241:
-            m_unk28 = 0x20;
-            break;
-          case 0x242:
-            m_unk28 = 0x1e;
-            break;
-          case 0x243:
-            m_unk28 = 0x21;
-            break;
-          case 0x280:
-            m_unk28 = 0x22;
-            break;
-          case 0x281:
-            m_unk28 = 0x23;
-            break;
+        bool pending = m_f64 == 3;
+        ExpandMessageTemplate(&m_text0, pending ? 0x7158 : 0x715a, notice::nameOf(first), notice::nameOf(place),
+                              notice::nameOf(otherSide), nullptr);
+        ExpandMessageTemplate(&m_text1, pending ? 0x7159 : 0x715b, notice::nameOf(first), notice::nameOf(place),
+                              notice::nameOf(otherSide), nullptr);
+        if (storyCharacter) {
+          switch (id) {
+            case 0x240:
+              m_unk28 = 0x1f;
+              break;
+            case 0x241:
+              m_unk28 = 0x20;
+              break;
+            case 0x242:
+              m_unk28 = 0x1e;
+              break;
+            case 0x243:
+              m_unk28 = 0x21;
+              break;
+            case 0x280:
+              m_unk28 = 0x22;
+              break;
+            case 0x281:
+              m_unk28 = 0x23;
+              break;
+          }
+          return;
         }
-        return;
+        break;
       }
-      break;
-    }
     case 5:
       ExpandMessageTemplate(&m_text0, 0x7156, notice::nameOf(first), nullptr, nullptr, nullptr);
       ExpandMessageTemplate(&m_text1, 0x7157, notice::nameOf(first), nullptr, nullptr, nullptr);
-      if (storyCharacter)
-      {
-        switch (id)
-        {
+      if (storyCharacter) {
+        switch (id) {
           case 0x240:
             m_unk28 = 0x1f;
             break;
@@ -280,12 +264,14 @@ void Notice25::OnPayload(int kind, intptr_t payload)
 
 // ---- Notice24 (kind 24) ----
 
-Notice24::Notice24() : UiTextNotice()
+Notice24::Notice24()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
 }
 
-Notice24::Notice24(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice24::Notice24(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -306,23 +292,27 @@ UiNotice* Notice24::CreateEmptyNotice()
 
 void Notice24::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x153)
+  if (kind != 0x153) {
     return;
+  }
   const auto* key = reinterpret_cast<const ObjectKey*>(a);
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, key);
   m_key = ObjectKey(*key);
-  if (!system || b == 0)
+  if (!system || b == 0) {
     return;
+  }
   uint32_t controller = system->ControlSide();
   bool show;
-  if (controller == 1)
+  if (controller == 1) {
     show = m_owner == 2;
-  else if (controller == 2)
+  } else if (controller == 2) {
     show = m_owner == 1;
-  else
+  } else {
     show = true;
-  if (show)
+  }
+  if (show) {
     m_unk40 = 1;
+  }
   ExpandMessageTemplate(&m_text0, 0x7150, notice::nameOf(system), nullptr, nullptr, nullptr);
   ExpandMessageTemplate(&m_text1, 0x7151, notice::nameOf(system), nullptr, nullptr, nullptr);
   m_picture[1] = 1000;

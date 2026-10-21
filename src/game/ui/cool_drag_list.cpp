@@ -37,7 +37,8 @@ POINTS PointsFromLParam(LPARAM lParam)
 
 // ---- CoolListItemList ------------------------------------------------------------------------------------------
 
-CoolListItemList::CoolListItemList(int sortMode) : m_sortMode(0)
+CoolListItemList::CoolListItemList(int sortMode)
+    : m_sortMode(0)
 {
   m_sortMode.m_value = sortMode;
 }
@@ -50,29 +51,31 @@ CoolListItemList::~CoolListItemList()
 bool CoolListItemList::IsLess(const CoolListItem* first, const CoolListItem* second) const
 {
   const auto mode = static_cast<uint32_t>(m_sortMode.m_value);
-  if (mode & kSortById)
+  if (mode & kSortById) {
     return first->m_id < second->m_id;
-  if (mode & kSortByLabel)
+  }
+  if (mode & kSortByLabel) {
     return _stricmp(first->m_text.c_str(), second->m_text.c_str()) < 0;
-  if (mode & kSortByUserData)
+  }
+  if (mode & kSortByUserData) {
     return static_cast<int>(first->m_userData) < static_cast<int>(second->m_userData);
+  }
   return false;
 }
 
 int CoolListItemList::Insert(CoolListItem* item)
 {
-  if (!item || PositionOf(item) != m_items.cend())
+  if (!item || PositionOf(item) != m_items.cend()) {
     return false;
-  auto position = m_items.begin();
-  while (position != m_items.end() && !IsLess(item, (*position).get()))
-    ++position;
-  std::unique_ptr<CoolListItem> pending(item);
-  try
-  {
-    m_items.insert(position, std::move(pending));
   }
-  catch (...)
-  {
+  auto position = m_items.begin();
+  while (position != m_items.end() && !IsLess(item, (*position).get())) {
+    ++position;
+  }
+  std::unique_ptr<CoolListItem> pending(item);
+  try {
+    m_items.insert(position, std::move(pending));
+  } catch (...) {
     pending.release();
     throw;
   }
@@ -81,22 +84,20 @@ int CoolListItemList::Insert(CoolListItem* item)
 
 int CoolListItemList::InsertBefore(CoolListItem* item, CoolListItem* anchor)
 {
-  if (!item || PositionOf(item) != m_items.cend())
+  if (!item || PositionOf(item) != m_items.cend()) {
     return false;
+  }
   auto position = m_items.cend();
-  if (anchor)
-  {
+  if (anchor) {
     position = PositionOf(anchor);
-    if (position == m_items.cend())
+    if (position == m_items.cend()) {
       return false;
+    }
   }
   std::unique_ptr<CoolListItem> pending(item);
-  try
-  {
+  try {
     m_items.insert(position, std::move(pending));
-  }
-  catch (...)
-  {
+  } catch (...) {
     pending.release();
     throw;
   }
@@ -105,13 +106,12 @@ int CoolListItemList::InsertBefore(CoolListItem* item, CoolListItem* anchor)
 
 int CoolListItemList::Remove(CoolListItem* item)
 {
-  const auto position = std::find_if(m_items.begin(), m_items.end(),
-                                     [item](const auto& owned)
-                                     {
-                                       return owned.get() == item;
-                                     });
-  if (position == m_items.end())
+  const auto position = std::find_if(m_items.begin(), m_items.end(), [item](const auto& owned) {
+    return owned.get() == item;
+  });
+  if (position == m_items.end()) {
     return false;
+  }
   position->release();
   m_items.erase(position);
   return true;
@@ -125,102 +125,81 @@ void CoolListItemList::Clear()
 
 std::list<std::unique_ptr<CoolListItem>>::const_iterator CoolListItemList::PositionOf(const CoolListItem* item) const
 {
-  return std::find_if(m_items.cbegin(), m_items.cend(),
-                      [item](const auto& owned)
-                      {
-                        return owned.get() == item;
-                      });
+  return std::find_if(m_items.cbegin(), m_items.cend(), [item](const auto& owned) {
+    return owned.get() == item;
+  });
 }
 
 // Return the first item through the owning sorted list.
 CoolListItem* CoolListItemList::First()
 {
-  for (const auto& ownedItem : m_items)
-    if (ownedItem->IsVisible())
+  for (const auto& ownedItem : m_items) {
+    if (ownedItem->IsVisible()) {
       return ownedItem.get();
+    }
+  }
   return nullptr;
 }
 
 CoolListItem* CoolListItemList::Last()
 {
-  for (auto position = m_items.crbegin(); position != m_items.crend(); ++position)
-    if ((*position)->IsVisible())
+  for (auto position = m_items.crbegin(); position != m_items.crend(); ++position) {
+    if ((*position)->IsVisible()) {
       return position->get();
+    }
+  }
   return nullptr;
 }
 
 CoolListItem* CoolListItemList::NextVisible(const CoolListItem* item) const
 {
   auto position = PositionOf(item);
-  if (position == m_items.cend())
+  if (position == m_items.cend()) {
     return nullptr;
-  for (++position; position != m_items.cend(); ++position)
-    if ((*position)->IsVisible())
+  }
+  for (++position; position != m_items.cend(); ++position) {
+    if ((*position)->IsVisible()) {
       return position->get();
+    }
+  }
   return nullptr;
 }
 
 CoolListItem* CoolListItemList::PreviousVisible(const CoolListItem* item) const
 {
   auto position = PositionOf(item);
-  if (position == m_items.cend())
+  if (position == m_items.cend()) {
     return nullptr;
-  while (position != m_items.cbegin())
-  {
+  }
+  while (position != m_items.cbegin()) {
     --position;
-    if ((*position)->IsVisible())
+    if ((*position)->IsVisible()) {
       return position->get();
+    }
   }
   return nullptr;
 }
 
 CoolListItem* CoolListItemList::FindById(uint32_t id)
 {
-  for (const auto& entry : m_items)
-  {
+  for (const auto& entry : m_items) {
     auto* item = entry.get();
-    if (item->m_id == id)
+    if (item->m_id == id) {
       return item;
+    }
   }
   return nullptr;
 }
 
 // ---- CoolDragList: construction ----------------------------------------------------------------------------------
 
-CoolDragList::CoolDragList(HINSTANCE instance,
-                           int x,
-                           int y,
-                           int width,
-                           int height,
-                           CoolWindow* parent,
-                           DibBitmap* backdrop,
-                           uint32_t childId,
-                           int itemWidth,
-                           int itemHeight,
-                           int,
-                           int,
-                           int,
-                           int,
-                           int lineStep,
-                           int vertical,
-                           HCURSOR dragCursor)
-: CoolWindow(instance,
-             g_coolDragListClassName,
-             kDragListStyle,
-             x,
-             y,
-             width,
-             height,
-             parent,
-             nullptr,
-             static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)),
-             nullptr,
-             nullptr,
-             nullptr,
-             0,
-             0),
-  m_hoverTextColor(0),
-  m_options(0)
+CoolDragList::CoolDragList(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                           DibBitmap* backdrop, uint32_t childId, int itemWidth, int itemHeight, int, int, int, int,
+                           int lineStep, int vertical, HCURSOR dragCursor)
+    : CoolWindow(instance, g_coolDragListClassName, kDragListStyle, x, y, width, height, parent, nullptr,
+                 static_cast<HBRUSH>(reb::compat::GetStockObject(BLACK_BRUSH)), nullptr, nullptr, nullptr, 0, 0)
+    , m_hoverTextColor(0)
+    , m_options(0)
 {
   m_items = NewOrNull<CoolListItemList>(static_cast<int>(kSortById));
   m_childId = childId;
@@ -230,10 +209,11 @@ CoolDragList::CoolDragList(HINSTANCE instance,
   m_vertical = vertical;
   m_itemWidth = itemWidth;
   m_itemHeight = itemHeight;
-  if (vertical)
+  if (vertical) {
     m_unknownBC = itemWidth;
-  else
+  } else {
     m_unknownB8 = itemHeight;
+  }
   m_textColor = kDefaultTextColor;
   m_selectedTextColor = kDefaultSelectedTextColor;
   m_fillColor = 0;
@@ -245,18 +225,17 @@ CoolDragList::CoolDragList(HINSTANCE instance,
   m_scrollPos = 0;
   m_scrollMax = 0;
   m_lineStep = lineStep;
-  if (lineStep == 0)
+  if (lineStep == 0) {
     m_lineStep = kDefaultLineStep;
-  m_dragCursor = dragCursor;
-  if (dragCursor)
-  {
-    m_cursor = dragCursor;
   }
-  else
-  {
+  m_dragCursor = dragCursor;
+  if (dragCursor) {
+    m_cursor = dragCursor;
+  } else {
     m_cursor = g_defaultCursor;
-    if (!g_defaultCursor)
-      m_cursor = LoadCursorA(nullptr, IDC_ARROW);
+    if (!g_defaultCursor) {
+      m_cursor = reb::compat::LoadCursorA(nullptr, IDC_ARROW);
+    }
   }
   m_textFormat = kDefaultTextFormat;
   m_dragStart.x = kNoDragStart;
@@ -270,24 +249,31 @@ CoolDragList::CoolDragList(HINSTANCE instance,
 
 CoolDragList::~CoolDragList()
 {
-  if ((m_options.m_value & kDragListItemsNotOwned) == 0 && m_items)
+  if ((m_options.m_value & kDragListItemsNotOwned) == 0 && m_items) {
     delete m_items;
-  if (m_canvas)
+  }
+  if (m_canvas) {
     delete m_canvas;
-  if (m_composite)
+  }
+  if (m_composite) {
     delete m_composite;
-  if (m_background)
+  }
+  if (m_background) {
     delete m_background;
-  if (m_selectionImage)
+  }
+  if (m_selectionImage) {
     delete m_selectionImage;
-  if (m_dragImage)
+  }
+  if (m_dragImage) {
     delete m_dragImage;
+  }
 }
 
 void CoolDragList::SetItemList(CoolListItemList* items)
 {
-  if ((m_options.m_value & kDragListItemsNotOwned) == 0 && m_items)
+  if ((m_options.m_value & kDragListItemsNotOwned) == 0 && m_items) {
     delete m_items;
+  }
   m_options.m_value |= kDragListItemsNotOwned;
   m_items = items;
 }
@@ -296,36 +282,40 @@ void CoolDragList::SetItemSize(int width, int height)
 {
   m_itemWidth = width;
   m_itemHeight = height;
-  if (m_vertical)
+  if (m_vertical) {
     m_unknownBC = width;
-  else
+  } else {
     m_unknownB8 = height;
+  }
 }
 
 void CoolDragList::SetBackground(DibBitmap* source, int srcX, int srcY)
 {
-  if (!source)
+  if (!source) {
     return;
-  if (!m_background)
-  {
-    HDC dc = GetDC(m_hwnd);
-    m_background =
-      NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight), source, dc);
-    ReleaseDC(m_hwnd, dc);
+  }
+  if (!m_background) {
+    HDC dc = reb::compat::GetDC(m_hwnd);
+    m_background
+        = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight), source, dc);
+    reb::compat::ReleaseDC(m_hwnd, dc);
   }
   source->Blit(m_background, 0, 0, srcX, srcY, 0, 0);
 }
 
 void CoolDragList::SetDragTarget(HWND target)
 {
-  if (target && IsWindow(target) && IsWindowVisible(target))
+  if (target && reb::compat::IsWindow(target) && reb::compat::IsWindowVisible(target)) {
     m_dragWindow = target;
-  if (m_dragImage)
+  }
+  if (m_dragImage) {
     delete m_dragImage;
+  }
   m_dragImage = nullptr;
   CoolWindow* window = GetCoolWindow(target);
-  if (window)
+  if (window) {
     m_dragImage = NewOrNull<CoolDragImage>(window);
+  }
 }
 
 // ---- Items and selection -----------------------------------------------------------------------------------------
@@ -333,62 +323,64 @@ void CoolDragList::SetDragTarget(HWND target)
 void CoolDragList::SetSortMode(int sortMode)
 {
   auto* sorted = NewOrNull<CoolListItemList>(sortMode);
-  while (!m_items->Empty())
-  {
+  while (!m_items->Empty()) {
     auto* item = m_items->Entries().front().get();
     m_items->Remove(item);
     sorted->Insert(item);
   }
-  if (m_items)
+  if (m_items) {
     delete m_items;
+  }
   m_items = sorted;
   Layout();
   Redraw();
-  if (m_hwnd)
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+  if (m_hwnd) {
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
 }
 
 void CoolDragList::CopySelectionTo(CoolListItemList* out)
 {
   out->Clear();
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_state.m_value & kListItemSelected)
+    if (item->m_state.m_value & kListItemSelected) {
       out->Insert(NewOrNull<CoolListItem>(*item));
+    }
   }
 }
 
 void CoolDragList::ClearSelection()
 {
   bool hadSelection = false;
-  for (const auto& entry : m_items->Entries())
-  {
+  for (const auto& entry : m_items->Entries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_state.m_value & kListItemSelected)
+    if (item->m_state.m_value & kListItemSelected) {
       hadSelection = true;
+    }
     item->m_state.m_value &= ~kListItemSelected;
   }
-  if (hadSelection)
+  if (hadSelection) {
     Redraw();
+  }
 }
 
 void CoolDragList::SelectById(uint32_t id, int notify)
 {
-  if (m_options.m_value & kDragListSingleSelect)
+  if (m_options.m_value & kDragListSingleSelect) {
     ClearSelection();
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  }
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_id == id)
-    {
+    if (item->m_id == id) {
       item->m_state.m_value |= kListItemSelected;
       Redraw();
       break;
     }
   }
-  if (notify)
-    PostMessageA(m_parent->m_hwnd, WM_COMMAND, MAKEWPARAM(m_childId & 0xffff, kDragListSelectionChanged), 0);
+  if (notify) {
+    reb::compat::PostMessageA(m_parent->m_hwnd, WM_COMMAND, MAKEWPARAM(m_childId & 0xffff, kDragListSelectionChanged), 0);
+  }
 }
 
 void CoolDragList::SelectRect(POINTS from, POINTS to)
@@ -396,32 +388,29 @@ void CoolDragList::SelectRect(POINTS from, POINTS to)
   bool selected = false;
   SHORT left = from.x;
   SHORT right = to.x;
-  if (to.x < from.x)
-  {
+  if (to.x < from.x) {
     left = to.x;
     right = from.x;
   }
   SHORT top = from.y;
   SHORT bottom = to.y;
-  if (to.y < from.y)
-  {
+  if (to.y < from.y) {
     top = to.y;
     bottom = from.y;
   }
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_x <= right && left <= m_itemWidth + item->m_x && item->m_y <= bottom && top <= m_itemHeight + item->m_y)
-    {
+    if (item->m_x <= right && left <= m_itemWidth + item->m_x && item->m_y <= bottom
+        && top <= m_itemHeight + item->m_y) {
       selected = true;
       item->m_state.m_value |= kListItemSelected;
     }
   }
-  if (selected)
-  {
+  if (selected) {
     Redraw();
-    if (m_hwnd)
-      InvalidateRect(m_hwnd, nullptr, FALSE);
+    if (m_hwnd) {
+      reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+    }
   }
 }
 
@@ -431,77 +420,72 @@ uint32_t CoolDragList::SelectByPrefix(const std::string* prefix, int notify, int
 {
   int bestLength = 0;
   CoolListItem* best = nullptr;
-  if (prefix->empty())
+  if (prefix->empty()) {
     return 0;
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  }
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
     std::string& text = item->m_text;
-    if (CompareStringsN(text, *prefix, 1, caseSensitive != 0) != 0)
+    if (CompareStringsN(text, *prefix, 1, caseSensitive != 0) != 0) {
       continue;
+    }
     const int prefixSize = static_cast<uint16_t>((prefix->empty() ? 0 : prefix->size() + 1));
     const int textSize = static_cast<uint16_t>(text.empty() ? 0 : text.size() + 1);
     int length = 1;
-    while (length < (prefixSize < textSize ? prefixSize : textSize) &&
-           CompareStringsN(text, *prefix, length + 1, caseSensitive != 0) == 0)
+    while (length < (prefixSize < textSize ? prefixSize : textSize)
+           && CompareStringsN(text, *prefix, length + 1, caseSensitive != 0) == 0) {
       ++length;
-    if (length > bestLength)
-    {
+    }
+    if (length > bestLength) {
       bestLength = length;
       best = item;
-    }
-    else if (length < bestLength)
-    {
+    } else if (length < bestLength) {
       break;
     }
   }
-  if (!best)
+  if (!best) {
     return 0;
-  if ((best->m_state.m_value & kListItemSelected) == 0)
-  {
+  }
+  if ((best->m_state.m_value & kListItemSelected) == 0) {
     SelectById(best->m_id, notify);
     ScrollIntoView(best->m_id);
   }
   return best->m_id;
 }
 
-CoolListItem* CoolDragList::AddItem(uint32_t id,
-                                    uint16_t imageId,
-                                    uint16_t selectedImageId,
-                                    const char* text,
-                                    int redraw,
-                                    uintptr_t userData)
+CoolListItem* CoolDragList::AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text,
+                                    int redraw, uintptr_t userData)
 {
   auto* item = NewOrNull<CoolListItem>(id);
-  if (!item)
+  if (!item) {
     return nullptr;
+  }
   item->m_userPointer = userData;
   item->SetImageIds(imageId, selectedImageId, m_instance);
   item->m_text = StringFromText(text);
   m_items->Insert(item);
   Layout();
-  if (redraw)
+  if (redraw) {
     Redraw();
+  }
   return item;
 }
 
-CoolListItem* CoolDragList::AddItemWithImages(uint32_t id,
-                                              DibBitmap* image,
-                                              DibBitmap* selectedImage,
-                                              const char* text,
-                                              int redraw,
-                                              uintptr_t userData)
+CoolListItem* CoolDragList::AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage, const char* text,
+                                              int redraw, uintptr_t userData)
 {
   auto* item = NewOrNull<CoolListItem>(id);
-  if (!item)
+  if (!item) {
     return nullptr;
+  }
   item->m_userPointer = userData;
   item->SetImages(image, selectedImage);
   item->m_text = StringFromText(text);
   m_items->Insert(item);
   Layout();
-  if (redraw)
+  if (redraw) {
     Redraw();
+  }
   return item;
 }
 
@@ -538,20 +522,21 @@ CoolListItem* CoolDragList::FirstItem()
 // coordinates, as it is dragged from there).
 void CoolDragList::DrawItem(CoolListItem* item)
 {
-  if (!item || !m_canvas)
+  if (!item || !m_canvas) {
     return;
+  }
   const int y = item->m_y;
   const int x = item->m_x;
   DibBitmap* image = item->CurrentImage();
-  if (!image)
+  if (!image) {
     return;
+  }
   image->DrawKeyed(m_canvas, x, y);
   POINTS position;
   position.x = static_cast<SHORT>(x);
   position.y = static_cast<SHORT>(y);
   POINTS client = ListToClient(position);
-  if ((item->m_state.m_value & kListItemSelected) && m_selectionImage)
-  {
+  if ((item->m_state.m_value & kListItemSelected) && m_selectionImage) {
     const uint8_t savedColorKey = m_selectionImage->m_colorKey;
     image->DrawKeyed(m_selectionImage, client.x, client.y);
     m_selectionImage->m_colorKey = savedColorKey;
@@ -561,23 +546,28 @@ void CoolDragList::DrawItem(CoolListItem* item)
 void CoolDragList::Redraw()
 {
   uint8_t fill = 0;
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (fill)
+    if (fill) {
       break;
-    if (item->m_image)
+    }
+    if (item->m_image) {
       fill = item->m_image->m_colorKey;
+    }
   }
-  if (fill)
+  if (fill) {
     m_fillColor = fill;
+  }
   m_canvas->FillRect(0, 0, m_canvas->Width(), m_canvas->Height(), m_fillColor);
-  if (m_selectionImage)
+  if (m_selectionImage) {
     m_selectionImage->FillRect(0, 0, m_selectionImage->Width(), m_selectionImage->Height(), m_fillColor);
-  for (const auto& entry : m_items->VisibleEntries())
+  }
+  for (const auto& entry : m_items->VisibleEntries()) {
     DrawItem(static_cast<CoolListItem*>(entry.get()));
-  if (m_hwnd)
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
+  if (m_hwnd) {
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
 }
 
 // Assigns every item its canvas position: one row (or column, if m_vertical) without kDragListFlowLayout,
@@ -588,86 +578,77 @@ void CoolDragList::Layout()
   int y = 0;
   int availableWidth = 0;
   int availableHeight = 0;
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
     item->m_x = x;
     item->m_y = y;
-    if ((m_options.m_value & kDragListFlowLayout) == 0)
-    {
-      if (m_vertical)
+    if ((m_options.m_value & kDragListFlowLayout) == 0) {
+      if (m_vertical) {
         y += m_itemHeight;
-      else
+      } else {
         x += m_itemWidth;
+      }
       continue;
     }
-    if (!m_verticalBar)
-    {
-      if (m_horizontalBar)
+    if (!m_verticalBar) {
+      if (m_horizontalBar) {
         availableHeight = m_clientHeight - m_horizontalBar->m_clientHeight;
-      else
+      } else {
         availableWidth = m_clientWidth;
-    }
-    else if (!m_horizontalBar)
-    {
+      }
+    } else if (!m_horizontalBar) {
       availableWidth = m_clientWidth - m_verticalBar->m_clientWidth;
-    }
-    else
-    {
+    } else {
       availableWidth = m_clientWidth;
     }
-    if (availableHeight)
-    {
-      if (y + m_itemHeight * 2 <= m_clientHeight)
-      {
+    if (availableHeight) {
+      if (y + m_itemHeight * 2 <= m_clientHeight) {
         y += m_itemHeight;
-      }
-      else
-      {
+      } else {
         y = 0;
         x += m_itemWidth;
       }
-    }
-    else if (availableWidth)
-    {
-      if (x + m_itemWidth * 2 > availableWidth)
-      {
+    } else if (availableWidth) {
+      if (x + m_itemWidth * 2 > availableWidth) {
         x = 0;
         y += m_itemHeight;
-      }
-      else
-      {
+      } else {
         x += m_itemWidth;
       }
     }
   }
-  if (m_options.m_value & kDragListFlowLayout)
-  {
-    if (availableHeight && y)
+  if (m_options.m_value & kDragListFlowLayout) {
+    if (availableHeight && y) {
       x += m_itemWidth;
-    if (availableWidth && x)
+    }
+    if (availableWidth && x) {
       y += m_itemHeight;
+    }
   }
   int height = m_clientHeight;
-  if (y >= height)
+  if (y >= height) {
     height = y + 5;
+  }
   int width = x;
-  if (width < m_clientWidth)
+  if (width < m_clientWidth) {
     width = m_clientWidth;
-  if (m_canvas->Width() < width || m_canvas->Height() < height)
-  {
+  }
+  if (m_canvas->Width() < width || m_canvas->Height() < height) {
     DibBitmap* old = m_canvas;
     m_canvas = NewOrNull<DibBitmap>(width, height, old);
-    if (old)
+    if (old) {
       delete old;
+    }
   }
   int scrollMax = m_vertical ? height - m_clientHeight : width - m_clientWidth;
   m_scrollMax = scrollMax;
-  if (scrollMax < 0)
+  if (scrollMax < 0) {
     scrollMax = 0;
+  }
   m_scrollMax = scrollMax;
-  if (scrollMax < m_scrollPos)
+  if (scrollMax < m_scrollPos) {
     m_scrollPos = scrollMax;
+  }
   SetVerticalRange(scrollMax + m_clientHeight);
   SetHorizontalRange(m_clientWidth + m_scrollMax);
   UpdateItemRects();
@@ -675,31 +656,33 @@ void CoolDragList::Layout()
 
 CoolListItem* CoolDragList::HitTest(POINTS point)
 {
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_x <= point.x && point.x <= m_itemWidth + item->m_x && item->m_y <= point.y &&
-        point.y <= m_itemHeight + item->m_y)
+    if (item->m_x <= point.x && point.x <= m_itemWidth + item->m_x && item->m_y <= point.y
+        && point.y <= m_itemHeight + item->m_y) {
       return item;
+    }
   }
   return nullptr;
 }
 
 POINTS CoolDragList::ClientToList(POINTS point)
 {
-  if (m_vertical)
+  if (m_vertical) {
     point.y = static_cast<SHORT>(m_scrollPos + point.y);
-  else
+  } else {
     point.x = static_cast<SHORT>(m_scrollPos + point.x);
+  }
   return point;
 }
 
 POINTS CoolDragList::ListToClient(POINTS point)
 {
-  if (m_vertical)
+  if (m_vertical) {
     point.y = static_cast<SHORT>(point.y - m_scrollPos);
-  else
+  } else {
     point.x = static_cast<SHORT>(point.x - m_scrollPos);
+  }
   return point;
 }
 
@@ -709,8 +692,7 @@ void CoolDragList::UpdateItemRects()
   origin.x = 0;
   origin.y = 0;
   const POINTS offset = ListToClient(origin);
-  for (const auto& entry : m_items->VisibleEntries())
-  {
+  for (const auto& entry : m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
     item->m_rect.left = item->m_x + offset.x;
     item->m_rect.top = item->m_y + offset.y;
@@ -722,47 +704,46 @@ void CoolDragList::UpdateItemRects()
 void CoolDragList::ScrollIntoView(uint32_t id)
 {
   CoolListItem* item = FindItem(id);
-  if (!item || !item->IsVisible())
+  if (!item || !item->IsVisible()) {
     return;
+  }
   bool scrolled = false;
   int start = item->m_rect.left;
   int end = item->m_rect.right;
   int extent;
-  if (m_vertical)
-  {
+  if (m_vertical) {
     end = item->m_rect.bottom;
     start = item->m_rect.top;
     extent = m_clientHeight;
-  }
-  else
-  {
+  } else {
     extent = m_clientWidth;
   }
   int barFirst;
   int barLast;
-  if (!m_vertical)
+  if (!m_vertical) {
     GetHorizontalVisibleRange(&barFirst, &barLast);
-  else
+  } else {
     GetVerticalVisibleRange(&barFirst, &barLast);
+  }
   int delta = start;
-  if (start < 0)
-  {
+  if (start < 0) {
     scrolled = true;
     m_scrollPos += start;
-  }
-  else if (extent < end)
-  {
+  } else if (extent < end) {
     delta = end - extent;
     scrolled = true;
     m_scrollPos += delta;
   }
-  if (!scrolled)
+  if (!scrolled) {
     return;
-  if (m_vertical)
+  }
+  if (m_vertical) {
     ScrollVerticalBar(delta);
+  }
   UpdateItemRects();
-  if (m_hwnd)
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+  if (m_hwnd) {
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
 }
 
 void CoolDragList::Refresh()
@@ -779,25 +760,20 @@ RECT CoolDragList::GetItemTextRect(CoolListItem* item)
   const int itemLeft = item->m_rect.left;
   const int itemBottom = item->m_rect.bottom;
   HWND hwnd = m_hwnd;
-  HDC dc = GetDC(hwnd);
+  HDC dc = reb::compat::GetDC(hwnd);
   SelectCurrentFont(dc);
-  if (!item->m_text.empty())
-  {
-    DrawTextA(dc, item->m_text.c_str(), -1, &area, (m_textFormat & ~(DT_CENTER | DT_RIGHT | DT_BOTTOM)) | DT_CALCRECT);
+  if (!item->m_text.empty()) {
+    reb::compat::DrawTextA(dc, item->m_text.c_str(), -1, &area, (m_textFormat & ~(DT_CENTER | DT_RIGHT | DT_BOTTOM)) | DT_CALCRECT);
     const UINT format = m_textFormat;
-    if (format & DT_BOTTOM)
-    {
+    if (format & DT_BOTTOM) {
       const int measuredBottom = area.bottom;
       area.bottom = itemBottom;
       area.top += itemBottom - measuredBottom;
     }
-    if (format & DT_RIGHT)
-    {
+    if (format & DT_RIGHT) {
       area.left += itemRight - area.right;
       area.right = itemRight;
-    }
-    else if (format & DT_CENTER)
-    {
+    } else if (format & DT_CENTER) {
       const int width = area.right - area.left;
       area.left = itemLeft + (itemRight - itemLeft) / 2 - width / 2;
       area.right = width + area.left;
@@ -808,7 +784,7 @@ RECT CoolDragList::GetItemTextRect(CoolListItem* item)
     area.bottom += m_textOffsetY;
   }
   RestoreFont(dc);
-  ReleaseDC(m_hwnd, dc);
+  reb::compat::ReleaseDC(m_hwnd, dc);
   return area;
 }
 
@@ -819,27 +795,33 @@ namespace
 
 int ScrollBack(CoolDragList* list, int distance)
 {
-  if (list->m_scrollPos == 0)
+  if (list->m_scrollPos == 0) {
     return 0;
+  }
   list->m_scrollPos -= distance;
-  if (list->m_scrollPos < 0)
+  if (list->m_scrollPos < 0) {
     list->m_scrollPos = 0;
+  }
   list->UpdateItemRects();
-  if (list->m_hwnd)
-    InvalidateRect(list->m_hwnd, nullptr, FALSE);
+  if (list->m_hwnd) {
+    reb::compat::InvalidateRect(list->m_hwnd, nullptr, FALSE);
+  }
   return 1;
 }
 
 int ScrollForward(CoolDragList* list, int distance)
 {
-  if (list->m_scrollPos == list->m_scrollMax)
+  if (list->m_scrollPos == list->m_scrollMax) {
     return 0;
+  }
   list->m_scrollPos += distance;
-  if (list->m_scrollMax < list->m_scrollPos)
+  if (list->m_scrollMax < list->m_scrollPos) {
     list->m_scrollPos = list->m_scrollMax;
+  }
   list->UpdateItemRects();
-  if (list->m_hwnd)
-    InvalidateRect(list->m_hwnd, nullptr, FALSE);
+  if (list->m_hwnd) {
+    reb::compat::InvalidateRect(list->m_hwnd, nullptr, FALSE);
+  }
   return 1;
 }
 
@@ -867,17 +849,20 @@ int CoolDragList::LineDown()
 
 int CoolDragList::ScrollVertical(int delta)
 {
-  if (!((delta < 0 && m_scrollPos > 0) || (delta > 0 && m_scrollPos < m_scrollMax)))
+  if (!((delta < 0 && m_scrollPos > 0) || (delta > 0 && m_scrollPos < m_scrollMax))) {
     return 0;
+  }
   const int position = delta + m_scrollPos;
   m_scrollPos = position;
-  if (position < 0)
+  if (position < 0) {
     m_scrollPos = 0;
-  else if (m_scrollMax < position)
+  } else if (m_scrollMax < position) {
     m_scrollPos = m_scrollMax;
+  }
   UpdateItemRects();
-  if (m_hwnd)
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+  if (m_hwnd) {
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
   return 1;
 }
 
@@ -907,21 +892,19 @@ int CoolDragList::ScrollHorizontal(int delta)
   return ScrollVertical(delta);
 }
 
-void CoolDragList::OnScrollEnd()
-{
-}
+void CoolDragList::OnScrollEnd() {}
 
-// ---- Messages ----------------------------------------------------------------------------------------------------------
+// ---- Messages
+// ----------------------------------------------------------------------------------------------------------
 
 int CoolDragList::OnRightButtonUp(int x, int y, CoolWindow* sender)
 {
   CoolWindow* parent = m_parent;
-  if (!GetCapture() && parent && sender)
-  {
+  if (!reb::compat::GetCapture() && parent && sender) {
     POINT point;
     point.x = x;
     point.y = y;
-    MapWindowPoints(sender->m_hwnd, m_hwnd, &point, 1);
+    reb::compat::MapWindowPoints(sender->m_hwnd, m_hwnd, &point, 1);
     parent->OnRightButtonUp(point.x, point.y, this);
   }
   return 0;
@@ -940,37 +923,36 @@ WPARAM NotificationWParam(const CoolDragList* list, uint16_t code)
 void ApplyClick(CoolDragList* list, UINT message, WPARAM keys, POINTS point)
 {
   HWND parent = list->m_parent->m_hwnd;
-  if (keys & MK_CONTROL)
-  {
+  if (keys & MK_CONTROL) {
     CoolListItem* item = list->HitTest(point);
-    if (!item)
+    if (!item) {
       return;
+    }
     item->m_state.m_value ^= kListItemSelected;
-    PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
+    reb::compat::PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
     list->Redraw();
     return;
   }
-  if (keys & MK_SHIFT)
-  {
-    if ((list->m_options.m_value & kDragListAnchorSet) == 0)
+  if (keys & MK_SHIFT) {
+    if ((list->m_options.m_value & kDragListAnchorSet) == 0) {
       list->m_anchor = point;
+    }
     list->SelectRect(list->m_anchor, point);
-    PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
+    reb::compat::PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
     return;
   }
   CoolListItem* item = list->HitTest(point);
-  if (!item)
-  {
+  if (!item) {
     list->ClearSelection();
-    PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
+    reb::compat::PostMessageA(parent, WM_COMMAND, NotificationWParam(list, kDragListSelectionChanged), 0);
     return;
   }
   const uint32_t previousState = item->m_state.m_value;
   list->ClearSelection();
   item->m_state.m_value |= kListItemSelected;
-  const uint16_t code = ((previousState & kListItemSelected) && message == WM_LBUTTONDOWN) ? kDragListReselected :
-                                                                                             kDragListSelectionChanged;
-  PostMessageA(parent, WM_COMMAND, NotificationWParam(list, code), 0);
+  const uint16_t code = ((previousState & kListItemSelected) && message == WM_LBUTTONDOWN) ? kDragListReselected
+                                                                                           : kDragListSelectionChanged;
+  reb::compat::PostMessageA(parent, WM_COMMAND, NotificationWParam(list, code), 0);
   list->Redraw();
 }
 
@@ -982,31 +964,35 @@ namespace
 COLORREF ItemTextColor(const CoolDragList* list, const CoolListItem* item)
 {
   const uint32_t state = item->m_state.m_value;
-  if (state & kListItemSelected)
+  if (state & kListItemSelected) {
     return item->m_ownColors ? item->m_selectedColor : list->m_selectedTextColor;
-  if (state & kListItemHovered)
+  }
+  if (state & kListItemHovered) {
     return item->m_ownColors ? item->m_hoverColor : list->m_hoverTextColor;
+  }
   return item->m_ownColors ? item->m_color : list->m_textColor;
 }
 
 void DrawItemText(CoolDragList* list, HDC dc, CoolListItem* item)
 {
-  SetTextColor(dc, ItemTextColor(list, item));
-  if (item->m_fontSlot)
+  reb::compat::SetTextColor(dc, ItemTextColor(list, item));
+  if (item->m_fontSlot) {
     list->SetFont(item->m_fontSlot);
+  }
   UINT format = item->m_textFormat;
-  if (!format)
+  if (!format) {
     format = list->m_textFormat;
+  }
   list->SelectCurrentFont(dc);
   RECT area = item->m_rect;
   area.left += list->m_textOffsetX + item->m_textOffsetX;
   area.top += list->m_textOffsetY + item->m_textOffsetY;
   area.right += list->m_textOffsetX + item->m_textOffsetX;
   area.bottom += list->m_textOffsetY + item->m_textOffsetY;
-  if (format & DT_WORDBREAK)
+  if (format & DT_WORDBREAK) {
     format |= DT_NOCLIP;
-  switch (format & (DT_CENTER | DT_RIGHT))
-  {
+  }
+  switch (format & (DT_CENTER | DT_RIGHT)) {
     case DT_CENTER:
       area.left += 2;
       area.right -= 2;
@@ -1018,27 +1004,30 @@ void DrawItemText(CoolDragList* list, HDC dc, CoolListItem* item)
       area.right -= 3;
       break;
   }
-  if (!item->m_text.empty())
-    DrawTextA(dc, item->m_text.c_str(), -1, &area, format);
+  if (!item->m_text.empty()) {
+    if ((format & DT_BOTTOM) && !(format & DT_SINGLELINE)) {
+      RECT measured = area;
+      reb::compat::DrawTextA(dc, item->m_text.c_str(), -1, &measured, (format & ~DT_BOTTOM) | DT_CALCRECT);
+      area.top = std::max(area.top, area.bottom - (measured.bottom - measured.top));
+      format &= ~DT_BOTTOM;
+    }
+    reb::compat::DrawTextA(dc, item->m_text.c_str(), -1, &area, format);
+  }
   list->RestoreFont(dc);
 }
 
 LRESULT Paint(CoolDragList* list, HWND hwnd)
 {
   PAINTSTRUCT paint;
-  HDC dc = BeginPaint(hwnd, &paint);
-  HPALETTE previousPalette = SelectPalette(dc, g_palette, FALSE);
-  if (list->m_canvas)
-  {
+  HDC dc = reb::compat::BeginPaint(hwnd, &paint);
+  HPALETTE previousPalette = reb::compat::SelectPalette(dc, g_palette, FALSE);
+  if (list->m_canvas) {
     int offsetX;
     int offsetY;
-    if (list->m_vertical)
-    {
+    if (list->m_vertical) {
       offsetX = 0;
       offsetY = list->m_scrollPos;
-    }
-    else
-    {
+    } else {
       offsetX = list->m_scrollPos;
       offsetY = 0;
     }
@@ -1049,28 +1038,31 @@ LRESULT Paint(CoolDragList* list, HWND hwnd)
     POINTS origin;
     origin.x = static_cast<SHORT>(offsetX);
     origin.y = static_cast<SHORT>(offsetY);
-    if (list->m_background)
+    if (list->m_background) {
       list->m_background->Blit(list->m_composite, 0, 0, 0, 0, 0, 0);
-    else
+    } else {
       list->m_composite->FillRect(0, 0, width, height, 0);
+    }
     list->m_canvas->BlitKeyed(list->m_composite, 0, 0, list->m_fillColor, offsetX, offsetY, width, height);
     list->m_composite->DrawToDc(dc, kBitBltMode, SRCCOPY, 0, 0, 0, 0, list->m_clientWidth, list->m_clientHeight);
     CoolListItem* item = list->HitTest(origin);
-    SetBkMode(dc, TRANSPARENT);
+    reb::compat::SetBkMode(dc, TRANSPARENT);
     auto position = list->m_items->PositionOf(item);
-    for (; position != list->m_items->Entries().end(); ++position)
-    {
+    for (; position != list->m_items->Entries().end(); ++position) {
       item = static_cast<CoolListItem*>((*position).get());
-      if (!item->IsVisible())
+      if (!item->IsVisible()) {
         continue;
-      if (item->m_x > right || item->m_y > bottom)
+      }
+      if (item->m_x > right || item->m_y > bottom) {
         break;
-      if (!item->m_text.empty())
+      }
+      if (!item->m_text.empty()) {
         DrawItemText(list, dc, item);
+      }
     }
   }
-  SelectPalette(dc, previousPalette, FALSE);
-  EndPaint(hwnd, &paint);
+  reb::compat::SelectPalette(dc, previousPalette, FALSE);
+  reb::compat::EndPaint(hwnd, &paint);
   return 0;
 }
 
@@ -1078,35 +1070,31 @@ LRESULT Paint(CoolDragList* list, HWND hwnd)
 LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
 {
   CoolListItem* first = list->m_items->First();
-  if (!first || (list->m_options.m_value & kDragListForwardMouse))
+  if (!first || (list->m_options.m_value & kDragListForwardMouse)) {
     return list->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
+  }
   CoolListItem* current = nullptr;
-  for (const auto& entry : list->m_items->VisibleEntries())
-  {
+  for (const auto& entry : list->m_items->VisibleEntries()) {
     auto* item = static_cast<CoolListItem*>(entry.get());
-    if (item->m_state.m_value & kListItemSelected)
-    {
+    if (item->m_state.m_value & kListItemSelected) {
       current = item;
       break;
     }
   }
-  if (!current)
+  if (!current) {
     current = first;
+  }
   CoolListItem* target = current;
   LRESULT result = 0;
   bool move = true;
-  switch (key)
-  {
+  switch (key) {
     case VK_RETURN:
-      if (!current)
-      {
+      if (!current) {
         target = list->m_items->First();
-      }
-      else
-      {
+      } else {
         move = false;
         current->m_state.m_value |= kListItemSelected;
-        PostMessageA(list->m_parent->m_hwnd, WM_COMMAND, NotificationWParam(list, kDragListActivated), lParam);
+        reb::compat::PostMessageA(list->m_parent->m_hwnd, WM_COMMAND, NotificationWParam(list, kDragListActivated), lParam);
       }
       break;
     default:
@@ -1121,21 +1109,21 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       break;
     case VK_PRIOR:
       target = current;
-      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
-      {
+      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows) {
         CoolListItem* previous = list->m_items->PreviousVisible(target);
-        if (!previous)
+        if (!previous) {
           break;
+        }
         target = previous;
       }
       break;
     case VK_NEXT:
       target = current;
-      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
-      {
+      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows) {
         CoolListItem* next = list->m_items->NextVisible(target);
-        if (!next)
+        if (!next) {
           break;
+        }
         target = next;
       }
       break;
@@ -1146,46 +1134,35 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       target = list->m_items->First();
       break;
     case VK_UP:
-      if (!current)
-      {
+      if (!current) {
         target = list->m_items->First();
-      }
-      else
-      {
+      } else {
         target = list->m_items->PreviousVisible(current);
-        if (!target)
-        {
+        if (!target) {
           move = false;
           target = current;
         }
       }
       break;
     case VK_DOWN:
-      if (!current)
-      {
+      if (!current) {
         target = static_cast<CoolListItem*>(list->m_items->Last());
-      }
-      else
-      {
+      } else {
         target = list->m_items->NextVisible(current);
-        if (!target)
-        {
+        if (!target) {
           move = false;
           target = current;
         }
       }
       break;
   }
-  if (move)
-  {
-    if (current)
+  if (move) {
+    if (current) {
       current->m_state.m_value &= ~kListItemSelected;
-    if (!target)
-    {
-      result = list->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
     }
-    else
-    {
+    if (!target) {
+      result = list->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
+    } else {
       list->SelectById(target->m_id, 1);
       list->ScrollIntoView(target->m_id);
     }
@@ -1195,25 +1172,28 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
 
 LRESULT ButtonDown(CoolDragList* list, HWND hwnd, UINT message, WPARAM keys, LPARAM lParam)
 {
-  if (list->m_options.m_value & kDragListForwardMouse)
+  if (list->m_options.m_value & kDragListForwardMouse) {
     return list->m_parent->WindowProc(message, keys, lParam);
-  if (message == WM_RBUTTONDOWN && (list->m_options.m_value & kDragListDragging))
+  }
+  if (message == WM_RBUTTONDOWN && (list->m_options.m_value & kDragListDragging)) {
     return 0;
-  PostMessageA(list->m_parent->m_hwnd, kButtonDownMessage, keys, lParam);
+  }
+  reb::compat::PostMessageA(list->m_parent->m_hwnd, kButtonDownMessage, keys, lParam);
   const POINTS point = list->ClientToList(PointsFromLParam(lParam));
-  if (message == WM_LBUTTONDOWN)
-  {
+  if (message == WM_LBUTTONDOWN) {
     SetCaptureWindow(hwnd);
     list->m_dragStart = PointsFromLParam(lParam);
   }
-  SetFocus(list->m_hwnd);
-  if (list->m_options.m_value & kDragListSingleSelect)
+  reb::compat::SetFocus(list->m_hwnd);
+  if (list->m_options.m_value & kDragListSingleSelect) {
     keys = 0;
+  }
   CoolListItem* item = list->HitTest(point);
-  if (item && (item->m_state.m_value & kListItemSelected))
+  if (item && (item->m_state.m_value & kListItemSelected)) {
     list->m_options.m_value |= kDragListClickedSelected;
-  else
+  } else {
     ApplyClick(list, message, keys, point);
+  }
   list->m_options.m_value |= kDragListAnchorSet;
   list->m_anchor = point;
   return 0;
@@ -1222,29 +1202,29 @@ LRESULT ButtonDown(CoolDragList* list, HWND hwnd, UINT message, WPARAM keys, LPA
 LRESULT ButtonUp(CoolDragList* list, HWND hwnd, UINT message, WPARAM keys, LPARAM lParam)
 {
   const POINTS point = list->ClientToList(PointsFromLParam(lParam));
-  if (list->m_options.m_value & kDragListDragging)
-  {
+  if (list->m_options.m_value & kDragListDragging) {
     const POINTS client = PointsFromLParam(lParam);
     const int dx = client.x - list->m_dragStart.x;
     const int dy = client.y - list->m_dragStart.y;
-    const bool outside =
-      client.x < 0 || list->m_clientWidth < client.x || client.y < 0 || list->m_clientHeight < client.y;
-    if (dx * dx + dy * dy > kDragThresholdSquared && (outside || (list->m_options.m_value & kDragListDropInside) == 0))
-    {
+    const bool outside
+        = client.x < 0 || list->m_clientWidth < client.x || client.y < 0 || list->m_clientHeight < client.y;
+    if (dx * dx + dy * dy > kDragThresholdSquared
+        && (outside || (list->m_options.m_value & kDragListDropInside) == 0)) {
       const uint32_t childId = list->m_childId;
-      const auto position = static_cast<LPARAM>(GetMessagePos());
-      PostMessageA(list->m_parent->m_hwnd, WM_COMMAND, MAKEWPARAM(childId & 0xffff, kDragListDropped), position);
+      const auto position = static_cast<LPARAM>(reb::compat::GetMessagePos());
+      reb::compat::PostMessageA(list->m_parent->m_hwnd, WM_COMMAND, MAKEWPARAM(childId & 0xffff, kDragListDropped), position);
       list->m_options.m_value &= ~kDragListClickedSelected;
     }
   }
-  if (list->m_options.m_value & kDragListClickedSelected)
-  {
-    if (list->m_options.m_value & kDragListSingleSelect)
+  if (list->m_options.m_value & kDragListClickedSelected) {
+    if (list->m_options.m_value & kDragListSingleSelect) {
       keys = 0;
+    }
     ApplyClick(list, message, keys, point);
   }
-  if (GetCapture() == hwnd)
-    ReleaseCapture();
+  if (reb::compat::GetCapture() == hwnd) {
+    reb::compat::ReleaseCapture();
+  }
   list->m_options.m_value &= ~kDragListClickedSelected;
   return 0;
 }
@@ -1256,36 +1236,36 @@ LRESULT MouseMove(CoolDragList* list, HWND hwnd, WPARAM keys, LPARAM lParam)
   POINT cursor;
   cursor.y = static_cast<SHORT>(HIWORD(lParam));
   cursor.x = static_cast<SHORT>(LOWORD(lParam));
-  if (GetCapture() == hwnd && (keys & MK_LBUTTON) &&
-      (list->m_options.m_value & (kDragListDragging | kDragListNoDrag)) == 0)
-  {
-    list->m_options.m_value |= kDragListDragging;
-    if (list->m_dragStart.x == kNoDragStart && list->m_dragStart.y == kNoDragStart)
+  if (reb::compat::GetCapture() == hwnd && (keys & MK_LBUTTON)
+      && (list->m_options.m_value & (kDragListDragging | kDragListNoDrag)) == 0) {
+    if (list->m_dragStart.x == kNoDragStart && list->m_dragStart.y == kNoDragStart) {
       list->m_dragStart = PointsFromLParam(lParam);
-    UpdateWindow(list->m_dragWindow);
+    }
+    const int dx = cursor.x - list->m_dragStart.x;
+    const int dy = cursor.y - list->m_dragStart.y;
+    if (dx * dx + dy * dy <= kDragThresholdSquared) {
+      return 0;
+    }
+    list->m_options.m_value |= kDragListDragging;
+    reb::compat::UpdateWindow(list->m_dragWindow);
     list->m_dragImage->ClearImage();
     list->m_dragImage->SetImage(list->m_selectionImage);
     list->m_dragImage->SetHotspot(list->m_dragStart.x, list->m_dragStart.y);
     RECT client;
-    SetRect(&client, 0, 0, list->m_clientWidth, list->m_clientHeight);
+    reb::compat::SetRect(&client, 0, 0, list->m_clientWidth, list->m_clientHeight);
     POINT start;
     start.y = list->m_dragStart.y;
     start.x = list->m_dragStart.x;
     POINT at;
-    if (PtInRect(&client, start))
-    {
+    if (reb::compat::PtInRect(&client, start)) {
       at.x = list->m_dragStart.x;
       at.y = list->m_dragStart.y;
-    }
-    else
-    {
+    } else {
       at.x = 0;
       at.y = 0;
-      for (const auto& entry : list->m_items->VisibleEntries())
-      {
+      for (const auto& entry : list->m_items->VisibleEntries()) {
         auto* item = static_cast<CoolListItem*>(entry.get());
-        if (item->m_state.m_value & kListItemSelected)
-        {
+        if (item->m_state.m_value & kListItemSelected) {
           at.x = item->m_x;
           at.y = item->m_y;
           break;
@@ -1294,50 +1274,53 @@ LRESULT MouseMove(CoolDragList* list, HWND hwnd, WPARAM keys, LPARAM lParam)
     }
     list->m_dragImage->BeginDrag(at);
   }
-  if ((list->m_options.m_value & kDragListDragging) == 0)
-  {
-    SetCursor(list->m_cursor);
-    if ((list->m_options.m_value & kDragListHoverTracking) == 0)
+  if ((list->m_options.m_value & kDragListDragging) == 0) {
+    reb::compat::SetCursor(list->m_cursor);
+    if ((list->m_options.m_value & kDragListHoverTracking) == 0) {
       return 0;
+    }
     CoolListItem* item = list->HitTest(list->ClientToList(PointsFromLParam(lParam)));
-    if (item == list->m_hoverItem)
+    if (item == list->m_hoverItem) {
       return 0;
-    if (list->m_hoverItem)
-    {
+    }
+    if (list->m_hoverItem) {
       list->m_hoverItem->m_state.m_value &= ~kListItemHovered;
-      InvalidateRect(hwnd, &list->m_hoverItem->m_rect, FALSE);
+      reb::compat::InvalidateRect(hwnd, &list->m_hoverItem->m_rect, FALSE);
     }
     list->m_hoverItem = item;
-    if (!item)
+    if (!item) {
       return 0;
+    }
     item->m_state.m_value |= kListItemHovered;
-    InvalidateRect(hwnd, &list->m_hoverItem->m_rect, FALSE);
+    reb::compat::InvalidateRect(hwnd, &list->m_hoverItem->m_rect, FALSE);
     return 0;
   }
-  ClientToScreen(hwnd, &cursor);
-  ScreenToClient(list->m_dragWindow, &cursor);
+  reb::compat::ClientToScreen(hwnd, &cursor);
+  reb::compat::ScreenToClient(list->m_dragWindow, &cursor);
   list->m_dragImage->MoveTo(&cursor);
-  if (list->m_scrollMax == 0)
-    SetCursor(list->m_cursor);
-  else if (list->m_dragCursor)
-    SetCursor(list->m_dragCursor);
-  else
-    SetCursor(list->m_cursor);
+  if (list->m_scrollMax == 0) {
+    reb::compat::SetCursor(list->m_cursor);
+  } else if (list->m_dragCursor) {
+    reb::compat::SetCursor(list->m_dragCursor);
+  } else {
+    reb::compat::SetCursor(list->m_cursor);
+  }
   return 0;
 }
 
 LRESULT CancelDrag(CoolDragList* list, HWND hwnd)
 {
-  if (list->m_options.m_value & kDragListDragging)
-  {
+  if (list->m_options.m_value & kDragListDragging) {
     list->m_dragImage->EndDrag();
     list->m_options.m_value &= ~kDragListDragging;
-    list->m_dragStart.x = kNoDragStart;
-    list->m_dragStart.y = kNoDragStart;
-    InvalidateRect(list->m_dragWindow, nullptr, FALSE);
+    list->Redraw();
+    reb::compat::InvalidateRect(list->m_dragWindow, nullptr, FALSE);
   }
-  if (GetCapture() == hwnd)
-    ReleaseCapture();
+  list->m_dragStart.x = kNoDragStart;
+  list->m_dragStart.y = kNoDragStart;
+  if (reb::compat::GetCapture() == hwnd) {
+    reb::compat::ReleaseCapture();
+  }
   return 0;
 }
 
@@ -1346,11 +1329,11 @@ LRESULT CancelDrag(CoolDragList* list, HWND hwnd)
 LRESULT CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   HWND hwnd = m_hwnd;
-  switch (message)
-  {
+  switch (message) {
     case WM_CREATE:
-      if (!m_dragImage)
+      if (!m_dragImage) {
         m_dragImage = NewOrNull<CoolDragImage>(m_parent);
+      }
       m_selectionImage = NewOrNull<DibBitmap>(m_clientWidth, m_clientHeight, m_canvas);
       return 0;
     case WM_PAINT:
@@ -1371,13 +1354,13 @@ LRESULT CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
       return ButtonUp(this, hwnd, message, wParam, lParam);
     case WM_LBUTTONDBLCLK:
-      PostMessageA(m_parent->m_hwnd, WM_COMMAND, NotificationWParam(this, kDragListActivated), lParam);
+      reb::compat::PostMessageA(m_parent->m_hwnd, WM_COMMAND, NotificationWParam(this, kDragListActivated), lParam);
       return 0;
     case WM_CAPTURECHANGED:
     case kCancelModeMessage:
       return CancelDrag(this, hwnd);
     case kButtonDownMessage:
-      PostMessageA(m_parent->m_hwnd, kButtonDownMessage, wParam, lParam);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kButtonDownMessage, wParam, lParam);
       return 0;
     default:
       return CoolWindow::WindowProc(message, wParam, lParam);

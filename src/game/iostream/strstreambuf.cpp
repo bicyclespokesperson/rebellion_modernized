@@ -15,10 +15,11 @@ unsigned RangeLength(const char* begin, const char* end)
 
 void FreeBuffer(strstreambuf* self, char* buffer)
 {
-  if (self->m_free == nullptr)
+  if (self->m_free == nullptr) {
     ::operator delete(buffer);
-  else
+  } else {
     self->m_free(buffer);
+  }
 }
 
 } // namespace
@@ -40,25 +41,23 @@ strstreambuf* strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, 
   self->m_static = 1;
   self->m_dynamic = 0;
   char* end;
-  if (size == 0)
+  if (size == 0) {
     end = buffer + strlen(buffer);
-  else if (size < 0)
+  } else if (size < 0) {
     end = reinterpret_cast<char*>(static_cast<intptr_t>(-1));
-  else
+  } else {
     end = buffer + size;
+  }
   streambuf_setb(self, buffer, end, 0);
   self->m_eback = buffer;
   self->m_gptr = buffer;
-  if (start == nullptr)
-  {
+  if (start == nullptr) {
     self->m_egptr = end;
     self->m_lastc = -1;
     self->m_pbase = nullptr;
     self->m_pptr = nullptr;
     self->m_epptr = nullptr;
-  }
-  else
-  {
+  } else {
     self->m_egptr = start;
     self->m_lastc = -1;
     self->m_pbase = start;
@@ -70,16 +69,18 @@ strstreambuf* strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, 
 
 void strstreambuf_dtor(strstreambuf* self)
 {
-  if (self->m_dynamic != 0 && self->m_base != nullptr)
+  if (self->m_dynamic != 0 && self->m_base != nullptr) {
     FreeBuffer(self, self->m_base);
+  }
   streambuf_dtor(self);
 }
 
 void strstreambuf_freeze(streambuf* self, int frozen)
 {
   auto* buffer = static_cast<strstreambuf*>(self);
-  if (buffer->m_static == 0)
+  if (buffer->m_static == 0) {
     buffer->m_dynamic = frozen == 0;
+  }
 }
 
 char* strstreambuf_str(streambuf* self)
@@ -92,15 +93,16 @@ int strstreambuf_doallocate(strstreambuf* self)
 {
   const unsigned oldSize = RangeLength(self->m_base, self->m_ebuf);
   const unsigned increment = self->m_nextSize < 2 ? 1 : static_cast<unsigned>(self->m_nextSize);
-  if (oldSize > static_cast<unsigned>(std::numeric_limits<int>::max()) - increment)
+  if (oldSize > static_cast<unsigned>(std::numeric_limits<int>::max()) - increment) {
     return -1;
+  }
   const int newSize = static_cast<int>(oldSize + increment);
   char* buffer = static_cast<char*>(self->m_allocate == nullptr ? ::operator new(newSize) : self->m_allocate(newSize));
-  if (buffer == nullptr)
+  if (buffer == nullptr) {
     return -1;
+  }
   std::memset(buffer, 0, static_cast<size_t>(newSize));
-  const auto offset = [&](const char* pointer) -> ptrdiff_t
-  {
+  const auto offset = [&](const char* pointer) -> ptrdiff_t {
     return pointer && self->m_base ? pointer - self->m_base : 0;
   };
   const bool hasGetArea = self->m_egptr != nullptr;
@@ -111,19 +113,18 @@ int strstreambuf_doallocate(strstreambuf* self)
   const ptrdiff_t putBegin = offset(self->m_pbase);
   const ptrdiff_t putPosition = offset(self->m_pptr);
   const ptrdiff_t putEnd = offset(self->m_epptr);
-  if (oldSize != 0)
+  if (oldSize != 0) {
     std::memcpy(buffer, self->m_base, oldSize);
+  }
   FreeBuffer(self, self->m_base);
   streambuf_setb(self, buffer, buffer + newSize, 0);
-  if (hasGetArea)
-  {
+  if (hasGetArea) {
     self->m_eback = buffer + getBegin;
     self->m_gptr = buffer + getPosition;
     self->m_egptr = buffer + getEnd;
     self->m_lastc = -1;
   }
-  if (hasPutArea)
-  {
+  if (hasPutArea) {
     self->m_epptr = buffer + putEnd;
     self->m_pbase = buffer + putBegin;
     self->m_pptr = buffer + putPosition;
@@ -133,41 +134,41 @@ int strstreambuf_doallocate(strstreambuf* self)
 
 streambuf* strstreambuf_setbuf(strstreambuf* self, char*, int size)
 {
-  if (size != 0)
+  if (size != 0) {
     self->m_nextSize = size;
+  }
   return self;
 }
 
 int strstreambuf_overflow(strstreambuf* self, int c)
 {
-  if (!self->m_epptr || !self->m_pptr || self->m_epptr <= self->m_pptr)
-  {
-    if (self->m_dynamic == 0)
+  if (!self->m_epptr || !self->m_pptr || self->m_epptr <= self->m_pptr) {
+    if (self->m_dynamic == 0) {
       return -1;
-    if (strstreambuf_doallocate(self) == -1)
+    }
+    if (strstreambuf_doallocate(self) == -1) {
       return -1;
-    if (self->m_epptr == nullptr)
-    {
+    }
+    if (self->m_epptr == nullptr) {
       char* put = self->m_base + RangeLength(self->m_eback, self->m_egptr);
       self->m_pbase = put;
       self->m_pptr = put;
       self->m_epptr = self->m_ebuf;
-    }
-    else
-    {
+    } else {
       char* oldBase = self->m_pbase;
       char* oldPptr = self->m_pptr;
       self->m_pptr = oldBase;
       self->m_epptr = self->m_ebuf;
-      if (self->m_ebuf != nullptr)
+      if (self->m_ebuf != nullptr) {
         self->m_pptr = oldBase + (oldPptr - oldBase);
+      }
     }
   }
-  if (c != -1)
-  {
+  if (c != -1) {
     *self->m_pptr = static_cast<char>(c);
-    if (self->m_epptr != nullptr)
+    if (self->m_epptr != nullptr) {
       ++self->m_pptr;
+    }
   }
   return 1;
 }
@@ -175,10 +176,8 @@ int strstreambuf_overflow(strstreambuf* self, int c)
 int strstreambuf_underflow(strstreambuf* self)
 {
   const unsigned char* get = reinterpret_cast<unsigned char*>(self->m_gptr);
-  if (!self->m_egptr || !self->m_gptr || self->m_egptr <= self->m_gptr)
-  {
-    if (self->m_pptr && (!self->m_egptr || self->m_egptr < self->m_pptr))
-    {
+  if (!self->m_egptr || !self->m_gptr || self->m_egptr <= self->m_gptr) {
+    if (self->m_pptr && (!self->m_egptr || self->m_egptr < self->m_pptr)) {
       const ptrdiff_t getOffset = self->m_gptr && self->m_eback ? self->m_gptr - self->m_eback : 0;
       self->m_eback = self->m_base;
       self->m_egptr = self->m_pptr;
@@ -186,8 +185,9 @@ int strstreambuf_underflow(strstreambuf* self)
       self->m_gptr = self->m_base + getOffset;
     }
     get = reinterpret_cast<unsigned char*>(self->m_gptr);
-    if (!self->m_egptr || !self->m_gptr || self->m_egptr <= self->m_gptr)
+    if (!self->m_egptr || !self->m_gptr || self->m_egptr <= self->m_gptr) {
       return -1;
+    }
   }
   return *get;
 }
@@ -195,46 +195,50 @@ int strstreambuf_underflow(strstreambuf* self)
 int strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode)
 {
   int result = -1;
-  const auto position = [&](char* begin, char* current, char* end) -> long
-  {
-    if (!begin || !end)
+  const auto position = [&](char* begin, char* current, char* end) -> long {
+    if (!begin || !end) {
       return -1;
+    }
     long origin;
-    if (dir == iostream_flags::kSeekBeg)
+    if (dir == iostream_flags::kSeekBeg) {
       origin = 0;
-    else if (dir == iostream_flags::kSeekCur && current)
+    } else if (dir == iostream_flags::kSeekCur && current) {
       origin = current - begin;
-    else if (dir == iostream_flags::kSeekEnd)
+    } else if (dir == iostream_flags::kSeekEnd) {
       origin = end - begin;
-    else
+    } else {
       return -1;
-    if (offset < -origin || offset > std::numeric_limits<int>::max() - origin)
+    }
+    if (offset < -origin || offset > std::numeric_limits<int>::max() - origin) {
       return -1;
+    }
     return origin + offset;
   };
-  if (mode & iostream_flags::kIn)
-  {
+  if (mode & iostream_flags::kIn) {
     strstreambuf_underflow(self);
     const long target = position(self->m_eback, self->m_gptr, self->m_egptr);
-    if (target < 0 || target > self->m_egptr - self->m_eback)
+    if (target < 0 || target > self->m_egptr - self->m_eback) {
       return -1;
+    }
     self->m_gptr = self->m_eback + target;
     result = static_cast<int>(target);
   }
-  if (mode & iostream_flags::kOut)
-  {
-    if (!self->m_epptr && strstreambuf_overflow(self, -1) == -1)
+  if (mode & iostream_flags::kOut) {
+    if (!self->m_epptr && strstreambuf_overflow(self, -1) == -1) {
       return -1;
+    }
     const long target = position(self->m_pbase, self->m_pptr, self->m_epptr);
-    if (target < 0)
+    if (target < 0) {
       return -1;
-    if (target > self->m_epptr - self->m_pbase)
-    {
-      if (!self->m_dynamic)
+    }
+    if (target > self->m_epptr - self->m_pbase) {
+      if (!self->m_dynamic) {
         return -1;
+      }
       self->m_nextSize = std::max(self->m_nextSize, static_cast<int>(target));
-      if (strstreambuf_doallocate(self) == -1)
+      if (strstreambuf_doallocate(self) == -1) {
         return -1;
+      }
       self->m_epptr = self->m_ebuf;
     }
     self->m_pptr = self->m_pbase + target;

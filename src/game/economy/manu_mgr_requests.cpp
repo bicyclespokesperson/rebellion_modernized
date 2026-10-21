@@ -49,31 +49,29 @@ int ManuMgr::CheckFacilityAvailableImpl(const ActivityRequest* request, StatusCo
 {
   setOk(out);
   int result = CheckActivityRequest(request, out);
-  if (result)
-  {
-    if (isOk(out))
-    {
+  if (result) {
+    if (isOk(out)) {
       GameObjNotifier* host = GetHostSystem();
       result = host != nullptr;
       int available = 0;
       ManufacturingFacilityIterator facilities(host);
       facilities.Begin();
-      while (facilities.Current())
-      {
+      while (facilities.Current()) {
         int usable = 0;
-        if (IsCompatibleFacility(static_cast<GameObj*>(facilities.Current())) &&
-            (AsProcFacil(facilities.Current())->m_procFlags & kOutOfService) == 0)
-        {
+        if (IsCompatibleFacility(static_cast<GameObj*>(facilities.Current()))
+            && (AsProcFacil(facilities.Current())->m_procFlags & kOutOfService) == 0) {
           usable = 1;
         }
         available += usable;
         facilities.Advance();
       }
-      if (available == 0)
+      if (available == 0) {
         setStatus(out, kManuStatusCategory, kManuNoFacility);
+      }
     }
-    if (result)
+    if (result) {
       return result;
+    }
   }
   setRefused(out);
   return 0;
@@ -83,8 +81,9 @@ int ManuMgr::CheckFacilityAvailable(const ActivityRequest* request, intptr_t unu
 {
   setOk(out);
   const int result = CheckFacilityAvailableImpl(request, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -92,15 +91,11 @@ int ManuMgr::CheckProductActionImpl(const ActivityRequest* request, StatusCode* 
 {
   setOk(out);
   int result = CheckActivityRequest(request, out);
-  if (result && isOk(out))
-  {
+  if (result && isOk(out)) {
     GameObjNotifier* product = GetProduct();
-    if (!product)
-    {
+    if (!product) {
       setStatus(out, kManuStatusCategory, kManuNoProduct);
-    }
-    else
-    {
+    } else {
       ActivityRequest forwarded = *request;
       forwarded.m_kind = kRenameEventKind;
       result = static_cast<GameObj*>(product)->CheckRenameImpl(&forwarded, out);
@@ -113,8 +108,9 @@ int ManuMgr::CheckProductAction(const ActivityRequest* request, intptr_t unused,
 {
   setOk(out);
   const int result = CheckProductActionImpl(request, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -122,10 +118,12 @@ int ManuMgr::CheckHasProductImpl(const ActivityRequest* request, StatusCode* out
 {
   setOk(out);
   const int result = CheckActivityRequest(request, out);
-  if (result && isOk(out) && GetProduct() == nullptr)
+  if (result && isOk(out) && GetProduct() == nullptr) {
     setStatus(out, kManuStatusCategory, kManuNoProduct);
-  if (!result)
+  }
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -133,8 +131,9 @@ int ManuMgr::CheckHasProduct(const ActivityRequest* request, StatusCode* out)
 {
   setOk(out);
   const int result = CheckHasProductImpl(request, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -148,8 +147,9 @@ int ManuMgr::CheckPlainImpl(const ActivityRequest* request, int unused, StatusCo
 {
   setOk(out);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -157,8 +157,9 @@ int ManuMgr::CheckPlain(const ActivityRequest* request, int unused, StatusCode* 
 {
   setOk(out);
   const int result = CheckPlainImpl(request, unused, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -166,8 +167,9 @@ int ManuMgr::CheckPlain2(const ActivityRequest* request, StatusCode* out)
 {
   setOk(out);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     setRefused(out);
+  }
   return result;
 }
 
@@ -175,12 +177,13 @@ int ManuMgr::CheckRequestedObject(const ActivityRequest* request, intptr_t unuse
 {
   setOk(out);
   int result = CheckPlain2(request, out);
-  if (result)
-  {
-    if (isOk(out))
+  if (result) {
+    if (isOk(out)) {
       result = GetObjectInFamilies_01_ff(request->m_side, requestKey(request)) != nullptr;
-    if (result)
+    }
+    if (result) {
       return result;
+    }
   }
   setRefused(out);
   return 0;
@@ -196,10 +199,10 @@ int ManuMgr::CheckProductEvent215(int unused, int side, StatusCode* out)
   return CheckProductActionImpl(&request, out);
 }
 
-int ManuMgr::ReplaceQueue(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx)
+int ManuMgr::ReplaceQueue(const ActivityRequest* request, const ObjectKeyIntSet& products, NotifyContext* ctx)
 {
   const int destroyed = DestroyProducts(ctx) != 0;
-  const int created = CreateProducts(products, 0, ctx);
+  const int created = CreateProducts(products, ctx);
   return created && destroyed;
 }
 
@@ -207,8 +210,9 @@ int ManuMgr::RenameProduct(const ActivityRequest* request, std::string* name, No
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int result = CheckProductAction(request, reinterpret_cast<intptr_t>(name), &status);
-  if (result && isOk(&status))
+  if (result && isOk(&status)) {
     result = RenameProductIfAny(name, ctx);
+  }
   return result;
 }
 
@@ -216,8 +220,9 @@ int ManuMgr::CancelProducts(const ActivityRequest* request, NotifyContext* ctx)
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int result = CheckHasProduct(request, &status);
-  if (result && isOk(&status))
+  if (result && isOk(&status)) {
     result = DestroyProducts(ctx);
+  }
   return result;
 }
 
@@ -225,12 +230,13 @@ int ManuMgr::ReserveChecked(const ActivityRequest* request, int value, NotifyCon
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int result = CheckPlain(request, value, &status);
-  if (result && isOk(&status))
+  if (result && isOk(&status)) {
     result = ClearReserved(value, ctx);
+  }
   return result;
 }
 
-int ManuMgr::ReparentProducts(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx)
+int ManuMgr::ReparentProducts(const ActivityRequest* request, const ObjectKeyPairSet& products, NotifyContext* ctx)
 {
   return ReparentQueue(products, requestKey(request), ctx);
 }

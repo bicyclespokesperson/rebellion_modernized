@@ -10,8 +10,7 @@
 #include "gameobj/object_type_db.h"
 
 // The game's table of object factories, filled by the registration function at 0x51ebf0.
-struct GameObjFactoryEntry
-{
+struct GameObjFactoryEntry {
   uint32_t family;
   GameObjNotifier* (*create)();
 };
@@ -32,7 +31,11 @@ constexpr int kMaxFactories = 0x3c;
 
 // ---- GameObjRoot -------------------------------------------------------------------------------------------
 
-GameObjRoot::GameObjRoot() : IdNode(), m_parent(nullptr), m_entry(nullptr), m_flags(0)
+GameObjRoot::GameObjRoot()
+    : IdNode()
+    , m_parent(nullptr)
+    , m_entry(nullptr)
+    , m_flags(0)
 {
   SetId(1);
   SetSideMask(1);
@@ -57,12 +60,9 @@ void GameObjRoot::SetFlag31(int on)
 
 int GameObjRoot::GetParentKey(ObjectKey* out)
 {
-  if (!m_parent)
-  {
+  if (!m_parent) {
     out->Reset();
-  }
-  else
-  {
+  } else {
     ObjectKey parentKey;
     m_parent->GetKey(&parentKey);
     *out = parentKey;
@@ -78,31 +78,33 @@ int GameObjRoot::GetFlag8() const
 int GameObjRoot::MatchesSideMask(uint32_t side) const
 {
   const uint32_t mask = m_flags & kSideMaskBits;
-  if (mask != side && side != 3 && mask != 3)
+  if (mask != side && side != 3 && mask != 3) {
     return 0;
+  }
   return 1;
 }
 
 GameObjNotifier* GameObjRoot::CreateObjectOfFamily(uint32_t family)
 {
   GameObjNotifier* (*create)() = nullptr;
-  for (int i = 0; i < g_gameObjFactoryCount && !create; ++i)
-  {
-    if (g_gameObjFactories[i].family == family)
+  for (int i = 0; i < g_gameObjFactoryCount && !create; ++i) {
+    if (g_gameObjFactories[i].family == family) {
       create = g_gameObjFactories[i].create;
+    }
   }
-  if (create)
+  if (create) {
     return create();
+  }
   return nullptr;
 }
 
 int GameObjRoot::RegisterFactory(uint32_t family, GameObjNotifier* (*factory)())
 {
   bool absent = true;
-  for (int i = 0; i < g_gameObjFactoryCount && absent; ++i)
+  for (int i = 0; i < g_gameObjFactoryCount && absent; ++i) {
     absent = g_gameObjFactories[i].family != family;
-  if (absent && static_cast<uint32_t>(g_gameObjFactoryCount) + 1U < kMaxFactories + 1U)
-  {
+  }
+  if (absent && static_cast<uint32_t>(g_gameObjFactoryCount) + 1U < kMaxFactories + 1U) {
     g_gameObjFactories[g_gameObjFactoryCount].family = family;
     g_gameObjFactories[g_gameObjFactoryCount].create = factory;
     ++g_gameObjFactoryCount;
@@ -155,8 +157,9 @@ void GameObjRoot::SetFlag8(uint32_t on)
 
 void GameObjRoot::ApplyDefaultId()
 {
-  if (m_id == 1)
+  if (m_id == 1) {
     SetId(static_cast<uint32_t>(CallIdHook()));
+  }
 }
 
 int GameObjRoot::IsNotGameRoot()
@@ -166,15 +169,16 @@ int GameObjRoot::IsNotGameRoot()
 
 // ---- GameObjNotifier ---------------------------------------------------------------------------------------
 
-GameObjNotifier::GameObjNotifier() : GameObjRoot(), m_children(nullptr)
+GameObjNotifier::GameObjNotifier()
+    : GameObjRoot()
+    , m_children(nullptr)
 {
   SetFlag31(1);
 }
 
 GameObjNotifier::~GameObjNotifier()
 {
-  if (m_children)
-  {
+  if (m_children) {
     delete m_children;
     m_children = nullptr;
   }
@@ -182,55 +186,62 @@ GameObjNotifier::~GameObjNotifier()
 
 uint32_t GameObjNotifier::GetRecordId()
 {
-  if (HasRecord())
+  if (HasRecord()) {
     return m_record->m_id;
+  }
   return 0;
 }
 
 GameObjNotifier* GameObjNotifier::FirstChild()
 {
-  if (m_children)
+  if (m_children) {
     return static_cast<GameObjNotifier*>(m_children->First());
+  }
   return nullptr;
 }
 
 GameObjNotifier* GameObjNotifier::FindFirstChildInRange(const FamilyRange* range)
 {
-  if (m_children)
+  if (m_children) {
     return m_children->FindFirstInRange(range);
+  }
   return nullptr;
 }
 
 GameObjNotifier* GameObjNotifier::NextSiblingInRange(const FamilyRange* range)
 {
-  if (!m_parent)
+  if (!m_parent) {
     return nullptr;
+  }
   auto position = m_parent->m_children->PositionOf(this);
-  if (position == m_parent->m_children->Entries().end())
+  if (position == m_parent->m_children->Entries().end()) {
     return nullptr;
+  }
   ++position;
-  GameObjNotifier* next =
-    position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>((*position).get());
-  if (next)
-  {
+  GameObjNotifier* next
+      = position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>((*position).get());
+  if (next) {
     const uint32_t family = next->GetFamily();
-    if (range->m_first <= family && family < range->m_second)
+    if (range->m_first <= family && family < range->m_second) {
       return next;
+    }
   }
   return nullptr;
 }
 
 GameObjNotifier* GameObjNotifier::GetViewObject(int view)
 {
-  if (m_entry)
+  if (m_entry) {
     return m_entry->GetObject(view);
+  }
   return nullptr;
 }
 
 int GameObjNotifier::HasAllViews()
 {
-  if (m_entry)
+  if (m_entry) {
     return m_entry->IsFullyLinked();
+  }
   return 0;
 }
 
@@ -252,14 +263,13 @@ int GameObjNotifier::HasRecord() const
 int GameObjNotifier::CanAdopt(GameObjNotifier* child)
 {
   bool ok = false;
-  if (child)
-  {
+  if (child) {
     ok = child->IsNotGameRoot();
-    if (ok)
-    {
+    if (ok) {
       ok = ((child->m_flags ^ m_flags) & 0x30) == 0;
-      if (ok && child->m_parent)
+      if (ok && child->m_parent) {
         ok = child->m_parent->m_children != nullptr;
+      }
     }
   }
   return ok;
@@ -268,13 +278,11 @@ int GameObjNotifier::CanAdopt(GameObjNotifier* child)
 int GameObjNotifier::ReadObject(istream* in)
 {
   int ok = ReadFields(in);
-  if (ok)
-  {
+  if (ok) {
     m_record = nullptr;
     uint32_t id;
     ReadValue32(in, &id);
-    if (id != 0)
-    {
+    if (id != 0) {
       ObjectKey key = ObjectKey::Make(GetFamily(), id);
       m_record = FindDataRecord(AsLookupKey(&key));
     }
@@ -285,8 +293,7 @@ int GameObjNotifier::ReadObject(istream* in)
 int GameObjNotifier::WriteObject(ostream* out)
 {
   int ok = WriteFields(out);
-  if (ok)
-  {
+  if (ok) {
     uint32_t id = m_record ? m_record->m_id : 0;
     WriteValue32(out, &id);
   }
@@ -296,8 +303,7 @@ int GameObjNotifier::WriteObject(ostream* out)
 int GameObjNotifier::ChecksumObject(Crc32* crc)
 {
   int ok = ChecksumFields(crc);
-  if (ok)
-  {
+  if (ok) {
     crc->AddInt(m_record ? static_cast<int>(m_record->m_id) : 0);
   }
   return ok;
@@ -306,8 +312,9 @@ int GameObjNotifier::ChecksumObject(Crc32* crc)
 int GameObjNotifier::NotifyIfComplete()
 {
   int result = HasRecord();
-  if (result)
+  if (result) {
     result = HasAllViews();
+  }
   return result;
 }
 
@@ -316,61 +323,57 @@ int GameObjNotifier::ReadTree(istream* in)
   int ok = 1;
   int hasChildren = 0;
   ReadValue32(in, &hasChildren);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
-  if (hasChildren == 0)
+  }
+  if (hasChildren == 0) {
     return ok;
+  }
 
   m_children = NewOrNull<ChildList>();
   ok = 0;
-  if (!m_children)
-  {
+  if (!m_children) {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
     return 0;
   }
-  if (m_children->m_ok != 0)
+  if (m_children->m_ok != 0) {
     ok = m_children->Read(in);
-  else
+  } else {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+  }
 
   uint32_t count = 0;
-  if (ok)
-  {
+  if (ok) {
     ReadValue32(in, &count);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return 0;
-    if (count != 0)
+    }
+    if (count != 0) {
       ok = CheckPositionMarker(in);
+    }
   }
-  for (uint32_t i = 0; ok && i < count; ++i)
-  {
+  for (uint32_t i = 0; ok && i < count; ++i) {
     uint32_t family = 0;
     ReadValue32(in, &family);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return 0;
+    }
     GameObjNotifier* child = CreateObjectOfFamily(family);
     ok = 0;
-    if (child)
-    {
+    if (child) {
       ok = child->Read(in);
-      if (ok)
-      {
+      if (ok) {
         ok = m_children->AddWithId(child) != 0;
-        if (!ok)
+        if (!ok) {
           delete child;
-        else
-        {
+        } else {
           child->m_parent = this;
           ok = child->ReadTree(in);
         }
-      }
-      else
-      {
+      } else {
         delete child;
       }
-    }
-    else
-    {
+    } else {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
     }
   }
@@ -382,26 +385,27 @@ int GameObjNotifier::WriteTree(ostream* out)
   uint32_t hasChildren = m_children != nullptr;
   WriteValue32(out, &hasChildren);
   int ok = 1;
-  if (m_children)
-  {
+  if (m_children) {
     ok = m_children->Write(out);
-    if (ok)
-    {
-      if (!WriteCount32(out, m_children->Count()))
+    if (ok) {
+      if (!WriteCount32(out, m_children->Count())) {
         return 0;
-      if (m_children->Count() != 0)
+      }
+      if (m_children->Count() != 0) {
         WritePositionMarker(out);
+      }
     }
-    for (const auto& entry : m_children->Entries())
-    {
-      if (!ok)
+    for (const auto& entry : m_children->Entries()) {
+      if (!ok) {
         break;
+      }
       auto* child = static_cast<GameObjNotifier*>(entry.get());
       uint32_t family = child->GetFamily();
       WriteValue32(out, &family);
       ok = 0;
-      if (child->Write(out))
+      if (child->Write(out)) {
         ok = child->WriteTree(out);
+      }
     }
   }
   return ok;
@@ -410,20 +414,18 @@ int GameObjNotifier::WriteTree(ostream* out)
 int GameObjNotifier::ChecksumTree(Crc32* crc)
 {
   int ok = 1;
-  if (m_children)
-  {
+  if (m_children) {
     crc->AddInt(m_children->m_ok);
     int included = 0;
-    for (const auto& entry : m_children->Entries())
-    {
+    for (const auto& entry : m_children->Entries()) {
       auto* child = static_cast<GameObjNotifier*>(entry.get());
-      if (child->IncludeInChecksum())
-      {
+      if (child->IncludeInChecksum()) {
         ++included;
         crc->AddInt(static_cast<int>(child->GetFamily()));
         ok = 0;
-        if (child->Checksum(crc))
+        if (child->Checksum(crc)) {
           ok = child->ChecksumTree(crc);
+        }
       }
     }
     crc->AddInt(included);
@@ -439,34 +441,38 @@ int GameObjNotifier::SetRecord(DatRecord* record)
 int GameObjNotifier::AssignRecord(DatRecord* record)
 {
   bool matches = true;
-  if (record)
+  if (record) {
     matches = record->m_third == GetFamily();
-  if (matches)
+  }
+  if (matches) {
     m_record = record;
+  }
   return matches;
 }
 
 int GameObjNotifier::AddChild(GameObjNotifier* child, GameObjNotifier** previousParent)
 {
   int ok = 1;
-  if (!m_children)
-  {
+  if (!m_children) {
     m_children = NewOrNull<ChildList>();
     ok = m_children != nullptr;
-    if (ok)
+    if (ok) {
       ok = m_children->m_ok;
+    }
   }
-  if (ok)
+  if (ok) {
     ok = CanAdopt(child);
+  }
   GameObjNotifier* oldParent = child->m_parent;
   *previousParent = oldParent;
-  if (oldParent)
+  if (oldParent) {
     ok = oldParent->m_children->RemoveChild(child);
-  if (ok)
-  {
+  }
+  if (ok) {
     ok = m_children->AddWithId(child) != 0;
-    if (ok)
+    if (ok) {
       child->m_parent = this;
+    }
   }
   return ok;
 }
@@ -474,18 +480,21 @@ int GameObjNotifier::AddChild(GameObjNotifier* child, GameObjNotifier** previous
 int GameObjNotifier::RemoveFromParent(GameObjNotifier* child)
 {
   int ok = 1;
-  if (child->m_parent)
+  if (child->m_parent) {
     ok = child->m_parent->m_children->RemoveChild(child);
-  if (ok)
+  }
+  if (ok) {
     child->m_parent = nullptr;
+  }
   return ok;
 }
 
 int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags)
 {
   const int changed = (value & mask) != (mask & *flags);
-  if (changed)
+  if (changed) {
     *flags = (~mask & *flags) | (value & mask);
+  }
   return changed;
 }
 

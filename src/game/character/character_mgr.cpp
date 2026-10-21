@@ -15,11 +15,12 @@
 #include "story/story_characters.h"
 #include "story/story_common.h"
 
-extern int g_characterMgrEventKindsReady; // 0x6bb7a0
+extern int g_characterMgrEventKindsReady;     // 0x6bb7a0
 extern EventKindSet g_characterMgrEventKinds; // 0x6bb798
 
 ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out); // 0x402e40
-// The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the Empire's.
+// The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the
+// Empire's.
 
 namespace
 {
@@ -73,9 +74,12 @@ GameObj* asGameObj(GameObjNotifier* object)
 
 } // namespace
 
-// ---- construction -----------------------------------------------------------------------------------------------------
+// ---- construction
+// -----------------------------------------------------------------------------------------------------
 
-CharacterMgr::CharacterMgr() : m_flags58(0), m_galaxySize(0)
+CharacterMgr::CharacterMgr()
+    : m_flags58(0)
+    , m_galaxySize(0)
 {
   SetId(8);
 }
@@ -124,15 +128,14 @@ int CharacterMgr::InitializeAfterSetup(intptr_t ctxArg)
   return UpdateSeatOfPower(ctx) && stub ? 1 : 0;
 }
 
-// ---- event kinds ------------------------------------------------------------------------------------------------------
+// ---- event kinds
+// ------------------------------------------------------------------------------------------------------
 
 int CharacterMgr::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_characterMgrEventKindsReady,
-                               []
-                               {
-                                 return ::InitEventKinds(0, &g_characterMgrEventKinds);
-                               });
+  return story::buildKindsOnce(&g_characterMgrEventKindsReady, [] {
+    return ::InitEventKinds(0, &g_characterMgrEventKinds);
+  });
 }
 
 int CharacterMgr::GetEventKinds(int unused, EventKindSet* out)
@@ -145,7 +148,8 @@ int CharacterMgr::CheckOrder(int a, int orderKind, StatusCode* out)
   return story::checkOrder(BuildEventKinds(), g_characterMgrEventKinds, orderKind, out);
 }
 
-// ---- persistence ------------------------------------------------------------------------------------------------------
+// ---- persistence
+// ------------------------------------------------------------------------------------------------------
 
 int CharacterMgr::Read(istream* in)
 {
@@ -165,19 +169,20 @@ int CharacterMgr::Checksum(Crc32* crc)
 int CharacterMgr::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllBody(ctx);
+  }
   return isSideView;
 }
 
 int CharacterMgr::ReadBody(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_flags58);
-    if (result && isMaster(this))
+    if (result && isMaster(this)) {
       ReadValue32(in, &m_galaxySize);
+    }
   }
   return result;
 }
@@ -185,11 +190,11 @@ int CharacterMgr::ReadBody(istream* in)
 int CharacterMgr::WriteBody(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_flags58);
-    if (result && isMaster(this))
+    if (result && isMaster(this)) {
       WriteValue32(out, &m_galaxySize);
+    }
   }
   return result;
 }
@@ -197,11 +202,11 @@ int CharacterMgr::WriteBody(ostream* out)
 int CharacterMgr::ChecksumBody(Crc32* crc)
 {
   const int result = GameObj::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(static_cast<int>(m_flags58));
-    if (result && isMaster(this))
+    if (result && isMaster(this)) {
       crc->AddInt(m_galaxySize);
+    }
   }
   return result;
 }
@@ -209,10 +214,8 @@ int CharacterMgr::ChecksumBody(Crc32* crc)
 int CharacterMgr::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = GameObj::ApplyAll(ctx);
-  if (result)
-  {
-    if (ctx->m_flag04 == 1)
-    {
+  if (result) {
+    if (ctx->m_flag04 == 1) {
       ApplySeatOfPower(ctx);
       ApplyPickupInProgress(ctx);
     }
@@ -220,41 +223,37 @@ int CharacterMgr::ApplyAllBody(NotifyContext* ctx)
   return result;
 }
 
-// ---- the two flags ----------------------------------------------------------------------------------------------------
+// ---- the two flags
+// ----------------------------------------------------------------------------------------------------
 
 int CharacterMgr::SetSeatOfPower(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &CharacterMgr::m_flags58, character_mgr_flag::kSeatOfPower, on,
-    [&](CharacterMgr* view)
-    {
-      view->ApplySeatOfPower(ctx);
-    },
-    [&]
-    {
-      OnSeatOfPowerChanged(on, ctx);
-    });
+      this, &CharacterMgr::m_flags58, character_mgr_flag::kSeatOfPower, on,
+      [&](CharacterMgr* view) {
+        view->ApplySeatOfPower(ctx);
+      },
+      [&] {
+        OnSeatOfPowerChanged(on, ctx);
+      });
 }
 
 int CharacterMgr::SetPickupInProgress(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &CharacterMgr::m_flags58, character_mgr_flag::kPickupInProgress, on,
-    [&](CharacterMgr* view)
-    {
-      view->ApplyPickupInProgress(ctx);
-    },
-    [&]
-    {
-      OnPickupInProgressChanged(on, ctx);
-    });
+      this, &CharacterMgr::m_flags58, character_mgr_flag::kPickupInProgress, on,
+      [&](CharacterMgr* view) {
+        view->ApplyPickupInProgress(ctx);
+      },
+      [&] {
+        OnPickupInProgressChanged(on, ctx);
+      });
 }
 
 int CharacterMgr::ApplySeatOfPower(NotifyContext* ctx)
 {
   return story::applyFlagProperty(this, &CharacterMgr::m_flags58, character_mgr_flag::kSeatOfPower, ctx,
-                                  [&](int value)
-                                  {
+                                  [&](int value) {
                                     return OnSeatOfPowerNotified(value, ctx);
                                   });
 }
@@ -262,8 +261,7 @@ int CharacterMgr::ApplySeatOfPower(NotifyContext* ctx)
 int CharacterMgr::ApplyPickupInProgress(NotifyContext* ctx)
 {
   return story::applyFlagProperty(this, &CharacterMgr::m_flags58, character_mgr_flag::kPickupInProgress, ctx,
-                                  [&](int value)
-                                  {
+                                  [&](int value) {
                                     return OnPickupInProgressNotified(value, ctx);
                                   });
 }
@@ -272,16 +270,16 @@ int CharacterMgr::OnSeatOfPowerChanged(int on, NotifyContext* ctx)
 {
   int ok = 1;
   for (GameObjNotifier* person = GetFirstMasterInFamilies_30_3c(); person != nullptr;
-       person = NextCharacterSibling(asGameObj(person)))
+       person = NextCharacterSibling(asGameObj(person))) {
     ok = UpdateLeadershipAdjustment(static_cast<Character*>(person), ctx) && ok;
+  }
   return ok;
 }
 
 int CharacterMgr::OnSeatOfPowerNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("CharacterMgrSeatOfPowerNotif", "SeatOfPower", on, 0, ctx);
     result = PostPayloadFlag(kEventSeatOfPower, this, on, ctx);
   }
@@ -291,8 +289,7 @@ int CharacterMgr::OnSeatOfPowerNotified(int on, NotifyContext* ctx)
 int CharacterMgr::OnPickupInProgressNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("CharacterMgrPickupInProgressNotif", "PickupInProgress", on, 0, ctx);
     result = PostPayloadFlag(kEventPickupInProgress, this, on, ctx);
   }
@@ -304,18 +301,16 @@ int CharacterMgr::UpdateSeatOfPower(NotifyContext* ctx)
   auto* emperor = static_cast<GameObj*>(GetMaster_34000280());
   int ok = emperor != nullptr;
   GameObjNotifier* location = nullptr;
-  if (emperor != nullptr)
-  {
+  if (emperor != nullptr) {
     ok = emperor->GetParent(&location) && ok;
-    if (location != nullptr)
-    {
+    if (location != nullptr) {
       int holdsSeat = 0;
-      if (!(static_cast<Character*>(emperor)->m_flagsAc & 1) && (emperor->m_stateFlags & kUsableFlag))
-      {
+      if (!(static_cast<Character*>(emperor)->m_flagsAc & 1) && (emperor->m_stateFlags & kUsableFlag)) {
         ObjectKey key;
         location->GetKey(&key);
-        if (key.m_value == kCoruscantKey && location->ControlSide() == 2)
+        if (key.m_value == kCoruscantKey && location->ControlSide() == 2) {
           holdsSeat = 1;
+        }
       }
       ok = SetSeatOfPower(holdsSeat, ctx) && ok;
     }
@@ -326,8 +321,9 @@ int CharacterMgr::UpdateSeatOfPower(NotifyContext* ctx)
 int CharacterMgr::UpdateLeadershipAdjustment(Character* person, NotifyContext* ctx)
 {
   int adjustment = 0;
-  if ((m_flags58 & character_mgr_flag::kSeatOfPower) && person->GetRecordSide() == 2)
+  if ((m_flags58 & character_mgr_flag::kSeatOfPower) && person->GetRecordSide() == 2) {
     adjustment = g_gnprtb0C04;
+  }
   return person->SetLeadershipAdjustment(adjustment, ctx) != 0;
 }
 EventKindSet g_characterMgrEventKinds{};

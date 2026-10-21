@@ -9,7 +9,7 @@
 #include "gameobj/object_family.h"
 
 extern EventKindSet g_facilityEventKinds; // 0x6b9038
-extern int g_facilityEventKindsReady; // 0x6b9040
+extern int g_facilityEventKindsReady;     // 0x6b9040
 
 namespace
 {
@@ -35,8 +35,9 @@ Facility::~Facility() = default;
 int Facility::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_facilityEventKinds;
+  }
   return result;
 }
 
@@ -44,8 +45,9 @@ int Facility::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_facilityEventKinds.Contains(orderKind))
+  if (result && g_facilityEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -80,20 +82,24 @@ uint32_t Facility::GetRecordField58()
 
 uint32_t Facility::GetRecordField5c()
 {
-  if (const auto* record = dynamic_cast<ProductionFacilitySD*>(m_record))
+  if (const auto* record = dynamic_cast<ProductionFacilitySD*>(m_record)) {
     return record->m_processingRate;
-  if (const auto* record = dynamic_cast<ManufacturingFacilitySD*>(m_record))
+  }
+  if (const auto* record = dynamic_cast<ManufacturingFacilitySD*>(m_record)) {
     return record->m_processingRate;
-  if (const auto* record = dynamic_cast<DefenseFacilitySD*>(m_record))
+  }
+  if (const auto* record = dynamic_cast<DefenseFacilitySD*>(m_record)) {
     return record->m_attackStrength;
+  }
   return 0;
 }
 
 int Facility::ApplyAllImpl(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     ApplyAllToSideView(ctx);
+  }
   return result;
 }
 
@@ -102,18 +108,15 @@ int Facility::ValidateImpl()
   int consistent = GameObj::Validate();
   GameObjIterator children(this, kAlwaysFilter);
   children.Begin();
-  while (children.Current() && consistent != 0)
-  {
+  while (children.Current() && consistent != 0) {
     consistent = 0;
     children.Advance();
   }
   GameObjNotifier* parent = nullptr;
   int result = 0;
-  if (consistent != 0)
-  {
+  if (consistent != 0) {
     result = GetParent(&parent);
-    if (result && (!(m_stateFlags & kDestroyed) || !(m_stateFlags & kLocked)))
-    {
+    if (result && (!(m_stateFlags & kDestroyed) || !(m_stateFlags & kLocked))) {
       result = (~static_cast<GameObj*>(parent)->m_stateFlags >> 3) & 1;
     }
   }
@@ -122,8 +125,9 @@ int Facility::ValidateImpl()
 
 int Facility::BuildEventKinds()
 {
-  if (g_facilityEventKindsReady != 0)
+  if (g_facilityEventKindsReady != 0) {
     return 1;
+  }
   g_facilityEventKindsReady = 1;
   int result = UnitObjBase::InitEventKinds(0, &g_facilityEventKinds) && g_facilityEventKinds.Add(kKindFacilityOrder, 1);
   g_facilityEventKindsReady = 1;
@@ -136,12 +140,12 @@ int UpdateFacilityChildren(GameObj* object, NotifyContext* ctx)
 }
 
 FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kFacilityFamilies, stateFilter)
+    : ChildIterator(parent, &kFacilityFamilies, stateFilter)
 {
 }
 
 FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kFacilityFamilies, stateFilter)
+    : ChildIterator(parent, side, &kFacilityFamilies, stateFilter)
 {
 }
 

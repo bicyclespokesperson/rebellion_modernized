@@ -8,7 +8,7 @@
 // The tree of saved UI notices used by the human player's order tree.
 class UiRecordTree
 {
-public:
+  public:
   void Clear()
   {
     m_notices.Clear();
@@ -35,12 +35,12 @@ public:
     return m_notices.Entries();
   }
 
-  UiRecordTree(); // 0x436a40
-  ~UiRecordTree(); // 0x437690 (scalar deleting destructor 0x437670)
-  void Read(istream* in); // 0x4376a0: 16-bit count, then kind and body of every record
+  UiRecordTree();           // 0x436a40
+  ~UiRecordTree();          // 0x437690 (scalar deleting destructor 0x437670)
+  void Read(istream* in);   // 0x4376a0: 16-bit count, then kind and body of every record
   void Write(ostream* out); // 0x437720
 
-private:
+  private:
   IdRegistry<UiNotice> m_notices;
 };
 

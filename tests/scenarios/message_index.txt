@@ -1,5 +1,5 @@
 # Message Index in a loaded game (RebelsFastStart, Alliance): F6, open a message, step through the messages, tabs,
-# select all, accept a mission report. See docs/ui_navigation.md. Runtime ~125 s.
+# select all, accept a mission report. Runtime ~125 s.
 12 key Escape
 16 key Escape
 20 key Escape

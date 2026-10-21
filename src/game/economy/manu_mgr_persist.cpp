@@ -7,22 +7,16 @@ namespace
 constexpr int kApplyEverything = 1;
 constexpr int kApplyLocationOnly = 2;
 
-ObjectKey* seedKeyAsObjectKey(NullableKey* key)
-{
-  return reinterpret_cast<ObjectKey*>(key);
-}
-
 } // namespace
 
 int ManuMgr::Read(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_remainingGameObjCount);
     ReadValue32(in, &m_completedPointCount);
     ReadValue32(in, &m_overflowPointCount);
-    seedKeyAsObjectKey(&m_seedKey)->Read(in);
+    ReadValue32(in, &m_seedKey.m_value);
     ReadValue32(in, &m_requiredPointCount);
     ReadValue32(in, &m_totalRequiredPointCount);
     ReadValue32(in, &m_reserved);
@@ -37,12 +31,11 @@ int ManuMgr::Read(istream* in)
 int ManuMgr::Write(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_remainingGameObjCount);
     WriteValue32(out, &m_completedPointCount);
     WriteValue32(out, &m_overflowPointCount);
-    seedKeyAsObjectKey(&m_seedKey)->Write(out);
+    WriteValue32(out, &m_seedKey.m_value);
     WriteValue32(out, &m_requiredPointCount);
     WriteValue32(out, &m_totalRequiredPointCount);
     WriteValue32(out, &m_reserved);
@@ -57,12 +50,11 @@ int ManuMgr::Write(ostream* out)
 int ManuMgr::Checksum(Crc32* crc)
 {
   const int result = GameObj::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_remainingGameObjCount);
     crc->AddInt(m_completedPointCount);
     crc->AddInt(m_overflowPointCount);
-    seedKeyAsObjectKey(&m_seedKey)->Checksum(crc);
+    crc->AddInt(static_cast<int>(m_seedKey.m_value));
     crc->AddInt(m_requiredPointCount);
     crc->AddInt(m_totalRequiredPointCount);
     crc->AddInt(m_reserved);
@@ -76,19 +68,18 @@ int ManuMgr::Checksum(Crc32* crc)
 int ManuMgr::Validate()
 {
   int result = GameObj::Validate();
-  if (result)
+  if (result) {
     result = IsQueueLengthConsistent();
+  }
   return result;
 }
 
 int ManuMgr::ApplyAll(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     GameObj::ApplyAll(ctx);
-    if (ctx->m_flag04 == kApplyEverything)
-    {
+    if (ctx->m_flag04 == kApplyEverything) {
       ApplyRemainingGameObjCount(ctx);
       ApplyCompletedPointCount(ctx);
       ApplyOverflowPointCount(ctx);
@@ -100,9 +91,7 @@ int ManuMgr::ApplyAll(NotifyContext* ctx)
       ApplyDeploymentKey(ctx);
       ApplyTargetKey(ctx);
       ApplyProductName(ctx);
-    }
-    else if (ctx->m_flag04 == kApplyLocationOnly)
-    {
+    } else if (ctx->m_flag04 == kApplyLocationOnly) {
       ApplyParent(ctx);
       ApplyDeploymentKey(ctx);
       ApplyTargetKey(ctx);

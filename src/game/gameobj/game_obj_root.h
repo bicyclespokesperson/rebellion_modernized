@@ -27,7 +27,7 @@ class Crc32;
 
 class GameObjRoot : public IdNode
 {
-public:
+  public:
   GameObjRoot();
   ~GameObjRoot() override;
   // Family: top byte of the object's key (object_family.h).
@@ -84,14 +84,14 @@ public:
   }
 
   GameObjNotifier* m_parent; // +0x1c
-  ObjectEntry* m_entry; // +0x20, set by ObjectEntry::AddObject
+  ObjectEntry* m_entry;      // +0x20, set by ObjectEntry::AddObject
   // bits 0-3 side mask, 4-5 view side, 6-7 control side, 8 flag8, 31 flag31
   uint32_t m_flags; // +0x24
 };
 
 class GameObjNotifier : public GameObjRoot
 {
-public:
+  public:
   GameObjNotifier();
   ~GameObjNotifier() override;
   // Applies every property of the master to this side view (GameObj 0x4f9540).
@@ -126,7 +126,7 @@ public:
   static int RemoveFromParent(GameObjNotifier* child);
 
   ChildList* m_children; // +0x28
-  DatRecord* m_record; // +0x2c
+  DatRecord* m_record;   // +0x2c
 };
 
 // Edits `mask` bits of *flags to `value`'s, writing only if they differ. Returns 1 if the bits changed.

@@ -75,8 +75,9 @@ void Character::SetDataField34(int value)
 int Character::UpdateControlKind(NotifyContext* ctx)
 {
   int side = GetRecordSide();
-  if ((m_flagsAc & kCapturedFlag) && side != kBothSides)
+  if ((m_flagsAc & kCapturedFlag) && side != kBothSides) {
     side = side != 1 ? 1 : 2;
+  }
   return SetControlKind(side, ctx);
 }
 
@@ -84,8 +85,9 @@ int Character::UpdateEnhancedDiplomacy(NotifyContext* ctx)
 {
   int value = m_baseDiplomacy;
   int result = ComputeSkillWithForce(value, m_force, &value);
-  if (result)
+  if (result) {
     result = SetEnhancedDiplomacy(value, ctx);
+  }
   return result;
 }
 
@@ -93,8 +95,9 @@ int Character::UpdateEnhancedEspionage(NotifyContext* ctx)
 {
   int value = m_baseEspionage;
   int result = ComputeSkillWithForce(value, m_force, &value);
-  if (result)
+  if (result) {
     result = SetEnhancedEspionage(value, ctx);
+  }
   return result;
 }
 
@@ -117,8 +120,9 @@ int Character::UpdateEnhancedCombat(NotifyContext* ctx)
 {
   int value = m_baseCombat;
   int result = ComputeSkillWithForceAndInjury(value, m_force, m_injury, &value);
-  if (result)
+  if (result) {
     result = SetEnhancedCombat(value, ctx);
+  }
   return result;
 }
 
@@ -126,8 +130,9 @@ int Character::UpdateEnhancedLeadership(NotifyContext* ctx)
 {
   int value = m_baseLeadership;
   int result = ComputeSkillWithForce(value, m_leadershipAdjustment, &value);
-  if (result)
+  if (result) {
     result = SetEnhancedLeadership(value, ctx);
+  }
   return result;
 }
 
@@ -144,11 +149,11 @@ int Character::UpdateForce(NotifyContext* ctx)
 int Character::UpdateForceExperience(NotifyContext* ctx)
 {
   int value = m_forceExperience;
-  if (value == 0 && (m_flagsAc & kForcePotentialFlag) && (m_flagsAc & kForceAwareFlag))
-  {
+  if (value == 0 && (m_flagsAc & kForcePotentialFlag) && (m_flagsAc & kForceAwareFlag)) {
     SdRecordExt25* record = GetCharacterRecord();
-    if (!record)
+    if (!record) {
       return 0;
+    }
     const int base = record->m_moreFields[2];
     value = GameRandom(record->m_moreFields[3]) + base;
   }
@@ -158,13 +163,16 @@ int Character::UpdateForceExperience(NotifyContext* ctx)
 int Character::UpdateCommandKind(NotifyContext* ctx)
 {
   int result = 1;
-  if (m_commandKind == 0)
+  if (m_commandKind == 0) {
     return result;
+  }
   bool clear = true;
-  if (m_injury == 0 && !(m_flagsAc & kCapturedFlag) && (m_stateFlags & kExistingState))
+  if (m_injury == 0 && !(m_flagsAc & kCapturedFlag) && (m_stateFlags & kExistingState)) {
     clear = isMissionFamily(m_missionKey);
-  if (clear)
+  }
+  if (clear) {
     result = SetCommandKind(0, ctx);
+  }
   return result;
 }
 
@@ -177,10 +185,9 @@ int Character::UpdateCanHeal(NotifyContext* ctx)
 {
   GameObjNotifier* parent = nullptr;
   int result = GetParent(&parent);
-  if (result)
-  {
-    const bool blocked = ((m_flags ^ parent->m_flags) & kControlKindMask) != 0 || (m_flagsAc & kCapturedFlag) ||
-                         (m_stateFlags & kDestroyedState);
+  if (result) {
+    const bool blocked = ((m_flags ^ parent->m_flags) & kControlKindMask) != 0 || (m_flagsAc & kCapturedFlag)
+                         || (m_stateFlags & kDestroyedState);
     result = SetCanHeal(blocked ? 0 : 1, ctx);
   }
   return result;
@@ -190,8 +197,9 @@ int Character::UpdateFastHeal(NotifyContext* ctx)
 {
   int fastHeal = 0;
   int result = HasForcePotentialA00(m_force, &fastHeal);
-  if (result)
+  if (result) {
     result = SetFastHeal(fastHeal, ctx);
+  }
   return result;
 }
 
@@ -204,26 +212,29 @@ int Character::UpdateHealing(NotifyContext* ctx)
 int Character::UpdateDiscoveringForceUser(NotifyContext* ctx)
 {
   int discovering = 0;
-  if (RecordIsJediTrainer() && HasForcePotentialA14(m_force) && !(m_flags78 & kOnMissionFlag) &&
-      (m_stateFlags & kUsableState) && !(m_flagsAc & kCapturedFlag))
+  if (RecordIsJediTrainer() && HasForcePotentialA14(m_force) && !(m_flags78 & kOnMissionFlag)
+      && (m_stateFlags & kUsableState) && !(m_flagsAc & kCapturedFlag)) {
     discovering = 1;
+  }
   return SetDiscoveringForceUser(discovering, ctx);
 }
 
 int Character::RaiseEscapeRequest(NotifyContext* ctx)
 {
   int result = 1;
-  const bool ready = (m_flagsAc & kCapturedFlag) && (m_stateFlags & kUsableState) && !(m_flags78 & kOnMissionFlag) &&
-                     (m_flagsAc & kEscapeRequestFlag);
-  if (ready)
+  const bool ready = (m_flagsAc & kCapturedFlag) && (m_stateFlags & kUsableState) && !(m_flags78 & kOnMissionFlag)
+                     && (m_flagsAc & kEscapeRequestFlag);
+  if (ready) {
     result = EscapeCaptivity(ctx);
+  }
   return result;
 }
 
 int Character::RecoverFromInjury(NotifyContext* ctx)
 {
-  if (m_injury == 0)
+  if (m_injury == 0) {
     return 0;
+  }
   const int recovery = (m_flagsAc & kFastHealFlag) ? g_gnprtbA03 : g_gnprtbA04;
   return SetInjury(ClampNegativeToZero(m_injury - recovery), ctx);
 }
@@ -231,23 +242,24 @@ int Character::RecoverFromInjury(NotifyContext* ctx)
 int Character::PulseEscapeAttempt(NotifyContext* ctx)
 {
   int result = (m_flagsAc >> 8) & 1;
-  if (result)
+  if (result) {
     result = SetEscapeAttempt(1, ctx);
-  if (result)
+  }
+  if (result) {
     result = SetEscapeAttempt(0, ctx);
+  }
   return result;
 }
 
 int Character::AdjustLoyaltyForSide(int amount, int side, NotifyContext* ctx)
 {
   int result = side >= 1 && side <= kBothSides;
-  if (result)
-  {
+  if (result) {
     result = side != kBothSides;
-    if (result && !RecordIsUnableToBetray())
-    {
-      if (GetRecordSide() != side)
+    if (result && !RecordIsUnableToBetray()) {
+      if (GetRecordSide() != side) {
         amount = -amount;
+      }
       result = SetBaseLoyalty(ClampPercent(m_baseLoyalty + amount), ctx);
     }
   }

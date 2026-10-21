@@ -14,8 +14,9 @@ int lookupMissionTable(int tableType, int key, int* out)
   *out = 0;
   int value = 0;
   const int found = LookupTableValue(tableType, key, &value);
-  if (found)
+  if (found) {
     *out = value;
+  }
   return found;
 }
 
@@ -115,21 +116,18 @@ int ComputeEspionageOutcome(int a, int b, int c, int* amount, int* flagA, int* f
   *amount = 0;
   *flagA = 0;
   *flagB = 0;
-  if (a == 0)
+  if (a == 0) {
     return 1;
-  if (c == 0)
-  {
-    if (b == 0)
-    {
+  }
+  if (c == 0) {
+    if (b == 0) {
       *amount = GameRandom(g_gnprtb1821) + g_gnprtb1820;
       *flagA = 1;
       *flagB = 0;
       return 1;
     }
     *amount = GameRandom(g_gnprtb1823) + g_gnprtb1822;
-  }
-  else
-  {
+  } else {
     *amount = GameRandom(g_gnprtb1825) + g_gnprtb1824;
   }
   *flagA = 1;
@@ -146,8 +144,9 @@ int RollResearchBonus(int* out)
 int ComputeJediTrainingGain(int a, int b, int* out)
 {
   *out = a;
-  if (a < b)
+  if (a < b) {
     *out += GameRandom(ScalePercent(b - a, g_gnprtb181D));
+  }
   return 1;
 }
 
@@ -166,19 +165,23 @@ int ComputeDagobahBonusB(int a, int b, int* out)
 int ComputeDiplomacyBonus(int a, int b)
 {
   int bonus = 0;
-  if (a == b)
+  if (a == b) {
     return GameRandom(g_gnprtb1828) + g_gnprtb1827;
-  if (b == 3)
+  }
+  if (b == 3) {
     bonus = GameRandom(g_gnprtb182A) + g_gnprtb1829;
+  }
   return bonus;
 }
 
 int ComputeSubdueBonus(int a, int b)
 {
   int bonus = 0;
-  if (a == b)
+  if (a == b) {
     return GameRandom(g_gnprtb182C) + g_gnprtb182B;
-  if (b == 3)
+  }
+  if (b == 3) {
     bonus = GameRandom(g_gnprtb182E) + g_gnprtb182D;
+  }
   return bonus;
 }

@@ -1,21 +1,21 @@
-// minwin_impl/dsound: the software mixer behind the DirectSound emulation. SDL-free and platform-free: the audio backend pulls
-// interleaved signed 16-bit stereo with Render(). Everything is integer fixed-point arithmetic (volume tables aside), so the
-// output is deterministic.
+// minwin_impl/dsound: the software mixer behind the DirectSound emulation. SDL-free and platform-free: the audio
+// backend pulls interleaved signed 16-bit stereo with Render(). Everything is integer fixed-point arithmetic (volume
+// tables aside), so the output is deterministic.
 //
-// Voices model DirectSound secondary buffers: a circular byte buffer with a play cursor, a write cursor a little ahead of it,
-// looping, volume (hundredths of a dB, 0 = full, -10000 = silent), pan, frequency and position notifications. Streams model
-// the push-style audio of the Smacker decoder: PCM is queued and played in order.
+// Voices model DirectSound secondary buffers: a circular byte buffer with a play cursor, a write cursor a little ahead
+// of it, looping, volume (hundredths of a dB, 0 = full, -10000 = silent), pan, frequency and position notifications.
+// Streams model the push-style audio of the Smacker decoder: PCM is queued and played in order.
 #pragma once
 #include <stdint.h>
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace mwds
 {
 
-struct Format
-{
+struct Format {
   int channels = 2;
   int bitsPerSample = 16;
   int sampleRate = 22050;
@@ -27,14 +27,13 @@ struct Format
 
 constexpr uint32_t kOffsetStop = 0xffffffffu; // DSBPN_OFFSETSTOP
 
-struct Notification
-{
+struct Notification {
   uint32_t offset; // byte offset in the buffer, or kOffsetStop
-  void* event; // handed to the event signaler
+  void* event;     // handed to the event signaler
 };
 
-// Called (outside the mixer's lock) for every notification event that fires. Installed by the integration layer: the port
-// points it at its SetEvent. Tests record the calls.
+// Called (outside the mixer's lock) for every notification event that fires. Installed by the integration layer: the
+// port points it at its SetEvent. Tests record the calls.
 using EventSignaler = void (*)(void* event);
 void SetEventSignaler(EventSignaler signaler);
 
@@ -43,25 +42,13 @@ using DeviceOpener = void (*)();
 void SetDeviceOpener(DeviceOpener opener);
 void OpenDevice();
 
-// A plain mutex (CRITICAL_SECTION / pthread): std::mutex would pull msvcp140.dll into the i686-windows builds, which Wine lacks.
-class Mutex
-{
-public:
-  Mutex();
-  ~Mutex();
-  Mutex(const Mutex&) = delete;
-  Mutex& operator=(const Mutex&) = delete;
-  void lock();
-  void unlock();
-
-private:
-  alignas(8) unsigned char m_storage[64];
-};
+using Mutex = std::mutex;
 
 class Guard
 {
-public:
-  explicit Guard(Mutex& m) : m_mutex(m)
+  public:
+  explicit Guard(Mutex& m)
+      : m_mutex(m)
   {
     m_mutex.lock();
   }
@@ -72,7 +59,7 @@ public:
   Guard(const Guard&) = delete;
   Guard& operator=(const Guard&) = delete;
 
-private:
+  private:
   Mutex& m_mutex;
 };
 
@@ -81,7 +68,7 @@ class Mixer;
 // A DirectSound secondary buffer.
 class Voice
 {
-public:
+  public:
   Voice(Mixer* mixer, const Format& format, uint32_t sizeBytes);
   Voice(Mixer* mixer, const Voice& original); // DuplicateSoundBuffer: shares the sample memory
   ~Voice();
@@ -123,8 +110,7 @@ public:
   void SetNotifications(const Notification* list, uint32_t count);
 
   // Lock arithmetic (no state): the two regions of a circular range.
-  struct Regions
-  {
+  struct Regions {
     uint8_t* first;
     uint32_t firstBytes;
     uint8_t* second;
@@ -132,7 +118,7 @@ public:
   };
   Regions Lock(uint32_t offset, uint32_t bytes);
 
-private:
+  private:
   friend class Mixer;
   Mixer* m_mixer;
   Format m_format;
@@ -148,7 +134,7 @@ private:
 // A queue of PCM played in order (Smacker audio).
 class Stream
 {
-public:
+  public:
   Stream(Mixer* mixer, const Format& format);
   ~Stream();
   void Push(const uint8_t* pcm, uint32_t bytes);
@@ -157,7 +143,7 @@ public:
   void SetVolume(int hundredthsDb);
   void SetPan(int pan);
 
-private:
+  private:
   friend class Mixer;
   Mixer* m_mixer;
   Format m_format;
@@ -168,8 +154,9 @@ private:
 
 class Mixer
 {
-public:
-  explicit Mixer(int outputRate = 44100) : m_outputRate(outputRate)
+  public:
+  explicit Mixer(int outputRate = 44100)
+      : m_outputRate(outputRate)
   {
   }
   int OutputRate() const
@@ -181,7 +168,8 @@ public:
   // The DirectSound primary buffer's volume applies to everything.
   void SetMasterVolume(int hundredthsDb);
 
-  // Interleaved stereo s16. Voices that run to the end stop; their notifications are signalled after the lock is released.
+  // Interleaved stereo s16. Voices that run to the end stop; their notifications are signalled after the lock is
+  // released.
   void Render(int16_t* out, int frames);
 
   // Frames rendered since creation (tests, A/V sync).
@@ -189,7 +177,7 @@ public:
 
   static Mixer& Global();
 
-private:
+  private:
   friend class Voice;
   friend class Stream;
   void Add(Voice* v);

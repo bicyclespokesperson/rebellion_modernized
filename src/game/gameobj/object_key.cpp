@@ -14,7 +14,8 @@ ObjectKey ObjectKey::Make(uint32_t family, uint32_t id)
   return key;
 }
 
-ObjectKey::ObjectKey() : m_value(kUnsetValue)
+ObjectKey::ObjectKey()
+    : m_value(kUnsetValue)
 {
 }
 
@@ -27,8 +28,9 @@ void ObjectKey::Reset()
 
 ObjectKey* ObjectKey::OrNull()
 {
-  if (m_value == kUnsetValue)
+  if (m_value == kUnsetValue) {
     return nullptr;
+  }
   return this;
 }
 
@@ -59,8 +61,9 @@ int ObjectKey::Checksum(Crc32* crc)
 
 NullableKey* NullableKey::OrNull()
 {
-  if (m_value == 0)
+  if (m_value == 0) {
     return nullptr;
+  }
   return this;
 }
 
@@ -71,15 +74,20 @@ int NullableKey::IsSet() const
 
 // ---- ObjectKeyNode -----------------------------------------------------------------------------------------
 
-ObjectKeyNode::ObjectKeyNode() : AvlNode()
+ObjectKeyNode::ObjectKeyNode()
+    : AvlNode()
 {
 }
 
-ObjectKeyNode::ObjectKeyNode(const ObjectKey& key) : AvlNode(), m_key(key)
+ObjectKeyNode::ObjectKeyNode(const ObjectKey& key)
+    : AvlNode()
+    , m_key(key)
 {
 }
 
-ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other) : AvlNode(), m_key(other.m_key)
+ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other)
+    : AvlNode()
+    , m_key(other.m_key)
 {
 }
 
@@ -122,11 +130,15 @@ int ObjectKeyNode::HasSameKey(const ObjectKeyNode& other) const
 
 // ---- ObjectKeyValueNode ------------------------------------------------------------------------------------
 
-ObjectKeyValueNode::ObjectKeyValueNode() : ObjectKeyNode(), m_value(0)
+ObjectKeyValueNode::ObjectKeyValueNode()
+    : ObjectKeyNode()
+    , m_value(0)
 {
 }
 
-ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value) : ObjectKeyNode(key), m_value(value)
+ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value)
+    : ObjectKeyNode(key)
+    , m_value(value)
 {
 }
 
@@ -154,8 +166,9 @@ void ObjectKeyValueNode::Write(ostream* out)
 int ObjectKeyValueNode::Checksum(Crc32* crc)
 {
   int ok = ObjectKeyNode::Checksum(crc);
-  if (ok)
+  if (ok) {
     crc->AddInt(m_value);
+  }
   return ok;
 }
 
@@ -170,10 +183,10 @@ ObjectKeySet::ObjectKeySet() = default;
 
 ObjectKeySet::ObjectKeySet(const ObjectKeySet& other)
 {
-  for (const auto& entry : other.Entries())
-  {
-    if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
+  for (const auto& entry : other.Entries()) {
+    if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone()) {
       Add(copy);
+    }
   }
 }
 
@@ -187,13 +200,12 @@ void ObjectKeySet::Clear()
 
 void ObjectKeySet::Remove(ObjectKeyNode* node)
 {
-  if (!node)
+  if (!node) {
     return;
+  }
   const auto [first, last] = m_keys.equal_range(node->m_key.m_value);
-  for (auto position = first; position != last; ++position)
-  {
-    if ((*position).get() == node)
-    {
+  for (auto position = first; position != last; ++position) {
+    if ((*position).get() == node) {
       m_keys.extract(position).value().release();
       return;
     }
@@ -215,19 +227,17 @@ void ObjectKeySet::Read(istream* in)
   Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     return;
-  for (uint32_t i = 0; i < count; ++i)
-  {
+  }
+  for (uint32_t i = 0; i < count; ++i) {
     auto node = std::unique_ptr<ObjectKeyNode>(NewNode());
-    if (!node)
-    {
+    if (!node) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     node->Read(in);
-    if (iostream_access::State(in) != 0 || !Add(node.get()))
-    {
+    if (iostream_access::State(in) != 0 || !Add(node.get())) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
@@ -242,40 +252,39 @@ void ObjectKeySet::Save(ostream* out)
 
 void ObjectKeySet::Write(ostream* out)
 {
-  if (Count() > std::numeric_limits<uint32_t>::max())
-  {
+  if (Count() > std::numeric_limits<uint32_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
     return;
   }
   auto count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (const auto& entry : Entries())
+  for (const auto& entry : Entries()) {
     static_cast<ObjectKeyNode*>(entry.get())->Write(out);
+  }
 }
 
 int ObjectKeySet::Checksum(Crc32* crc)
 {
   int ok = 1;
   crc->AddInt(static_cast<uint32_t>(Count()));
-  for (const auto& entry : Entries())
-  {
+  for (const auto& entry : Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ok = node->Checksum(crc);
-    if (!ok)
+    if (!ok) {
       break;
+    }
   }
   return ok;
 }
 
 ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
 {
-  if (this != &other)
-  {
+  if (this != &other) {
     Clear();
-    for (const auto& entry : other.Entries())
-    {
-      if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
+    for (const auto& entry : other.Entries()) {
+      if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone()) {
         Add(copy);
+      }
     }
   }
   return *this;
@@ -283,19 +292,19 @@ ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
 
 uint32_t ObjectKeySet::Add(ObjectKeyNode* node)
 {
-  if (!node || !node->m_key.IsComplete())
+  if (!node || !node->m_key.IsComplete()) {
     return 0;
-  const auto [first, last] = m_keys.equal_range(node->m_key.m_value);
-  for (auto position = first; position != last; ++position)
-    if ((*position).get() == node)
-      return 0;
-  std::unique_ptr<ObjectKeyNode> pending(node);
-  try
-  {
-    m_keys.insert(std::move(pending));
   }
-  catch (...)
-  {
+  const auto [first, last] = m_keys.equal_range(node->m_key.m_value);
+  for (auto position = first; position != last; ++position) {
+    if ((*position).get() == node) {
+      return 0;
+    }
+  }
+  std::unique_ptr<ObjectKeyNode> pending(node);
+  try {
+    m_keys.insert(std::move(pending));
+  } catch (...) {
     pending.release();
     throw;
   }
@@ -305,10 +314,12 @@ uint32_t ObjectKeySet::Add(ObjectKeyNode* node)
 int ObjectKeySet::AddKey(const ObjectKey* key)
 {
   auto* node = NewOrNull<ObjectKeyNode>(*key);
-  if (!node)
+  if (!node) {
     return 0;
-  if (Add(node))
+  }
+  if (Add(node)) {
     return 1;
+  }
   delete node;
   return 0;
 }
@@ -316,8 +327,7 @@ int ObjectKeySet::AddKey(const ObjectKey* key)
 void ObjectKeySet::RemoveKey(const ObjectKey* key)
 {
   ObjectKeyNode* node = Find(key);
-  if (node)
-  {
+  if (node) {
     Remove(node);
     delete node;
   }
@@ -326,8 +336,9 @@ void ObjectKeySet::RemoveKey(const ObjectKey* key)
 ObjectKeyNode* ObjectKeySet::Detach(const ObjectKey* key)
 {
   ObjectKeyNode* node = Find(key);
-  if (node)
+  if (node) {
     Remove(node);
+  }
   return node;
 }
 
@@ -339,7 +350,8 @@ ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key)
 
 // ---- ObjectKeyValueSet -------------------------------------------------------------------------------------
 
-ObjectKeyValueSet::ObjectKeyValueSet() : ObjectKeySet()
+ObjectKeyValueSet::ObjectKeyValueSet()
+    : ObjectKeySet()
 {
 }
 
@@ -369,8 +381,9 @@ int ObjectKeyValueSet::Checksum(Crc32* crc)
 
 ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other)
 {
-  if (this != &other)
+  if (this != &other) {
     ObjectKeySet::operator=(other);
+  }
   return *this;
 }
 
@@ -379,10 +392,10 @@ int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const
   bool same = true;
   auto aPosition = Entries().begin();
   auto bPosition = other.Entries().begin();
-  while (aPosition != Entries().end() && bPosition != other.Entries().end())
-  {
-    if (!same)
+  while (aPosition != Entries().end() && bPosition != other.Entries().end()) {
+    if (!same) {
       return false;
+    }
     auto* a = static_cast<const ObjectKeyValueNode*>((*aPosition).get());
     auto* b = static_cast<const ObjectKeyValueNode*>((*bPosition).get());
     same = a->HasSameKeyAndValue(*b);
@@ -400,17 +413,20 @@ int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const
 int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value)
 {
   auto* node = NewOrNull<ObjectKeyValueNode>(*key, value);
-  if (!node)
+  if (!node) {
     return 0;
-  if (Add(node))
+  }
+  if (Add(node)) {
     return 1;
+  }
   delete node;
   return 0;
 }
 
 // ---- ObjectRefList -----------------------------------------------------------------------------------------
 
-ObjectRefList::ObjectRefList() : m_ok(1)
+ObjectRefList::ObjectRefList()
+    : m_ok(1)
 {
 }
 
@@ -422,17 +438,17 @@ ObjectRefList::~ObjectRefList()
 ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
 {
   bool copied = true;
-  if (this != &other)
-  {
+  if (this != &other) {
     Clear();
-    for (const auto& entry : other.Entries())
-    {
-      if (!copied)
+    for (const auto& entry : other.Entries()) {
+      if (!copied) {
         break;
+      }
       std::unique_ptr<ObjectRefNode> copy(NewOrNull<ObjectRefNode>(*entry));
       copied = copy && Add(copy.get());
-      if (copied)
+      if (copied) {
         copy.release();
+      }
     }
   }
   m_ok = copied;
@@ -445,13 +461,12 @@ int ObjectRefList::Read(istream* in)
   ReadValue32(in, &m_ok);
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     return 0;
-  for (uint32_t i = 0; i < count; ++i)
-  {
+  }
+  for (uint32_t i = 0; i < count; ++i) {
     std::unique_ptr<ObjectRefNode> node(NewOrNull<ObjectRefNode>());
-    if (!node || !node->Read(in) || iostream_access::State(in) != 0 || !Add(node.get()))
-    {
+    if (!node || !node->Read(in) || iostream_access::State(in) != 0 || !Add(node.get())) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
     }
@@ -464,10 +479,10 @@ int ObjectRefList::Write(ostream* out)
 {
   int ok = 1;
   WriteValue32(out, &m_ok);
-  if (!WriteCount32(out, Count()))
+  if (!WriteCount32(out, Count())) {
     return 0;
-  for (const auto& entry : Entries())
-  {
+  }
+  for (const auto& entry : Entries()) {
     ok = entry->Write(out);
   }
   return ok;
@@ -478,8 +493,9 @@ int ObjectRefList::Checksum(Crc32* crc)
   int ok = 1;
   crc->AddInt(m_ok);
   crc->AddInt(Size());
-  for (const auto& entry : Entries())
+  for (const auto& entry : Entries()) {
     ok = entry->Checksum(crc);
+  }
   return ok;
 }
 
@@ -496,23 +512,27 @@ size_t ObjectRefList::Size() const
 ObjectRefNode* ObjectRefList::AddKey(ObjectKey key)
 {
   std::unique_ptr<ObjectRefNode> node(NewOrNull<ObjectRefNode>());
-  if (!node)
+  if (!node) {
     return nullptr;
+  }
   node->Set(key);
   return Add(node.get()) ? node.release() : nullptr;
 }
 
-ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0)
+ObjectRefNode::ObjectRefNode()
+    : IdNode()
+    , m_flag(1)
+    , m_count(0)
 {
   m_key.m_value = 0;
 }
 
 // The copy constructor clears m_flag instead of copying it.
 ObjectRefNode::ObjectRefNode(const ObjectRefNode& other)
-: IdNode(),
-  m_flag(0),
-  m_count(other.m_count),
-  m_key(other.m_key)
+    : IdNode()
+    , m_flag(0)
+    , m_count(other.m_count)
+    , m_key(other.m_key)
 {
 }
 

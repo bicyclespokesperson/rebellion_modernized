@@ -12,20 +12,20 @@ class Crc32;
 // the pass-through UnitObjData at 0x5409d0, ...). Only master views own one, side views leave m_data null.
 class GameObjData
 {
-public:
-  GameObjData(); // 0x553e90
-  virtual ~GameObjData(); // 0x553ef0 (deleting), 0x553f10
-  virtual int Read(istream* in); // 0x553f60
-  virtual int Write(ostream* out); // 0x553fa0
+  public:
+  GameObjData();                    // 0x553e90
+  virtual ~GameObjData();           // 0x553ef0 (deleting), 0x553f10
+  virtual int Read(istream* in);    // 0x553f60
+  virtual int Write(ostream* out);  // 0x553fa0
   virtual int Checksum(Crc32* crc); // 0x553fe0
   virtual int IsValid()
   {
     return 1;
   } // slot 4, 0x40f340
 
-  int m_field04; // +0x04, plain int with a getter/setter pair on GameObj (0x4f6df0/0x4f7f60)
-  int m_lockCount; // +0x08, GameObj::Lock/Unlock count; the Locked state flag is "count != 0"
-  ObjectKey m_key; // +0x0c
+  int m_field04;      // +0x04, plain int with a getter/setter pair on GameObj (0x4f6df0/0x4f7f60)
+  int m_lockCount;    // +0x08, GameObj::Lock/Unlock count; the Locked state flag is "count != 0"
+  ObjectKey m_key;    // +0x0c
   TrackedStat m_stat; // +0x10
 };
 
@@ -34,24 +34,24 @@ public:
 // bit set (tests of bits 0 and 3 at 0x5092f0/0x509310). 0x84 bytes, VT 0x662760.
 class SystemData : public GameObjData
 {
-public:
-  SystemData(); // 0x55a100
-  ~SystemData() override; // 0x55a1c0 (deleting), 0x55a1e0
-  int Read(istream* in) override; // 0x55a280
-  int Write(ostream* out) override; // 0x55a3b0
+  public:
+  SystemData();                      // 0x55a100
+  ~SystemData() override;            // 0x55a1c0 (deleting), 0x55a1e0
+  int Read(istream* in) override;    // 0x55a280
+  int Write(ostream* out) override;  // 0x55a3b0
   int Checksum(Crc32* crc) override; // 0x55a4e0
   // Slot 4 is 0x55a5f0, a jump to the shared "return 1" stub.
 
   TrackedStat m_stats[6]; // +0x18
-  int m_word48[3]; // +0x48
-  int m_word54[3]; // +0x54
-  int m_word60; // +0x60
-  int m_word64; // +0x64
-  int m_word68[3]; // +0x68
-  int m_word74; // +0x74
-  int m_word78; // +0x78
-  int m_word7c; // +0x7c
-  uint32_t m_flags80; // +0x80
+  int m_word48[3];        // +0x48
+  int m_word54[3];        // +0x54
+  int m_word60;           // +0x60
+  int m_word64;           // +0x64
+  int m_word68[3];        // +0x68
+  int m_word74;           // +0x74
+  int m_word78;           // +0x78
+  int m_word7c;           // +0x7c
+  uint32_t m_flags80;     // +0x80
 };
 
 // Body of the galaxy class's CreateData (slot 58, 0x512c90, shared by the classes at 0x65e640/0x663698/0x664098): a new

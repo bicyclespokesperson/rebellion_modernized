@@ -48,8 +48,9 @@ int SystemType92::Validate()
 
 int SystemType92::ApplyAll(NotifyContext* ctx)
 {
-  if (IsSideView())
+  if (IsSideView()) {
     return ApplyAllImpl(ctx);
+  }
   return 0;
 }
 
@@ -82,11 +83,11 @@ int SystemType92::InitializeNewObject(intptr_t a)
 {
   auto* ctx = reinterpret_cast<NotifyContext*>(a);
   const int result = System::InitializeNewObject(a);
-  if (!result)
+  if (!result) {
     return 0;
+  }
 
-  if (m_id == kSpecialSystemId)
-  {
+  if (m_id == kSpecialSystemId) {
     SetPopulated(1, ctx);
     SetLoyalty(kStartingLoyalty, ctx);
     NotifyContext empireOnly(*ctx);
@@ -97,18 +98,13 @@ int SystemType92::InitializeNewObject(intptr_t a)
     SystemView(this, 2)->ApplyPopulated(&empireOnly);
     SystemView(this, 2)->ApplyExplored(&empireOnly);
     SetEnergy(RollSystemEnergyB(), ctx);
-  }
-  else if (ControlSide() == kAllianceSide)
-  {
+  } else if (ControlSide() == kAllianceSide) {
     SetPopulated(1, ctx);
     SetLoyalty(kStartingLoyalty, ctx);
     SetEnergy(RollSystemEnergyB(), ctx);
-  }
-  else
-  {
+  } else {
     SetPopulated(RollSystemPopulatedB(), ctx);
-    if (m_flags & system_flag::kPopulated)
-    {
+    if (m_flags & system_flag::kPopulated) {
       SetLoyalty(RollCenteredPercent(), ctx);
     }
     SetEnergy(RollSystemEnergyB(), ctx);
@@ -120,20 +116,22 @@ int SystemType92::InitializeNewObject(intptr_t a)
 int SystemType92::CreateStartingUnits(NotifyContext* ctx)
 {
   int result = 1;
-  if (m_flags & system_flag::kPopulated)
-  {
+  if (m_flags & system_flag::kPopulated) {
     const int count = m_energy;
-    ObjectKey key;
     const int rawMaterial = m_rawMaterial;
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
       int created;
+      NullableKey unitKey;
       result = RollStartingUnitB(rawMaterial, CountProductionFacilityType2C(this, ControlSide(), 1), &created,
-                                 reinterpret_cast<NullableKey*>(&key));
-      if (result && created)
+                                 &unitKey);
+      if (result && created) {
+        ObjectKey key;
+        key.m_value = unitKey.m_value;
         result = CreateChild(&key, ControlSide(), ctx, 1, 1) != nullptr;
-      if (!result)
+      }
+      if (!result) {
         break;
+      }
     }
   }
   return result;

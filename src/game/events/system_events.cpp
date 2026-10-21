@@ -7,7 +7,8 @@
 
 using events::succeedWithoutChecks;
 
-SystemEvent303::SystemEvent303() : SourceEvent()
+SystemEvent303::SystemEvent303()
+    : SourceEvent()
 {
 }
 
@@ -42,7 +43,8 @@ SystemEvent303* CreateSystemEvent303()
   return NewOrNull<SystemEvent303>();
 }
 
-SystemEvent304::SystemEvent304() : SourceEvent()
+SystemEvent304::SystemEvent304()
+    : SourceEvent()
 {
 }
 
@@ -77,7 +79,8 @@ SystemEvent304* CreateSystemEvent304()
   return NewOrNull<SystemEvent304>();
 }
 
-SystemEvent305::SystemEvent305() : SourceEvent()
+SystemEvent305::SystemEvent305()
+    : SourceEvent()
 {
 }
 
@@ -112,7 +115,8 @@ SystemEvent305* CreateSystemEvent305()
   return NewOrNull<SystemEvent305>();
 }
 
-SystemEvent309::SystemEvent309() : SourceEvent()
+SystemEvent309::SystemEvent309()
+    : SourceEvent()
 {
 }
 
@@ -147,7 +151,8 @@ SystemEvent309* CreateSystemEvent309()
   return NewOrNull<SystemEvent309>();
 }
 
-SystemEvent310::SystemEvent310() : SourceEvent()
+SystemEvent310::SystemEvent310()
+    : SourceEvent()
 {
 }
 
@@ -182,7 +187,8 @@ SystemEvent310* CreateSystemEvent310()
   return NewOrNull<SystemEvent310>();
 }
 
-SystemEvent30f::SystemEvent30f() : SourceEvent()
+SystemEvent30f::SystemEvent30f()
+    : SourceEvent()
 {
 }
 
@@ -217,7 +223,8 @@ SystemEvent30f* CreateSystemEvent30f()
   return NewOrNull<SystemEvent30f>();
 }
 
-SystemEvent31b::SystemEvent31b() : SourceEvent()
+SystemEvent31b::SystemEvent31b()
+    : SourceEvent()
 {
 }
 
@@ -256,7 +263,8 @@ SystemEvent31b* CreateSystemEvent31b()
   return NewOrNull<SystemEvent31b>();
 }
 
-SystemEvent311::SystemEvent311() : SourceEvent()
+SystemEvent311::SystemEvent311()
+    : SourceEvent()
 {
 }
 
@@ -291,7 +299,8 @@ SystemEvent311* CreateSystemEvent311()
   return NewOrNull<SystemEvent311>();
 }
 
-SystemEvent319::SystemEvent319() : SourceEvent()
+SystemEvent319::SystemEvent319()
+    : SourceEvent()
 {
 }
 
@@ -320,8 +329,7 @@ int SystemEvent319::Execute()
   ObjectKey key;
   GetKey(&key);
   auto* system = static_cast<System*>(GetMasterInFamilies_90_98(&key));
-  if (system)
-  {
+  if (system) {
     system->SyncViewForEvent(0xb, 1, &ctx);
     system->SyncViewForEvent(0xb, 2, &ctx);
   }

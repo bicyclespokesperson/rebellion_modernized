@@ -10,8 +10,7 @@ namespace
 
 constexpr uint32_t kTickBaseMs = 100000;
 
-struct State
-{
+struct State {
   bool deterministic = false;
   bool noTimers = false;
   uint32_t stepUs = 1000;
@@ -23,15 +22,15 @@ struct State
 unsigned EnvNumber(const char* name, unsigned fallback)
 {
   const char* text = getenv(name);
-  if (!text || !*text)
+  if (!text || !*text) {
     return fallback;
+  }
   return static_cast<unsigned>(strtoul(text, nullptr, 10));
 }
 
 State& Get()
 {
-  static State state = []
-  {
+  static State state = [] {
     State s;
     s.deterministic = EnvNumber("REB_DETERMINISTIC", 0) != 0;
     s.noTimers = EnvNumber("REB_NO_TIMERS", 0) != 0;
@@ -70,6 +69,11 @@ uint32_t RealTickMs()
 {
   const auto elapsed = std::chrono::steady_clock::now().time_since_epoch();
   return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+}
+
+uint32_t TickMs()
+{
+  return Deterministic() ? VirtualTickMs() : RealTickMs();
 }
 
 } // namespace native_clock

@@ -90,19 +90,19 @@ GameObjNotifier* CreateDeathStar()
 }
 
 CapitalShipIterator::CapitalShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kCapitalShipFamilies, stateFilter)
+    : ChildIterator(parent, &kCapitalShipFamilies, stateFilter)
 {
 }
 
 CapitalShipIterator::~CapitalShipIterator() = default;
 
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kDeathStarFamilies, stateFilter)
+    : ChildIterator(parent, &kDeathStarFamilies, stateFilter)
 {
 }
 
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kDeathStarFamilies, stateFilter)
+    : ChildIterator(parent, side, &kDeathStarFamilies, stateFilter)
 {
 }
 

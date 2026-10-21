@@ -22,8 +22,9 @@ constexpr uint32_t kDirty = 0x80000000;
 bool ParentKeyOf(int view, ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectInFamilies_01_ff(view, key);
-  if (!object || !object->m_parent)
+  if (!object || !object->m_parent) {
     return false;
+  }
   ObjectKey parentKey;
   *key = *GetObjectKey(object->m_parent, &parentKey);
   return true;
@@ -32,13 +33,13 @@ bool ParentKeyOf(int view, ObjectKey* key)
 } // namespace
 
 AiSideController::AiSideController()
-: m_side(0),
-  m_flags(0),
-  m_bitsA(0),
-  m_bitB(0x80),
-  m_bitC(0x40),
-  m_cursorFleetKey(),
-  m_cursorCharacterKey()
+    : m_side(0)
+    , m_flags(0)
+    , m_bitsA(0)
+    , m_bitB(0x80)
+    , m_bitC(0x40)
+    , m_cursorFleetKey()
+    , m_cursorCharacterKey()
 {
   m_systems.m_classes = &m_classes;
   m_ships.m_fleets = &m_fleets;
@@ -58,19 +59,23 @@ AiSideController::AiSideController()
   m_cursor = nullptr;
   m_step = 0;
   m_subStep = 0;
-  for (int& stat : m_stat)
+  for (int& stat : m_stat) {
     stat = 0;
+  }
   m_missionTarget = 0;
   m_missionKind = 0;
   m_missionSubtype = 0;
-  for (int& count : m_plannerCount)
+  for (int& count : m_plannerCount) {
     count = 0;
+  }
   m_agentSystem = 0;
   m_agentTarget = 0;
-  for (int& count : m_agentCount)
+  for (int& count : m_agentCount) {
     count = 0;
-  for (int& budget : m_budget)
+  }
+  for (int& budget : m_budget) {
     budget = 0;
+  }
 }
 
 AiSideController::~AiSideController()
@@ -122,27 +127,28 @@ void AiSideController::Load(istream* in)
   m_agents.Load(in);
   m_systemRecords.Load(in);
   m_tasks.Load(in);
-  for (int& stat : m_stat)
+  for (int& stat : m_stat) {
     ReadValue32(in, &stat);
+  }
   ReadValue32(in, &m_missionTarget);
   ReadValue32(in, &m_missionKind);
   ReadValue32(in, &m_missionSubtype);
-  for (int& count : m_plannerCount)
+  for (int& count : m_plannerCount) {
     ReadValue32(in, &count);
+  }
   ReadValue32(in, &m_agentSystem);
   ReadValue32(in, &m_agentTarget);
-  for (int& count : m_agentCount)
+  for (int& count : m_agentCount) {
     ReadValue32(in, &count);
-  for (int& budget : m_budget)
+  }
+  for (int& budget : m_budget) {
     ReadValue32(in, &budget);
+  }
   int cursorFamily;
   ReadValue32(in, &cursorFamily);
-  if (cursorFamily == 0)
-  {
+  if (cursorFamily == 0) {
     m_cursor = nullptr;
-  }
-  else
-  {
+  } else {
     key.Read(in);
     m_cursor = m_sectors.FindEval(key);
   }
@@ -175,26 +181,27 @@ void AiSideController::Save(ostream* out)
   m_agents.Save(out);
   m_systemRecords.Save(out);
   m_tasks.Save(out);
-  for (int& stat : m_stat)
+  for (int& stat : m_stat) {
     WriteValue32(out, &stat);
+  }
   WriteValue32(out, &m_missionTarget);
   WriteValue32(out, &m_missionKind);
   WriteValue32(out, &m_missionSubtype);
-  for (int& count : m_plannerCount)
+  for (int& count : m_plannerCount) {
     WriteValue32(out, &count);
+  }
   WriteValue32(out, &m_agentSystem);
   WriteValue32(out, &m_agentTarget);
-  for (int& count : m_agentCount)
+  for (int& count : m_agentCount) {
     WriteValue32(out, &count);
-  for (int& budget : m_budget)
+  }
+  for (int& budget : m_budget) {
     WriteValue32(out, &budget);
-  if (m_cursor == nullptr)
-  {
+  }
+  if (m_cursor == nullptr) {
     int none = 0;
     WriteValue32(out, &none);
-  }
-  else
-  {
+  } else {
     ObjectKey key;
     m_cursor->GetKey(&key);
     int family = static_cast<int>(key.m_value >> 24);
@@ -253,176 +260,162 @@ void AiSideController::NoteMask(uint32_t mask)
   m_flags.m_value |= 2;
   Stat(0x190) = 0;
   Stat(0x194) = 0;
-  if (m_side == 1)
-  {
-    if (mask & 0x300)
+  if (m_side == 1) {
+    if (mask & 0x300) {
       Stat(0x190) = 1;
-    if (mask & 0x1000)
+    }
+    if (mask & 0x1000) {
       ++Stat(0x190);
-    if (mask & 0x2000)
+    }
+    if (mask & 0x2000) {
       ++Stat(0x190);
-    if (mask & 1)
+    }
+    if (mask & 1) {
       Stat(0x194) = 1;
-    if (mask & 0x10)
+    }
+    if (mask & 0x10) {
       ++Stat(0x194);
-    if (mask & 0x20)
+    }
+    if (mask & 0x20) {
       ++Stat(0x194);
-  }
-  else
-  {
-    if (mask & 1)
+    }
+  } else {
+    if (mask & 1) {
       Stat(0x190) = 1;
-    if (mask & 0x10)
+    }
+    if (mask & 0x10) {
       ++Stat(0x190);
-    if (mask & 0x20)
+    }
+    if (mask & 0x20) {
       ++Stat(0x190);
-    if (mask & 0x300)
+    }
+    if (mask & 0x300) {
       Stat(0x194) = 1;
-    if (mask & 0x1000)
+    }
+    if (mask & 0x1000) {
       ++Stat(0x194);
-    if (mask & 0x2000)
+    }
+    if (mask & 0x2000) {
       ++Stat(0x194);
+    }
   }
 }
 
 void AiSideController::NoteObject(const ObjectKey* key)
 {
   ObjectKey current = *key;
-  for (;;)
-  {
+  for (;;) {
     const uint32_t family = current.Family();
-    if (InFamilies(family, 0x90, 0x98))
-    {
+    if (InFamilies(family, 0x90, 0x98)) {
       m_systems.NoteSystem(&current);
       return;
     }
-    if (InFamilies(family, 0x14, 0x1c))
-    {
+    if (InFamilies(family, 0x14, 0x1c)) {
       m_ships.AddOrRefresh(&current);
       return;
     }
-    if (InFamilies(family, 0x80, 0x90))
-    {
+    if (InFamilies(family, 0x80, 0x90)) {
       m_sectors.NoteSector(&current);
       return;
     }
-    if (InFamilies(family, 8, 0x10))
-    {
+    if (InFamilies(family, 8, 0x10)) {
       m_fleets.NoteFleet(&current);
       return;
     }
-    if (InFamilies(family, 0x30, 0x40))
-    {
+    if (InFamilies(family, 0x30, 0x40)) {
       m_characters.AddOrRefresh(&current);
       return;
     }
-    if (InFamilies(family, 0x40, 0x80))
-    {
+    if (InFamilies(family, 0x40, 0x80)) {
       m_planners.NoteMissionObject(&current);
       return;
     }
-    if (family == 0xf1 || family == 0xf2 || family == 0xf8 || InFamilies(family, 0x98, 0xa0))
+    if (family == 0xf1 || family == 0xf2 || family == 0xf8 || InFamilies(family, 0x98, 0xa0)) {
       return;
-    if (!ParentKeyOf(m_side, &current))
+    }
+    if (!ParentKeyOf(m_side, &current)) {
       return;
+    }
   }
 }
 
 void AiSideController::NoteObjectReplaced(const ObjectKey* oldKey)
 {
   ObjectKey current = *oldKey;
-  for (;;)
-  {
+  for (;;) {
     const uint32_t family = current.Family();
-    if (InFamilies(family, 0x90, 0x98))
-    {
+    if (InFamilies(family, 0x90, 0x98)) {
       m_systems.NoteSystem(&current);
       return;
     }
-    if (InFamilies(family, 0x14, 0x1c))
-    {
+    if (InFamilies(family, 0x14, 0x1c)) {
       m_ships.RemoveShip(&current, oldKey);
       return;
     }
-    if (InFamilies(family, 8, 0x10))
-    {
-      if (oldKey->m_value != current.m_value)
+    if (InFamilies(family, 8, 0x10)) {
+      if (oldKey->m_value != current.m_value) {
         m_fleets.NoteFleet(&current);
+      }
       return;
     }
-    if (InFamilies(family, 0x30, 0x40))
-    {
+    if (InFamilies(family, 0x30, 0x40)) {
       m_characters.RemoveCharacter(&current);
       return;
     }
-    if (InFamilies(family, 0x40, 0x80))
-    {
+    if (InFamilies(family, 0x40, 0x80)) {
       m_planners.NoteMission(&current);
       return;
     }
-    if (InFamilies(family, 0x80, 0x90))
-    {
+    if (InFamilies(family, 0x80, 0x90)) {
       m_sectors.NoteSector(&current);
       return;
     }
-    if (family == 0xf1 || family == 0xf2 || family == 0xf8 || InFamilies(family, 0x98, 0xa0))
+    if (family == 0xf1 || family == 0xf2 || family == 0xf8 || InFamilies(family, 0x98, 0xa0)) {
       return;
-    if (!ParentKeyOf(m_side, &current))
+    }
+    if (!ParentKeyOf(m_side, &current)) {
       return;
+    }
   }
 }
 
 void AiSideController::NoteCombat(const ObjectKey* key)
 {
   ObjectKey current = *key;
-  for (;;)
-  {
+  for (;;) {
     const uint32_t family = current.Family();
-    if (InFamilies(family, 0x90, 0x98))
-    {
+    if (InFamilies(family, 0x90, 0x98)) {
       m_systems.NoteSystemCombat(&current);
       return;
     }
-    if (InFamilies(family, 8, 0x10))
-    {
+    if (InFamilies(family, 8, 0x10)) {
       m_fleets.NoteFleetCombat(&current);
       return;
     }
-    if (!ParentKeyOf(m_side, &current))
+    if (!ParentKeyOf(m_side, &current)) {
       return;
+    }
   }
 }
 
 void AiSideController::NoteMoved(const ObjectKey* key, const ObjectKey* from, const ObjectKey* to)
 {
   const uint32_t family = key->Family();
-  if (InFamilies(family, 0x90, 0x98))
-  {
+  if (InFamilies(family, 0x90, 0x98)) {
     m_systems.NoteSystem(key);
-  }
-  else if (InFamilies(family, 0x14, 0x1c))
-  {
+  } else if (InFamilies(family, 0x14, 0x1c)) {
     m_ships.MoveShip(key, from, to);
-  }
-  else if (InFamilies(family, 8, 0x10))
-  {
+  } else if (InFamilies(family, 8, 0x10)) {
     m_fleets.NoteFleet(key);
-  }
-  else if (InFamilies(family, 0x30, 0x40))
-  {
+  } else if (InFamilies(family, 0x30, 0x40)) {
     m_characters.SetRecordLocation(key, from, to);
-  }
-  else if (InFamilies(family, 0x40, 0x80))
-  {
-  }
-  else if (InFamilies(family, 0x80, 0x90))
-  {
+  } else if (InFamilies(family, 0x40, 0x80)) {
+  } else if (InFamilies(family, 0x80, 0x90)) {
     m_sectors.NoteSector(key);
-  }
-  else if (InFamilies(family, 0x20, 0x30))
-  {
-    if (InFamilies(family, 0x20, 0x22))
+  } else if (InFamilies(family, 0x20, 0x30)) {
+    if (InFamilies(family, 0x20, 0x22)) {
       m_flags.m_value |= 2;
+    }
   }
   NoteObject(from);
   NoteObject(to);
@@ -430,17 +423,18 @@ void AiSideController::NoteMoved(const ObjectKey* key, const ObjectKey* from, co
 
 void AiSideController::NoteSystemChanged(const ObjectKey* key)
 {
-  if (InFamilies(key->Family(), 0x90, 0x98))
+  if (InFamilies(key->Family(), 0x90, 0x98)) {
     m_flags.m_value |= 2;
+  }
 }
 
 void AiSideController::NoteShipChanged(const ObjectKey* key)
 {
-  if (!InFamilies(key->Family(), 0x14, 0x1c))
+  if (!InFamilies(key->Family(), 0x14, 0x1c)) {
     return;
+  }
   auto* record = static_cast<AiShipRecord*>(m_ships.Find(key));
-  if (record)
-  {
+  if (record) {
     record->m_flags.m_value |= 0x8000000;
     m_ships.AddOrRefresh(key);
   }
@@ -460,77 +454,84 @@ void AiSideController::NoteCharacterChanged(const ObjectKey* key)
 {
   m_characters.AddOrRefresh(key);
   auto* record = static_cast<AiCharacterRecord*>(m_characters.Find(key));
-  if (!record)
+  if (!record) {
     return;
+  }
   ObjectKey location = record->m_location;
-  if (InFamilies(location.Family(), 0x90, 0x98))
+  if (InFamilies(location.Family(), 0x90, 0x98)) {
     m_systems.NoteSystem(&location);
-  else if (InFamilies(location.Family(), 0x14, 0x1c))
+  } else if (InFamilies(location.Family(), 0x14, 0x1c)) {
     m_ships.AddOrRefresh(&location);
+  }
 }
 
 void AiSideController::NoteSystemTouched(const ObjectKey* key)
 {
-  if (!InFamilies(key->Family(), 0x90, 0x98))
+  if (!InFamilies(key->Family(), 0x90, 0x98)) {
     return;
+  }
   AiSystemEval* eval = m_systems.FindEval(*key);
-  if (eval)
+  if (eval) {
     eval->NoteTouched();
+  }
 }
 
 void AiSideController::NoteFacilityTier(int, int tier)
 {
-  if (tier == m_classes.m_maxFacilityTier)
+  if (tier == m_classes.m_maxFacilityTier) {
     m_flags.m_value |= 0x8000000;
+  }
   DatRecord* record = nullptr;
-  if (GetTierRecord2a(m_side, tier, &record) != 0)
-  {
+  if (GetTierRecord2a(m_side, tier, &record) != 0) {
     ObjectKey key;
-    if (GetAiRecordKey(record, &key)->m_value == 0x25000004)
+    if (GetAiRecordKey(record, &key)->m_value == 0x25000004) {
       m_flags.m_value |= 0x1000000;
+    }
   }
   m_classes.SetFacilityTier(tier, m_side);
 }
 
 void AiSideController::NoteTroopTier(int, int tier)
 {
-  if (tier == m_classes.m_maxTroopTier)
+  if (tier == m_classes.m_maxTroopTier) {
     m_flags.m_value |= 0x4000000;
+  }
   m_classes.SetTroopTier(tier, m_side);
 }
 
 void AiSideController::NoteCapitalShipTier(int, int tier)
 {
-  if (tier == m_classes.m_maxShipTier)
+  if (tier == m_classes.m_maxShipTier) {
     m_flags.m_value |= 0x2000000;
+  }
   DatRecord* record = nullptr;
-  if (GetTierRecord28(m_side, tier, &record) != 0)
-  {
+  if (GetTierRecord28(m_side, tier, &record) != 0) {
     ObjectKey key;
     const uint32_t recordKey = GetAiRecordKey(record, &key)->m_value;
     const uint32_t expected = m_side == 1 ? 0x1400004a : 0x14000082;
-    if (recordKey == expected)
+    if (recordKey == expected) {
       m_flags.m_value |= 0x1000000;
+    }
   }
   m_classes.SetCapitalShipTier(tier, m_side);
 }
 
 void AiSideController::AdvanceBitCursor()
 {
-  if (m_bitsA == 0)
-  {
+  if (m_bitsA == 0) {
     m_bitB = m_bitC;
     m_bitC >>= 1;
-    if (m_bitC == 0)
+    if (m_bitC == 0) {
       m_bitC = 0x80;
+    }
     return;
   }
   uint32_t bit = m_bitB;
-  while ((m_bitsA & bit) == 0)
-  {
+  while ((m_bitsA & bit) == 0) {
     m_bitB = bit >> 1;
-    if ((bit >> 1) == 0)
+    if ((bit >> 1) == 0) {
       m_bitB = 0x80;
+    }
     bit = m_bitB;
   }
   m_bitsA = ~m_bitB & m_bitsA;
@@ -538,41 +539,37 @@ void AiSideController::AdvanceBitCursor()
 
 int AiSideController::Step()
 {
-  switch (m_step)
-  {
+  switch (m_step) {
     case 1:
-    {
-      GameSettings settings;
-      m_classes.Build(m_side);
-      m_characters.m_usableCount = m_classes.m_majorCharacters;
-      GetGameSettings(&settings);
-      if (settings.m_field08 == 1)
-        m_flags.m_value |= 1;
-      ResetBudget();
-      Side* side = static_cast<Side*>(GetSideObject(m_side, m_side));
-      if (side)
       {
-        IntPair maintState;
-        GetSidePairAt58(side, &maintState);
-        NoteValueA(reinterpret_cast<const int*>(&maintState.m_first));
-        NoteValueB(side->m_maintRequired);
-        Stat(0x18c) = 0;
+        GameSettings settings;
+        m_classes.Build(m_side);
+        m_characters.m_usableCount = m_classes.m_majorCharacters;
+        GetGameSettings(&settings);
+        if (settings.m_field08 == 1) {
+          m_flags.m_value |= 1;
+        }
+        ResetBudget();
+        Side* side = static_cast<Side*>(GetSideObject(m_side, m_side));
+        if (side) {
+          IntPair maintState;
+          GetSidePairAt58(side, &maintState);
+          NoteValueA(reinterpret_cast<const int*>(&maintState.m_first));
+          NoteValueB(side->m_maintRequired);
+          Stat(0x18c) = 0;
+        }
+        m_step = 2;
+        return 0;
       }
-      m_step = 2;
-      return 0;
-    }
     case 2:
-      if (m_systems.BuildStep())
-      {
+      if (m_systems.BuildStep()) {
         m_step = 3;
         return 0;
       }
       break;
     case 3:
-      if (m_sectors.BuildStep(&m_systems, this))
-      {
-        for (const auto& entry : m_sectors.Entries())
-        {
+      if (m_sectors.BuildStep(&m_systems, this)) {
+        for (const auto& entry : m_sectors.Entries()) {
           auto* sector = entry.get();
           Stat(0x18c) += 10;
         }
@@ -581,23 +578,22 @@ int AiSideController::Step()
       }
       break;
     case 4:
-      if (m_ships.BuildStep())
-      {
+      if (m_ships.BuildStep()) {
         m_step = 5;
         return 0;
       }
       break;
     case 5:
-      if (m_characters.BuildStep())
-      {
+      if (m_characters.BuildStep()) {
         m_step = 6;
         m_flags.m_value |= kDirty;
         return 0;
       }
       break;
     case 6:
-      if (Analyze())
+      if (Analyze()) {
         return 1;
+      }
       break;
     default:
       m_step = 1;
@@ -608,145 +604,143 @@ int AiSideController::Step()
 int AiSideController::Analyze()
 {
   int finishedPass = 0;
-  switch (m_subStep)
-  {
+  switch (m_subStep) {
     case 1:
-    {
-      if (!m_cursor)
-        m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
-      if (m_cursor)
       {
-        auto position = m_sectors.PositionOf(m_cursor);
-        int refreshed = 0;
-        while (position != m_sectors.Entries().end())
-        {
-          auto* sector = static_cast<AiSectorEval*>((*position).get());
-          ++position;
-          m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>((*position).get());
-          if (refreshed)
-            break;
-          refreshed = sector->Refresh();
-          if (refreshed)
-            m_flags.m_value |= 0xa0000000;
+        if (!m_cursor) {
+          m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
         }
-        if (m_cursor)
-          return 0;
-      }
-      m_subStep = 5;
-      break;
-    }
-    case 2:
-    {
-      AiFleetEval* fleet = nullptr;
-      if (KeyInFamilies(m_cursorFleetKey, 8, 0x10))
-        fleet = m_fleets.FindEval(m_cursorFleetKey);
-      if (!fleet)
-        fleet = static_cast<AiFleetEval*>(m_fleets.First());
-      if (fleet)
-      {
-        auto position = m_fleets.PositionOf(fleet);
-        int refreshed = 0;
-        while (!refreshed && position != m_fleets.Entries().end())
-        {
-          auto* current = static_cast<AiFleetEval*>((*position).get());
-          ++position;
-          fleet = position == m_fleets.Entries().end() ? nullptr : static_cast<AiFleetEval*>((*position).get());
-          refreshed = current->Refresh();
-          if (refreshed)
-            m_flags.m_value |= 0xc0000000;
-          if (!fleet)
-          {
-            m_cursorFleetKey.Reset();
-            break;
+        if (m_cursor) {
+          auto position = m_sectors.PositionOf(m_cursor);
+          int refreshed = 0;
+          while (position != m_sectors.Entries().end()) {
+            auto* sector = static_cast<AiSectorEval*>((*position).get());
+            ++position;
+            m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>((*position).get());
+            if (refreshed) {
+              break;
+            }
+            refreshed = sector->Refresh();
+            if (refreshed) {
+              m_flags.m_value |= 0xa0000000;
+            }
           }
-          ObjectKey key;
-          m_cursorFleetKey = *fleet->GetKey(&key);
+          if (m_cursor) {
+            return 0;
+          }
         }
-        if (fleet)
-          return 0;
+        m_subStep = 5;
+        break;
       }
-      m_subStep = 1;
-      break;
-    }
+    case 2:
+      {
+        AiFleetEval* fleet = nullptr;
+        if (KeyInFamilies(m_cursorFleetKey, 8, 0x10)) {
+          fleet = m_fleets.FindEval(m_cursorFleetKey);
+        }
+        if (!fleet) {
+          fleet = static_cast<AiFleetEval*>(m_fleets.First());
+        }
+        if (fleet) {
+          auto position = m_fleets.PositionOf(fleet);
+          int refreshed = 0;
+          while (!refreshed && position != m_fleets.Entries().end()) {
+            auto* current = static_cast<AiFleetEval*>((*position).get());
+            ++position;
+            fleet = position == m_fleets.Entries().end() ? nullptr : static_cast<AiFleetEval*>((*position).get());
+            refreshed = current->Refresh();
+            if (refreshed) {
+              m_flags.m_value |= 0xc0000000;
+            }
+            if (!fleet) {
+              m_cursorFleetKey.Reset();
+              break;
+            }
+            ObjectKey key;
+            m_cursorFleetKey = *fleet->GetKey(&key);
+          }
+          if (fleet) {
+            return 0;
+          }
+        }
+        m_subStep = 1;
+        break;
+      }
     default:
       m_subStep = 4;
       break;
     case 4:
-    {
-      AiCharacterRecord* character = nullptr;
-      if (KeyInFamilies(m_cursorCharacterKey, 0x30, 0x40))
-        character = static_cast<AiCharacterRecord*>(m_characters.Find(&m_cursorCharacterKey));
-      if (!character)
-        character = static_cast<AiCharacterRecord*>(m_characters.First());
-      if (character)
       {
-        auto position = m_characters.PositionOf(character);
-        int refreshed = 0;
-        while (!refreshed && position != m_characters.Entries().end())
-        {
-          AiCharacterRecord* current = character;
-          ++position;
-          character =
-            position == m_characters.Entries().end() ? nullptr : static_cast<AiCharacterRecord*>((*position).get());
-          refreshed = current->Refresh();
-          if (refreshed)
-            m_flags.m_value |= 0x90000000;
-          if (!character)
-          {
-            m_cursorCharacterKey.Reset();
-            break;
-          }
-          ObjectKey key;
-          m_cursorCharacterKey = *character->GetKey(&key);
+        AiCharacterRecord* character = nullptr;
+        if (KeyInFamilies(m_cursorCharacterKey, 0x30, 0x40)) {
+          character = static_cast<AiCharacterRecord*>(m_characters.Find(&m_cursorCharacterKey));
         }
-        if (character)
-          return 0;
+        if (!character) {
+          character = static_cast<AiCharacterRecord*>(m_characters.First());
+        }
+        if (character) {
+          auto position = m_characters.PositionOf(character);
+          int refreshed = 0;
+          while (!refreshed && position != m_characters.Entries().end()) {
+            AiCharacterRecord* current = character;
+            ++position;
+            character = position == m_characters.Entries().end() ? nullptr
+                                                                 : static_cast<AiCharacterRecord*>((*position).get());
+            refreshed = current->Refresh();
+            if (refreshed) {
+              m_flags.m_value |= 0x90000000;
+            }
+            if (!character) {
+              m_cursorCharacterKey.Reset();
+              break;
+            }
+            ObjectKey key;
+            m_cursorCharacterKey = *character->GetKey(&key);
+          }
+          if (character) {
+            return 0;
+          }
+        }
+        m_subStep = 2;
+        break;
       }
-      m_subStep = 2;
-      break;
-    }
     case 5:
-      if (static_cast<uint32_t>(m_flags.m_value) & kDirty)
-      {
+      if (static_cast<uint32_t>(m_flags.m_value) & kDirty) {
         m_idlePlanners.Clear();
         m_idleAgents.Clear();
-        if (m_flags.m_value & 0x20000000)
-        {
+        if (m_flags.m_value & 0x20000000) {
           std::fill_n(&Stat(0x1ac), 0x28, 0);
           m_flags.m_value &= 0xfffffa6f;
           m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
           auto position = m_sectors.PositionOf(m_cursor);
-          while (position != m_sectors.Entries().end())
-          {
+          while (position != m_sectors.Entries().end()) {
             auto* sector = static_cast<AiSectorEval*>((*position).get());
             ++position;
             AccumulateSector(sector->m_stat, &sector->m_flags24.m_value, &sector->m_flags2c.m_value,
                              &sector->m_flags28.m_value, sector->m_x30);
             m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>((*position).get());
           }
-          if (0 < Stat(0x214))
+          if (0 < Stat(0x214)) {
             Stat(0x214) = Stat(0x214) / 5 + 1;
-          if (0 < Stat(0x218))
+          }
+          if (0 < Stat(0x218)) {
             Stat(0x218) = Stat(0x218) / 6 + 1;
+          }
         }
-        if (m_flags.m_value & 0x40000000)
-        {
+        if (m_flags.m_value & 0x40000000) {
           std::fill_n(&Stat(0x24c), 0x1e, 0);
           m_flags.m_value &= 0xfffffff3;
-          for (const auto& entry : m_fleets.Entries())
-          {
+          for (const auto& entry : m_fleets.Entries()) {
             auto* fleet = static_cast<AiFleetEval*>(entry.get());
             ObjectKey key;
             fleet->GetKey(&key);
             AccumulateFleet(&key, fleet->m_stat, &fleet->m_flags.m_value);
           }
         }
-        if (m_flags.m_value & 0x10000000)
-        {
+        if (m_flags.m_value & 0x10000000) {
           std::fill_n(&Stat(0x2c4), 0x14, 0);
           m_flags.m_value &= 0xfffffdff;
-          for (const auto& entry : m_characters.Entries())
-          {
+          for (const auto& entry : m_characters.Entries()) {
             auto* character = static_cast<AiCharacterRecord*>(entry.get());
             ObjectKey key;
             character->GetKey(&key);

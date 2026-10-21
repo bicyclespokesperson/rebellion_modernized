@@ -1,6 +1,6 @@
-// The SMACKW32.DLL entry points the game imports (platform/smacker.h), implemented on the Smacker decoder (smk_movie.h) and the
-// software mixer (dsound/mixer.h). Compiled without dllimport: the declarations of platform/smacker.h are used as they are, with
-// REB_DLLIMPORT emptied before the include.
+// The SMACKW32.DLL entry points the game imports (platform/smacker.h), implemented on the Smacker decoder (smk_movie.h)
+// and the software mixer (dsound/mixer.h). Compiled without dllimport: the declarations of platform/smacker.h are used
+// as they are, with REB_DLLIMPORT emptied before the include.
 #pragma once
 #include "core/reb_abi.h"
 #undef REB_DLLIMPORT
@@ -12,7 +12,8 @@
 namespace mwsmk
 {
 
-// The clock SmackWait compares against, in milliseconds. The default is a monotonic system clock; tests install their own.
+// The clock SmackWait compares against, in milliseconds. The default is a monotonic system clock; tests install their
+// own.
 double SystemClockMs(); // monotonic milliseconds (smack_clock.cpp)
 using ClockFunction = double (*)();
 void SetClock(ClockFunction clock);

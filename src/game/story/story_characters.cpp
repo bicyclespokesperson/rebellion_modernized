@@ -6,12 +6,12 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-extern int g_lukeEventKindsReady; // 0x6bb9e8
+extern int g_lukeEventKindsReady;     // 0x6bb9e8
 extern EventKindSet g_lukeEventKinds; // 0x6bb9f0
-extern int g_leiaEventKindsReady; // 0x6bba08
+extern int g_leiaEventKindsReady;     // 0x6bba08
 extern EventKindSet g_leiaEventKinds; // 0x6bba00
-extern int g_hanEventKindsReady; // 0x6bba58
-extern EventKindSet g_hanEventKinds; // 0x6bba50
+extern int g_hanEventKindsReady;      // 0x6bba58
+extern EventKindSet g_hanEventKinds;  // 0x6bba50
 
 namespace
 {
@@ -35,7 +35,8 @@ int StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* c
 
 // ---- StoryCharacter -----------------------------------------------------------------------------------------------
 
-StoryCharacter::StoryCharacter() : m_storyFlags(0)
+StoryCharacter::StoryCharacter()
+    : m_storyFlags(0)
 {
 }
 
@@ -44,24 +45,27 @@ StoryCharacter::~StoryCharacter() = default;
 int StoryCharacter::ReadBody(istream* in)
 {
   const int result = CharacterLeafRead(this, in);
-  if (result)
+  if (result) {
     ReadValue32(in, &m_storyFlags);
+  }
   return result;
 }
 
 int StoryCharacter::WriteBody(ostream* out)
 {
   const int result = CharacterLeafWrite(this, out);
-  if (result)
+  if (result) {
     WriteValue32(out, &m_storyFlags);
+  }
   return result;
 }
 
 int StoryCharacter::ChecksumBody(Crc32* crc)
 {
   const int result = CharacterLeafChecksum(this, crc);
-  if (result)
+  if (result) {
     crc->AddInt(static_cast<int>(m_storyFlags));
+  }
   return result;
 }
 
@@ -105,16 +109,16 @@ int Luke::ValidateWithForce()
 int Luke::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllBody(ctx);
+  }
   return isSideView;
 }
 
 int Luke::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = CharacterLeafApplyAll(this, ctx);
-  if (result && ctx->m_flag04 == 1)
-  {
+  if (result && ctx->m_flag04 == 1) {
     ApplyKnowsHeritage(ctx);
     ApplyFinalBattleReady(ctx);
     ApplyDagobahCompleted(ctx);
@@ -124,8 +128,9 @@ int Luke::ApplyAllBody(NotifyContext* ctx)
 
 uint32_t Luke::GetRecordTypeBits()
 {
-  if (m_storyFlags & kDagobahCompleted)
+  if (m_storyFlags & kDagobahCompleted) {
     return kRecordTypeBitsAfterDagobah;
+  }
   return GameObj::GetRecordTypeBits() & 0xffff;
 }
 
@@ -157,16 +162,18 @@ GameObjNotifier* Luke::Create()
 int Luke::HandleMissionResignationRequest(NotifyContext* ctx)
 {
   const int result = MajorCharacter::HandleMissionResignationRequest(ctx);
-  if (!result)
+  if (!result) {
     return result;
+  }
   return SetForceExperience(m_forceExperience + g_gnprtb0C09, ctx);
 }
 
 int Luke::OnForceChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = Character::OnForceChanged(oldValue, newValue, ctx);
-  if (!result)
+  if (!result) {
     return result;
+  }
   return UpdateFinalBattleReady(ctx);
 }
 
@@ -189,77 +196,64 @@ int Luke::OnFinalBattleReadyChanged(int on, NotifyContext* ctx)
 int Luke::SetKnowsHeritage(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kKnowsHeritage, on,
-    [&](Luke* view)
-    {
-      view->ApplyKnowsHeritage(ctx);
-    },
-    [&]
-    {
-      OnKnowsHeritageChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kKnowsHeritage, on,
+      [&](Luke* view) {
+        view->ApplyKnowsHeritage(ctx);
+      },
+      [&] {
+        OnKnowsHeritageChanged(on, ctx);
+      });
 }
 
 int Luke::SetFinalBattleReady(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kFinalBattleReady, on,
-    [&](Luke* view)
-    {
-      view->ApplyFinalBattleReady(ctx);
-    },
-    [&]
-    {
-      OnFinalBattleReadyChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kFinalBattleReady, on,
+      [&](Luke* view) {
+        view->ApplyFinalBattleReady(ctx);
+      },
+      [&] {
+        OnFinalBattleReadyChanged(on, ctx);
+      });
 }
 
 int Luke::SetDagobahCompleted(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kDagobahCompleted, on,
-    [&](Luke* view)
-    {
-      view->ApplyDagobahCompleted(ctx);
-    },
-    [&]
-    {
-      OnDagobahCompletedChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kDagobahCompleted, on,
+      [&](Luke* view) {
+        view->ApplyDagobahCompleted(ctx);
+      },
+      [&] {
+        OnDagobahCompletedChanged(on, ctx);
+      });
 }
 
 int Luke::ApplyKnowsHeritage(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kKnowsHeritage, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnKnowsHeritageNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kKnowsHeritage, ctx, [&](int on) {
+    return OnKnowsHeritageNotified(on, ctx);
+  });
 }
 
 int Luke::ApplyFinalBattleReady(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kFinalBattleReady, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnFinalBattleReadyNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kFinalBattleReady, ctx, [&](int on) {
+    return OnFinalBattleReadyNotified(on, ctx);
+  });
 }
 
 int Luke::ApplyDagobahCompleted(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kDagobahCompleted, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnDagobahCompletedNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kDagobahCompleted, ctx, [&](int on) {
+    return OnDagobahCompletedNotified(on, ctx);
+  });
 }
 
 int Luke::OnKnowsHeritageNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("(LukeKnowsHeritageNotif)", "KnowsHeritage", on, 0, ctx);
     result = PostPayloadFlag(kEventLukeKnowsHeritage, this, on, ctx);
   }
@@ -269,16 +263,16 @@ int Luke::OnKnowsHeritageNotified(int on, NotifyContext* ctx)
 int Luke::OnFinalBattleReadyNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(LukeFinalBattleReadyNotif)", "FinalBattleReady", on, 0, ctx);
+  }
   return result;
 }
 
 int Luke::OnDagobahCompletedNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("LukeDagobahCompletedNotif", "DagobahCompleted", on, 0, ctx);
     result = PostPayloadFlag(kEventLukeDagobahCompleted, this, on, ctx);
   }
@@ -287,11 +281,9 @@ int Luke::OnDagobahCompletedNotified(int on, NotifyContext* ctx)
 
 int Luke::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_lukeEventKindsReady,
-                               []
-                               {
-                                 return MajorCharacter::InitEventKinds(0, &g_lukeEventKinds);
-                               });
+  return story::buildKindsOnce(&g_lukeEventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_lukeEventKinds);
+  });
 }
 
 // ---- Leia -------------------------------------------------------------------------------------------------------
@@ -328,16 +320,18 @@ int Leia::Validate()
 int Leia::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllBody(ctx);
+  }
   return isSideView;
 }
 
 int Leia::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = CharacterLeafApplyAll(this, ctx);
-  if (result && ctx->m_flag04 == 1)
+  if (result && ctx->m_flag04 == 1) {
     ApplyKnowsHeritage(ctx);
+  }
   return result;
 }
 
@@ -369,49 +363,45 @@ GameObjNotifier* Leia::Create()
 int Leia::HandleMissionResignationRequest(NotifyContext* ctx)
 {
   const int result = MajorCharacter::HandleMissionResignationRequest(ctx);
-  if (result && (m_flagsAc & kForceAwareFlag))
+  if (result && (m_flagsAc & kForceAwareFlag)) {
     return SetForceExperience(m_forceExperience + g_gnprtb0C0A, ctx);
+  }
   return result;
 }
 
 int Leia::SetKnowsHeritage(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kKnowsHeritage, on,
-    [&](Leia* view)
-    {
-      view->ApplyKnowsHeritage(ctx);
-    },
-    [&]
-    {
-      OnKnowsHeritageChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kKnowsHeritage, on,
+      [&](Leia* view) {
+        view->ApplyKnowsHeritage(ctx);
+      },
+      [&] {
+        OnKnowsHeritageChanged(on, ctx);
+      });
 }
 
 int Leia::ApplyKnowsHeritage(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kKnowsHeritage, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnKnowsHeritageNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kKnowsHeritage, ctx, [&](int on) {
+    return OnKnowsHeritageNotified(on, ctx);
+  });
 }
 
 int Leia::OnKnowsHeritageNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(LeiaKnowsHeritageNotif)", "KnowsHeritage", on, 0, ctx);
+  }
   return result;
 }
 
 int Leia::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_leiaEventKindsReady,
-                               []
-                               {
-                                 return MajorCharacter::InitEventKinds(0, &g_leiaEventKinds);
-                               });
+  return story::buildKindsOnce(&g_leiaEventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_leiaEventKinds);
+  });
 }
 
 // ---- Han --------------------------------------------------------------------------------------------------------
@@ -448,16 +438,16 @@ int Han::Validate()
 int Han::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllBody(ctx);
+  }
   return isSideView;
 }
 
 int Han::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = CharacterLeafApplyAll(this, ctx);
-  if (result && ctx->m_flag04 == 1)
-  {
+  if (result && ctx->m_flag04 == 1) {
     ApplyBountyAttack(ctx);
     ApplyCapturedByBountyHunters(ctx);
   }
@@ -492,8 +482,9 @@ GameObjNotifier* Han::Create()
 int Han::OnCapturedChanged(int on, NotifyContext* ctx)
 {
   int result = Character::OnCapturedChanged(on, ctx);
-  if (result && on == 0)
+  if (result && on == 0) {
     result = SetCapturedByBountyHunters(on, ctx);
+  }
   return result;
 }
 
@@ -510,54 +501,45 @@ int Han::OnBountyAttackChanged(int on, NotifyContext* ctx)
 int Han::SetBountyAttack(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kBountyAttack, on,
-    [&](Han* view)
-    {
-      view->ApplyBountyAttack(ctx);
-    },
-    [&]
-    {
-      OnBountyAttackChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kBountyAttack, on,
+      [&](Han* view) {
+        view->ApplyBountyAttack(ctx);
+      },
+      [&] {
+        OnBountyAttackChanged(on, ctx);
+      });
 }
 
 int Han::SetCapturedByBountyHunters(int on, NotifyContext* ctx)
 {
   return story::setFlagProperty(
-    this, &StoryCharacter::m_storyFlags, kCapturedByBountyHunters, on,
-    [&](Han* view)
-    {
-      view->ApplyCapturedByBountyHunters(ctx);
-    },
-    [&]
-    {
-      OnCapturedByBountyHuntersChanged(on, ctx);
-    });
+      this, &StoryCharacter::m_storyFlags, kCapturedByBountyHunters, on,
+      [&](Han* view) {
+        view->ApplyCapturedByBountyHunters(ctx);
+      },
+      [&] {
+        OnCapturedByBountyHuntersChanged(on, ctx);
+      });
 }
 
 int Han::ApplyBountyAttack(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kBountyAttack, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnBountyAttackNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kBountyAttack, ctx, [&](int on) {
+    return OnBountyAttackNotified(on, ctx);
+  });
 }
 
 int Han::ApplyCapturedByBountyHunters(NotifyContext* ctx)
 {
-  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kCapturedByBountyHunters, ctx,
-                                  [&](int on)
-                                  {
-                                    return OnCapturedByBountyHuntersNotified(on, ctx);
-                                  });
+  return story::applyFlagProperty(this, &StoryCharacter::m_storyFlags, kCapturedByBountyHunters, ctx, [&](int on) {
+    return OnCapturedByBountyHuntersNotified(on, ctx);
+  });
 }
 
 int Han::OnBountyAttackNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("HanBountyAttackNotif", "BountyAttack", on, 0, ctx);
     result = PostPayloadFlag(kEventHanBountyAttack, this, on, ctx);
   }
@@ -567,18 +549,17 @@ int Han::OnBountyAttackNotified(int on, NotifyContext* ctx)
 int Han::OnCapturedByBountyHuntersNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(HanCapturedByBountyHuntersNotif)", "CapturedByBountyHunters", on, 0, ctx);
+  }
   return result;
 }
 
 int Han::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_hanEventKindsReady,
-                               []
-                               {
-                                 return MajorCharacter::InitEventKinds(0, &g_hanEventKinds);
-                               });
+  return story::buildKindsOnce(&g_hanEventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_hanEventKinds);
+  });
 }
 
 int GetHanHyperdriveModifier()
@@ -594,12 +575,12 @@ constexpr FamilyRange kMinorCharacters(0x38, 0x3c);
 }
 
 MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kMinorCharacters, stateFilter)
+    : ChildIterator(parent, &kMinorCharacters, stateFilter)
 {
 }
 
 MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kMinorCharacters, stateFilter)
+    : ChildIterator(parent, side, &kMinorCharacters, stateFilter)
 {
 }
 

@@ -20,8 +20,7 @@ namespace
 // The notices that hold sets of objects tell the side's UI about every one of them when they are destroyed.
 void notifyKeys(int owner, ObjectKeySet& set)
 {
-  for (const auto& entry : set.Entries())
-  {
+  for (const auto& entry : set.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key(node->m_key);
     UiSendNotificationToSide(owner, asArg(&key));
@@ -32,12 +31,14 @@ void notifyKeys(int owner, ObjectKeySet& set)
 
 // ---- Notice8 (kind 8) ----
 
-Notice8::Notice8() : UiNotice()
+Notice8::Notice8()
+    : UiNotice()
 {
   m_categories = GetCategories();
 }
 
-Notice8::Notice8(int owner, MessageBase* subject) : UiNotice(owner)
+Notice8::Notice8(int owner, MessageBase* subject)
+    : UiNotice(owner)
 {
   m_categories = GetCategories();
   m_subject = subject;
@@ -53,8 +54,9 @@ UiNotice* Notice8::CreateEmptyNotice()
 
 void Notice8::AppendName(GameObjNotifier* object)
 {
-  if (object)
+  if (object) {
     ExpandMessageTemplate(&m_text1, 0x7054, notice::nameOf(object), nullptr, nullptr, nullptr);
+  }
 }
 
 void Notice8::Read(istream* in)
@@ -73,7 +75,8 @@ void Notice8::Write(ostream* out)
 
 // ---- Notice1 (kind 1) ----
 
-Notice1::Notice1() : UiNotice()
+Notice1::Notice1()
+    : UiNotice()
 {
   m_categories = GetCategories();
   m_f50 = 0;
@@ -81,17 +84,19 @@ Notice1::Notice1() : UiNotice()
   m_f58 = 0;
 }
 
-Notice1::Notice1(const AiNoticeGroup* payloads, int owner, Notice2* vote) : UiNotice(owner)
+Notice1::Notice1(const AiNoticeGroup* payloads, int owner, Notice2* vote)
+    : UiNotice(owner)
 {
   m_categories = GetCategories();
   m_f50 = 0;
   m_f54 = 0;
-  if (owner == 1)
+  if (owner == 1) {
     m_f58 = 1;
-  else if (owner == 2)
+  } else if (owner == 2) {
     m_f58 = 2;
-  else
+  } else {
     m_f58 = 0;
+  }
   ReadVote(vote);
   m_unk1c = DispatchAndFill(payloads);
 }
@@ -109,15 +114,16 @@ UiNotice* Notice1::CreateEmptyNotice()
 
 void Notice1::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x14d)
+  if (kind != 0x14d) {
     return;
+  }
   const auto* key = reinterpret_cast<const ObjectKey*>(a);
-  if (!notice::inFamilies(*key, 0x90, 0x98))
+  if (!notice::inFamilies(*key, 0x90, 0x98)) {
     return;
+  }
   m_systemKey = ObjectKey(*key);
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_systemKey);
-  if (system)
-  {
+  if (system) {
     m_f50 = static_cast<System*>(system)->m_controlBits & 3;
     m_f54 = (static_cast<System*>(system)->m_controlBits >> 2) & 3;
   }
@@ -125,12 +131,11 @@ void Notice1::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 
 int Notice1::DispatchAndFill(const AiNoticeGroup* payloads)
 {
-  for (const auto& node : payloads->Entries())
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(this);
-  if (m_f50 != 0)
-  {
-    if (m_f50 != m_f58)
-    {
+  }
+  if (m_f50 != 0) {
+    if (m_f50 != m_f58) {
       FillOtherSide();
       return 1;
     }
@@ -181,24 +186,27 @@ void Notice1::Write(ostream* out)
 
 // ---- Notice2 (kind 2) ----
 
-Notice2::Notice2() : UiNotice()
+Notice2::Notice2()
+    : UiNotice()
 {
   m_categories = GetCategories();
   m_side = 0;
   m_attack = 0;
 }
 
-Notice2::Notice2(const ObjectKey* key, int owner) : UiNotice(owner)
+Notice2::Notice2(const ObjectKey* key, int owner)
+    : UiNotice(owner)
 {
   m_categories = GetCategories();
   m_systemKey = ObjectKey(*key);
   m_attack = 0;
-  if (owner == 1)
+  if (owner == 1) {
     m_side = 1;
-  else if (owner == 2)
+  } else if (owner == 2) {
     m_side = 2;
-  else
+  } else {
     m_side = 0;
+  }
   m_unk1c = FillText();
 }
 
@@ -237,7 +245,8 @@ void Notice2::Write(ostream* out)
 
 // ---- Notice15 (kind 15) ----
 
-Notice15::Notice15() : UiTextNotice()
+Notice15::Notice15()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f68 = 0;
@@ -247,7 +256,8 @@ Notice15::Notice15() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice15::Notice15(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice15::Notice15(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -276,8 +286,7 @@ UiNotice* Notice15::CreateEmptyNotice()
 
 void Notice15::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x302)
-  {
+  if (kind != 0x302) {
     UiNotice::OnMessage(kind, a, b);
     return;
   }
@@ -286,8 +295,9 @@ void Notice15::OnMessage(int kind, intptr_t a, intptr_t b)
   GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, key);
   bool done = object && (static_cast<GameObj*>(object)->m_stateFlags & 4) == 0;
   ObjectKeySet* target = &m_set80;
-  if (!done && !notice::inFamilies(*reinterpret_cast<const ObjectKey*>(b), 0x90, 0x98))
+  if (!done && !notice::inFamilies(*reinterpret_cast<const ObjectKey*>(b), 0x90, 0x98)) {
     target = &m_set88;
+  }
   target->Add(node);
 }
 

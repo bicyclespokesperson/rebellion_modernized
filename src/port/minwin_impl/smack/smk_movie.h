@@ -1,10 +1,10 @@
-// minwin_impl/smack: a Smacker (SMK2) decoder written from the published description of the format, with no code taken from any
-// existing decoder. It reproduces what RAD's SMACKW32.DLL delivers: the 8-bit picture of every frame, the palette and the PCM
-// audio. Verified frame by frame against the DLL under Wine (smack/tests).
+// minwin_impl/smack: a Smacker (SMK2) decoder written from the published description of the format, with no code taken
+// from any existing decoder. It reproduces what RAD's SMACKW32.DLL delivers: the 8-bit picture of every frame, the
+// palette and the PCM audio. Verified frame by frame against the DLL under Wine (smack/tests).
 //
-// File layout (little endian): header (signature, size, frame count, frame rate, flags, per-track audio sizes and rates, the sizes of
-// the four Huffman tables), per-frame sizes and type bytes, the packed Huffman trees, then the frames. A frame holds an optional
-// palette update, an optional chunk per audio track and the video data.
+// File layout (little endian): header (signature, size, frame count, frame rate, flags, per-track audio sizes and
+// rates, the sizes of the four Huffman tables), per-frame sizes and type bytes, the packed Huffman trees, then the
+// frames. A frame holds an optional palette update, an optional chunk per audio track and the video data.
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
@@ -20,8 +20,7 @@ class MappedFile;
 namespace mwsmk
 {
 
-struct AudioTrackInfo
-{
+struct AudioTrackInfo {
   bool present = false;
   bool packed = false; // Huffman-coded DPCM
   bool stereo = false;
@@ -32,14 +31,13 @@ struct AudioTrackInfo
 
 constexpr int kAudioTracks = 7;
 
-struct Palette
-{
+struct Palette {
   uint8_t rgb[256 * 3] = {};
 };
 
 class Movie
 {
-public:
+  public:
   ~Movie();
   static Movie* Open(const std::string& nativePath);
   // From memory (tests); the buffer must outlive the Movie.
@@ -78,8 +76,8 @@ public:
     return frame < m_frames && (m_frameSizes[frame] & 1) != 0;
   }
 
-  // The picture all frames are decoded into (width * height, one index per pixel), the current palette, and the frame most recently
-  // decoded. Frames must be decoded in order from a key frame; Seek() does that.
+  // The picture all frames are decoded into (width * height, one index per pixel), the current palette, and the frame
+  // most recently decoded. Frames must be decoded in order from a key frame; Seek() does that.
   const uint8_t* Picture() const
   {
     return m_picture.data();
@@ -93,8 +91,7 @@ public:
     return m_paletteChanged;
   }
   // Bounding box (in pixels) of the blocks the last video decode changed; empty width means nothing changed.
-  struct Rect
-  {
+  struct Rect {
     int x = 0, y = 0, w = 0, h = 0;
   };
   Rect ChangedRect() const
@@ -107,8 +104,8 @@ public:
   {
     return m_data;
   }
-  // Applies the palette update of `frame` ahead of decoding it (a player shows the new palette before the frame's pixels).
-  // DecodeFrame() then does not apply it a second time.
+  // Applies the palette update of `frame` ahead of decoding it (a player shows the new palette before the frame's
+  // pixels). DecodeFrame() then does not apply it a second time.
   bool PreparePalette(uint32_t frame);
   // One byte per 4x4 block (row-major), non-zero for the blocks the last video decode wrote.
   const std::vector<uint8_t>& ChangedBlocks() const
@@ -120,25 +117,25 @@ public:
     return static_cast<int>(m_width / 4);
   }
 
-  // Decodes the palette part and the video of `frame` (which must be the frame after the last decoded one, or a key frame).
-  // The audio chunks of that frame become available through TakeAudio().
+  // Decodes the palette part and the video of `frame` (which must be the frame after the last decoded one, or a key
+  // frame). The audio chunks of that frame become available through TakeAudio().
   bool DecodeFrame(uint32_t frame);
-  // The palette update of `frame` only (without touching the picture): what the player applies before the frame is drawn.
-  // Rewinds to `frame` after decoding forward from the previous key frame.
+  // The palette update of `frame` only (without touching the picture): what the player applies before the frame is
+  // drawn. Rewinds to `frame` after decoding forward from the previous key frame.
   bool Seek(uint32_t frame);
   int64_t LastDecoded() const
   {
     return m_lastDecoded;
   }
 
-  // PCM of the last decoded frame for a track (empty if the frame has none): 8-bit unsigned or 16-bit signed little endian,
-  // interleaved when stereo.
+  // PCM of the last decoded frame for a track (empty if the frame has none): 8-bit unsigned or 16-bit signed little
+  // endian, interleaved when stereo.
   const std::vector<uint8_t>& TakeAudio(int track) const
   {
     return m_audio[track];
   }
 
-private:
+  private:
   Movie() = default;
   bool Parse();
   bool ReadTrees();

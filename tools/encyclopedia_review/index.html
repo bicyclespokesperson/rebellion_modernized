@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encyclopedia · Extraction review</title>
+<link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+<header><div class="brand"><span class="brand-mark">◈</span> REBELLION <span class="divider">/</span> ARTWORK LAB</div><span class="local">● LOCAL REVIEW</span></header>
+<main>
+<div class="intro"><div><p class="eyebrow">ENCYCLOPEDIA / QUALITY CONTROL</p><h1>What survived the cut?</h1><p class="lede">Compare the original artwork with its extracted subject.<br>Flag missing features or leftover scenery. Ten images at a time.</p></div><button id="export" class="secondary" disabled>↓ Export grades</button></div>
+<section class="metrics" aria-label="Review statistics" aria-live="polite">
+<div><span class="metric-label">REVIEWED</span><strong id="reviewed">—</strong><small id="population">Loading images…</small></div>
+<div><span class="metric-label">FLAGGED</span><strong id="flagged">—</strong><small>Missing features or extra background</small></div>
+<div><span class="metric-label">ESTIMATED MISS RATE</span><strong id="rate">—</strong><small id="interval">Complete a batch to estimate</small></div>
+<div><span class="metric-label">ESTIMATED AFFECTED IMAGES</span><strong id="affected">—</strong><small id="estimate-note">Within the selected population</small></div>
+</section>
+<p class="method" id="method">Random sampling without replacement. Estimates use fully graded batches only.</p>
+<div class="toolbar"><label>Review set <select id="scope"><option value="focus">Portraits + ships + fighters</option><option value="all">All icon categories</option><option value="characters">Portraits</option><option value="ships">Capital ships</option><option value="fighters">Fighters</option><option value="facilities">Facilities</option><option value="troops">Troops</option><option value="planets">Planets</option><option value="missions">Mission artwork</option></select></label><label>Cutout background <select id="background"><option value="checker">Checkerboard</option><option value="dark">Dark</option><option value="light">Light</option></select></label><span id="batch-count"></span></div>
+<div class="instructions"><span>Compare the subject’s silhouette and details. Portraits may intentionally omit scenery and the faction emblem.</span><span>Click either image to enlarge ↗</span></div>
+<p id="error" role="alert" hidden></p>
+<section id="cards" aria-label="Image comparisons"></section>
+<footer><button id="previous" class="secondary" disabled>← Previous 10</button><div><strong id="page-label"></strong><small id="page-progress"></small></div><button id="next" disabled>Next 10 →</button></footer>
+<p class="save-note" id="save-note"></p>
+</main>
+<dialog id="zoom"><button id="close-zoom" class="secondary">Close ×</button><h2 id="zoom-title"></h2><div class="zoom-pair" id="zoom-pair"></div></dialog>
+</body></html>

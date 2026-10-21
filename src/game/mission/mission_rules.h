@@ -125,7 +125,7 @@ constexpr int kEscape = 0x2c;
 } // namespace mission_table
 
 // ---- 0x18xx formulas (mission_rules_18.cpp) ----
-int DivideByMissionDivisor(int value); // value / g_gnprtb1800
+int DivideByMissionDivisor(int value);        // value / g_gnprtb1800
 int NegatedDivideByMissionDivisor(int value); // -(value / g_gnprtb1800)
 int GetMissionRuleValue1801();
 int RollMissionRuleBonus1809(int* result);

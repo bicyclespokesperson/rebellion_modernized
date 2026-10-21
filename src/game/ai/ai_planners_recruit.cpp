@@ -8,7 +8,7 @@ using ai::KeyOfNode;
 using ai::KeyOfObject;
 
 AiRecruitPlanner::AiRecruitPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x55, 0x16);
 }
@@ -22,22 +22,20 @@ int AiRecruitPlanner::GetPriority()
 
 void AiRecruitPlanner::OnMissionEvent(int event)
 {
-  if (event == 0)
-  {
+  if (event == 0) {
     m_flags.m_value |= 0x80000000;
     return;
   }
-  if (event == 2)
-  {
+  if (event == 2) {
     AdvanceStall();
     ResetMissionMark();
     return;
   }
-  if (event == 3)
-  {
+  if (event == 3) {
     AiSystemEval* system = m_owner->FindSystemEval(&m_x34);
-    if (system && (system->m_flags30.m_value & 1) != 0 && (system->m_flags30.m_value & 0x200) == 0)
+    if (system && (system->m_flags30.m_value & 1) != 0 && (system->m_flags30.m_value & 0x200) == 0) {
       m_destination = m_x34;
+    }
     m_stall = 0;
     ResetMissionMark();
   }
@@ -52,62 +50,51 @@ int AiRecruitPlanner::ChooseTarget()
 {
   m_target.Reset();
   m_flags.m_value &= ~0x10u;
-  if ((m_flags.m_value & 1) == 0)
-  {
+  if ((m_flags.m_value & 1) == 0) {
     m_x34.Reset();
-  }
-  else
-  {
-    if (IsSystemKey(m_x34))
-    {
+  } else {
+    if (IsSystemKey(m_x34)) {
       AiSystemEval* system = m_owner->m_systems.FindEval(m_x34);
-      if (system && (system->m_flags2c.m_value & 2) != 0)
+      if (system && (system->m_flags2c.m_value & 2) != 0) {
         m_flags.m_value |= 0x10;
+      }
     }
-    if ((m_flags.m_value & 0x10) == 0)
-    {
+    if ((m_flags.m_value & 0x10) == 0) {
       ObjectKeyNode* leader = m_leaders.First();
-      if (leader)
-      {
+      if (leader) {
         const ObjectKey leaderKey = KeyOfNode(leader);
         auto* character = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(&leaderKey));
-        if (character)
-        {
+        if (character) {
           ObjectKey cursor = character->m_location;
           bool done = false;
-          while (!IsSystemKey(cursor) && !done)
-          {
+          while (!IsSystemKey(cursor) && !done) {
             GameObjNotifier* object = GetObjectInFamilies_01_ff(m_view, &cursor);
-            if (object)
-            {
-              if (object->m_parent == nullptr)
-              {
+            if (object) {
+              if (object->m_parent == nullptr) {
                 cursor.Reset();
                 done = true;
-              }
-              else
-              {
+              } else {
                 cursor = KeyOfObject(object->m_parent);
               }
             }
           }
-          if (IsSystemKey(cursor))
-          {
+          if (IsSystemKey(cursor)) {
             AiSystemEval* system = m_owner->m_systems.FindEval(cursor);
-            if (system && (system->m_flags2c.m_value & 2) != 0)
-            {
+            if (system && (system->m_flags2c.m_value & 2) != 0) {
               m_x34 = cursor;
               m_flags.m_value |= 0x10;
             }
           }
         }
       }
-      if ((m_flags.m_value & 0x10) == 0)
+      if ((m_flags.m_value & 0x10) == 0) {
         RankTargetSystem(this, 8, 2, 0x3c);
+      }
     }
   }
-  if ((m_flags.m_value & 0x10) == 0)
+  if ((m_flags.m_value & 0x10) == 0) {
     return 0;
+  }
   m_target = m_x34;
   return 1;
 }

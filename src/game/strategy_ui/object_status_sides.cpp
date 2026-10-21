@@ -25,8 +25,7 @@ constexpr uint32_t kPanelBitmapKind = 10;
 constexpr uint32_t kIconBitmapKind = 2;
 constexpr int kPictureSortMode = 4;
 
-struct SideItem
-{
+struct SideItem {
   uint32_t m_itemId;
   uint32_t m_bitmapId;
   uint32_t m_victoryMask;
@@ -56,16 +55,14 @@ CoolListItem* NewPictureItem(uint32_t id, DibBitmap* image)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
 
-void InsertPictureItem(CoolListItemList* items,
-                       CoolListItem* item,
-                       const SideItem& entry,
-                       uint32_t victoryFlags,
+void InsertPictureItem(CoolListItemList* items, CoolListItem* item, const SideItem& entry, uint32_t victoryFlags,
                        std::string* text)
 {
   SetText(text, (victoryFlags & entry.m_victoryMask) == 0 ? entry.m_offStringId : entry.m_onStringId);
@@ -74,11 +71,7 @@ void InsertPictureItem(CoolListItemList* items,
 }
 
 // The picture `bitmapId` centred on a bitmap of the size of the first picture, filled with `fillColor`.
-DibBitmap* CenteredPicture(HMODULE module,
-                           uint32_t bitmapId,
-                           uint32_t bitmapKind,
-                           int width,
-                           int height,
+DibBitmap* CenteredPicture(HMODULE module, uint32_t bitmapId, uint32_t bitmapKind, int width, int height,
                            const uint8_t* fixedFillColor)
 {
   auto* icon = NewOrNull<DibBitmap>(module, bitmapId, bitmapKind);
@@ -91,28 +84,16 @@ DibBitmap* CenteredPicture(HMODULE module,
   return surface;
 }
 
-void AddCenteredItem(CoolListItemList* items,
-                     HMODULE module,
-                     const SideItem& entry,
-                     uint32_t bitmapKind,
-                     int width,
-                     int height,
-                     const uint8_t* fixedFillColor,
-                     uint32_t victoryFlags,
-                     std::string* text)
+void AddCenteredItem(CoolListItemList* items, HMODULE module, const SideItem& entry, uint32_t bitmapKind, int width,
+                     int height, const uint8_t* fixedFillColor, uint32_t victoryFlags, std::string* text)
 {
   DibBitmap* picture = CenteredPicture(module, entry.m_bitmapId, bitmapKind, width, height, fixedFillColor);
   CoolListItem* item = NewPictureItem(entry.m_itemId, picture);
   InsertPictureItem(items, item, entry, victoryFlags, text);
 }
 
-void FillSidePage(CoolListItemList* items,
-                  int side,
-                  const SideItem& first,
-                  const SideItem (&gated1)[2],
-                  const SideItem& tail,
-                  uint32_t tailBitmapKind,
-                  const SideItem (&gated2)[2])
+void FillSidePage(CoolListItemList* items, int side, const SideItem& first, const SideItem (&gated1)[2],
+                  const SideItem& tail, uint32_t tailBitmapKind, const SideItem (&gated2)[2])
 {
   GameObjNotifier* sideObject = GetSideObject(side, side);
   std::string text;
@@ -120,8 +101,8 @@ void FillSidePage(CoolListItemList* items,
   GetGameSettings(&settings);
   HMODULE module = CoolAppGetResourceModule(kSideIconsSlot);
   const bool allVictoryPictures = settings.m_field08 == 0;
-  const uint32_t victoryFlags =
-    sideObject ? static_cast<uint32_t>(static_cast<Side*>(sideObject)->m_victoryConditions) : 0;
+  const uint32_t victoryFlags
+      = sideObject ? static_cast<uint32_t>(static_cast<Side*>(sideObject)->m_victoryConditions) : 0;
 
   auto* base = NewOrNull<DibBitmap>(module, first.m_bitmapId, kPanelBitmapKind);
   const int width = base->Width();
@@ -130,18 +111,14 @@ void FillSidePage(CoolListItemList* items,
   const uint8_t fillColor = base->m_colorKey;
   InsertPictureItem(items, firstItem, first, victoryFlags, &text);
 
-  if (allVictoryPictures)
-  {
-    for (const SideItem& entry : gated1)
-    {
+  if (allVictoryPictures) {
+    for (const SideItem& entry : gated1) {
       AddCenteredItem(items, module, entry, kIconBitmapKind, width, height, &fillColor, victoryFlags, &text);
     }
   }
   AddCenteredItem(items, module, tail, tailBitmapKind, width, height, nullptr, victoryFlags, &text);
-  if (allVictoryPictures)
-  {
-    for (const SideItem& entry : gated2)
-    {
+  if (allVictoryPictures) {
+    for (const SideItem& entry : gated2) {
       AddCenteredItem(items, module, entry, kIconBitmapKind, width, height, &fillColor, victoryFlags, &text);
     }
   }

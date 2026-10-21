@@ -42,8 +42,8 @@ bool isSideRootFamily(uint32_t value)
 
 void appendArticle(std::string* out, const std::string& name)
 {
-  const ResourceStringId article = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
-                                    kArticleGroup};
+  const ResourceStringId article
+      = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA, kArticleGroup};
   const std::string articleText = LoadStringResource(&article);
   *out += articleText;
 }
@@ -51,27 +51,27 @@ void appendArticle(std::string* out, const std::string& name)
 } // namespace
 
 GameObj::GameObj()
-: GameObjNotifier(),
-  m_name(nullptr),
-  m_packed(0),
-  m_eta(0),
-  m_unk48(0),
-  m_unk4c(0),
-  m_stateFlags(0),
-  m_data(nullptr)
+    : GameObjNotifier()
+    , m_name(nullptr)
+    , m_packed(0)
+    , m_eta(0)
+    , m_unk48(0)
+    , m_unk4c(0)
+    , m_stateFlags(0)
+    , m_data(nullptr)
 {
   SetFlag31(GetFlag31());
 }
 
 GameObj::~GameObj()
 {
-  if (m_name)
-  {
+  if (m_name) {
     delete m_name;
     m_name = nullptr;
   }
-  if ((m_flags & kViewSideMask) == 0)
+  if ((m_flags & kViewSideMask) == 0) {
     DestroyData();
+  }
 }
 
 int GameObj::InstallData()
@@ -82,8 +82,7 @@ int GameObj::InstallData()
 
 int GameObj::DestroyData()
 {
-  if (m_data)
-  {
+  if (m_data) {
     delete m_data;
     m_data = nullptr;
   }
@@ -98,16 +97,16 @@ GameObjNotifier* GameObj::FindNextSibling(const FamilyRange* range, int resolve)
 void GameObj::WriteName(std::string* out, int kind)
 {
   const std::string name(*GetName());
-  switch (kind)
-  {
+  switch (kind) {
     case 1:
     case 2:
     case 4:
       *out += *GetName();
       break;
     case 3:
-      if (m_record)
+      if (m_record) {
         *out += static_cast<DatRecord*>(m_record)->m_name;
+      }
       break;
     case 0x20:
     case 0x21:
@@ -115,8 +114,7 @@ void GameObj::WriteName(std::string* out, int kind)
       *out += *GetName();
       break;
     case 0x22:
-      if (m_record)
-      {
+      if (m_record) {
         const std::string recordName(static_cast<DatRecord*>(m_record)->m_name);
         appendArticle(out, recordName);
         *out += recordName;
@@ -135,13 +133,11 @@ void AppendGameObjName(ObjectBase* base, std::string* out, int kind)
 
 std::string* GameObj::GetNameCopy(std::string* out)
 {
-  if (m_name)
-  {
+  if (m_name) {
     new (out) std::string(*m_name);
     return out;
   }
-  if (m_record)
-  {
+  if (m_record) {
     new (out) std::string(static_cast<DatRecord*>(m_record)->m_name);
     return out;
   }
@@ -152,20 +148,22 @@ std::string* GameObj::GetNameCopy(std::string* out)
 std::string* GameObj::GetName()
 {
   static std::string emptyName;
-  if (m_name)
+  if (m_name) {
     return m_name;
-  if (m_record)
+  }
+  if (m_record) {
     return &static_cast<DatRecord*>(m_record)->m_name;
+  }
   return &emptyName;
 }
 
 int GameObj::IsUnderSideRoot()
 {
   GameObjNotifier* ancestor = m_parent;
-  while (ancestor)
-  {
-    if (isSideRootFamily(ancestor->GetFamily()))
+  while (ancestor) {
+    if (isSideRootFamily(ancestor->GetFamily())) {
       break;
+    }
     ancestor = ancestor->m_parent;
   }
   return ancestor != nullptr;
@@ -173,15 +171,17 @@ int GameObj::IsUnderSideRoot()
 
 uint32_t GameObj::GetRecordTypeBits()
 {
-  if (!m_record)
+  if (!m_record) {
     return 0;
+  }
   return static_cast<DatRecord*>(m_record)->m_small & kRecordTypeMask;
 }
 
 int GameObj::GetTransitSpeed(int arg)
 {
-  if ((m_stateFlags & kExistingFlag) && arg != 0)
+  if ((m_stateFlags & kExistingFlag) && arg != 0) {
     return g_gnprtbDefault;
+  }
   return 0;
 }
 
@@ -204,12 +204,9 @@ int GameObj::CanReleaseDestroyedObject()
 
 int GameObj::CheckSameControl(GameObj* other, StatusCode* out)
 {
-  if (((other->m_flags ^ m_flags) & 0xc0) == 0)
-  {
+  if (((other->m_flags ^ m_flags) & 0xc0) == 0) {
     setStatus(out, kStatusOk);
-  }
-  else
-  {
+  } else {
     setStatus(out, kStatusDifferentControl);
   }
   return 1;
@@ -263,7 +260,8 @@ int GameObj::CheckIncomingUnitOrder(int side, int argument, int kind, intptr_t r
   return 1;
 }
 
-int GameObj::GetIncomingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited, int* remaining, StatusCode* out)
+int GameObj::GetIncomingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited,
+                                     int* remaining, StatusCode* out)
 {
   *allowed = 0;
   *unlimited = 0;
@@ -278,7 +276,8 @@ int GameObj::CheckOutgoingUnitOrder(int side, int argument, int kind, intptr_t r
   return 1;
 }
 
-int GameObj::GetOutgoingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited, int* remaining, StatusCode* out)
+int GameObj::GetOutgoingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited,
+                                     int* remaining, StatusCode* out)
 {
   *allowed = 1;
   *unlimited = 1;
@@ -290,20 +289,16 @@ int GameObj::GetOutgoingUnitCapacity(const FamilyRange* range, int stateFilter, 
 int GameObj::GetOwnerKey(ObjectKey* out)
 {
   int ok = 1;
-  if (m_parent)
-  {
+  if (m_parent) {
     ok = m_parent->GetOwnerKey(out);
-  }
-  else
-  {
+  } else {
     out->Reset();
   }
-  if (ok && !out->OrNull())
-  {
-    if ((m_stateFlags & kExistingFlag) && (m_flags & kViewSideMask) == 0)
-    {
-      if (!isSideRootFamily(GetFamily()) && IsNotGameRoot())
+  if (ok && !out->OrNull()) {
+    if ((m_stateFlags & kExistingFlag) && (m_flags & kViewSideMask) == 0) {
+      if (!isSideRootFamily(GetFamily()) && IsNotGameRoot()) {
         return 0;
+      }
     }
     ok = 1;
   }
@@ -319,17 +314,18 @@ int GameObj::GetParent(GameObjNotifier** out)
 int GameObj::GetValidParentKey(ObjectKey* out)
 {
   int result = GetParentKey(out);
-  if (result)
+  if (result) {
     result = out->IsSet();
+  }
   return result;
 }
 
 uint32_t GameObj::MatchesStateFilter(uint32_t mode)
 {
-  if (static_cast<int>(mode) < 1 || 4 < static_cast<int>(mode))
+  if (static_cast<int>(mode) < 1 || 4 < static_cast<int>(mode)) {
     return mode;
-  switch (mode)
-  {
+  }
+  switch (mode) {
     case 1:
       return m_stateFlags & 1;
     case 2:

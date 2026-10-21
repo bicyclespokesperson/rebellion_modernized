@@ -40,8 +40,7 @@ using FlagEvent = int (ProcFacil::*)(int, NotifyContext*);
 int setProcFlag(ProcFacil* facility, uint32_t mask, int on, NotifyContext* ctx, ApplyFunction apply, FlagEvent changed)
 {
   const int result = facility->IsMasterView();
-  if (result && UpdateFlagBit(mask, on, &facility->m_procFlags))
-  {
+  if (result && UpdateFlagBit(mask, on, &facility->m_procFlags)) {
     (viewOf(facility, kAllianceView)->*apply)(ctx);
     (viewOf(facility, kEmpireView)->*apply)(ctx);
     (facility->*changed)(on, ctx);
@@ -51,25 +50,23 @@ int setProcFlag(ProcFacil* facility, uint32_t mask, int on, NotifyContext* ctx, 
 
 int applyProcFlag(ProcFacil* facility, uint32_t mask, NotifyContext* ctx, FlagEvent notified)
 {
-  return fleet::applyFlagToView(facility, &ProcFacil::m_procFlags, mask, ctx,
-                                [&](int value)
-                                {
-                                  return (facility->*notified)(value, ctx);
-                                });
+  return fleet::applyFlagToView(facility, &ProcFacil::m_procFlags, mask, ctx, [&](int value) {
+    return (facility->*notified)(value, ctx);
+  });
 }
 
 int notifyProcFlag(ProcFacil* facility, const char* tag, const char* property, int value, NotifyContext* ctx)
 {
   const int result = facility->IsSideView();
-  if (result && g_procFacilNotifyLog)
+  if (result && g_procFacilNotifyLog) {
     facility->LogFlag(tag, property, value, 0, ctx);
+  }
   return result;
 }
 
 const char* stateName(int state)
 {
-  switch (state)
-  {
+  switch (state) {
     case 0:
       return "NONE      ";
     case 1:
@@ -87,7 +84,10 @@ const char* stateName(int state)
 
 } // namespace
 
-ProcFacil::ProcFacil() : m_state(kStateIdle), m_etc(0), m_procFlags(0)
+ProcFacil::ProcFacil()
+    : m_state(kStateIdle)
+    , m_etc(0)
+    , m_procFlags(0)
 {
 }
 
@@ -105,7 +105,9 @@ GameObjData* ProcFacil::CreateData()
   return NewOrNull<ProcFacilData>();
 }
 
-ProcFacilData::ProcFacilData() : m_duration(0), m_cycleCount(0)
+ProcFacilData::ProcFacilData()
+    : m_duration(0)
+    , m_cycleCount(0)
 {
 }
 
@@ -114,11 +116,9 @@ ProcFacilData::~ProcFacilData() = default;
 int ProcFacilData::Read(istream* in)
 {
   int result = UnitObjData::Read(in);
-  if (result)
-  {
+  if (result) {
     result = m_processingStat.Read(in);
-    if (result)
-    {
+    if (result) {
       ReadValue32(in, &m_duration);
       ReadValue32(in, &m_cycleCount);
     }
@@ -129,11 +129,9 @@ int ProcFacilData::Read(istream* in)
 int ProcFacilData::Write(ostream* out)
 {
   int result = UnitObjData::Write(out);
-  if (result)
-  {
+  if (result) {
     result = m_processingStat.Write(out);
-    if (result)
-    {
+    if (result) {
       WriteValue32(out, &m_duration);
       WriteValue32(out, &m_cycleCount);
     }
@@ -144,11 +142,9 @@ int ProcFacilData::Write(ostream* out)
 int ProcFacilData::Checksum(Crc32* crc)
 {
   int result = UnitObjData::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     result = m_processingStat.Checksum(crc);
-    if (result)
-    {
+    if (result) {
       crc->AddInt(m_duration);
       crc->AddInt(m_cycleCount);
     }
@@ -165,8 +161,9 @@ int ProcFacil::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyCo
 int ProcFacil::OnUsableChanged(int newValue, NotifyContext* ctx)
 {
   int result = Facility::OnUsableChanged(newValue, ctx) != 0;
-  if (newValue == 0)
+  if (newValue == 0) {
     result = ResetToIdle(ctx) && result;
+  }
   return result;
 }
 
@@ -184,15 +181,13 @@ int ProcFacil::OnExistingChanged(int newValue, NotifyContext* ctx)
 
 int ProcFacil::OnStateChanged(int oldState, int newState, NotifyContext* ctx)
 {
-  if (newState == kStateWaiting || oldState == kStateWaiting)
+  if (newState == kStateWaiting || oldState == kStateWaiting) {
     ++dataOf(this)->m_cycleCount;
-  uint32_t startupCycle = (m_procFlags >> 4) & 1;
-  if (newState == kStateWaiting)
-  {
-    startupCycle = oldState == kStateIdle;
   }
-  else if (newState == kStateIdle)
-  {
+  uint32_t startupCycle = (m_procFlags >> 4) & 1;
+  if (newState == kStateWaiting) {
+    startupCycle = oldState == kStateIdle;
+  } else if (newState == kStateIdle) {
     startupCycle = 0;
   }
   const int startupSet = SetOnStartupCycle(startupCycle, ctx);
@@ -205,16 +200,18 @@ int ProcFacil::OnStateChanged(int oldState, int newState, NotifyContext* ctx)
 int ProcFacil::OnSuspendedChanged(int value, NotifyContext* ctx)
 {
   int result = 1;
-  if (value != 0)
+  if (value != 0) {
     result = ResetToIdle(ctx) != 0;
+  }
   return result;
 }
 
 int ProcFacil::OnPointPresentChanged(int value, NotifyContext* ctx)
 {
   bool ok = true;
-  if (value == 0)
+  if (value == 0) {
     ok = SetPointProcessed(0, ctx) != 0;
+  }
   return UpdateState(ctx) != 0 && ok;
 }
 
@@ -226,14 +223,15 @@ int ProcFacil::OnPointProcessedChanged(int value, NotifyContext* ctx)
 int ProcFacil::OnProcessingChanged(int value, NotifyContext* ctx)
 {
   bool ok = true;
-  if (value != 0)
+  if (value != 0) {
     ok = ArmTimerAfterSetLevel(kEventProcessingTimer, dataOf(this)->m_duration, this, &dataOf(this)->m_processingStat,
-                               ctx) != 0;
-  const bool tracked =
-    ArmTimerAfterSetFlag(kEventProcessingTimer, value, this, &dataOf(this)->m_processingStat, ctx) != 0 && ok;
+                               ctx)
+         != 0;
+  }
+  const bool tracked
+      = ArmTimerAfterSetFlag(kEventProcessingTimer, value, this, &dataOf(this)->m_processingStat, ctx) != 0 && ok;
   int etc = 0;
-  if (value != 0)
-  {
+  if (value != 0) {
     ProcFacilData* data = dataOf(this);
     etc = CallGameHook2B08() + data->m_duration;
   }
@@ -245,8 +243,7 @@ int ProcFacil::OnProcessingChanged(int value, NotifyContext* ctx)
 int ProcFacil::OnStateNotified(int oldState, int newState, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result && g_procFacilNotifyLog)
-  {
+  if (result && g_procFacilNotifyLog) {
     LogChange("(ProcFacilProcFacilStateNotif)", "ProcFacilState", stateName(newState), stateName(oldState), nullptr,
               ctx);
   }
@@ -256,8 +253,9 @@ int ProcFacil::OnStateNotified(int oldState, int newState, NotifyContext* ctx)
 int ProcFacil::OnEtcNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result && g_procFacilNotifyLog)
+  if (result && g_procFacilNotifyLog) {
     LogInt("(ProcFacilETCNotif)", "ETC", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
@@ -296,10 +294,10 @@ int ProcFacil::GetCycleCount()
 int ProcFacil::SetState(int value, NotifyContext* ctx)
 {
   int result = 0;
-  if (IsMasterView())
+  if (IsMasterView()) {
     result = IsInRange(value, 0, value, "Invalid ProcFacilState value!");
-  if (result && m_state != value)
-  {
+  }
+  if (result && m_state != value) {
     const int oldValue = m_state;
     m_state = value;
     viewOf(this, kAllianceView)->ApplyState(ctx);
@@ -312,10 +310,10 @@ int ProcFacil::SetState(int value, NotifyContext* ctx)
 int ProcFacil::SetEtc(int value, NotifyContext* ctx)
 {
   int result = 0;
-  if (IsMasterView())
+  if (IsMasterView()) {
     result = IsInRange(value, 0, value, "Invalid ETC value!");
-  if (result && m_etc != value)
-  {
+  }
+  if (result && m_etc != value) {
     const int oldValue = m_etc;
     m_etc = value;
     viewOf(this, kAllianceView)->ApplyEtc(ctx);
@@ -364,24 +362,18 @@ int ProcFacil::UpdateState(NotifyContext* ctx)
   int state = m_state;
   const int valid = state >= kStateWaiting && state <= kStateIdle;
   int result = valid;
-  if (valid)
-  {
-    if ((m_flags & kControlSideMask) == kControlSideMask)
-    {
+  if (valid) {
+    if ((m_flags & kControlSideMask) == kControlSideMask) {
       state = kStateIdle;
-    }
-    else if (state == kStateWaiting)
-    {
-      if (m_procFlags & kPointPresent)
+    } else if (state == kStateWaiting) {
+      if (m_procFlags & kPointPresent) {
         state = kStateProcessing;
-    }
-    else if (state == kStateProcessing)
-    {
-      if (m_procFlags & kPointProcessed)
+      }
+    } else if (state == kStateProcessing) {
+      if (m_procFlags & kPointProcessed) {
         state = kStateDone;
-    }
-    else if (state == kStateDone && !(m_procFlags & kPointPresent))
-    {
+      }
+    } else if (state == kStateDone && !(m_procFlags & kPointPresent)) {
       state = kStateWaiting;
     }
     result = SetState(state, ctx);
@@ -391,8 +383,7 @@ int ProcFacil::UpdateState(NotifyContext* ctx)
 
 int ProcFacil::Restart(NotifyContext* ctx)
 {
-  if (m_state == kStateIdle && (m_stateFlags & kUsable) && !(m_procFlags & kSuspended))
-  {
+  if (m_state == kStateIdle && (m_stateFlags & kUsable) && !(m_procFlags & kSuspended)) {
     return SetState(kStateWaiting, ctx);
   }
   return ResetToIdle(ctx);
@@ -409,17 +400,13 @@ int ProcFacil::ResetToIdle(NotifyContext* ctx)
 int ProcFacil::ApplyState(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     ProcFacil* master = viewOf(this, kMasterView);
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_state;
-      if (oldValue != master->m_state)
-      {
+      if (oldValue != master->m_state) {
         m_state = master->m_state;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnStateNotified(oldValue, m_state, ctx);
         }
       }
@@ -431,17 +418,13 @@ int ProcFacil::ApplyState(NotifyContext* ctx)
 int ProcFacil::ApplyEtc(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     ProcFacil* master = viewOf(this, kMasterView);
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_etc;
-      if (oldValue != master->m_etc)
-      {
+      if (oldValue != master->m_etc) {
         m_etc = master->m_etc;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnEtcNotified(oldValue, m_etc, ctx);
         }
       }
@@ -480,8 +463,7 @@ int ProcFacil::ApplyOnStartupCycle(NotifyContext* ctx)
 int ProcFacil::ReadImpl(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
-  {
+  if (result) {
     int state;
     ReadValue32(in, &state);
     m_state = state;
@@ -494,8 +476,7 @@ int ProcFacil::ReadImpl(istream* in)
 int ProcFacil::WriteImpl(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
-  {
+  if (result) {
     int state = m_state;
     WriteValue32(out, &state);
     WriteValue32(out, &m_etc);
@@ -507,8 +488,7 @@ int ProcFacil::WriteImpl(ostream* out)
 int ProcFacil::ChecksumImpl(Crc32* crc)
 {
   const int result = GameObj::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_state);
     crc->AddInt(m_etc);
     crc->AddInt(m_procFlags);
@@ -519,11 +499,9 @@ int ProcFacil::ChecksumImpl(Crc32* crc)
 int ProcFacil::ApplyAllImpl(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     Facility::ApplyAllImpl(ctx);
-    if (ctx->m_flag04 == kApplyEverything)
-    {
+    if (ctx->m_flag04 == kApplyEverything) {
       ApplyState(ctx);
       ApplyEtc(ctx);
       ApplySuspended(ctx);
@@ -539,23 +517,21 @@ int ProcFacil::ApplyAllImpl(NotifyContext* ctx)
 int ProcFacil::ValidateImpl()
 {
   bool valid = false;
-  if (Facility::ValidateImpl() != 0)
-  {
+  if (Facility::ValidateImpl() != 0) {
     uint32_t check = ~m_procFlags >> 2 & 1;
-    if (check != 0)
-    {
-      if (m_state == kStateWaiting)
+    if (check != 0) {
+      if (m_state == kStateWaiting) {
         check = ~m_procFlags >> 1 & 1;
-      if (check != 0)
-      {
-        if (m_state == kStateProcessing)
+      }
+      if (check != 0) {
+        if (m_state == kStateProcessing) {
           check = m_procFlags >> 1 & 1;
-        if (check != 0)
-        {
+        }
+        if (check != 0) {
           valid = m_state != kStateDone;
-          if (valid && ((m_flags & kControlSideMask) == kControlSideMask || (m_procFlags & kSuspended) ||
-                        !(m_stateFlags & kUsable)))
-          {
+          if (valid
+              && ((m_flags & kControlSideMask) == kControlSideMask || (m_procFlags & kSuspended)
+                  || !(m_stateFlags & kUsable))) {
             valid = m_state == kStateIdle;
           }
         }
@@ -573,12 +549,12 @@ const FamilyRange kProcFacilFamilies(0x28, 0x30);
 }
 
 ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kProcFacilFamilies, stateFilter)
+    : ChildIterator(parent, &kProcFacilFamilies, stateFilter)
 {
 }
 
 ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &kProcFacilFamilies, stateFilter)
+    : ChildIterator(parent, side, &kProcFacilFamilies, stateFilter)
 {
 }
 

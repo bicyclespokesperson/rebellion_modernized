@@ -38,13 +38,15 @@ inline ObjectKey KeyOfNode(ObjectKeyNode* node)
 // Adds the object the iterator is at to the team; the node that was made (null if there was no object or no memory).
 inline ObjectKeyValueNode* AddCurrentToTeam(ObjectKeyValueSet* team, ChildIterator* it)
 {
-  if (!it->Current())
+  if (!it->Current()) {
     return nullptr;
+  }
   ObjectKey key;
   GetObjectKey(it->Current(), &key);
   auto* node = NewOrNull<ObjectKeyValueNode>(key, 0);
-  if (node)
+  if (node) {
     team->Add(node);
+  }
   return node;
 }
 
@@ -71,8 +73,9 @@ template <class Iterator>
 ObjectKeyValueNode* AddAllOfKind(ObjectKeyValueSet* team, GameObjNotifier* parent, ObjectKeyValueNode* previous)
 {
   Iterator it(parent, 1);
-  for (it.Begin(); it.Current(); it.Advance())
+  for (it.Begin(); it.Current(); it.Advance()) {
     previous = AddCurrentToTeam(team, &it);
+  }
   return previous;
 }
 
@@ -80,8 +83,7 @@ ObjectKeyValueNode* AddAllOfKind(ObjectKeyValueSet* team, GameObjNotifier* paren
 inline OrderBase* NewTeamOrder(int kind, int side, ObjectKeyValueSet* team)
 {
   auto* order = static_cast<OrderBase*>(CreateMessageByKind(kind));
-  if (order)
-  {
+  if (order) {
     order->m_side = side;
     order->SetTeam(team);
   }

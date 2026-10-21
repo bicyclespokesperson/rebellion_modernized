@@ -38,7 +38,9 @@ bool controlledByNeutral(const ProductionFacility* facility)
 
 } // namespace
 
-ProductionFacility::ProductionFacility() : m_work(), m_productionModifier(kDefaultProductionModifier)
+ProductionFacility::ProductionFacility()
+    : m_work()
+    , m_productionModifier(kDefaultProductionModifier)
 {
 }
 
@@ -59,11 +61,11 @@ int ProductionFacility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind,
   GetWork(&work);
   work.m_second = 0;
   SetWork(&work, ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateEligibility(ctx);
-    if (result)
+    if (result) {
       result = ResetWorkIfUnavailable(ctx);
+    }
   }
   return result;
 }
@@ -71,11 +73,11 @@ int ProductionFacility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind,
 int ProductionFacility::OnUsableChanged(int newValue, NotifyContext* ctx)
 {
   int result = ProcFacil::OnUsableChanged(newValue, ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateEligibility(ctx);
-    if (result)
+    if (result) {
       result = ResetWorkIfUnavailable(ctx);
+    }
   }
   return result;
 }
@@ -93,19 +95,20 @@ int ProductionFacility::OnExistingChanged(int newValue, NotifyContext* ctx)
 int ProductionFacility::OnStateChanged(int oldState, int newState, NotifyContext* ctx)
 {
   int result = ProcFacil::OnStateChanged(oldState, newState, ctx);
-  if (result)
+  if (result) {
     result = UpdateEligibility(ctx);
+  }
   return result;
 }
 
 int ProductionFacility::OnSuspendedChanged(int value, NotifyContext* ctx)
 {
   int result = ProcFacil::OnSuspendedChanged(value, ctx);
-  if (result)
-  {
+  if (result) {
     result = UpdateEligibility(ctx);
-    if (result)
+    if (result) {
       result = ResetWorkIfUnavailable(ctx);
+    }
   }
   return result;
 }
@@ -113,16 +116,18 @@ int ProductionFacility::OnSuspendedChanged(int value, NotifyContext* ctx)
 int ProductionFacility::OnStartupCycleChanged(int value, NotifyContext* ctx)
 {
   int result = ProcFacil::OnStartupCycleChanged(value, ctx);
-  if (result)
+  if (result) {
     result = UpdateDuration(ctx);
+  }
   return result;
 }
 
 int ProductionFacility::OnWorkChanged(const IntPair* oldWork, const IntPair* newWork, NotifyContext* ctx)
 {
   int result = UpdateEligibility(ctx);
-  if (result)
+  if (result) {
     result = UpdateDuration(ctx);
+  }
   return result;
 }
 
@@ -139,8 +144,9 @@ int ProductionFacility::OnWorkNotified(const IntPair* oldWork, const IntPair* ne
 int ProductionFacility::OnProductionModifierNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogInt("(ProcFacilProductionModifierNotif)", "ProductionModifier", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
@@ -149,8 +155,7 @@ int ProductionFacility::OnProductionModifierNotified(int oldValue, int newValue,
 int ProductionFacility::SetWork(const IntPair* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && !sameWork(m_work, *value))
-  {
+  if (result && !sameWork(m_work, *value)) {
     const IntPair oldWork = m_work;
     m_work = *value;
     viewOf(this, kAllianceView)->ApplyWork(ctx);
@@ -163,10 +168,10 @@ int ProductionFacility::SetWork(const IntPair* value, NotifyContext* ctx)
 int ProductionFacility::SetProductionModifier(int value, NotifyContext* ctx)
 {
   int result = 0;
-  if (IsMasterView())
+  if (IsMasterView()) {
     result = IsInRange(value, 0, value, "Invalid ProductionModifier value!");
-  if (result && m_productionModifier != value)
-  {
+  }
+  if (result && m_productionModifier != value) {
     const int oldValue = m_productionModifier;
     m_productionModifier = value;
     viewOf(this, kAllianceView)->ApplyProductionModifier(ctx);
@@ -179,23 +184,22 @@ int ProductionFacility::SetProductionModifier(int value, NotifyContext* ctx)
 int ProductionFacility::AdvanceWork(int limit, const int* ratio, int* added, NotifyContext* ctx)
 {
   int target = 0;
-  if (ratio[0] != 0)
-  {
+  if (ratio[0] != 0) {
     IntPair work;
     target = (ratio[1] * static_cast<int>(GetWork(&work)->m_first)) / ratio[0];
   }
   IntPair work;
   *added = (target - static_cast<int>(GetWork(&work)->m_second)) + 1;
-  if (*added < 0)
+  if (*added < 0) {
     *added = 0;
-  if (limit < *added)
+  }
+  if (limit < *added) {
     *added = limit;
-  if (static_cast<int>(m_work.m_first) - static_cast<int>(m_work.m_second) < *added)
-  {
+  }
+  if (static_cast<int>(m_work.m_first) - static_cast<int>(m_work.m_second) < *added) {
     *added = static_cast<int>(m_work.m_first) - static_cast<int>(m_work.m_second);
   }
-  if (0 < *added)
-  {
+  if (0 < *added) {
     const IntPair delta(0, *added);
     IntPair current;
     const IntPair updated = addWork(*GetWork(&current), delta);
@@ -207,19 +211,19 @@ int ProductionFacility::AdvanceWork(int limit, const int* ratio, int* added, Not
 int ProductionFacility::RewindWork(int limit, const int* ratio, int* removed, NotifyContext* ctx)
 {
   int target = 0;
-  if (ratio[0] != 0)
-  {
+  if (ratio[0] != 0) {
     IntPair work;
     target = ((ratio[1] - 1) * static_cast<int>(GetWork(&work)->m_first)) / ratio[0];
   }
   IntPair work;
   *removed = static_cast<int>(GetWork(&work)->m_second) - target;
-  if (*removed < 0)
+  if (*removed < 0) {
     *removed = 0;
-  if (limit < *removed)
+  }
+  if (limit < *removed) {
     *removed = limit;
-  if (0 < *removed)
-  {
+  }
+  if (0 < *removed) {
     const IntPair delta(0, -*removed);
     IntPair current;
     const IntPair updated = addWork(*GetWork(&current), delta);
@@ -234,20 +238,17 @@ int ProductionFacility::UpdateEligibility(NotifyContext* ctx)
 {
   const bool notIdle = m_state != kStateIdle;
   int eligible = 0;
-  if ((m_stateFlags & kUsable) && !(m_procFlags & kSuspended) && !controlledByNeutral(this))
-  {
+  if ((m_stateFlags & kUsable) && !(m_procFlags & kSuspended) && !controlledByNeutral(this)) {
     IntPair work;
     GetWork(&work);
     eligible = CanProcess(&work) != 0;
   }
   int result = 1;
-  if (eligible)
-  {
-    if (!notIdle)
+  if (eligible) {
+    if (!notIdle) {
       result = Restart(ctx);
-  }
-  else if (notIdle)
-  {
+    }
+  } else if (notIdle) {
     result = ResetToIdle(ctx);
   }
   return result;
@@ -255,8 +256,7 @@ int ProductionFacility::UpdateEligibility(NotifyContext* ctx)
 
 int ProductionFacility::ResetWorkIfUnavailable(NotifyContext* ctx)
 {
-  if (!(m_stateFlags & kUsable) || (m_procFlags & kSuspended) || controlledByNeutral(this))
-  {
+  if (!(m_stateFlags & kUsable) || (m_procFlags & kSuspended) || controlledByNeutral(this)) {
     IntPair work;
     GetWork(&work);
     work.m_second = 0;
@@ -272,10 +272,12 @@ int ProductionFacility::UpdateDuration(NotifyContext* ctx)
   IntPair work;
   GetWork(&work);
   const int notStartupCycle = (~m_procFlags >> 4) & 1;
-  if (ComputeDuration(&work, modifier, notStartupCycle, &duration) == 0)
+  if (ComputeDuration(&work, modifier, notStartupCycle, &duration) == 0) {
     duration = 0;
-  if (m_data)
+  }
+  if (m_data) {
     static_cast<ProcFacilData*>(m_data)->m_duration = duration;
+  }
   return 1;
 }
 
@@ -284,20 +286,16 @@ int ProductionFacility::UpdateDuration(NotifyContext* ctx)
 int ProductionFacility::ApplyWork(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     ProductionFacility* master = viewOf(this, kMasterView);
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       IntPair masterWork;
       master->GetWork(&masterWork);
-      if (!sameWork(m_work, masterWork))
-      {
+      if (!sameWork(m_work, masterWork)) {
         const IntPair oldWork = m_work;
         master->GetWork(&masterWork);
         m_work = masterWork;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnWorkNotified(&oldWork, &m_work, ctx);
         }
       }
@@ -309,17 +307,13 @@ int ProductionFacility::ApplyWork(NotifyContext* ctx)
 int ProductionFacility::ApplyProductionModifier(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     ProductionFacility* master = viewOf(this, kMasterView);
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_productionModifier;
-      if (oldValue != master->m_productionModifier)
-      {
+      if (oldValue != master->m_productionModifier) {
         m_productionModifier = master->m_productionModifier;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
-        {
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnProductionModifierNotified(oldValue, m_productionModifier, ctx);
         }
       }
@@ -333,8 +327,7 @@ int ProductionFacility::ApplyProductionModifier(NotifyContext* ctx)
 int ProductionFacility::ReadImpl(istream* in)
 {
   const int result = ProcFacil::ReadImpl(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_work.m_first);
     ReadValue32(in, &m_work.m_second);
     ReadValue32(in, &m_productionModifier);
@@ -345,8 +338,7 @@ int ProductionFacility::ReadImpl(istream* in)
 int ProductionFacility::WriteImpl(ostream* out)
 {
   const int result = ProcFacil::WriteImpl(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_work.m_first);
     WriteValue32(out, &m_work.m_second);
     WriteValue32(out, &m_productionModifier);
@@ -357,8 +349,7 @@ int ProductionFacility::WriteImpl(ostream* out)
 int ProductionFacility::ChecksumImpl(Crc32* crc)
 {
   const int result = ProcFacil::ChecksumImpl(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_work.m_first);
     crc->AddInt(m_work.m_second);
     crc->AddInt(m_productionModifier);
@@ -369,11 +360,9 @@ int ProductionFacility::ChecksumImpl(Crc32* crc)
 int ProductionFacility::ApplyAllImpl(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     ProcFacil::ApplyAllImpl(ctx);
-    if (ctx->m_flag04 == kApplyEverything)
-    {
+    if (ctx->m_flag04 == kApplyEverything) {
       ApplyWork(ctx);
       ApplyProductionModifier(ctx);
     }
@@ -386,8 +375,7 @@ int ProductionFacility::ValidateImpl()
   ProcFacil::ValidateImpl();
   const bool notIdle = m_state != kStateIdle;
   int eligible = 0;
-  if ((m_stateFlags & kUsable) && !(m_procFlags & kSuspended) && !controlledByNeutral(this))
-  {
+  if ((m_stateFlags & kUsable) && !(m_procFlags & kSuspended) && !controlledByNeutral(this)) {
     IntPair work;
     GetWork(&work);
     eligible = CanProcess(&work) != 0;
@@ -398,7 +386,7 @@ int ProductionFacility::ValidateImpl()
 // ---- iterator ------------------------------------------------------------------------------------------------------
 
 ProductionFacilityIterator::ProductionFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kProductionFacilityFamilies, stateFilter)
+    : ChildIterator(parent, &kProductionFacilityFamilies, stateFilter)
 {
 }
 

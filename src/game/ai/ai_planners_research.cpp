@@ -3,10 +3,11 @@
 
 using namespace ai_planner;
 
-// ---- 0x53 Research, subtype 1 --------------------------------------------------------------------------------------------
+// ---- 0x53 Research, subtype 1
+// --------------------------------------------------------------------------------------------
 
 AiResearchPlanner1::AiResearchPlanner1(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x53, 0x20);
 }
@@ -38,10 +39,11 @@ int AiResearchPlanner1::ChooseTarget()
   return ai_planner::ChooseTarget(this, 1, 4, 0x39);
 }
 
-// ---- 0x53 Research, subtype 2 --------------------------------------------------------------------------------------------
+// ---- 0x53 Research, subtype 2
+// --------------------------------------------------------------------------------------------
 
 AiResearchPlanner2::AiResearchPlanner2(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x53, 0x22);
 }
@@ -73,10 +75,11 @@ int AiResearchPlanner2::ChooseTarget()
   return ai_planner::ChooseTarget(this, 2, 8, 0x3a);
 }
 
-// ---- 0x53 Research, subtype 3 --------------------------------------------------------------------------------------------
+// ---- 0x53 Research, subtype 3
+// --------------------------------------------------------------------------------------------
 
 AiResearchPlanner3::AiResearchPlanner3(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x53, 0x21);
 }
@@ -108,10 +111,11 @@ int AiResearchPlanner3::ChooseTarget()
   return ai_planner::ChooseTarget(this, 4, 0x10, 0x3b);
 }
 
-// ---- 0x57 Subdue -----------------------------------------------------------------------------------------------------------
+// ---- 0x57 Subdue
+// -----------------------------------------------------------------------------------------------------------
 
 AiSubduePlanner::AiSubduePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
-: AiFreePlanner(view, owner, characters)
+    : AiFreePlanner(view, owner, characters)
 {
   m_missionKey = ObjectKey::Make(0x57, 0x80);
 }

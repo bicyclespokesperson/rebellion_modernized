@@ -3,7 +3,11 @@
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 
-GameObjData::GameObjData() : m_field04(0), m_lockCount(0), m_key(), m_stat()
+GameObjData::GameObjData()
+    : m_field04(0)
+    , m_lockCount(0)
+    , m_key()
+    , m_stat()
 {
 }
 
@@ -14,8 +18,9 @@ int GameObjData::Read(istream* in)
   ReadValue32(in, &m_field04);
   ReadValue32(in, &m_lockCount);
   int ok = m_key.Read(in);
-  if (ok)
+  if (ok) {
     ok = m_stat.Read(in);
+  }
   return ok;
 }
 
@@ -24,8 +29,9 @@ int GameObjData::Write(ostream* out)
   WriteValue32(out, &m_field04);
   WriteValue32(out, &m_lockCount);
   int ok = m_key.Write(out);
-  if (ok)
+  if (ok) {
     ok = m_stat.Write(out);
+  }
   return ok;
 }
 
@@ -34,24 +40,25 @@ int GameObjData::Checksum(Crc32* crc)
   crc->AddInt(m_field04);
   crc->AddInt(m_lockCount);
   int ok = m_key.Checksum(crc);
-  if (ok)
+  if (ok) {
     ok = m_stat.Checksum(crc);
+  }
   return ok;
 }
 
 // ---- SystemData -----------------------------------------------------------------------------------------------
 
 SystemData::SystemData()
-: GameObjData(),
-  m_word48(),
-  m_word54(),
-  m_word60(0),
-  m_word64(0),
-  m_word68(),
-  m_word74(0),
-  m_word78(0),
-  m_word7c(0),
-  m_flags80(0)
+    : GameObjData()
+    , m_word48()
+    , m_word54()
+    , m_word60(0)
+    , m_word64(0)
+    , m_word68()
+    , m_word74(0)
+    , m_word78(0)
+    , m_word7c(0)
+    , m_flags80(0)
 {
 }
 
@@ -64,11 +71,11 @@ template <class Stats, class Visit>
 int visitAll(Stats& stats, Visit visit)
 {
   int ok = 1;
-  for (auto& stat : stats)
-  {
+  for (auto& stat : stats) {
     ok = visit(stat);
-    if (!ok)
+    if (!ok) {
       return ok;
+    }
   }
   return ok;
 }
@@ -78,17 +85,16 @@ int visitAll(Stats& stats, Visit visit)
 int SystemData::Read(istream* in)
 {
   int ok = GameObjData::Read(in);
-  if (!ok)
+  if (!ok) {
     return 0;
-  ok = visitAll(m_stats,
-                [in](TrackedStat& stat)
-                {
-                  return stat.Read(in);
-                });
-  if (!ok)
+  }
+  ok = visitAll(m_stats, [in](TrackedStat& stat) {
+    return stat.Read(in);
+  });
+  if (!ok) {
     return 0;
-  for (int i = 0; i < 3; ++i)
-  {
+  }
+  for (int i = 0; i < 3; ++i) {
     ReadValue32(in, &m_word48[i]);
     ReadValue32(in, &m_word54[i]);
     ReadValue32(in, &m_word68[i]);
@@ -105,17 +111,16 @@ int SystemData::Read(istream* in)
 int SystemData::Write(ostream* out)
 {
   int ok = GameObjData::Write(out);
-  if (!ok)
+  if (!ok) {
     return 0;
-  ok = visitAll(m_stats,
-                [out](TrackedStat& stat)
-                {
-                  return stat.Write(out);
-                });
-  if (!ok)
+  }
+  ok = visitAll(m_stats, [out](TrackedStat& stat) {
+    return stat.Write(out);
+  });
+  if (!ok) {
     return 0;
-  for (int i = 0; i < 3; ++i)
-  {
+  }
+  for (int i = 0; i < 3; ++i) {
     WriteValue32(out, &m_word48[i]);
     WriteValue32(out, &m_word54[i]);
     WriteValue32(out, &m_word68[i]);
@@ -132,17 +137,16 @@ int SystemData::Write(ostream* out)
 int SystemData::Checksum(Crc32* crc)
 {
   int ok = GameObjData::Checksum(crc);
-  if (!ok)
+  if (!ok) {
     return 0;
-  ok = visitAll(m_stats,
-                [crc](TrackedStat& stat)
-                {
-                  return stat.Checksum(crc);
-                });
-  if (!ok)
+  }
+  ok = visitAll(m_stats, [crc](TrackedStat& stat) {
+    return stat.Checksum(crc);
+  });
+  if (!ok) {
     return 0;
-  for (int i = 0; i < 3; ++i)
-  {
+  }
+  for (int i = 0; i < 3; ++i) {
     crc->AddInt(m_word48[i]);
     crc->AddInt(m_word54[i]);
     crc->AddInt(m_word68[i]);

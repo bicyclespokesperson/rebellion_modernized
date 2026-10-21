@@ -9,7 +9,7 @@
 // Text values use spaces and dashes as legacy separators.
 class StringMap
 {
-public:
+  public:
   StringMap() = default;
   StringMap(const StringMap& other) = default;
   StringMap& operator=(const StringMap& other) = default;
@@ -22,9 +22,8 @@ public:
   void LoadValues(const std::string* text);
   void Clear();
 
-private:
-  struct Entry
-  {
+  private:
+  struct Entry {
     std::string key;
     int value;
   };

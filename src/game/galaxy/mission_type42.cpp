@@ -5,7 +5,7 @@
 #include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
 
-extern int g_mission42EventKindsReady; // 0x6bb930
+extern int g_mission42EventKindsReady;     // 0x6bb930
 extern EventKindSet g_mission42EventKinds; // 0x6bb938
 
 namespace
@@ -49,8 +49,9 @@ int Mission42::Validate()
 
 int Mission42::ApplyAll(NotifyContext* ctx)
 {
-  if (IsSideView())
+  if (IsSideView()) {
     return MissionTypeApplyAllForward(this, ctx);
+  }
   return 0;
 }
 
@@ -77,8 +78,9 @@ int Mission42::ValidateImpl()
 int Mission42::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_mission42EventKinds;
+  }
   return result;
 }
 
@@ -86,8 +88,9 @@ int Mission42::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_mission42EventKinds.Contains(orderKind))
+  if (result && g_mission42EventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -104,8 +107,7 @@ GameObjNotifier* Mission42::Create()
 int Mission42::BuildEventKinds()
 {
   int result = 1;
-  if (!g_mission42EventKindsReady)
-  {
+  if (!g_mission42EventKindsReady) {
     g_mission42EventKindsReady = 1;
     result = MissionTypeBase::InitEventKinds(0, &g_mission42EventKinds);
   }

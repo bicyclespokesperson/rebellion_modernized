@@ -25,8 +25,7 @@ int resolveSystem(const ObjectKey* key, GameObjNotifier** system, StatusCode* st
   *system = nullptr;
   *status = StatusCode(kStatusCategory, kStatusOk);
   int found = 1;
-  if (isOk(*status))
-  {
+  if (isOk(*status)) {
     const StatusCode missing(kStatusCategory, kStatusMissingTarget);
     found = ResolveMasterInFamilies_90_98(key, system, &missing, status);
   }
@@ -51,7 +50,9 @@ GameObjNotifier* NextCharacterSibling(GameObj* object)
 
 // ---- LoyaltyEvent373 -------------------------------------------------------------------------------------------
 
-LoyaltyEvent373::LoyaltyEvent373() : PlainEvent(), m_delta(0)
+LoyaltyEvent373::LoyaltyEvent373()
+    : PlainEvent()
+    , m_delta(0)
 {
 }
 
@@ -105,8 +106,9 @@ int LoyaltyEvent373::Execute()
   GameObjNotifier* system;
   StatusCode status;
   const int found = resolveSystem(&m_key, &system, &status);
-  if (found && isOk(status))
+  if (found && isOk(status)) {
     static_cast<System*>(system)->AdjustLoyalty(m_delta, kLoyaltySide, &context);
+  }
   return 0;
 }
 
@@ -117,7 +119,8 @@ void* CreateLoyaltyEvent373()
 
 // ---- SystemCommand225 ------------------------------------------------------------------------------------------
 
-SystemCommand225::SystemCommand225() : Command()
+SystemCommand225::SystemCommand225()
+    : Command()
 {
 }
 
@@ -154,8 +157,9 @@ int SystemCommand225::CheckEnabled(StatusCode* status)
 {
   GameObjNotifier* system;
   int result = resolveSystem(&m_key, &system, status);
-  if (result && isOk(*status))
+  if (result && isOk(*status)) {
     result = static_cast<System*>(system)->CheckAssaultEnabled(&m_request, status);
+  }
   return result;
 }
 
@@ -163,8 +167,9 @@ int SystemCommand225::CheckValid(StatusCode* status)
 {
   GameObjNotifier* system;
   int result = resolveSystem(&m_key, &system, status);
-  if (result && isOk(*status))
+  if (result && isOk(*status)) {
     result = static_cast<System*>(system)->CheckAssaultValid(&m_request, status);
+  }
   return result;
 }
 
@@ -174,8 +179,7 @@ int SystemCommand225::Execute()
   GameObjNotifier* system;
   StatusCode status;
   const int found = resolveSystem(&m_key, &system, &status);
-  if (found && isOk(status))
-  {
+  if (found && isOk(status)) {
     AssaultResolver resolver;
     resolver.Run(system, &m_request, &context);
   }
@@ -189,7 +193,8 @@ void* CreateSystemCommand225()
 
 // ---- SystemCommand224 ------------------------------------------------------------------------------------------
 
-SystemCommand224::SystemCommand224() : Command()
+SystemCommand224::SystemCommand224()
+    : Command()
 {
 }
 
@@ -226,8 +231,9 @@ int SystemCommand224::CheckEnabled(StatusCode* status)
 {
   GameObjNotifier* system;
   int result = resolveSystem(&m_key, &system, status);
-  if (result && isOk(*status))
+  if (result && isOk(*status)) {
     result = static_cast<System*>(system)->CheckBombardEnabled(&m_request, status);
+  }
   return result;
 }
 
@@ -235,8 +241,9 @@ int SystemCommand224::CheckValid(StatusCode* status)
 {
   GameObjNotifier* system;
   int result = resolveSystem(&m_key, &system, status);
-  if (result && isOk(*status))
+  if (result && isOk(*status)) {
     result = static_cast<System*>(system)->CheckBombardValid(&m_request, status);
+  }
   return result;
 }
 
@@ -246,8 +253,7 @@ int SystemCommand224::Execute()
   GameObjNotifier* system;
   StatusCode status;
   const int found = resolveSystem(&m_key, &system, &status);
-  if (found && isOk(status))
-  {
+  if (found && isOk(status)) {
     BombardResolver resolver;
     resolver.Run(system, &m_request, &context);
   }

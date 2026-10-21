@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionInciteEventKindsReady; // 0x6bba30
+extern int g_missionInciteEventKindsReady;     // 0x6bba30
 extern EventKindSet g_missionInciteEventKinds; // 0x6bba28
 
 namespace
@@ -13,8 +13,9 @@ constexpr int kTaskSucceeded = 3;
 
 int ControlSideIndex(uint32_t controlSide)
 {
-  if (controlSide == 3)
+  if (controlSide == 3) {
     return 3;
+  }
   return controlSide == 1 ? 2 : 1;
 }
 } // namespace
@@ -68,10 +69,11 @@ int MissionIncite::GetPersonSuccessChance(GameObj* person, int* out)
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   int ok = found != 0;
-  if (!system)
+  if (!system) {
     return ok;
+  }
   const int side = ControlSideIndex(ControlSide());
   const int regiments = system->CountEmpireRegimentsOfKey6();
   const int loyalty = system->GetLoyaltyFor(side);
@@ -93,20 +95,21 @@ int MissionIncite::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   int ok = found != 0;
-  if (!system)
+  if (!system) {
     return ok;
-  if (!PercentChance(roll))
+  }
+  if (!PercentChance(roll)) {
     return ok;
+  }
   *out = 1;
   ok = system->System::ResolveUprisingTurn(ctx) && ok ? 1 : 0;
   const uint32_t side = ControlSideIndex(ControlSide());
   const bool sideHoldsLoyalty = system->m_controlData.Loyalty() == side;
   const bool uprisingContained = sideHoldsLoyalty || system->CountTroopRegiments(system->ControlSide(), 1) != 0;
   ok = SetTaskStatus(uprisingContained ? kTaskStarted : kTaskSucceeded, ctx) && ok ? 1 : 0;
-  if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->IsCharacter())
-  {
+  if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->IsCharacter()) {
     Role* role = static_cast<Role*>(person);
     ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb1810, ctx) && ok ? 1 : 0;
   }
@@ -115,8 +118,7 @@ int MissionIncite::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 
 int MissionIncite::BuildEventKinds()
 {
-  if (!g_missionInciteEventKindsReady)
-  {
+  if (!g_missionInciteEventKindsReady) {
     g_missionInciteEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionInciteEventKinds);
   }

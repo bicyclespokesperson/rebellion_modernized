@@ -20,11 +20,9 @@ constexpr int kMaxLoyalty = 100;
 int Role::SetBaseDiplomacy(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseDiplomacy != value)
-    {
+    if (m_baseDiplomacy != value) {
       const int oldValue = m_baseDiplomacy;
       m_baseDiplomacy = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseDiplomacy(ctx);
@@ -38,11 +36,9 @@ int Role::SetBaseDiplomacy(int value, NotifyContext* ctx)
 int Role::SetBaseEspionage(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseEspionage != value)
-    {
+    if (m_baseEspionage != value) {
       const int oldValue = m_baseEspionage;
       m_baseEspionage = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseEspionage(ctx);
@@ -56,11 +52,9 @@ int Role::SetBaseEspionage(int value, NotifyContext* ctx)
 int Role::SetBaseShipyardRD(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseShipyardRD != value)
-    {
+    if (m_baseShipyardRD != value) {
       const int oldValue = m_baseShipyardRD;
       m_baseShipyardRD = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseShipyardRD(ctx);
@@ -74,11 +68,9 @@ int Role::SetBaseShipyardRD(int value, NotifyContext* ctx)
 int Role::SetBaseTrainingFacilRD(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseTrainingFacilRD != value)
-    {
+    if (m_baseTrainingFacilRD != value) {
       const int oldValue = m_baseTrainingFacilRD;
       m_baseTrainingFacilRD = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseTrainingFacilRD(ctx);
@@ -92,11 +84,9 @@ int Role::SetBaseTrainingFacilRD(int value, NotifyContext* ctx)
 int Role::SetBaseConstructionYardRD(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseConstructionYardRD != value)
-    {
+    if (m_baseConstructionYardRD != value) {
       const int oldValue = m_baseConstructionYardRD;
       m_baseConstructionYardRD = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseConstructionYardRD(ctx);
@@ -110,11 +100,9 @@ int Role::SetBaseConstructionYardRD(int value, NotifyContext* ctx)
 int Role::SetBaseCombat(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseCombat != value)
-    {
+    if (m_baseCombat != value) {
       const int oldValue = m_baseCombat;
       m_baseCombat = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseCombat(ctx);
@@ -128,11 +116,9 @@ int Role::SetBaseCombat(int value, NotifyContext* ctx)
 int Role::SetBaseLeadership(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     Clamp(value, 0, kMaxSkillValue);
-    if (m_baseLeadership != value)
-    {
+    if (m_baseLeadership != value) {
       const int oldValue = m_baseLeadership;
       m_baseLeadership = static_cast<int16_t>(value);
       ViewAsRole(kAllianceView)->ApplyBaseLeadership(ctx);
@@ -146,13 +132,11 @@ int Role::SetBaseLeadership(int value, NotifyContext* ctx)
 int Role::SetBaseLoyalty(int value, NotifyContext* ctx)
 {
   int result = 0;
-  if (IsMasterView())
-  {
+  if (IsMasterView()) {
     result = IsInRange(value, 0, kMaxLoyalty, "Invalid BaseLoyalty value!");
     Clamp(value, 0, kMaxSkillValue);
   }
-  if (result && m_baseLoyalty != value)
-  {
+  if (result && m_baseLoyalty != value) {
     const int oldValue = m_baseLoyalty;
     m_baseLoyalty = static_cast<int16_t>(value);
     ViewAsRole(kAllianceView)->ApplyBaseLoyalty(ctx);
@@ -165,8 +149,7 @@ int Role::SetBaseLoyalty(int value, NotifyContext* ctx)
 int Role::SetMissionKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_missionKey.m_value != value->m_value)
-  {
+  if (result && m_missionKey.m_value != value->m_value) {
     ObjectKey oldKey;
     oldKey.m_value = m_missionKey.m_value;
     m_missionKey.m_value = value->m_value;
@@ -180,14 +163,15 @@ int Role::SetMissionKey(ObjectKey* value, NotifyContext* ctx)
 int Role::SetMissionSeedKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_missionSeedKey.m_value != value->m_value)
-  {
+  if (result && m_missionSeedKey.m_value != value->m_value) {
     ObjectKey oldKey;
     oldKey.m_value = m_missionSeedKey.m_value;
     m_missionSeedKey.m_value = value->m_value;
     ViewAsRole(kAllianceView)->ApplyMissionSeedKey(ctx);
     ViewAsRole(kEmpireView)->ApplyMissionSeedKey(ctx);
-    OnMissionSeedChanged(&oldKey, MissionSeedKeyAsObjectKey(), ctx);
+    ObjectKey newKey;
+    newKey.m_value = m_missionSeedKey.m_value;
+    OnMissionSeedChanged(&oldKey, &newKey, ctx);
   }
   return result;
 }
@@ -195,8 +179,7 @@ int Role::SetMissionSeedKey(ObjectKey* value, NotifyContext* ctx)
 int Role::SetParentAtMissionCompletionKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_parentAtMissionCompletionKey.m_value != value->m_value)
-  {
+  if (result && m_parentAtMissionCompletionKey.m_value != value->m_value) {
     ObjectKey oldKey;
     oldKey.m_value = m_parentAtMissionCompletionKey.m_value;
     m_parentAtMissionCompletionKey.m_value = value->m_value;
@@ -210,8 +193,7 @@ int Role::SetParentAtMissionCompletionKey(ObjectKey* value, NotifyContext* ctx)
 int Role::SetLocationAtMissionCompletionKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_locationAtMissionCompletionKey.m_value != value->m_value)
-  {
+  if (result && m_locationAtMissionCompletionKey.m_value != value->m_value) {
     ObjectKey oldKey;
     oldKey.m_value = m_locationAtMissionCompletionKey.m_value;
     m_locationAtMissionCompletionKey.m_value = value->m_value;
@@ -225,8 +207,7 @@ int Role::SetLocationAtMissionCompletionKey(ObjectKey* value, NotifyContext* ctx
 int Role::SetDecoy(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kDecoy, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kDecoy, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyDecoy(ctx);
     ViewAsRole(kEmpireView)->ApplyDecoy(ctx);
     OnDecoyChanged(on, ctx);
@@ -237,8 +218,7 @@ int Role::SetDecoy(int on, NotifyContext* ctx)
 int Role::SetMovingBetweenMissions(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kMovingBetweenMissions, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kMovingBetweenMissions, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyMovingBetweenMissions(ctx);
     ViewAsRole(kEmpireView)->ApplyMovingBetweenMissions(ctx);
     OnMovingBetweenMissionsChanged(on, ctx);
@@ -249,8 +229,7 @@ int Role::SetMovingBetweenMissions(int on, NotifyContext* ctx)
 int Role::SetMissionRemoveRequest(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kMissionRemoveRequest, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kMissionRemoveRequest, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyMissionRemoveRequest(ctx);
     ViewAsRole(kEmpireView)->ApplyMissionRemoveRequest(ctx);
     OnMissionRemoveRequestChanged(on, ctx);
@@ -261,8 +240,7 @@ int Role::SetMissionRemoveRequest(int on, NotifyContext* ctx)
 int Role::SetMissionResignRequest(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kMissionResignRequest, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kMissionResignRequest, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyMissionResignRequest(ctx);
     ViewAsRole(kEmpireView)->ApplyMissionResignRequest(ctx);
     OnMissionResignRequestChanged(on, ctx);
@@ -273,8 +251,7 @@ int Role::SetMissionResignRequest(int on, NotifyContext* ctx)
 int Role::SetCanResignFromMission(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kCanResignFromMission, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kCanResignFromMission, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyCanResignFromMission(ctx);
     ViewAsRole(kEmpireView)->ApplyCanResignFromMission(ctx);
     OnCanResignFromMissionChanged(on, ctx);
@@ -285,8 +262,7 @@ int Role::SetCanResignFromMission(int on, NotifyContext* ctx)
 int Role::SetIsDecoying(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kIsDecoying, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kIsDecoying, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyIsDecoying(ctx);
     ViewAsRole(kEmpireView)->ApplyIsDecoying(ctx);
     OnIsDecoyingChanged(on, ctx);
@@ -297,8 +273,7 @@ int Role::SetIsDecoying(int on, NotifyContext* ctx)
 int Role::SetAdrift(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kAdrift, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kAdrift, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyAdrift(ctx);
     ViewAsRole(kEmpireView)->ApplyAdrift(ctx);
     OnAdriftChanged(on, ctx);
@@ -309,8 +284,7 @@ int Role::SetAdrift(int on, NotifyContext* ctx)
 int Role::SetOnMission(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kOnMission, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kOnMission, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyOnMission(ctx);
     ViewAsRole(kEmpireView)->ApplyOnMission(ctx);
     OnOnMissionChanged(on, ctx);
@@ -321,8 +295,7 @@ int Role::SetOnMission(int on, NotifyContext* ctx)
 int Role::SetOnHiddenMission(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kOnHiddenMission, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kOnHiddenMission, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyOnHiddenMission(ctx);
     ViewAsRole(kEmpireView)->ApplyOnHiddenMission(ctx);
     OnOnHiddenMissionChanged(on, ctx);
@@ -333,8 +306,7 @@ int Role::SetOnHiddenMission(int on, NotifyContext* ctx)
 int Role::SetOnMandatoryMission(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(role_flag::kOnMandatoryMission, on, &m_flags78))
-  {
+  if (result && UpdateFlagBit(role_flag::kOnMandatoryMission, on, &m_flags78)) {
     ViewAsRole(kAllianceView)->ApplyOnMandatoryMission(ctx);
     ViewAsRole(kEmpireView)->ApplyOnMandatoryMission(ctx);
     OnOnMandatoryMissionChanged(on, ctx);

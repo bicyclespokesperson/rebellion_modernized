@@ -1,4 +1,5 @@
 #include "strategy_ui/fleet_finder_window.h"
+#include "strategy_ui/eta_display.h"
 #include <string>
 
 #include <new>
@@ -47,16 +48,8 @@ ResourceStringId StringId(int16_t id)
   return ResourceStringId{id, kStringGroup};
 }
 
-CoolStrobeButton* NewButton(HINSTANCE instance,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t childId,
-                            uint32_t normalId,
-                            uint32_t pressedId,
-                            DibBitmap* backdrop)
+CoolStrobeButton* NewButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                            uint32_t childId, uint32_t normalId, uint32_t pressedId, DibBitmap* backdrop)
 {
   return NewOrNull<CoolStrobeButton>(instance, x, y, width, height, parent, childId, normalId, pressedId, backdrop, 0,
                                      0);
@@ -71,8 +64,7 @@ bool IsOnSideRoot(GameObjNotifier* location)
 
 bool PassesFilter(GameObj* object, int filter)
 {
-  switch (filter)
-  {
+  switch (filter) {
     case kFleetsAll:
       return true;
     case kFleetsAlliance:
@@ -91,14 +83,9 @@ void OpenObjectWindow(GalaxyWindow* galaxy, const ObjectKey* key)
 
 } // namespace
 
-FleetFinderWindow::FleetFinderWindow(HINSTANCE instance,
-                                     int x,
-                                     int y,
-                                     int width,
-                                     int height,
-                                     GalaxyWindow* parent,
+FleetFinderWindow::FleetFinderWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
                                      uint32_t childId)
-: CustomDialogBox(instance, x, y, width, height, parent, childId, nullptr)
+    : CustomDialogBox(instance, x, y, width, height, parent, childId, nullptr)
 {
   m_stringSlot = kStringSlot;
   m_bitmapSlot = kBitmapSlot;
@@ -117,18 +104,22 @@ FleetFinderWindow::FleetFinderWindow(HINSTANCE instance,
 
 FleetFinderWindow::~FleetFinderWindow()
 {
-  if (m_filterTabs)
+  if (m_filterTabs) {
     delete m_filterTabs;
-  if (m_pageTabs)
+  }
+  if (m_pageTabs) {
     delete m_pageTabs;
-  if (m_nameField)
+  }
+  if (m_nameField) {
     delete m_nameField;
-  if (m_list)
+  }
+  if (m_list) {
     delete m_list;
-  if (m_filterLabel)
+  }
+  if (m_filterLabel) {
     delete m_filterLabel;
-  if (m_items)
-  {
+  }
+  if (m_items) {
     m_items->Clear();
     delete m_items;
   }
@@ -144,30 +135,27 @@ void FleetFinderWindow::OnCreate1()
   DibBitmap* capitalShipsPanel;
   DibBitmap* frame;
   DibBitmap* rightEdge;
-  if (m_galaxy->m_side == kAlliance)
-  {
+  if (m_galaxy->m_side == kAlliance) {
     fleetsPanel = NewOrNull<DibBitmap>(art, 0x291eu, kHelperBitmapKind);
     capitalShipsPanel = NewOrNull<DibBitmap>(art, 0x291cu, kHelperBitmapKind);
     frame = NewOrNull<DibBitmap>(art, 0x285fu, kHelperBitmapKind);
     rightEdge = NewOrNull<DibBitmap>(art, 0x295au, kHelperBitmapKind);
-  }
-  else
-  {
+  } else {
     fleetsPanel = NewOrNull<DibBitmap>(art, 0x291fu, kHelperBitmapKind);
     capitalShipsPanel = NewOrNull<DibBitmap>(art, 0x291du, kHelperBitmapKind);
     frame = NewOrNull<DibBitmap>(art, 0x2860u, kHelperBitmapKind);
     rightEdge = NewOrNull<DibBitmap>(art, 0x295eu, kHelperBitmapKind);
   }
 
-  HDC windowDc = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(windowDc);
-  ReleaseDC(m_hwnd, windowDc);
-  auto* fleetsBackground =
-    NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
+  HDC windowDc = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+  reb::compat::ReleaseDC(m_hwnd, windowDc);
+  auto* fleetsBackground
+      = NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
   fleetsPanel->Blit(fleetsBackground, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(fleetsBackground, 0, 0);
   rightEdge->Blit(fleetsBackground, 0x19c, 0, 0, 0, 0, 0);
-  HGDIOBJ savedBitmap = SelectObject(dc, fleetsBackground->DibSectionHandle());
+  HGDIOBJ savedBitmap = reb::compat::SelectObject(dc, fleetsBackground->DibSectionHandle());
 
   const ResourceStringId fleetsTitle = StringId(0x1880);
   auto* title = NewOrNull<CoolLabel>(&fleetsTitle, 0x24, 0xe, 0, 0, 0u, 0u);
@@ -184,12 +172,12 @@ void FleetFinderWindow::OnCreate1()
   search->Draw(dc);
   AddOverlay(fleetsBackground, kFleetsBackground);
 
-  auto* shipsBackground =
-    NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
+  auto* shipsBackground
+      = NewOrNull<DibBitmap>(static_cast<LONG>(frame->Width()), static_cast<LONG>(frame->Height()), frame, dc);
   capitalShipsPanel->Blit(shipsBackground, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(shipsBackground, 0, 0);
   rightEdge->Blit(shipsBackground, 0x19c, 0, 0, 0, 0, 0);
-  SelectObject(dc, shipsBackground->DibSectionHandle());
+  reb::compat::SelectObject(dc, shipsBackground->DibSectionHandle());
   const ResourceStringId shipsTitle = StringId(0x1885);
   title->SetTextFromResource(&shipsTitle);
   title->m_width = 0x15e;
@@ -201,28 +189,32 @@ void FleetFinderWindow::OnCreate1()
   search->Draw(dc);
   AddOverlay(shipsBackground, kCapitalShipsBackground);
   SetPaintBackgroundById(kFleetsBackground);
-  SelectObject(dc, savedBitmap);
-  DeleteDC(dc);
-  if (fleetsPanel)
+  reb::compat::SelectObject(dc, savedBitmap);
+  reb::compat::DeleteDC(dc);
+  if (fleetsPanel) {
     delete fleetsPanel;
-  if (capitalShipsPanel)
+  }
+  if (capitalShipsPanel) {
     delete capitalShipsPanel;
-  if (frame)
+  }
+  if (frame) {
     delete frame;
-  if (rightEdge)
+  }
+  if (rightEdge) {
     delete rightEdge;
-  if (title)
+  }
+  if (title) {
     delete title;
-  if (search)
+  }
+  if (search) {
     delete search;
+  }
 
-  m_filterTabs =
-    NewOrNull<CoolTabControl>(m_instance, 0x24, 0x4e, 0x99, 0x29, kFilterTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_filterTabs)
-  {
+  m_filterTabs
+      = NewOrNull<CoolTabControl>(m_instance, 0x24, 0x4e, 0x99, 0x29, kFilterTabsId, this, GetPaintBackgroundIfOwned());
+  if (m_filterTabs) {
     m_filterTabs->Create(0);
-    struct FilterTab
-    {
+    struct FilterTab {
       int x;
       uint32_t id;
       uint32_t normalId;
@@ -230,16 +222,16 @@ void FleetFinderWindow::OnCreate1()
       int16_t tooltip;
     };
     const FilterTab tabs[] = {
-      {0, kFleetsAll, 0x2904, 0x2905, 0x1882},
-      {0x34, kFleetsAlliance, 0x2906, 0x2907, 0x1883},
-      {0x68, kFleetsEmpire, 0x2909, 0x290a, 0x1884},
+        {0, kFleetsAll, 0x2904, 0x2905, 0x1882},
+        {0x34, kFleetsAlliance, 0x2906, 0x2907, 0x1883},
+        {0x68, kFleetsEmpire, 0x2909, 0x290a, 0x1884},
     };
-    for (const FilterTab& tab : tabs)
-    {
+    for (const FilterTab& tab : tabs) {
       CoolStrobeButton* button = NewButton(art, tab.x, 0, 0x31, 0x29, m_filterTabs, tab.id, tab.normalId, tab.pressedId,
                                            m_filterTabs->m_background);
-      if (!button)
+      if (!button) {
         continue;
+      }
       button->Create(0);
       const ResourceStringId tip = StringId(tab.tooltip);
       AddToolFromString(button, &tip);
@@ -251,16 +243,13 @@ void FleetFinderWindow::OnCreate1()
   int openY;
   uint32_t openId;
   uint32_t openPressedId;
-  if (m_galaxy->m_side == kAlliance)
-  {
+  if (m_galaxy->m_side == kAlliance) {
     AddButton(0x1a7, 0x19, 0x2912, 0x2913, kCloseId, 0x1954, 0, 0, 0, 0, 0, 0);
     closeX = 0x1a7;
     openY = 0x5d;
     openId = 0x2916;
     openPressedId = 0x2917;
-  }
-  else
-  {
+  } else {
     AddButton(0x1aa, 0x15, 0x2914, 0x2915, kCloseId, 0x1954, 0, 0, 0, 0, 0, 0);
     closeX = 0x1aa;
     openY = 0x59;
@@ -268,21 +257,22 @@ void FleetFinderWindow::OnCreate1()
     openPressedId = 0x2919;
   }
   AddButton(closeX, openY, openId, openPressedId, kOpenId, 0x1953, 0, 0, 0, 0, 0, 0);
-  if (auto* close = static_cast<CoolStrobeButton*>(m_children.FindById(kCloseId)))
+  if (auto* close = static_cast<CoolStrobeButton*>(m_children.FindById(kCloseId))) {
     close->SetClickSound(kClickSound);
-  if (auto* open = static_cast<CoolStrobeButton*>(m_children.FindById(kOpenId)))
+  }
+  if (auto* open = static_cast<CoolStrobeButton*>(m_children.FindById(kOpenId))) {
     open->SetClickSound(kClickSound);
+  }
 
   m_nameField = NewOrNull<CoolStringField>(m_instance, 0x8f, 0x2d, 0xfa, 0x10, this, GetPaintBackgroundIfOwned(), 0u);
   m_nameField->m_childId = kNameFieldId;
   m_nameField->m_textColor = 0xffffff;
   m_nameField->Create(0);
   m_nameField->Clear();
-  SetCaretPos(0, 0);
+  reb::compat::SetCaretPos(0, 0);
 
   m_filterLabel = NewOrNull<CoolLabel>(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-  if (m_filterLabel)
-  {
+  if (m_filterLabel) {
     m_filterLabel->MoveTo(0x28, 0x77);
     m_filterLabel->m_width = 0x11b;
     m_filterLabel->m_height = 0x10;
@@ -290,17 +280,17 @@ void FleetFinderWindow::OnCreate1()
     m_filterLabel->m_drawFlags = 0;
     m_filterLabel->SetFont(5);
     m_filterLabel->SetColor(kLabelColor, nullptr);
-    HDC labelDc = GetDC(m_hwnd);
+    HDC labelDc = reb::compat::GetDC(m_hwnd);
     m_filterLabel->Measure(labelDc);
-    ReleaseDC(m_hwnd, labelDc);
+    reb::compat::ReleaseDC(m_hwnd, labelDc);
   }
 
   m_list = NewOrNull<CoolDragList>(art, 0x24, 0x8a, 0x15e, 0xa5, this, GetPaintBackgroundIfOwned(), kListId, 0x15e,
                                    0x14, 0x287f, 0x2880, 0x287d, 0x287e, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_options.m_value = kDragListSingleSelect | kDragListNoDrag;
     m_list->Create(0);
+    m_list->SetFont(strategy_ui::EtaFontSlot(10));
     m_list->SetSortMode(kSortByLabel);
     m_list->m_textFormat = DT_VCENTER | DT_SINGLELINE;
     CoolDragList* list = m_list;
@@ -310,24 +300,24 @@ void FleetFinderWindow::OnCreate1()
     m_list->SetItemList(m_items);
   }
 
-  if (m_galaxy->m_side == kAlliance)
-    m_pageTabs =
-      NewOrNull<CoolTabControl>(m_instance, 0x1a7, 0x93, 0x20, 0x55, kPageTabsId, this, GetPaintBackgroundIfOwned());
-  else
-    m_pageTabs =
-      NewOrNull<CoolTabControl>(m_instance, 0x1aa, 0x8f, 0x2c, 0x88, kPageTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_pageTabs)
-  {
+  if (m_galaxy->m_side == kAlliance) {
+    m_pageTabs = NewOrNull<CoolTabControl>(m_instance, 0x1a7, 0x93, 0x20, 0x55, kPageTabsId, this,
+                                           GetPaintBackgroundIfOwned());
+  } else {
+    m_pageTabs = NewOrNull<CoolTabControl>(m_instance, 0x1aa, 0x8f, 0x2c, 0x88, kPageTabsId, this,
+                                           GetPaintBackgroundIfOwned());
+  }
+  if (m_pageTabs) {
     m_pageTabs->Create(0);
     CoolStrobeButton* shipsTab;
-    if (m_galaxy->m_side == kAlliance)
-      shipsTab =
-        NewButton(art, 0, 0, 0x20, 0x1f, m_pageTabs, kCapitalShipsPageId, 0x2922, 0x2923, m_pageTabs->m_background);
-    else
-      shipsTab =
-        NewButton(art, 0, 0, 0x2c, 0x29, m_pageTabs, kCapitalShipsPageId, 0x2926, 0x2927, m_pageTabs->m_background);
-    if (shipsTab)
-    {
+    if (m_galaxy->m_side == kAlliance) {
+      shipsTab
+          = NewButton(art, 0, 0, 0x20, 0x1f, m_pageTabs, kCapitalShipsPageId, 0x2922, 0x2923, m_pageTabs->m_background);
+    } else {
+      shipsTab
+          = NewButton(art, 0, 0, 0x2c, 0x29, m_pageTabs, kCapitalShipsPageId, 0x2926, 0x2927, m_pageTabs->m_background);
+    }
+    if (shipsTab) {
       shipsTab->Create(0);
       shipsTab->SetClickSound(kClickSound);
       const ResourceStringId tip = StringId(0x1885);
@@ -335,14 +325,14 @@ void FleetFinderWindow::OnCreate1()
       m_pageTabs->AddTab(shipsTab, 1, 0);
     }
     CoolStrobeButton* fleetsTab;
-    if (m_galaxy->m_side == kAlliance)
-      fleetsTab =
-        NewButton(art, 0, 0x36, 0x20, 0x1f, m_pageTabs, kFleetsPageId, 0x2920, 0x2921, m_pageTabs->m_background);
-    else
-      fleetsTab =
-        NewButton(art, 0, 0x36, 0x2c, 0x29, m_pageTabs, kFleetsPageId, 0x2924, 0x2925, m_pageTabs->m_background);
-    if (fleetsTab)
-    {
+    if (m_galaxy->m_side == kAlliance) {
+      fleetsTab
+          = NewButton(art, 0, 0x36, 0x20, 0x1f, m_pageTabs, kFleetsPageId, 0x2920, 0x2921, m_pageTabs->m_background);
+    } else {
+      fleetsTab
+          = NewButton(art, 0, 0x36, 0x2c, 0x29, m_pageTabs, kFleetsPageId, 0x2924, 0x2925, m_pageTabs->m_background);
+    }
+    if (fleetsTab) {
       fleetsTab->Create(0);
       fleetsTab->SetClickSound(kClickSound);
       const ResourceStringId tip = StringId(0x1880);
@@ -353,7 +343,7 @@ void FleetFinderWindow::OnCreate1()
   m_pageTabs->SelectTab(kFleetsPageId, 0);
   m_mode = kFleetFinderFleets;
   SetFilter(kFleetsAll, 1);
-  SetFocus(m_nameField->m_hwnd);
+  reb::compat::SetFocus(m_nameField->m_hwnd);
 }
 
 void FleetFinderWindow::DrawOverlay(HDC dc)
@@ -364,20 +354,18 @@ void FleetFinderWindow::DrawOverlay(HDC dc)
 void FleetFinderWindow::OnCommand(int, int command, int)
 {
   const uint32_t code = static_cast<uint32_t>(command) >> 16;
-  switch (command & 0xffff)
-  {
+  switch (command & 0xffff) {
     case kFilterTabsId:
-    {
-      SetFilter(static_cast<int>(code), 0);
-      const uint32_t id = m_list->SelectByPrefix(&m_nameField->m_text, 0, 0);
-      if (id)
       {
-        ObjectKey key;
-        static_cast<ObjectListItem*>(m_items->FindById(id))->GetKey(&key);
-        m_selected = key;
+        SetFilter(static_cast<int>(code), 0);
+        const uint32_t id = m_list->SelectByPrefix(&m_nameField->m_text, 0, 0);
+        if (id) {
+          ObjectKey key;
+          static_cast<ObjectListItem*>(m_items->FindById(id))->GetKey(&key);
+          m_selected = key;
+        }
+        break;
       }
-      break;
-    }
     case kOpenId:
       OpenObjectWindow(m_galaxy, &m_selected);
       PostCloseRequest();
@@ -386,27 +374,25 @@ void FleetFinderWindow::OnCommand(int, int command, int)
       PostCloseRequest();
       break;
     case kListId:
-    {
-      CoolListItemList selection(kSortById);
-      m_list->CopySelectionTo(&selection);
-      auto* first = static_cast<CoolListItem*>(selection.First());
-      if (!first)
-        return;
-      auto* item = static_cast<ObjectListItem*>(m_items->FindById(first->m_id));
-      ObjectKey key;
-      item->GetKey(&key);
-      m_selected = key;
-      if (static_cast<uint16_t>(code) == kDragListActivated)
       {
-        OpenObjectWindow(m_galaxy, &m_selected);
-        PostCloseRequest();
+        CoolListItemList selection(kSortById);
+        m_list->CopySelectionTo(&selection);
+        auto* first = static_cast<CoolListItem*>(selection.First());
+        if (!first) {
+          return;
+        }
+        auto* item = static_cast<ObjectListItem*>(m_items->FindById(first->m_id));
+        ObjectKey key;
+        item->GetKey(&key);
+        m_selected = key;
+        if (static_cast<uint16_t>(code) == kDragListActivated) {
+          OpenObjectWindow(m_galaxy, &m_selected);
+          PostCloseRequest();
+        } else if (static_cast<uint16_t>(code) == kDragListSelectionChanged) {
+          m_nameField->SetText(first->m_text.c_str());
+        }
+        break;
       }
-      else if (static_cast<uint16_t>(code) == kDragListSelectionChanged)
-      {
-        m_nameField->SetText(first->m_text.c_str());
-      }
-      break;
-    }
     case kPageTabsId:
       SetMode(static_cast<int>(code));
       break;
@@ -416,44 +402,31 @@ void FleetFinderWindow::OnCommand(int, int command, int)
 LRESULT FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   LRESULT result = 0;
-  if (message == WM_SETFOCUS)
-  {
-    SetFocus(m_nameField->m_hwnd);
-  }
-  else if (message == kFieldReturnMessage)
-  {
+  if (message == WM_SETFOCUS) {
+    reb::compat::SetFocus(m_nameField->m_hwnd);
+  } else if (message == kFieldReturnMessage) {
     const ObjectKey unset;
-    if (static_cast<int16_t>(wParam) == kNameFieldId && m_selected.m_value != unset.m_value)
-    {
+    if (static_cast<int16_t>(wParam) == kNameFieldId && m_selected.m_value != unset.m_value) {
       OpenObjectWindow(m_galaxy, &m_selected);
       PostCloseRequest();
     }
-  }
-  else if (message == kFieldChangedMessage)
-  {
-    if (static_cast<int16_t>(wParam) == kNameFieldId)
-    {
+  } else if (message == kFieldChangedMessage) {
+    if (static_cast<int16_t>(wParam) == kNameFieldId) {
       ObjectListItem* item = nullptr;
       const std::string* typed = &m_nameField->m_text;
-      if (!typed->empty())
-      {
+      if (!typed->empty()) {
         const uint32_t id = m_list->SelectByPrefix(typed, 0, 0);
         item = static_cast<ObjectListItem*>(m_items->FindById(id));
       }
-      if (!item)
-      {
+      if (!item) {
         m_selected = ObjectKey();
-      }
-      else
-      {
+      } else {
         ObjectKey key;
         item->GetKey(&key);
         m_selected = key;
       }
     }
-  }
-  else
-  {
+  } else {
     result = CoolGameWindow::WindowProc(message, wParam, lParam);
   }
   return result;
@@ -462,30 +435,34 @@ LRESULT FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
 void FleetFinderWindow::SetFilter(int filter, int)
 {
   const int view = m_galaxy->m_side;
-  if (m_filter == filter)
+  if (m_filter == filter) {
     return;
+  }
   const ObjectKey unset;
+  m_objects.Clear();
   m_items->Clear();
   const bool fleets = m_mode == kFleetFinderFleets;
   const FamilyRange& range = fleets ? family::kFleets : family::kCapitalShips;
+  // The original leaves out units in hyperspace; the enhancements list them with their ETAs.
+  const bool listEnroute = EnhancementsEnabled();
   for (GameObjNotifier* object = fleets ? GetFirstObjectInFamilies_08_10(view) : GetFirstObjectInFamilies_14_1c(view);
-       object; object = static_cast<GameObj*>(object)->FindNextSibling(&range, 1))
-  {
+       object; object = static_cast<GameObj*>(object)->FindNextSibling(&range, 1)) {
     auto* ship = static_cast<GameObj*>(object);
-    if (!(ship->m_stateFlags & kGameObjExisting))
+    if (!(ship->m_stateFlags & kGameObjExisting)) {
       continue;
+    }
     GameObjNotifier* location = fleets ? ship->m_parent : ship->m_parent->m_parent;
-    if (IsOnSideRoot(location) || !PassesFilter(ship, filter))
+    if ((IsOnSideRoot(location) && (!listEnroute || (ship->m_stateFlags & strategy_ui::kEnrouteState) == 0))
+        || !PassesFilter(ship, filter)) {
       continue;
+    }
     ObjectKey key;
     auto* item = NewOrNull<ObjectListItem>(ship->GetKey(&key));
-    if (!item)
+    if (!item) {
       continue;
-    {
-      std::string name;
-      ship->GetNameCopy(&name);
-      item->m_text = name.c_str();
     }
+    m_objects.Add(NewOrNull<ObjectKeyIdNode>(&key, 0u), 0);
+    item->m_text = strategy_ui::DisplayName(ship);
     m_items->Insert(item);
   }
   m_filter = filter;
@@ -494,27 +471,28 @@ void FleetFinderWindow::SetFilter(int filter, int)
   const bool fleetPage = m_mode == kFleetFinderFleets;
   const int16_t tips[] = {fleetPage ? int16_t(0x1882) : int16_t(0x1887), fleetPage ? int16_t(0x1883) : int16_t(0x1888),
                           fleetPage ? int16_t(0x1884) : int16_t(0x1889)};
-  for (int tab = 1; tab <= 3; ++tab)
-  {
+  for (int tab = 1; tab <= 3; ++tab) {
     const ResourceStringId tip = StringId(tips[tab - 1]);
     UpdateToolFromString(m_filterTabs->m_children.FindById(tab), &tip);
   }
   m_filterLabel->SetText(m_filterTabs->m_children.FindById(filter)->m_tooltipText);
   RECT area = m_filterLabel->m_rect;
-  InvalidateRect(m_hwnd, &area, FALSE);
+  reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
 }
 
 void FleetFinderWindow::SetMode(int mode)
 {
-  if (m_mode == mode)
+  if (m_mode == mode) {
     return;
+  }
   m_nameField->SetText(nullptr);
-  SetCaretPos(0, 0);
+  reb::compat::SetCaretPos(0, 0);
   m_mode = mode;
-  if (mode == kFleetFinderFleets)
+  if (mode == kFleetFinderFleets) {
     SetPaintBackgroundById(kFleetsBackground);
-  else if (mode == kFleetFinderCapitalShips)
+  } else if (mode == kFleetFinderCapitalShips) {
     SetPaintBackgroundById(kCapitalShipsBackground);
+  }
   m_list->SetBackground(GetPaintBackgroundIfOwned(), m_list->m_x, m_list->m_y);
   const int filter = m_filter;
   m_previousFilter = filter;
@@ -525,4 +503,25 @@ void FleetFinderWindow::SetMode(int mode)
 void FleetFinderWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
   FinderOnKeyDown(this, m_filterTabs, m_nameField, m_list, key, lParam);
+}
+
+void FleetFinderWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier*)
+{
+  if (!m_objects.Find(key)) {
+    return;
+  }
+  const int filter = m_filter;
+  m_filter = 0;
+  SetFilter(filter, 0);
+}
+
+void FleetFinderWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier*, const ObjectKey* otherKey,
+                                     GameObjNotifier*)
+{
+  if ((!key || !m_objects.Find(key)) && (!otherKey || !m_objects.Find(otherKey))) {
+    return;
+  }
+  const int filter = m_filter;
+  m_filter = 0;
+  SetFilter(filter, 0);
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include "ai/ai_planner.h"
 
-// The concrete mission planners, one class per (mission kind, subtype) that AiPlannerSet::CreatePlanner builds. The mission
-// kind is the family byte of AiMissionPlanner::m_missionKey (named after the mission classes of src/game/mission).
+// The concrete mission planners, one class per (mission kind, subtype) that AiPlannerSet::CreatePlanner builds. The
+// mission kind is the family byte of AiMissionPlanner::m_missionKey (named after the mission classes of
+// src/game/mission).
 //
 // Free planners (derive from AiFreePlanner, 0x70 bytes unless noted) choose leaders (Prepare, slot 18), a target
 // (ChooseTarget, slot 20) and gather the team there; the system planners (AiSystemPlanner) work for an AiSystemRecord.
@@ -11,7 +12,7 @@
 // 0x53 Research, subtype 1 (the shipyard research mission): VT 0x65a510
 class AiResearchPlanner1 : public AiFreePlanner
 {
-public:
+  public:
   AiResearchPlanner1(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47bba0
   ~AiResearchPlanner1() override; // 0: 0x47bb80 (deleting), 0x47bc20
   int GetSubtype() override
@@ -27,7 +28,7 @@ public:
   {
     HandleEvent(event);
   } // 12: 0x47c890
-  int ShouldDeferAbort() override; // 13: 0x47c110
+  int ShouldDeferAbort() override;            // 13: 0x47c110
   int GetKindIndexOrSelectLeaders() override; // 16: 0x479ac0
   int GetMemberLimitOrSelectMembers() override
   {
@@ -44,7 +45,7 @@ public:
 // 0x53 Research, subtype 2: VT 0x65a568
 class AiResearchPlanner2 : public AiFreePlanner
 {
-public:
+  public:
   AiResearchPlanner2(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47c170
   ~AiResearchPlanner2() override; // 0: 0x47c150 (deleting), 0x47c1f0
   int GetSubtype() override
@@ -60,7 +61,7 @@ public:
   {
     HandleEvent(event);
   } // 12: 0x47c890
-  int ShouldDeferAbort() override; // 13: 0x47c6f0
+  int ShouldDeferAbort() override;            // 13: 0x47c6f0
   int GetKindIndexOrSelectLeaders() override; // 16: 0x47c200
   int GetMemberLimitOrSelectMembers() override
   {
@@ -77,7 +78,7 @@ public:
 // 0x53 Research, subtype 3: VT 0x65a5c0
 class AiResearchPlanner3 : public AiFreePlanner
 {
-public:
+  public:
   AiResearchPlanner3(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47c750
   ~AiResearchPlanner3() override; // 0: 0x47c730 (deleting), 0x47c7d0
   int GetSubtype() override
@@ -93,7 +94,7 @@ public:
   {
     HandleEvent(event);
   } // 12: 0x47c890
-  int ShouldDeferAbort() override; // 13: 0x47cd40
+  int ShouldDeferAbort() override;            // 13: 0x47cd40
   int GetKindIndexOrSelectLeaders() override; // 16: 0x47c7e0
   int GetMemberLimitOrSelectMembers() override
   {
@@ -110,7 +111,7 @@ public:
 // 0x57 Subdue: VT 0x65a618
 class AiSubduePlanner : public AiFreePlanner
 {
-public:
+  public:
   AiSubduePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47cda0
   ~AiSubduePlanner() override; // 0: 0x47cd80 (deleting), 0x47ce20
   int GetSubtype() override
@@ -126,7 +127,7 @@ public:
   {
     HandleEvent(event);
   } // 12: 0x47c890
-  int ShouldDeferAbort() override; // 13: 0x47d320
+  int ShouldDeferAbort() override;            // 13: 0x47d320
   int GetKindIndexOrSelectLeaders() override; // 16: 0x47ce30
   int GetMemberLimitOrSelectMembers() override
   {
@@ -143,7 +144,7 @@ public:
 // 0x55 Recruit: VT 0x65a6b8
 class AiRecruitPlanner : public AiFreePlanner
 {
-public:
+  public:
   AiRecruitPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47d9a0
   ~AiRecruitPlanner() override; // 0: 0x47d980 (deleting), 0x47da20
   int GetSubtype() override
@@ -175,7 +176,7 @@ public:
 // 0x56 Incite: VT 0x65a808
 class AiIncitePlanner : public AiFreePlanner
 {
-public:
+  public:
   AiIncitePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47fe50
   ~AiIncitePlanner() override; // 0: 0x47fe30 (deleting), 0x47fed0
   int GetSubtype() override
@@ -200,17 +201,18 @@ public:
   {
     return 4;
   } // 17: 0x4047d0
-  void Prepare() override; // 18: 0x47ff90
+  void Prepare() override;        // 18: 0x47ff90
   void PrepareMembers() override; // 19: 0x480110
-  int ChooseTarget() override; // 20: 0x480370
+  int ChooseTarget() override;    // 20: 0x480370
 };
 
-// The planners that work for an AiSystemRecord (AiSystemPlanner, 0x7c bytes). Slot 16 chooses the leaders, slot 17 the members.
+// The planners that work for an AiSystemRecord (AiSystemPlanner, 0x7c bytes). Slot 16 chooses the leaders, slot 17 the
+// members.
 
 // 0x69 Sabotage: VT 0x65a670
 class AiSabotagePlanner : public AiSystemPlanner
 {
-public:
+  public:
   AiSabotagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47d380
   ~AiSabotagePlanner() override; // 0: 0x47d360 (deleting), 0x47d400
   int GetSubtype() override
@@ -244,7 +246,7 @@ public:
 // 0x54 (system planner): VT 0x65a768
 class AiMission54Planner : public AiSystemPlanner
 {
-public:
+  public:
   AiMission54Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47f190
   ~AiMission54Planner() override; // 0: 0x47f170 (deleting), 0x47f210
   int GetSubtype() override
@@ -274,7 +276,7 @@ public:
 // 0x52 Espionage (system planner): VT 0x65a860
 class AiEspionagePlanner : public AiSystemPlanner
 {
-public:
+  public:
   AiEspionagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x480730
   ~AiEspionagePlanner() override; // 0: 0x480710 (deleting), 0x4807b0
   int GetSubtype() override
@@ -305,10 +307,10 @@ public:
 // 0x62 Abduction (Alliance) / 0x63 Assassination (Empire), the system planner: VT 0x65a9b0, 0x80 bytes
 class AiAbductionPlanner : public AiSystemPlanner
 {
-public:
+  public:
   AiAbductionPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x482b30
-  ~AiAbductionPlanner() override; // 0: 0x482b10 (deleting), 0x482bf0
-  void Read(istream* in) override; // 1: 0x482c00
+  ~AiAbductionPlanner() override;    // 0: 0x482b10 (deleting), 0x482bf0
+  void Read(istream* in) override;   // 1: 0x482c00
   void Write(ostream* out) override; // 2: 0x482c20
   int GetSubtype() override
   {
@@ -343,7 +345,7 @@ public:
 // 0x6a Death Star sabotage: VT 0x65a958
 class AiDsSabotagePlanner : public AiFreePlanner
 {
-public:
+  public:
   AiDsSabotagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x482020
   ~AiDsSabotagePlanner() override; // 0: 0x482000 (deleting), 0x4820a0
   int GetSubtype() override
@@ -367,9 +369,9 @@ public:
   {
     return 4;
   } // 17: 0x4047d0
-  void Prepare() override; // 18: 0x482180
+  void Prepare() override;        // 18: 0x482180
   void PrepareMembers() override; // 19: 0x482330
-  int ChooseTarget() override; // 20: 0x482560
+  int ChooseTarget() override;    // 20: 0x482560
 
   void FindTargetShip(); // 0x482910
 };
@@ -377,7 +379,7 @@ public:
 // 0x61 Rescue (free planner that hunts for a character): VT 0x65a710
 class AiRescuePlanner : public AiFreePlanner
 {
-public:
+  public:
   AiRescuePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47e130
   ~AiRescuePlanner() override; // 0: 0x47e110 (deleting), 0x47e1b0
   int GetSubtype() override
@@ -401,9 +403,9 @@ public:
   {
     return 4;
   } // 17: 0x4047d0
-  void Prepare() override; // 18: 0x47e270
+  void Prepare() override;        // 18: 0x47e270
   void PrepareMembers() override; // 19: 0x47e3f0
-  int ChooseTarget() override; // 20: 0x47e620
+  int ChooseTarget() override;    // 20: 0x47e620
 
   void PickCandidate(); // 0x47ecf0
 };
@@ -411,7 +413,7 @@ public:
 // 0x62 free planner (every subtype but 4, which AiAbductionPlanner handles): VT 0x65a9f8
 class AiMission62Planner : public AiFreePlanner
 {
-public:
+  public:
   AiMission62Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x483140
   ~AiMission62Planner() override; // 0: 0x483120 (deleting), 0x4831c0
   int GetSubtype() override
@@ -435,9 +437,9 @@ public:
   {
     return 4;
   } // 17: 0x4047d0
-  void Prepare() override; // 18: 0x483290
+  void Prepare() override;        // 18: 0x483290
   void PrepareMembers() override; // 19: 0x483410
-  int ChooseTarget() override; // 20: 0x483640
+  int ChooseTarget() override;    // 20: 0x483640
 
   void PickCandidate(); // 0x483d10
 };
@@ -445,7 +447,7 @@ public:
 // 0x51 Diplomacy: VT 0x65a900
 class AiDiplomacyPlanner : public AiFreePlanner
 {
-public:
+  public:
   AiDiplomacyPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x481460
   ~AiDiplomacyPlanner() override; // 0: 0x481440 (deleting), 0x4814e0
   int GetSubtype() override
@@ -461,8 +463,8 @@ public:
   {
     HandleEvent(event);
   } // 12: 0x47c890
-  int ShouldDeferAbort() override; // 13: 0x481eb0
-  void OnFinished() override; // 14: 0x481fe0
+  int ShouldDeferAbort() override;                 // 13: 0x481eb0
+  void OnFinished() override;                      // 14: 0x481fe0
   int CanUse(const ObjectKey* character) override; // 15: 0x481ef0
   int GetKindIndexOrSelectLeaders() override
   {
@@ -483,11 +485,11 @@ public:
 // 0x54 system chooser, subtype 5 (a free planner that remembers the sector it works in): VT 0x65a7b0
 class AiMission54State5Planner : public AiFreePlanner
 {
-public:
+  public:
   AiMission54State5Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47f550
   ~AiMission54State5Planner() override; // 0: 0x47f530 (deleting), 0x47f5e0
-  void Read(istream* in) override; // 1: 0x47f630 (shared with AiEspionageState6Planner)
-  void Write(ostream* out) override; // 2: 0x47f650 (shared with AiEspionageState6Planner)
+  void Read(istream* in) override;      // 1: 0x47f630 (shared with AiEspionageState6Planner)
+  void Write(ostream* out) override;    // 2: 0x47f650 (shared with AiEspionageState6Planner)
   int GetSubtype() override
   {
     return 5;
@@ -498,7 +500,7 @@ public:
     return 1000;
   } // 9: 0x480df0
   void OnMissionEvent(int event) override; // 12: 0x47f720
-  void OnFinished() override; // 14: 0x47fe10
+  void OnFinished() override;              // 14: 0x47fe10
   int GetKindIndexOrSelectLeaders() override
   {
     return 9;
@@ -520,11 +522,11 @@ public:
 // 0x52 Espionage, subtype 6: VT 0x65a8a8
 class AiEspionageState6Planner : public AiFreePlanner
 {
-public:
+  public:
   AiEspionageState6Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x480d10
   ~AiEspionageState6Planner() override; // 0: 0x480cf0 (deleting), 0x480da0
-  void Read(istream* in) override; // 1: 0x47f630 (the code AiMission54State5Planner::Read has)
-  void Write(ostream* out) override; // 2: 0x47f650
+  void Read(istream* in) override;      // 1: 0x47f630 (the code AiMission54State5Planner::Read has)
+  void Write(ostream* out) override;    // 2: 0x47f650
   int GetSubtype() override
   {
     return 6;
@@ -535,7 +537,7 @@ public:
     return 1000;
   } // 9: 0x480df0
   void OnMissionEvent(int event) override; // 12: 0x480eb0
-  void OnFinished() override; // 14: 0x481420
+  void OnFinished() override;              // 14: 0x481420
   int GetKindIndexOrSelectLeaders() override
   {
     return 10;

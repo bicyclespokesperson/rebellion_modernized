@@ -1,0 +1,103 @@
+Idle Personell legend should be smaller stars for spec forces only
+
+Name text in fleets should be smaller and below unit
+
+Should show ETA in name text for characters on missions
+
+Mission team shortcut request withdrawn; retain manual team/decoy selection.
+
+For ship statuses, X/Max_X presentation for damage would be nice (this is already done for shield recharge rate, but not for missing laser cannons / turbolasers, that sort of thing)
+
+Maybe an estimate of ship health would be nice (20% vs 50% vs 90%, etc)
+
+For fleet fighter and troop carrying capacity, a X/Y presentation would be nice when it's dependent on ships that are en route or under construction
+
+Maintenance monitor should be clearer - maybe it also needs to be "used/total" or "available/total"? And better tooltips for raw materials and refined materials, to explain the system better
+
+Smuggling losses has always been a bit buggy - if you move 1 out of 2 fleets away, that shouldn't trigger losses for instance. And the message should reflect the fleet's influence (reduced fleet patrols on Delaya have resulted in smuggling losses, etc)
+
+Dev menu should be a menu, with info like what AI personality is currently selected
+
+"d" to launch dev menu should not trigger when a text imput field is active
+
+Codex personality is too aggressive about assulting and doesn't wait until it has enough troops to prevent an uprising (usually needs 6, but will attempt with 2-3)
+
+"Luke goes to Dagobah" might not be triggering? Double check that and "bounty hunters locate solo" event
+- Actually, Luke did go to dagobah around day 400
+
+Double check maintenance logic - make sure production slows down when you don't have enough resources, and maintenance shortfalls are possible if you are lacking maintenance
+- also, when production does slow down, make sure the ETA text refreshes with it
+
+You should be able to change the destination of a building that's already in progress (provided the target system has sufficient energy/materials)
+
+If one of your own characters is captured, and their location is unknown, it should say "captured - location unknown" or similar in the personel finder
+
+Does the AI get a build speed boost? The AI had many star destroyers by day <450 without shipyard heavy planets to build them on
+
+Seems like sound card can be lost if the macbook goes to sleep
+
+Sometimes, when selecting multiple units, the "selection" highlight goes away - might happen if you subtly drag a unit as you click on it? It still counts as "selected" but doesn't render the highlight
+
+Resolution notes (2026-10-15)
+=============================
+1. Idle-personnel markers: special-forces-only systems now use the smaller star.
+2. Fleet labels: smaller font, bottom-aligned multiline labels, and more row space.
+   Visually checked rendered fleet/unit names and a long name plus ETA; text clears
+   the artwork and selected-unit border.
+3. Mission travel: character names show their arrival day while en route, such as
+   "Luke Skywalker (ETA 410)". The suffix disappears on arrival. No mission-status
+   dates are shown once the character reaches the destination (clarified request).
+4. Mission shortcut removed at user request, including its button, automatic team
+   selection logic, and dedicated tests. Normal manual team/decoy controls remain.
+5. Ship damage: weapon banks and damageable systems now show remaining / maximum.
+6. Ship health: hull row also shows remaining hull percentage.
+7. Fleet carrying capacity: shows ready / assigned capacity. Assigned ships include
+   those under construction or still arriving; ready capacity excludes those ships.
+8. Maintenance: displays available / total; expanded raw/refined/maintenance tips
+   explain stock consumption, reserved maintenance capacity, and shortfalls.
+9. Smuggling: retained the existing strength-based rule. Moving one of two fleets
+   can legitimately raise risk because the ships left behind may not supply enough
+   patrol strength. Remaining fleets are still counted. The notice rewrite was
+   reverted; the original message templates are back.
+10. Developer menu: already a real menu, with the selected AI personalities marked.
+11. D shortcut: suppressed while a text input control has focus.
+12. Codex assaults: now require the planner's occupation reserve as well as ground
+    combat superiority, rather than allowing a strong but undersized troop force.
+13. Story events: traced Dagobah and bounty-hunter scheduling through their timers.
+    Dagobah waits for an eligible Luke; bounty hunters use repeated probabilistic
+    checks and require an eligible Han. No broken event path found; no rule change.
+14. Economy: verified shortage queues stop material-starved manufacturing, refill
+    resumes it, and maintenance demand can exceed capacity. ETA calculations now
+    exclude waiting facilities and show "Waiting for materials" when all are
+    starved, then return to a date after resupply.
+15. Production destination: fixed two failures. Main-map planet clicks no longer
+    silently cancel targeting. For the reported sector-window case, execution was
+    failing to decode the product keys in destination pairs, leaving existing
+    production at its old destination. Queued ships, troops, and buildings now move
+    to their assigned destinations while preserving build progress. Native mouse
+    tests execute the submitted commands and verify every queued product's parent.
+    The execution regression reproduces the bug in SAVEGAME.002 before the fix and
+    passes afterward for both factions, including queues with multiple products.
+    Map/sector targeting and rejection of stale hidden-map markers are also covered.
+    Production APIs now accept distinct typed build-request and destination-pair
+    containers, replacing the generic runtime payload decoder.
+16. Captured personnel: explicitly shows "Captured - location unknown" when the
+    character's owner/location is unavailable.
+17. AI build speed: no AI-only production speed multiplier found. Production uses
+    the same facility counts, facility record rates and system loyalty modifier.
+18. Audio: detects a stalled device, reopens output, and retries after device loss.
+    Automated tests cover a stalled callback and unavailable/restored output.
+    A physical MacBook sleep/wake cycle was not tested.
+19. Selection highlight: slight pointer movement no longer starts a drag, and
+    cancelling a real drag redraws the selected-unit highlights.
+
+Validation: native macOS Clang/C++23 build; all 19 native CTest checks passed;
+UI regression smoke and save/load/advance smoke passed with both factions.
+
+Follow-up: post-Coruscant-video crash
+-----------------------------------
+The crash log identified a synchronization marker (NetMsg5) being cast to a unit
+order, then calling order-only virtual methods after the movie finished. The
+marker now uses the message submission path, and the order factory rejects
+non-order message types. A regression check invokes OnMovieDone and verifies the
+correct sync marker is queued for the human side. The raw crash log is not tracked.

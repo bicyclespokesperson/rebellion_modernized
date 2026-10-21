@@ -7,8 +7,9 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 int Value(const StringMap& settings, const std::string& key)

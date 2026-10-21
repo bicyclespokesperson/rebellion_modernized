@@ -1,42 +1,16 @@
 #include "ui/cool_app.h"
 
 #include <cstring>
-#include <cstring>
 
 #include "ui/cool_timer.h"
 #include "ui/resource_dll.h"
 
-CoolApp::CoolApp(HINSTANCE instance,
-                 const char* className,
-                 uint32_t style,
-                 int x,
-                 int y,
-                 int width,
-                 int height,
-                 const char* windowName,
-                 HBRUSH background,
-                 HICON icon,
-                 HCURSOR cursor,
-                 HMENU menu,
-                 uint32_t unknown58,
-                 uint32_t flags,
-                 UiResources& resources)
-: CoolWindow(instance,
-             className,
-             style,
-             x,
-             y,
-             width,
-             height,
-             nullptr,
-             windowName,
-             background,
-             icon,
-             cursor,
-             menu,
-             unknown58,
-             flags),
-  m_resources(resources)
+CoolApp::CoolApp(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
+                 const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor, HMENU menu, uint32_t unknown58,
+                 uint32_t flags, UiResources& resources)
+    : CoolWindow(instance, className, style, x, y, width, height, nullptr, windowName, background, icon, cursor, menu,
+                 unknown58, flags)
+    , m_resources(resources)
 {
   BeginTimerPeriod(10);
   m_unknown9c = 0;
@@ -53,10 +27,12 @@ CoolApp::CoolApp(HINSTANCE instance,
 
 CoolApp::~CoolApp()
 {
-  if (g_palette)
-    DeleteObject(g_palette);
-  if (m_appName)
+  if (g_palette) {
+    reb::compat::DeleteObject(g_palette);
+  }
+  if (m_appName) {
     operator delete(m_appName);
+  }
   g_app = nullptr;
   EndTimerPeriod();
 }
@@ -69,17 +45,20 @@ void CoolApp::SetScreenSize(int width, int height)
 
 int CoolApp::FilterMessage(MSG* message)
 {
-  if (message->message != WM_KEYDOWN || message->wParam != VK_RETURN)
+  if (message->message != WM_KEYDOWN || message->wParam != VK_RETURN) {
     return 1;
-  GetClassNameA(message->hwnd, g_classNameBuffer, 0xff);
-  if (_stricmp(g_classNameBuffer, "edit") != 0)
+  }
+  reb::compat::GetClassNameA(message->hwnd, g_classNameBuffer, 0xff);
+  if (_stricmp(g_classNameBuffer, "edit") != 0) {
     return 1;
+  }
 
-  HWND parentWindow = GetParent(message->hwnd);
+  HWND parentWindow = reb::compat::GetParent(message->hwnd);
   CoolWindow* parent = GetCoolWindow(parentWindow);
   CoolWindow* child = nullptr;
-  if (parent)
+  if (parent) {
     child = parent->m_children.FindByHwnd(message->hwnd);
+  }
   std::memset(g_classNameBuffer, 0, 0xff);
   message->message = 0x407;
   message->hwnd = parentWindow;
@@ -100,34 +79,39 @@ HMODULE CoolRegisterResourceDll(const char* basePath, const char* fileName, uint
 
 void CoolUnloadResourceSlot(uint32_t slot)
 {
-  if (auto* resources = CurrentUiResources())
+  if (auto* resources = CurrentUiResources()) {
     resources->libraries.UnloadSlot(slot);
+  }
 }
 
 HMODULE CoolAppGetResourceModule(uint32_t slot)
 {
   HMODULE module = nullptr;
-  if (g_app)
+  if (g_app) {
     module = CoolGetResourceModule(slot);
+  }
   return module;
 }
 
 void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot)
 {
-  if (g_app)
+  if (g_app) {
     CoolRegisterResourceDll(basePath, fileName, slot);
+  }
 }
 
 void CoolAppUnloadResourceSlot(uint32_t slot)
 {
-  if (g_app)
+  if (g_app) {
     CoolUnloadResourceSlot(slot);
+  }
 }
 
 int GetDefaultFontSlot()
 {
   int slot = 0;
-  if (g_app)
+  if (g_app) {
     slot = g_app->m_defaultFontSlot;
+  }
   return slot;
 }

@@ -11,11 +11,10 @@
 #include "ui/text_scroll_field.h"
 #include "video/video_manager.h"
 
-extern const char* g_registryKeyPath; // 0x6a81fc
-extern const char* g_musicVolumeName; // 0x6a8584
+extern const char* g_registryKeyPath;    // 0x6a81fc
+extern const char* g_musicVolumeName;    // 0x6a8584
 extern const char* g_tooBigLocationName; // 0x6a7c74
 
-void FUN_0059b100(CoolWindow* window, LPARAM drawItem); // WM_DRAWITEM of the movie window's text field art
 
 extern const char* g_movieFile000; // 0x6a8460
 extern const char* g_movieFile001; // 0x6a8698
@@ -40,7 +39,6 @@ namespace
 constexpr int kBlackBrush = BLACK_BRUSH;
 constexpr uint32_t kNotifyParentMessage = 0x405;
 constexpr UINT kMessageMovieSkipped = 0x404;
-constexpr UINT kMessageDrawItem = 0x2b;
 constexpr UINT kMessageEraseBackground = 0x14;
 constexpr int kCloseCommand = 0xf1;
 constexpr int kKeyF1 = 0x70;
@@ -65,32 +63,30 @@ char* BuildMoviePath(MovieWindow* window)
   ostream* keyOut = iostream_access::AsOstream(key.get());
   ostream* pathOut = iostream_access::AsOstream(path.get());
   ostream_operator_ls_char(
-    ostream_operator_ls_cstr(
-      ostream_operator_ls_cstr(ostream_operator_ls_cstr(keyOut, "SOFTWARE\\LucasArts Entertainment Company LLC"), "\\"),
-      "Star Wars Rebellion"),
-    0);
+      ostream_operator_ls_cstr(
+          ostream_operator_ls_cstr(ostream_operator_ls_cstr(keyOut, "SOFTWARE\\LucasArts Entertainment Company LLC"),
+                                   "\\"),
+          "Star Wars Rebellion"),
+      0);
   char* location = reinterpret_cast<char*>(
-    ReadRegistryValue(strstreambuf_str(iostream_access::BufferOf(key.get())), g_tooBigLocationName));
+      ReadRegistryValue(strstreambuf_str(iostream_access::BufferOf(key.get())), g_tooBigLocationName));
   strstreambuf_freeze(iostream_access::BufferOf(key.get()), 0);
   ios* keyState = iostream_access::IosOf(key.get());
   iostream_access::Lock(keyState);
   keyState->m_state = 0;
   iostream_access::Unlock(keyState);
-  if (location)
-  {
+  if (location) {
     ostream_operator_ls_cstr(ostream_operator_ls_cstr(pathOut, location), "\\");
     ::operator delete(location);
   }
   ostream_operator_ls_char(ostream_operator_ls_cstr(pathOut, window->GetMovieFile()), 0);
   char* text = strstreambuf_str(iostream_access::BufferOf(path.get()));
   char* copy = nullptr;
-  if (text)
-  {
+  if (text) {
     const size_t length = std::strlen(text);
     copy = static_cast<char*>(::operator new(length + 1));
     window->m_path = copy;
-    if (copy)
-    {
+    if (copy) {
       std::memset(copy, 0, length);
       std::memcpy(copy, text, length + 1);
     }
@@ -104,30 +100,10 @@ char* BuildMoviePath(MovieWindow* window)
 }
 } // namespace
 
-MovieWindow::MovieWindow(int movieId,
-                         void (*callback)(uint32_t, uint32_t, int),
-                         HINSTANCE instance,
-                         int x,
-                         int y,
-                         int width,
-                         int height,
-                         CoolWindow* parent,
-                         const std::string* caption)
-: CoolWindow(instance,
-             "MOVIE_WINDOW",
-             WS_CHILD,
-             x,
-             y,
-             width,
-             height,
-             parent,
-             nullptr,
-             static_cast<HBRUSH>(GetStockObject(kBlackBrush)),
-             nullptr,
-             nullptr,
-             nullptr,
-             0,
-             0)
+MovieWindow::MovieWindow(int movieId, void (*callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
+                         int width, int height, CoolWindow* parent, const std::string* caption)
+    : CoolWindow(instance, "MOVIE_WINDOW", WS_CHILD, x, y, width, height, parent, nullptr,
+                 static_cast<HBRUSH>(reb::compat::GetStockObject(kBlackBrush)), nullptr, nullptr, nullptr, 0, 0)
 {
   m_movieId = movieId;
   m_notifyWParam = 0xf;
@@ -135,18 +111,19 @@ MovieWindow::MovieWindow(int movieId,
   m_captionBackdrop = nullptr;
   m_path = nullptr;
   m_fallbackPath = nullptr;
-  if (caption)
+  if (caption) {
     (m_caption = *caption);
+  }
   BuildMoviePath(this);
 }
 
 MovieWindow::~MovieWindow()
 {
-  if (m_path)
+  if (m_path) {
     ::operator delete(m_path);
+  }
   StopMovie();
-  if (m_captionBackdrop)
-  {
+  if (m_captionBackdrop) {
     m_captionBackdrop->~DibBitmap();
     ::operator delete(m_captionBackdrop);
   }
@@ -154,8 +131,7 @@ MovieWindow::~MovieWindow()
 
 const char* MovieWindow::GetMovieFile()
 {
-  switch (m_movieId)
-  {
+  switch (m_movieId) {
     case 0x65:
       return g_movieFile000;
     case 0x66:
@@ -197,33 +173,31 @@ void MovieWindow::EndMovie(UINT notifyMessage)
 {
   Hide();
   StopMovie();
-  PostMessageA(m_parent->m_hwnd, notifyMessage, m_notifyWParam, m_movieId);
+  reb::compat::PostMessageA(m_parent->m_hwnd, notifyMessage, m_notifyWParam, m_movieId);
 }
 
 void MovieWindow::OnCreate()
 {
   m_childId = m_notifyWParam;
-  if (!m_caption.empty())
-  {
+  if (!m_caption.empty()) {
     HMODULE art = CoolAppGetResourceModule(kResourceSlotArt);
     auto* picture = NewOrNull<DibBitmap>(art, kCaptionArtId, 2u);
     const int width = m_width;
     const int height = m_height;
     m_captionBackdrop = NewOrNull<DibBitmap>(width, height, picture);
-    if (picture)
-    {
+    if (picture) {
       picture->~DibBitmap();
       ::operator delete(picture);
     }
-    if (m_captionBackdrop)
+    if (m_captionBackdrop) {
       m_captionBackdrop->FillRect(0, 0, width, height, 0);
+    }
     auto* field = NewOrNull<TextScrollField>(art, kCaptionFieldX, kCaptionFieldY, kCaptionFieldWidth,
-                                                        kCaptionFieldHeight, this, m_captionBackdrop, 0);
-    if (field)
-    {
+                                             kCaptionFieldHeight, this, m_captionBackdrop, 0);
+    if (field) {
       field->m_childId = kCaptionFieldChildId;
       field->m_textColor = kCaptionTextColor;
-      InvalidateRect(field->m_hwnd, nullptr, FALSE);
+      reb::compat::InvalidateRect(field->m_hwnd, nullptr, FALSE);
       field->SetTextFont(kCaptionFont);
       (field->m_text = m_caption);
       field->m_caret.m_index = 0;
@@ -234,8 +208,7 @@ void MovieWindow::OnCreate()
   }
   const char* source = m_path;
   uint32_t smackFlags = kSmackFlagsStandard;
-  if (!source)
-  {
+  if (!source) {
     smackFlags = kSmackFlagsFallback;
     source = m_fallbackPath;
   }
@@ -249,77 +222,66 @@ LRESULT MovieWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
   HWND window = m_hwnd;
   LRESULT result = 0;
   UINT notify = 0;
-  if (message < 0x10)
-  {
-    if (message == WM_PAINT)
-    {
+  if (message < 0x10) {
+    if (message == WM_PAINT) {
       PAINTSTRUCT paint;
-      BeginPaint(window, &paint);
-      EndPaint(window, &paint);
-    }
-    else if (message == WM_CREATE)
-    {
+      reb::compat::BeginPaint(window, &paint);
+      reb::compat::EndPaint(window, &paint);
+    } else if (message == WM_CREATE) {
       OnCreate();
     }
     return result;
   }
-  if (message < 0x2c)
-  {
-    if (message == kMessageDrawItem)
-    {
-      FUN_0059b100(this, lParam);
-    }
-    else if (message == kMessageEraseBackground)
-    {
-      DefWindowProcA(window, kMessageEraseBackground, wParam, lParam);
+  if (message < 0x2c) {
+    if (message == kMessageEraseBackground) {
+      reb::compat::DefWindowProcA(window, kMessageEraseBackground, wParam, lParam);
       result = 1;
     }
     return result;
   }
-  if (message < 0x112)
-  {
-    if (message == WM_COMMAND)
-    {
-      if (static_cast<short>(wParam) != kCloseCommand)
+  if (message < 0x112) {
+    if (message == WM_COMMAND) {
+      if (static_cast<short>(wParam) != kCloseCommand) {
         return 0;
+      }
       EndMovie(kNotifyParentMessage);
       return 0;
     }
-    if (message != WM_KEYDOWN)
+    if (message != WM_KEYDOWN) {
       return 0;
-    if (wParam != VK_ESCAPE)
-    {
-      if (m_movieId == kKeyF2)
+    }
+    if (wParam != VK_ESCAPE) {
+      if (m_movieId == kKeyF2) {
         return 0;
-      if (m_movieId == kKeyF1)
+      }
+      if (m_movieId == kKeyF1) {
         return 0;
+      }
       Hide();
       StopMovie();
       notify = kNotifyParentMessage;
     }
-    PostMessageA(m_parent->m_hwnd, notify, m_notifyWParam, m_movieId);
-  }
-  else if (message < 0x404)
-  {
-    if (message < 0x402)
-    {
-      if (message != WM_MOUSEMOVE)
+    reb::compat::PostMessageA(m_parent->m_hwnd, notify, m_notifyWParam, m_movieId);
+  } else if (message < 0x404) {
+    if (message < 0x402) {
+      if (message != WM_MOUSEMOVE) {
         return 0;
-      SetCursor(nullptr);
+      }
+      reb::compat::SetCursor(nullptr);
       return 0;
     }
     EndMovie(kNotifyParentMessage);
     notify = 0;
-  }
-  else
-  {
-    if (message != kMessageMovieSkipped)
+  } else {
+    if (message != kMessageMovieSkipped) {
       return 0;
+    }
     EndMovie(kNotifyParentMessage);
     notify = kNotifyParentMessage;
   }
-  if (m_callback == nullptr)
+  if (m_callback == nullptr) {
     return 0;
+  }
   m_callback(notify, static_cast<uint16_t>(m_notifyWParam), m_movieId);
   return result;
 }
@@ -328,8 +290,9 @@ int PlayMovie(const char* path, int x, int y, CoolWindow* parent, int type, uint
 {
   int result = 0;
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     result = manager->Play(path, parent, x, y, type, scale, smackFlags);
+  }
   return result;
 }
 
@@ -337,39 +300,44 @@ int StopMovie()
 {
   int result = 0;
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     result = manager->Stop();
+  }
   return result;
 }
 
 void NotifyMoviePaletteChanged(HWND window)
 {
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     manager->NotifyPaletteChanged(window);
+  }
 }
 
 int IsMoviePlaying()
 {
   int result = 0;
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     result = manager->m_playing;
+  }
   return result;
 }
 
 void SetMovieVolume(int volume)
 {
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     manager->SetVolume(volume);
+  }
 }
 
 void AdvanceMovie()
 {
   VideoManager* manager = VideoManager::GetInstance();
-  if (manager)
+  if (manager) {
     manager->AdvanceMovieFrame();
+  }
 }
 
 const char* g_movieFile000 = nullptr;

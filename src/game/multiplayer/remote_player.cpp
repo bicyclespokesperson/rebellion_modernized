@@ -11,7 +11,7 @@
 #include "multiplayer/message_codec.h"
 #include "orders/order_base.h"
 #include "strategy_ui/game_ui_facade.h"
-#include "tactical/comm2.h"
+#include "multiplayer/comm_helpers.h"
 
 namespace
 {
@@ -34,13 +34,17 @@ MessageBase* AsMessage(PlayerMessage* message)
 
 } // namespace
 
-RemotePlayer::RemotePlayer() : PlayerController(), m_history()
+RemotePlayer::RemotePlayer()
+    : PlayerController()
+    , m_history()
 {
   m_voteSent = 0;
   m_unknown54 = 0;
 }
 
-RemotePlayer::RemotePlayer(int side) : PlayerController(side), m_history()
+RemotePlayer::RemotePlayer(int side)
+    : PlayerController(side)
+    , m_history()
 {
   m_voteSent = 0;
   m_unknown54 = 0;
@@ -72,17 +76,16 @@ int RemotePlayer::StepInitialization()
 
 void RemotePlayer::QueueReceivedMessage(PlayerMessage* message)
 {
-  if (!message)
+  if (!message) {
     return;
-  MessageBase* received = AsMessage(message);
-  if (received->GetKind() == kSyncPointKind)
-  {
-    const unsigned syncPoint = static_cast<NetMsg1*>(received)->m_syncPoint;
-    if (m_maxSyncPoint < syncPoint)
-      m_maxSyncPoint = syncPoint;
   }
-  else if (received->GetKind() == kSingleValueKind)
-  {
+  MessageBase* received = AsMessage(message);
+  if (received->GetKind() == kSyncPointKind) {
+    const unsigned syncPoint = static_cast<NetMsg1*>(received)->m_syncPoint;
+    if (m_maxSyncPoint < syncPoint) {
+      m_maxSyncPoint = syncPoint;
+    }
+  } else if (received->GetKind() == kSingleValueKind) {
     PlayerController::OnSyncFinished();
   }
   m_pending.Adopt(received);
@@ -93,8 +96,7 @@ int RemotePlayer::RouteOutgoingMessage(PlayerMessage* message)
 {
   MessageBase* base = AsMessage(message);
   auto* sided = dynamic_cast<SidedMessage*>(base);
-  if (!sided || sided->m_unk24 == 1)
-  {
+  if (!sided || sided->m_unk24 == 1) {
     SendToPeer(base);
     return 0;
   }
@@ -105,21 +107,20 @@ void RemotePlayer::ProcessPlayerFrame()
 {
   MessageBase* message = ReceiveRemoteMessage();
   CommAllPacketsAcknowledged();
-  if (!message)
+  if (!message) {
     return;
-  switch (message->GetKind())
-  {
+  }
+  switch (message->GetKind()) {
     case kAckKind:
-    {
-      auto* ack = static_cast<NetMsg2*>(message);
-      if (ack->m_side != m_side)
       {
-        UiDeliverQueuedMessage(ack->m_syncPoint);
-        delete message;
-        return;
+        auto* ack = static_cast<NetMsg2*>(message);
+        if (ack->m_side != m_side) {
+          UiDeliverQueuedMessage(ack->m_syncPoint);
+          delete message;
+          return;
+        }
+        break;
       }
-      break;
-    }
     case kVoteKind:
       m_history.Add(message);
       delete message;
@@ -129,18 +130,17 @@ void RemotePlayer::ProcessPlayerFrame()
       delete message;
       return;
     case kSyncRequestKind:
-    {
-      auto* request = static_cast<NetMsg15*>(message);
-      if (request->m_valueA != 0)
       {
-        m_syncTarget = request->m_valueB;
-        UiBeginSync(request->m_valueB);
-        delete message;
-        return;
+        auto* request = static_cast<NetMsg15*>(message);
+        if (request->m_valueA != 0) {
+          m_syncTarget = request->m_valueB;
+          UiBeginSync(request->m_valueB);
+          delete message;
+          return;
+        }
+        UiAckSync(request->m_valueC);
+        break;
       }
-      UiAckSync(request->m_valueC);
-      break;
-    }
     default:
       RouteMessage(message);
       return;
@@ -150,8 +150,7 @@ void RemotePlayer::ProcessPlayerFrame()
 
 int RemotePlayer::ProcessSyncPoint(unsigned syncId)
 {
-  if (m_syncId != syncId)
-  {
+  if (m_syncId != syncId) {
     m_syncId = syncId;
     return 0;
   }
@@ -160,17 +159,15 @@ int RemotePlayer::ProcessSyncPoint(unsigned syncId)
 
 int RemotePlayer::GetVoteWithTime(int* outId, ObjectKey* outKey, GameTime* outTime)
 {
-  if (m_voteState != 0)
-  {
+  if (m_voteState != 0) {
     *outId = m_voteId;
     new (outKey) ObjectKey(m_voteKey);
     AssignGameTime(outTime, &m_voteTime);
     return m_voteState;
   }
-  AiMissionHistoryEntry* entry =
-    m_history.Find(reinterpret_cast<const int*>(&m_voteKey), static_cast<uint32_t>(m_voteId), kHistoryByVoteId);
-  if (!entry)
-  {
+  AiMissionHistoryEntry* entry
+      = m_history.Find(reinterpret_cast<const int*>(&m_voteKey), static_cast<uint32_t>(m_voteId), kHistoryByVoteId);
+  if (!entry) {
     *outId = 0;
     outKey->Reset();
     ClearGameTime(outTime);
@@ -188,16 +185,14 @@ int RemotePlayer::GetVoteWithTime(int* outId, ObjectKey* outKey, GameTime* outTi
 
 int RemotePlayer::GetVote(int* outId, ObjectKey* outKey)
 {
-  if (m_voteState != 0)
-  {
+  if (m_voteState != 0) {
     *outId = m_voteId;
     new (outKey) ObjectKey(m_voteKey);
     return m_voteState;
   }
-  AiMissionHistoryEntry* entry =
-    m_history.Find(reinterpret_cast<const int*>(&m_voteKey), static_cast<uint32_t>(m_voteId), kHistoryByVoteIdOnly);
-  if (!entry)
-  {
+  AiMissionHistoryEntry* entry
+      = m_history.Find(reinterpret_cast<const int*>(&m_voteKey), static_cast<uint32_t>(m_voteId), kHistoryByVoteIdOnly);
+  if (!entry) {
     *outId = 0;
     outKey->Reset();
     return m_voteState;
@@ -222,8 +217,7 @@ void RemotePlayer::BeginVote(int id, ObjectKey* key)
 
 void RemotePlayer::ForwardVoteResponse(int id, ObjectKey* key, int state, GameTime* time)
 {
-  if (m_voteSent == 0)
-  {
+  if (m_voteSent == 0) {
     SendVote(id, key, state, time);
     m_voteSent = 1;
   }
@@ -240,21 +234,22 @@ void RemotePlayer::ResetVote(int id, ObjectKey* key)
 
 void RemotePlayer::HandleNotification(NotifPayload* notice)
 {
-  if (notice)
+  if (notice) {
     delete notice;
+  }
 }
 
-void RemotePlayer::NotifyShipChanged(const ObjectKey*)
-{
-}
+void RemotePlayer::NotifyShipChanged(const ObjectKey*) {}
 
 void RemotePlayer::RequestSyncTarget(unsigned target)
 {
-  if (target <= m_syncTarget)
+  if (target <= m_syncTarget) {
     return;
+  }
   auto* request = static_cast<NetMsg15*>(CreateOrderByKind(kSyncRequestKind));
-  if (!request)
+  if (!request) {
     return;
+  }
   request->m_valueA = 1;
   request->m_valueB = static_cast<int>(target);
   SendToPeer(request);
@@ -264,16 +259,17 @@ void RemotePlayer::RequestSyncTarget(unsigned target)
 
 void RemotePlayer::AcknowledgeSync(int side)
 {
-  if (m_side == side)
-  {
+  if (m_side == side) {
     m_syncTarget = 0;
     return;
   }
-  if (side == 0)
+  if (side == 0) {
     return;
+  }
   auto* request = static_cast<NetMsg15*>(CreateOrderByKind(kSyncRequestKind));
-  if (!request)
+  if (!request) {
     return;
+  }
   request->m_valueC = side;
   SendToPeer(request);
   delete request;
@@ -281,15 +277,17 @@ void RemotePlayer::AcknowledgeSync(int side)
 
 void RemotePlayer::RouteMessage(MessageBase* message)
 {
-  if (message)
+  if (message) {
     UiRouteMessage(message, m_side);
+  }
 }
 
 void RemotePlayer::SendAck(MessageBase* message)
 {
   auto* ack = new (std::nothrow) NetMsg2();
-  if (!ack)
+  if (!ack) {
     return;
+  }
   ack->m_syncPoint = static_cast<int>(message->m_id);
   auto* sided = dynamic_cast<SidedMessage*>(message);
   ack->m_side = sided ? sided->m_side : 3 - m_side;
@@ -299,12 +297,12 @@ void RemotePlayer::SendAck(MessageBase* message)
 
 void RemotePlayer::SendToPeer(MessageBase* message)
 {
-  if (!message)
+  if (!message) {
     return;
+  }
   MessageCodec codec;
   codec.Serialize(message);
-  if (codec.m_valid)
-  {
+  if (codec.m_valid) {
     CommSendMessage(codec.m_buffer, codec.m_size, kRemoteMessageCategory, 1);
     CommFlushAll();
   }
@@ -313,8 +311,9 @@ void RemotePlayer::SendToPeer(MessageBase* message)
 void RemotePlayer::SendVote(int id, ObjectKey* key, int state, GameTime* time)
 {
   auto* vote = new (std::nothrow) NetMsg4();
-  if (!vote)
+  if (!vote) {
     return;
+  }
   vote->m_voteState = state;
   vote->m_voteId = id;
   AssignGameTime(&vote->m_voteTime, time);
@@ -327,17 +326,18 @@ MessageBase* ReceiveRemoteMessage()
 {
   MessageBase* result = nullptr;
   CommBuffer* buffer = CommTakeMessage(kRemoteMessageCategory);
-  if (!buffer)
-  {
+  if (!buffer) {
     buffer = CommTakeMessage(kVoteMessageCategory);
-    if (!buffer)
+    if (!buffer) {
       return result;
+    }
   }
   MessageCodec codec;
   codec.SetData(buffer->m_data, buffer->m_size);
   codec.Deserialize(&result);
-  if (buffer->m_data)
+  if (buffer->m_data) {
     ::operator delete(buffer->m_data);
+  }
   buffer->m_data = nullptr;
   ::operator delete(buffer);
   return result;

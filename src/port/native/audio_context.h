@@ -1,18 +1,22 @@
 #pragma once
 
+#include <atomic>
 #include <deque>
+#include <mutex>
 #include <memory>
+#include <thread>
 
 #include "audio/music.h"
 #include "audio/sound_manager.h"
 #include "audio/sound_source.h"
+#include "port/native/thread_sync.h"
 
 namespace reb::native
 {
 
 class AudioContext
 {
-public:
+  public:
   AudioContext() = default;
   ~AudioContext();
 
@@ -36,11 +40,11 @@ public:
   int soundVolume = 0;
   WAVEFORMATEX primaryFormat{};
 
-  CRITICAL_SECTION soundQueueLock{};
-  HANDLE soundEvents[2]{};
-  HANDLE soundThread = nullptr;
-  LONG soundDispatchBusy = 0;
-  LONG sweepBusy = 0;
+  std::recursive_mutex soundQueueLock;
+  reb::EventSet soundEvents;
+  std::thread soundThread;
+  std::atomic<LONG> soundDispatchBusy{0};
+  std::atomic<LONG> sweepBusy{0};
   int soundShuttingDown = 0;
   int soundThreadReady = 0;
 

@@ -22,8 +22,9 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void Rewind(ScopedStrstream& stream)
@@ -36,14 +37,16 @@ void VerifyWarmupAndDeterminism()
   constexpr int seed = 12345;
   RandomGenerator generator(seed);
   int expectedState = seed;
-  for (int i = 0; i < 16; ++i)
+  for (int i = 0; i < 16; ++i) {
     expectedState = generator.Step(expectedState);
+  }
   Require(generator.m_seed == expectedState);
 
   RandomGenerator first(seed);
   RandomGenerator second(seed);
-  for (int i = 0; i < 1000; ++i)
+  for (int i = 0; i < 1000; ++i) {
     Require(first.Next(37) == second.Next(37));
+  }
 }
 
 void VerifyInclusiveAndHalfOpenBounds()
@@ -55,8 +58,7 @@ void VerifyInclusiveAndHalfOpenBounds()
   const int stateBeforeSingleton = generator.m_seed;
   Require(generator.Between(4, 4) == 4);
   Require(generator.m_seed == stateBeforeSingleton);
-  for (int i = 0; i < 2000; ++i)
-  {
+  for (int i = 0; i < 2000; ++i) {
     const int value = generator.Next(17);
     Require(value >= 0 && value < 17);
     const int inclusive = generator.Between(-4, 4);
@@ -75,8 +77,9 @@ void VerifyGameplayAndPresentationStreamsAreIndependent()
   RandomGenerator presentation(42);
   g_gameRandom = &gameplay;
 
-  for (int i = 0; i < 100; ++i)
+  for (int i = 0; i < 100; ++i) {
     (void)presentation.Next(12);
+  }
 
   Require(GameplayRandomNext(25) == gameplayBaseline.Next(25));
   Require(GameplayRandomNext(25) == gameplayBaseline.Next(25));
@@ -93,8 +96,9 @@ void VerifyGameplayAndPresentationStreamsAreIndependent()
 void VerifySavedStateRoundTripAndValidation()
 {
   RandomGenerator source(54321);
-  for (int i = 0; i < 10; ++i)
+  for (int i = 0; i < 10; ++i) {
     (void)source.Next(100);
+  }
 
   ScopedStrstream stream;
   source.Write(stream.get()->Out());
@@ -102,8 +106,9 @@ void VerifySavedStateRoundTripAndValidation()
 
   RandomGenerator restored(9);
   restored.Read(stream.get()->In());
-  for (int i = 0; i < 100; ++i)
+  for (int i = 0; i < 100; ++i) {
     Require(source.Next(1000) == restored.Next(1000));
+  }
 
   ScopedStrstream invalid;
   int badSeed = 0;

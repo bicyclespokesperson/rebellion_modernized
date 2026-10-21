@@ -7,9 +7,8 @@
 class DibBitmap;
 
 // Bits of PanelDragButton::m_flags.
-enum PanelDragButtonFlags : uint32_t
-{
-  kDragButtonMovable = 0x1, // the button can be dragged (an XOR outline follows the mouse)
+enum PanelDragButtonFlags : uint32_t {
+  kDragButtonMovable = 0x1,          // the button can be dragged (an XOR outline follows the mouse)
   kDragButtonDoubleClickOpens = 0x2, // a double click posts the button's command; single clicks are ignored
 };
 
@@ -18,36 +17,25 @@ enum PanelDragButtonFlags : uint32_t
 // back inside the limits) and double-clicks to open the legend again.
 class PanelDragButton : public CoolStrobeButton
 {
-public:
+  public:
   // `limits` are in the parent's coordinates; a limit rectangle with a zero left or top turns the clamping off.
-  PanelDragButton(HINSTANCE instance,
-                  int x,
-                  int y,
-                  int width,
-                  int height,
-                  CoolWindow* parent,
-                  uint32_t childId,
-                  uint32_t normalBitmapId,
-                  uint32_t pressedBitmapId,
-                  DibBitmap* backdrop,
-                  int limitLeft,
-                  int limitTop,
-                  int limitRight,
-                  int limitBottom,
+  PanelDragButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
+                  uint32_t normalBitmapId, uint32_t pressedBitmapId, DibBitmap* backdrop, int limitLeft, int limitTop,
+                  int limitRight, int limitBottom,
                   uint32_t flags); // 0x452ab0
-  ~PanelDragButton() override; // 0x452b60 (scalar deleting destructor 0x452b40)
+  ~PanelDragButton() override;     // 0x452b60 (scalar deleting destructor 0x452b40)
 
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // slot 5, 0x452b70
 
-  uint32_t m_flags; // +0x114 PanelDragButtonFlags
-  int m_dragging; // +0x118 the outline is being dragged (the mouse is captured)
-  RECT m_limits; // +0x11c
-  RECT m_outline; // +0x12c the outline as last drawn
-  int m_grabX; // +0x13c where in the button the drag started
-  int m_grabY; // +0x140
+  uint32_t m_flags;          // +0x114 PanelDragButtonFlags
+  int m_dragging;            // +0x118 the outline is being dragged (the mouse is captured)
+  RECT m_limits;             // +0x11c
+  RECT m_outline;            // +0x12c the outline as last drawn
+  int m_grabX;               // +0x13c where in the button the drag started
+  int m_grabY;               // +0x140
   DibBitmap* m_backdropCopy; // +0x144 the backdrop the constructor was given (not owned)
 
-private:
+  private:
   LRESULT OnMouseMove(WPARAM wParam, LPARAM lParam);
   LRESULT OnButtonUp();
   LRESULT OnDoubleClick(LPARAM lParam);

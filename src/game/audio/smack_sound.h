@@ -8,7 +8,7 @@
 // kSoundInitShareWithSmacker, which no caller passes.
 class SmackSound
 {
-public:
+  public:
   SmackSound();
   ~SmackSound(); // 0x611d80: Stop(1)
 
@@ -19,12 +19,11 @@ public:
   void Close();
 
   int m_smackParameter; // +0x00
-  void* m_smack; // +0x04 Smack handle
-  void* m_smackBuffer; // +0x08 SmackBuf handle
-  HWND m_window; // +0x0c
-  HANDLE m_thread; // +0x10
-  uint32_t m_unk14; // +0x14
-  uint32_t m_unk18; // +0x18
-  uint32_t m_unk1c; // +0x1c
-  uint32_t m_unk20; // +0x20
+  void* m_smack;        // +0x04 Smack handle
+  void* m_smackBuffer;  // +0x08 SmackBuf handle
+  HWND m_window;        // +0x0c
+  uint32_t m_unk14;     // +0x14
+  uint32_t m_unk18;     // +0x18
+  uint32_t m_unk1c;     // +0x1c
+  uint32_t m_unk20;     // +0x20
 };

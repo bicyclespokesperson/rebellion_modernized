@@ -3,16 +3,18 @@
 
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 #include <limits>
 #include <utility>
 
 extern int16_t g_bmpFileMagic; // 'BM'
 extern HPALETTE g_displayPalette;
 
-#include "gfx/rle8_decoder.h"
 #include "gfx/hd_assets.h"
+#include "gfx/rle8_decoder.h"
 #if defined(REB_MINWIN)
 #include "port/minwin_impl/gdi_api.h"
+#include "port/minwin_impl/res/path.h"
 #endif
 
 namespace
@@ -31,9 +33,10 @@ uint32_t ColorTableBytes(const DibBitmap* format)
 
 bool RowStrideFor(int bitsPerPixel, int width, size_t& stride)
 {
-  if (bitsPerPixel <= 0 || width <= 0 ||
-      static_cast<size_t>(width) > (std::numeric_limits<size_t>::max() - 31) / bitsPerPixel)
+  if (bitsPerPixel <= 0 || width <= 0
+      || static_cast<size_t>(width) > (std::numeric_limits<size_t>::max() - 31) / bitsPerPixel) {
     return false;
+  }
   stride = ((static_cast<size_t>(bitsPerPixel) * static_cast<size_t>(width) + 31) / 32) * 4;
   return stride <= static_cast<size_t>(std::numeric_limits<int>::max());
 }
@@ -42,51 +45,62 @@ constexpr size_t kMaximumBitmapBytes = 256u * 1024u * 1024u;
 
 bool NormalizeRle8(std::vector<uint8_t>& bytes, BITMAPINFOHEADER*& info, uint8_t*& bits, int colorCount)
 {
-  if (info->biWidth <= 0 || info->biHeight == 0 || info->biHeight == INT32_MIN ||
-      (info->biBitCount != 8 && info->biBitCount != 24) || info->biPlanes != 1)
+  if (info->biWidth <= 0 || info->biHeight == 0 || info->biHeight == INT32_MIN
+      || (info->biBitCount != 8 && info->biBitCount != 24) || info->biPlanes != 1) {
     return false;
-  if (info->biCompression == 0)
-  {
+  }
+  if (info->biCompression == 0) {
     size_t stride = 0;
-    if (!RowStrideFor(info->biBitCount, info->biWidth, stride))
+    if (!RowStrideFor(info->biBitCount, info->biWidth, stride)) {
       return false;
+    }
     const int height = info->biHeight < 0 ? -info->biHeight : info->biHeight;
     const auto start = static_cast<size_t>(bits - bytes.data());
-    if (stride > (std::numeric_limits<size_t>::max() - start) / static_cast<size_t>(height) ||
-        start + stride * static_cast<size_t>(height) > bytes.size())
+    if (stride > (std::numeric_limits<size_t>::max() - start) / static_cast<size_t>(height)
+        || start + stride * static_cast<size_t>(height) > bytes.size()) {
       return false;
-    if (info->biBitCount == 8)
-    {
-      for (int y = 0; y < height; ++y)
-        for (int x = 0; x < info->biWidth; ++x)
-          if (bits[static_cast<size_t>(y) * stride + x] >= colorCount)
+    }
+    if (info->biBitCount == 8) {
+      for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < info->biWidth; ++x) {
+          if (bits[static_cast<size_t>(y) * stride + x] >= colorCount) {
             return false;
+          }
+        }
+      }
     }
     return true;
   }
-  if (info->biBitCount != 8)
+  if (info->biBitCount != 8) {
     return false;
-  if (info->biCompression != 1)
+  }
+  if (info->biCompression != 1) {
     return false;
+  }
   const int height = info->biHeight < 0 ? -info->biHeight : info->biHeight;
   const auto start = static_cast<size_t>(bits - bytes.data());
   std::vector<uint8_t> decoded;
-  if (start > bytes.size() ||
-      !DecodeRle8(std::span<const uint8_t>(bytes).subspan(start), info->biWidth, height, info->biHeight < 0, decoded))
+  if (start > bytes.size()
+      || !DecodeRle8(std::span<const uint8_t>(bytes).subspan(start), info->biWidth, height, info->biHeight < 0,
+                     decoded)) {
     return false;
-  for (uint8_t index : decoded)
-    if (index >= colorCount)
+  }
+  for (uint8_t index : decoded) {
+    if (index >= colorCount) {
       return false;
+    }
+  }
   size_t stride = 0;
-  if (!RowStrideFor(8, info->biWidth, stride))
+  if (!RowStrideFor(8, info->biWidth, stride)) {
     return false;
-  if (start > kMaximumBitmapBytes || stride > (kMaximumBitmapBytes - start) / static_cast<size_t>(height))
+  }
+  if (start > kMaximumBitmapBytes || stride > (kMaximumBitmapBytes - start) / static_cast<size_t>(height)) {
     return false;
+  }
   bytes.resize(start + stride * static_cast<size_t>(height), 0);
   info = reinterpret_cast<BITMAPINFOHEADER*>(bytes.data());
   bits = bytes.data() + start;
-  for (int y = 0; y < height; ++y)
-  {
+  for (int y = 0; y < height; ++y) {
     const int storageRow = info->biHeight < 0 ? y : height - y - 1;
     std::memcpy(bits + static_cast<size_t>(storageRow) * stride,
                 decoded.data() + static_cast<size_t>(y) * info->biWidth, static_cast<size_t>(info->biWidth));
@@ -101,38 +115,41 @@ bool ValidateDibPayload(DibBitmap& bitmap)
   bitmap.m_info = nullptr;
   bitmap.m_bits = nullptr;
   bitmap.m_colorCount = 0;
-  if (bitmap.m_storage.size() < sizeof(BITMAPINFOHEADER) || bitmap.m_storage.size() > kMaximumBitmapBytes)
-  {
+  if (bitmap.m_storage.size() < sizeof(BITMAPINFOHEADER) || bitmap.m_storage.size() > kMaximumBitmapBytes) {
     bitmap.m_storage.clear();
     return false;
   }
   bitmap.m_info = reinterpret_cast<BITMAPINFOHEADER*>(bitmap.m_storage.data());
   const uint32_t headerSize = bitmap.HeaderSize();
-  auto reject = [&bitmap]()
-  {
+  auto reject = [&bitmap]() {
     bitmap.m_storage.clear();
     bitmap.m_info = nullptr;
     bitmap.m_bits = nullptr;
     bitmap.m_colorCount = 0;
     return false;
   };
-  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize > bitmap.m_storage.size() || bitmap.m_info->biWidth <= 0 ||
-      bitmap.m_info->biHeight == 0 || bitmap.m_info->biHeight == INT32_MIN || bitmap.m_info->biPlanes != 1 ||
-      (bitmap.m_info->biBitCount != 8 && bitmap.m_info->biBitCount != 24))
+  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize > bitmap.m_storage.size() || bitmap.m_info->biWidth <= 0
+      || bitmap.m_info->biHeight == 0 || bitmap.m_info->biHeight == INT32_MIN || bitmap.m_info->biPlanes != 1
+      || (bitmap.m_info->biBitCount != 8 && bitmap.m_info->biBitCount != 24)) {
     return reject();
-  if (bitmap.m_info->biBitCount == 8 && bitmap.m_info->biClrUsed > 256)
+  }
+  if (bitmap.m_info->biBitCount == 8 && bitmap.m_info->biClrUsed > 256) {
     return reject();
-  if (bitmap.m_info->biBitCount == 24 && bitmap.m_info->biClrUsed != 0)
+  }
+  if (bitmap.m_info->biBitCount == 24 && bitmap.m_info->biClrUsed != 0) {
     return reject();
+  }
   bitmap.ComputeColorCount();
-  if ((bitmap.m_info->biBitCount == 8 && (bitmap.m_colorCount < 1 || bitmap.m_colorCount > 256)) ||
-      (bitmap.m_info->biBitCount == 24 && bitmap.m_colorCount != 0) ||
-      static_cast<size_t>(headerSize) + static_cast<size_t>(bitmap.m_colorCount) * 4 > bitmap.m_storage.size())
+  if ((bitmap.m_info->biBitCount == 8 && (bitmap.m_colorCount < 1 || bitmap.m_colorCount > 256))
+      || (bitmap.m_info->biBitCount == 24 && bitmap.m_colorCount != 0)
+      || static_cast<size_t>(headerSize) + static_cast<size_t>(bitmap.m_colorCount) * 4 > bitmap.m_storage.size()) {
     return reject();
+  }
   bitmap.LocateBits();
   if (!NormalizeRle8(bitmap.m_storage, bitmap.m_info, bitmap.m_bits,
-                     bitmap.m_info->biBitCount == 8 ? bitmap.m_colorCount : 256))
+                     bitmap.m_info->biBitCount == 8 ? bitmap.m_colorCount : 256)) {
     return reject();
+  }
   bitmap.CacheTransparentColor();
   return true;
 }
@@ -140,11 +157,13 @@ bool ValidateDibPayload(DibBitmap& bitmap)
 bool LoadDibBytes(DibBitmap& bitmap, std::span<const uint8_t> dibBytes)
 {
   bitmap.m_storage.clear();
-  if (dibBytes.size() < sizeof(BITMAPINFOHEADER) || dibBytes.size() > kMaximumBitmapBytes)
+  if (dibBytes.size() < sizeof(BITMAPINFOHEADER) || dibBytes.size() > kMaximumBitmapBytes) {
     return false;
+  }
   bitmap.m_storage.assign(dibBytes.begin(), dibBytes.end());
-  if (ValidateDibPayload(bitmap))
+  if (ValidateDibPayload(bitmap)) {
     return true;
+  }
   bitmap.m_storage.clear();
   bitmap.m_info = nullptr;
   bitmap.m_bits = nullptr;
@@ -159,8 +178,9 @@ void ClearBitmapPayload(DibBitmap& bitmap)
   bitmap.m_info = nullptr;
   bitmap.m_bits = nullptr;
   bitmap.m_colorCount = 0;
-  if (bitmap.m_palette)
-    DeleteObject(bitmap.m_palette);
+  if (bitmap.m_palette) {
+    reb::compat::DeleteObject(bitmap.m_palette);
+  }
   bitmap.m_palette = nullptr;
 }
 } // namespace
@@ -169,10 +189,8 @@ DibBitmap::DibBitmap(HMODULE module, const char* source, uint32_t kind)
 {
   m_colorKeyRgb = {0, 0, 0};
   Reset(module, static_cast<uint8_t>(kind));
-  if (source)
-  {
-    switch (kind & kDibKindMask)
-    {
+  if (source) {
+    switch (kind & kDibKindMask) {
       case kDibFile:
         LoadBmpFile(source);
         break;
@@ -185,8 +203,9 @@ DibBitmap::DibBitmap(HMODULE module, const char* source, uint32_t kind)
     }
   }
   m_dibSection = nullptr;
-  if (m_bits)
+  if (m_bits) {
     CacheTransparentColor();
+  }
   m_remapTable = nullptr;
 }
 
@@ -195,8 +214,9 @@ DibBitmap::DibBitmap(HMODULE module, uint32_t resourceId, uint32_t kind)
   m_colorKeyRgb = {0, 0, 0};
   Reset(module, static_cast<uint8_t>(kind));
   LoadResourceById(resourceId);
-  if (m_bits)
+  if (m_bits) {
     CacheTransparentColor();
+  }
   m_dibSection = nullptr;
   m_remapTable = nullptr;
 }
@@ -206,23 +226,29 @@ DibBitmap::DibBitmap(int width, int height, DibBitmap* format)
   m_colorKeyRgb = {0, 0, 0};
   Reset(nullptr, kDibHeap);
   m_remapTable = nullptr;
-  if (!format || !format->IsLoaded() || width <= 0 || height == 0 || height == INT32_MIN ||
-      (format->BitCount() != 8 && format->BitCount() != 24))
+  if (!format || !format->IsLoaded() || width <= 0 || height == 0 || height == INT32_MIN
+      || (format->BitCount() != 8 && format->BitCount() != 24)) {
     return;
-  if (format->m_colorCount < 0 || format->m_colorCount > 256 || (format->BitCount() == 8 && format->m_colorCount == 0))
+  }
+  if (format->m_colorCount < 0 || format->m_colorCount > 256
+      || (format->BitCount() == 8 && format->m_colorCount == 0)) {
     return;
+  }
   size_t rowStride = 0;
-  if (!RowStrideFor(format->BitCount(), width, rowStride))
+  if (!RowStrideFor(format->BitCount(), width, rowStride)) {
     return;
+  }
   const auto absHeight = static_cast<size_t>(height < 0 ? -height : height);
   const size_t headerSize = format->HeaderSize();
   const size_t colorTableBytes = ColorTableBytes(format);
-  if (headerSize > kMaximumBitmapBytes - colorTableBytes ||
-      rowStride > (kMaximumBitmapBytes - headerSize - colorTableBytes) / absHeight)
+  if (headerSize > kMaximumBitmapBytes - colorTableBytes
+      || rowStride > (kMaximumBitmapBytes - headerSize - colorTableBytes) / absHeight) {
     return;
+  }
   const size_t totalBytes = headerSize + colorTableBytes + rowStride * absHeight;
   Reset(format->m_module, kDibHeap);
   m_colorCount = format->m_colorCount;
+  m_hdKeyed = format->m_hdKeyed;
   m_storage.assign(totalBytes, 0);
   auto* header = reinterpret_cast<BITMAPINFOHEADER*>(m_storage.data());
   std::memcpy(header, format->m_info, headerSize + colorTableBytes);
@@ -242,19 +268,23 @@ DibBitmap::DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc)
   m_colorKeyRgb = {0, 0, 0};
   Reset(nullptr, kDibSection);
   m_remapTable = nullptr;
-  if (!format || !format->IsLoaded() || width <= 0 || height == 0 || height == INT32_MIN ||
-      (format->BitCount() != 8 && format->BitCount() != 24))
+  if (!format || !format->IsLoaded() || width <= 0 || height == 0 || height == INT32_MIN
+      || (format->BitCount() != 8 && format->BitCount() != 24)) {
     return;
+  }
   const size_t headerSize = format->HeaderSize();
   const size_t colorTableBytes = ColorTableBytes(format);
-  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize + colorTableBytes > kMaximumBitmapBytes)
+  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize + colorTableBytes > kMaximumBitmapBytes) {
     return;
+  }
   size_t rowStride = 0;
-  if (!RowStrideFor(format->BitCount(), width, rowStride) ||
-      rowStride > kMaximumBitmapBytes / static_cast<size_t>(height < 0 ? -height : height))
+  if (!RowStrideFor(format->BitCount(), width, rowStride)
+      || rowStride > kMaximumBitmapBytes / static_cast<size_t>(height < 0 ? -height : height)) {
     return;
+  }
   Reset(format->m_module, kDibSection);
   m_colorCount = format->m_colorCount;
+  m_hdKeyed = format->m_hdKeyed;
   m_storage.resize(headerSize + colorTableBytes);
   auto* header = reinterpret_cast<BITMAPINFOHEADER*>(m_storage.data());
   std::memcpy(header, format->m_info, headerSize + colorTableBytes);
@@ -263,12 +293,12 @@ DibBitmap::DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc)
   header->biSizeImage = 0;
   header->biCompression = 0;
   m_info = header;
-  m_dibSection = CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(header), DIB_RGB_COLORS,
+  m_dibSection = reb::compat::CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(header), DIB_RGB_COLORS,
                                   reinterpret_cast<void**>(&m_bits), nullptr, 0);
-  if (!m_dibSection || !m_bits)
-  {
-    if (m_dibSection)
-      DeleteObject(m_dibSection);
+  if (!m_dibSection || !m_bits) {
+    if (m_dibSection) {
+      reb::compat::DeleteObject(m_dibSection);
+    }
     m_dibSection = nullptr;
     m_bits = nullptr;
     m_info = nullptr;
@@ -281,21 +311,23 @@ DibBitmap::DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc)
 
 DibBitmap::~DibBitmap()
 {
-  switch (m_kind & kDibKindMask)
-  {
+  switch (m_kind & kDibKindMask) {
     case kDibResource:
-      if (m_resource)
-        FreeResource(m_resource);
+      if (m_resource) {
+        reb::compat::FreeResource(m_resource);
+      }
       break;
     case kDibSection:
-      if (m_dibSection)
-        DeleteObject(m_dibSection);
+      if (m_dibSection) {
+        reb::compat::DeleteObject(m_dibSection);
+      }
       break;
     default:
       break;
   }
-  if (m_palette)
-    DeleteObject(m_palette);
+  if (m_palette) {
+    reb::compat::DeleteObject(m_palette);
+  }
 }
 
 void DibBitmap::Swap(DibBitmap& other) noexcept
@@ -316,6 +348,7 @@ void DibBitmap::Swap(DibBitmap& other) noexcept
   m_storage.swap(other.m_storage);
   m_hdPixels.swap(other.m_hdPixels);
   swap(m_hdScale, other.m_hdScale);
+  swap(m_hdKeyed, other.m_hdKeyed);
   swap(m_hdGdiRevision, other.m_hdGdiRevision);
   swap(m_hdGdiScale, other.m_hdGdiScale);
 }
@@ -385,6 +418,7 @@ void DibBitmap::Reset(HMODULE module, uint8_t kind)
   m_colorKeyRgb = {0, 0, kDefaultKeyBlue};
   m_hdPixels.clear();
   m_hdScale = 1;
+  m_hdKeyed = false;
   m_hdGdiRevision = 0;
   m_hdGdiScale = 0;
 }
@@ -392,22 +426,19 @@ void DibBitmap::Reset(HMODULE module, uint8_t kind)
 void DibBitmap::ComputeColorCount()
 {
   const uint16_t bitsPerPixel = m_info->biBitCount;
-  if (bitsPerPixel < 24)
-  {
+  if (bitsPerPixel < 24) {
     m_colorCount = static_cast<int32_t>(m_info->biClrUsed);
-    if (m_colorCount == 0)
+    if (m_colorCount == 0) {
       m_colorCount = 1 << (bitsPerPixel & 0x1f);
-  }
-  else
-  {
+    }
+  } else {
     m_colorCount = 0;
   }
 }
 
 void DibBitmap::LocateBits()
 {
-  if (!m_info)
-  {
+  if (!m_info) {
     m_bits = nullptr;
     return;
   }
@@ -418,24 +449,24 @@ void DibBitmap::NotifyPixelsChanged()
 {
   m_hdPixels.clear();
   m_hdScale = 1;
+  m_hdKeyed = false;
   m_hdGdiRevision = 0;
   m_hdGdiScale = 0;
 #if defined(REB_MINWIN)
-  if (m_dibSection)
+  if (m_dibSection) {
     minwin_gdi::InvalidateDeviceBitmap(m_dibSection);
+  }
 #endif
 }
 
 void DibBitmap::CacheTransparentColor()
 {
-  if (BitCount() == 8)
-  {
-    if (!m_info || !m_bits)
+  if (BitCount() == 8) {
+    if (!m_info || !m_bits) {
       return;
+    }
     m_colorKey = m_bits[0];
-  }
-  else if (BitCount() == 24)
-  {
+  } else if (BitCount() == 24) {
     m_colorKeyRgb.b = m_bits[0];
     m_colorKeyRgb.g = m_bits[1];
     m_colorKeyRgb.r = m_bits[2];
@@ -445,59 +476,68 @@ void DibBitmap::CacheTransparentColor()
 int DibBitmap::LoadResourceById(uint32_t resourceId)
 {
   ClearBitmapPayload(*this);
-  if (!m_module)
+  if (!m_module) {
     return false;
-  HRSRC resourceInfo =
-    FindResourceA(m_module, MAKEINTRESOURCEA(resourceId & 0xffff), MAKEINTRESOURCEA(kBitmapResourceType));
-  if (!resourceInfo)
+  }
+  HRSRC resourceInfo
+      = reb::compat::FindResourceA(m_module, MAKEINTRESOURCEA(resourceId & 0xffff), MAKEINTRESOURCEA(kBitmapResourceType));
+  if (!resourceInfo) {
     return false;
-  m_resource = LoadResource(m_module, resourceInfo);
-  const DWORD resourceSize = SizeofResource(m_module, resourceInfo);
-  auto* locked = m_resource ? static_cast<uint8_t*>(LockResource(m_resource)) : nullptr;
+  }
+  m_resource = reb::compat::LoadResource(m_module, resourceInfo);
+  const DWORD resourceSize = reb::compat::SizeofResource(m_module, resourceInfo);
+  auto* locked = m_resource ? static_cast<uint8_t*>(reb::compat::LockResource(m_resource)) : nullptr;
   bool loaded = locked && LoadDibBytes(*this, std::span<const uint8_t>(locked, resourceSize));
-  if (loaded)
+  if (loaded) {
     LoadHighResolutionAsset(*this, std::span<const uint8_t>(locked, resourceSize));
-  if (m_resource)
-    FreeResource(m_resource);
+  }
+  if (m_resource) {
+    reb::compat::FreeResource(m_resource);
+  }
   m_resource = nullptr;
-  if (!loaded)
+  if (!loaded) {
     ClearBitmapPayload(*this);
+  }
   return loaded;
 }
 
 int DibBitmap::LoadResourceByName(const char* name)
 {
   ClearBitmapPayload(*this);
-  if (!m_module || !name)
+  if (!m_module || !name) {
     return false;
-  HRSRC resourceInfo = FindResourceA(m_module, name, MAKEINTRESOURCEA(kBitmapResourceType));
-  if (!resourceInfo)
+  }
+  HRSRC resourceInfo = reb::compat::FindResourceA(m_module, name, MAKEINTRESOURCEA(kBitmapResourceType));
+  if (!resourceInfo) {
     return false;
-  m_resource = LoadResource(m_module, resourceInfo);
-  const DWORD resourceSize = SizeofResource(m_module, resourceInfo);
-  auto* locked = m_resource ? static_cast<uint8_t*>(LockResource(m_resource)) : nullptr;
+  }
+  m_resource = reb::compat::LoadResource(m_module, resourceInfo);
+  const DWORD resourceSize = reb::compat::SizeofResource(m_module, resourceInfo);
+  auto* locked = m_resource ? static_cast<uint8_t*>(reb::compat::LockResource(m_resource)) : nullptr;
   bool loaded = locked && LoadDibBytes(*this, std::span<const uint8_t>(locked, resourceSize));
-  if (loaded)
+  if (loaded) {
     LoadHighResolutionAsset(*this, std::span<const uint8_t>(locked, resourceSize));
-  if (m_resource)
-    FreeResource(m_resource);
+  }
+  if (m_resource) {
+    reb::compat::FreeResource(m_resource);
+  }
   m_resource = nullptr;
-  if (!loaded)
+  if (!loaded) {
     ClearBitmapPayload(*this);
+  }
   return loaded;
 }
 
 int DibBitmap::LoadBmpFile(const char* path)
 {
   ClearBitmapPayload(*this);
-  HFILE file = _lopen(path, OF_SHARE_DENY_WRITE);
-  if (file == HFILE_ERROR)
+  std::ifstream file(mw::res::ResolvePath(path), std::ios::binary);
+  if (!file) {
     return false;
+  }
 
   uint8_t rawHeader[kBmpFileHeaderSize];
-  if (_lread(file, rawHeader, kBmpFileHeaderSize) != kBmpFileHeaderSize)
-  {
-    _lclose(file);
+  if (!file.read(reinterpret_cast<char*>(rawHeader), kBmpFileHeaderSize)) {
     return false;
   }
   int16_t magic;
@@ -506,76 +546,67 @@ int DibBitmap::LoadBmpFile(const char* path)
   std::memcpy(&magic, rawHeader, sizeof(magic));
   std::memcpy(&fileSize, rawHeader + 2, sizeof(fileSize));
   std::memcpy(&pixelOffset, rawHeader + 10, sizeof(pixelOffset));
-  if (magic != g_bmpFileMagic)
-  {
-    _lclose(file);
+  if (magic != g_bmpFileMagic) {
     return false;
   }
 
-  if (fileSize < static_cast<int32_t>(kBmpFileHeaderSize + sizeof(BITMAPINFOHEADER)) || fileSize > 256 * 1024 * 1024)
-  {
-    _lclose(file);
+  if (fileSize < static_cast<int32_t>(kBmpFileHeaderSize + sizeof(BITMAPINFOHEADER)) || fileSize > 256 * 1024 * 1024) {
     return false;
   }
   const uint32_t remaining = static_cast<uint32_t>(fileSize) - kBmpFileHeaderSize;
   m_storage.resize(remaining);
   uint32_t offset = 0;
-  while (offset < remaining)
-  {
+  while (offset < remaining) {
     const uint32_t chunk = std::min(kFileReadChunk, remaining - offset);
-    if (_lread(file, m_storage.data() + offset, chunk) != chunk)
-    {
-      _lclose(file);
+    if (!file.read(reinterpret_cast<char*>(m_storage.data() + offset), chunk)) {
       m_storage.clear();
       return false;
     }
     offset += chunk;
   }
-  _lclose(file);
 
   m_info = reinterpret_cast<BITMAPINFOHEADER*>(m_storage.data());
   const uint32_t headerSize = HeaderSize();
-  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize > m_storage.size() || m_info->biWidth <= 0 ||
-      m_info->biHeight == 0 || m_info->biHeight == INT32_MIN || m_info->biPlanes != 1 ||
-      (m_info->biBitCount != 8 && m_info->biBitCount != 24) || (m_info->biBitCount == 8 && m_info->biClrUsed > 256) ||
-      (m_info->biBitCount == 24 && m_info->biClrUsed != 0))
-  {
+  if (headerSize < sizeof(BITMAPINFOHEADER) || headerSize > m_storage.size() || m_info->biWidth <= 0
+      || m_info->biHeight == 0 || m_info->biHeight == INT32_MIN || m_info->biPlanes != 1
+      || (m_info->biBitCount != 8 && m_info->biBitCount != 24) || (m_info->biBitCount == 8 && m_info->biClrUsed > 256)
+      || (m_info->biBitCount == 24 && m_info->biClrUsed != 0)) {
     ClearBitmapPayload(*this);
     return false;
   }
   ComputeColorCount();
-  if ((m_info->biBitCount == 8 && (m_colorCount < 1 || m_colorCount > 256)) ||
-      (m_info->biBitCount == 24 && m_colorCount != 0) ||
-      static_cast<size_t>(headerSize) + static_cast<size_t>(m_colorCount) * 4 > m_storage.size())
-  {
+  if ((m_info->biBitCount == 8 && (m_colorCount < 1 || m_colorCount > 256))
+      || (m_info->biBitCount == 24 && m_colorCount != 0)
+      || static_cast<size_t>(headerSize) + static_cast<size_t>(m_colorCount) * 4 > m_storage.size()) {
     ClearBitmapPayload(*this);
     return false;
   }
   const size_t dibPixelsOffset = static_cast<size_t>(headerSize) + static_cast<size_t>(m_colorCount) * 4;
-  if (pixelOffset < kBmpFileHeaderSize + dibPixelsOffset || pixelOffset - kBmpFileHeaderSize > m_storage.size())
-  {
+  if (pixelOffset < kBmpFileHeaderSize + dibPixelsOffset || pixelOffset - kBmpFileHeaderSize > m_storage.size()) {
     ClearBitmapPayload(*this);
     return false;
   }
   const size_t filePixelsOffset = pixelOffset - kBmpFileHeaderSize;
-  if (filePixelsOffset > dibPixelsOffset)
+  if (filePixelsOffset > dibPixelsOffset) {
     m_storage.erase(m_storage.begin() + dibPixelsOffset, m_storage.begin() + filePixelsOffset);
+  }
   m_info = reinterpret_cast<BITMAPINFOHEADER*>(m_storage.data());
-  if (ValidateDibPayload(*this))
+  if (ValidateDibPayload(*this)) {
     return true;
+  }
   ClearBitmapPayload(*this);
   return false;
 }
 
 HPALETTE DibBitmap::CreatePaletteFromColorTable()
 {
-  if (!m_info || BitCount() != 8 || m_colorCount < 1 || m_colorCount > 256)
+  if (!m_info || BitCount() != 8 || m_colorCount < 1 || m_colorCount > 256) {
     return nullptr;
+  }
   const auto* colorTable = reinterpret_cast<const RGBQUAD*>(reinterpret_cast<const uint8_t*>(m_info) + HeaderSize());
   LOGPALETTE logicalPalette;
   PALETTEENTRY entries[kPaletteEntryCount];
-  for (int i = 0; i < kPaletteEntryCount; ++i)
-  {
+  for (int i = 0; i < kPaletteEntryCount; ++i) {
     const int sourceIndex = std::min(i, m_colorCount - 1);
     entries[i].peRed = colorTable[sourceIndex].rgbRed;
     entries[i].peGreen = colorTable[sourceIndex].rgbGreen;
@@ -584,143 +615,139 @@ HPALETTE DibBitmap::CreatePaletteFromColorTable()
   }
   logicalPalette.palVersion = 0x300;
   logicalPalette.palNumEntries = 1;
-  HPALETTE palette = CreatePalette(&logicalPalette);
-  if (palette && ResizePalette(palette, kPaletteEntryCount))
-    SetPaletteEntries(palette, 0, kPaletteEntryCount, entries);
+  HPALETTE palette = reb::compat::CreatePalette(&logicalPalette);
+  if (palette && reb::compat::ResizePalette(palette, kPaletteEntryCount)) {
+    reb::compat::SetPaletteEntries(palette, 0, kPaletteEntryCount, entries);
+  }
   return palette;
 }
 
 int DibBitmap::DrawToDc(HDC dc, char mode, DWORD rop, int destX, int destY, int srcX, int srcY, int width, int height)
 {
   SyncHighResolutionFromGdi();
-  if (!m_info)
+  if (!m_info) {
     return 0;
+  }
   const int bitmapWidth = Width();
   const int bitmapHeight = Height();
   const int absoluteHeight = bitmapHeight < 0 ? -bitmapHeight : bitmapHeight;
-  if (width == 0)
+  if (width == 0) {
     width = bitmapWidth - srcX;
-  if (height == 0)
+  }
+  if (height == 0) {
     height = absoluteHeight - srcY;
-  if (srcX < 0)
-  {
+  }
+  if (srcX < 0) {
     width += srcX;
     destX -= srcX;
     srcX = 0;
   }
-  if (srcY < 0)
-  {
+  if (srcY < 0) {
     height += srcY;
     destY -= srcY;
     srcY = 0;
   }
-  if (destX < 0)
-  {
+  if (destX < 0) {
     width += destX;
     srcX -= destX;
     destX = 0;
   }
-  if (destY < 0)
-  {
+  if (destY < 0) {
     height += destY;
     srcY -= destY;
     destY = 0;
   }
-  if (srcX >= bitmapWidth || srcY >= absoluteHeight || width <= 0 || height <= 0)
+  if (srcX >= bitmapWidth || srcY >= absoluteHeight || width <= 0 || height <= 0) {
     return 0;
-  if (width > bitmapWidth - srcX)
+  }
+  if (width > bitmapWidth - srcX) {
     width = bitmapWidth - srcX;
-  if (height > absoluteHeight - srcY)
+  }
+  if (height > absoluteHeight - srcY) {
     height = absoluteHeight - srcY;
-  if (width <= 0 || height <= 0)
+  }
+  if (width <= 0 || height <= 0) {
     return 0;
-  if (mode == 0x10)
+  }
+  if (mode == 0x10) {
     return 1;
+  }
 
 #if defined(REB_MINWIN)
   const bool drawDeviceDetail = !m_hdPixels.empty();
 #else
   const bool drawDeviceDetail = false;
 #endif
-  if (mode != '@' && !drawDeviceDetail)
-  {
-    SetStretchBltMode(dc, kStretchColorOnColor);
-    SetDIBitsToDevice(dc, destX, destY, width, height, srcX, srcY, 0, height, m_bits,
+  if (mode != '@' && !drawDeviceDetail) {
+    reb::compat::SetStretchBltMode(dc, kStretchColorOnColor);
+    reb::compat::SetDIBitsToDevice(dc, destX, destY, width, height, srcX, srcY, 0, height, m_bits,
                       reinterpret_cast<BITMAPINFO*>(m_info), DIB_RGB_COLORS);
     return 1;
   }
 
-  HDC memoryDc = CreateCompatibleDC(dc);
-  if (BitCount() == 8 && !m_palette)
+  HDC memoryDc = reb::compat::CreateCompatibleDC(dc);
+  if (BitCount() == 8 && !m_palette) {
     m_palette = CreatePaletteFromColorTable();
-  if (m_kind == kDibSection)
-  {
+  }
+  if (m_kind == kDibSection) {
 #if defined(REB_MINWIN)
-    if (!m_hdPixels.empty() &&
-        (!m_hdGdiRevision || m_hdGdiScale != minwin_gdi::DeviceScale()))
-    {
+    if (!m_hdPixels.empty() && (!m_hdGdiRevision || m_hdGdiScale != minwin_gdi::DeviceScale())) {
       const uint64_t published = minwin_gdi::SetDeviceBitmapPixels(m_dibSection, m_hdScale, m_hdPixels);
-      if (published)
+      if (published) {
         m_hdGdiRevision = published;
+      }
     }
     m_hdGdiScale = minwin_gdi::DeviceScale();
 #endif
-    HGDIOBJ previousBitmap = SelectObject(memoryDc, DibSectionHandle());
-    HPALETTE previousPalette = SelectPalette(memoryDc, m_palette, FALSE);
-    BitBlt(dc, destX, destY, width, height, memoryDc, srcX, srcY, mode == '@' ? rop : SRCCOPY);
-    SelectPalette(memoryDc, previousPalette, FALSE);
-    SelectObject(memoryDc, previousBitmap);
-  }
-  else
-  {
+    HGDIOBJ previousBitmap = reb::compat::SelectObject(memoryDc, DibSectionHandle());
+    HPALETTE previousPalette = reb::compat::SelectPalette(memoryDc, m_palette, FALSE);
+    reb::compat::BitBlt(dc, destX, destY, width, height, memoryDc, srcX, srcY, mode == '@' ? rop : SRCCOPY);
+    reb::compat::SelectPalette(memoryDc, previousPalette, FALSE);
+    reb::compat::SelectObject(memoryDc, previousBitmap);
+  } else {
     HBITMAP deviceBitmap = nullptr;
-    if (m_info)
-    {
+    if (m_info) {
 #if defined(REB_MINWIN)
-      if (!m_hdPixels.empty())
-      {
+      if (!m_hdPixels.empty()) {
         // A DIB section keeps the source palette for both logical pixels and device detail.
         void* deviceBits = nullptr;
-        deviceBitmap = CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(m_info), DIB_RGB_COLORS,
-                                        &deviceBits, nullptr, 0);
-        if (deviceBitmap && deviceBits)
-        {
+        deviceBitmap
+            = reb::compat::CreateDIBSection(dc, reinterpret_cast<BITMAPINFO*>(m_info), DIB_RGB_COLORS, &deviceBits, nullptr, 0);
+        if (deviceBitmap && deviceBits) {
           std::memcpy(deviceBits, m_bits, static_cast<size_t>(RowStride()) * absoluteHeight);
           minwin_gdi::SetDeviceBitmapPixels(deviceBitmap, m_hdScale, m_hdPixels);
-        }
-        else
-        {
-          DeleteObject(deviceBitmap);
+        } else {
+          reb::compat::DeleteObject(deviceBitmap);
           deviceBitmap = nullptr;
         }
       }
 #endif
-      if (!deviceBitmap)
-        deviceBitmap =
-          CreateDIBitmap(dc, m_info, CBM_INIT, m_bits, reinterpret_cast<BITMAPINFO*>(m_info), DIB_RGB_COLORS);
+      if (!deviceBitmap) {
+        deviceBitmap
+            = reb::compat::CreateDIBitmap(dc, m_info, CBM_INIT, m_bits, reinterpret_cast<BITMAPINFO*>(m_info), DIB_RGB_COLORS);
+      }
     }
     HGDIOBJ toDelete = nullptr;
-    if (deviceBitmap)
-    {
+    if (deviceBitmap) {
       BITMAP bitmapInfo;
-      GetObjectA(deviceBitmap, sizeof(bitmapInfo), &bitmapInfo);
-      HGDIOBJ previousBitmap = SelectObject(memoryDc, deviceBitmap);
-      HPALETTE previousPalette = SelectPalette(memoryDc, m_palette, FALSE);
+      reb::compat::GetObjectA(deviceBitmap, sizeof(bitmapInfo), &bitmapInfo);
+      HGDIOBJ previousBitmap = reb::compat::SelectObject(memoryDc, deviceBitmap);
+      HPALETTE previousPalette = reb::compat::SelectPalette(memoryDc, m_palette, FALSE);
       HPALETTE previousDcPalette = nullptr;
-      if (g_displayPalette)
-      {
-        previousDcPalette = SelectPalette(dc, g_displayPalette, FALSE);
-        RealizePalette(dc);
+      if (g_displayPalette) {
+        previousDcPalette = reb::compat::SelectPalette(dc, g_displayPalette, FALSE);
+        reb::compat::RealizePalette(dc);
       }
-      BitBlt(dc, destX, destY, width, height, memoryDc, srcX, srcY, mode == '@' ? rop : SRCCOPY);
-      if (g_displayPalette)
-        SelectPalette(dc, previousDcPalette, FALSE);
-      SelectPalette(memoryDc, previousPalette, FALSE);
-      toDelete = SelectObject(memoryDc, previousBitmap);
+      reb::compat::BitBlt(dc, destX, destY, width, height, memoryDc, srcX, srcY, mode == '@' ? rop : SRCCOPY);
+      if (g_displayPalette) {
+        reb::compat::SelectPalette(dc, previousDcPalette, FALSE);
+      }
+      reb::compat::SelectPalette(memoryDc, previousPalette, FALSE);
+      toDelete = reb::compat::SelectObject(memoryDc, previousBitmap);
     }
-    DeleteObject(toDelete);
+    reb::compat::DeleteObject(toDelete);
   }
-  DeleteDC(memoryDc);
+  reb::compat::DeleteDC(memoryDc);
   return 1;
 }
 

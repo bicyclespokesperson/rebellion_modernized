@@ -12,16 +12,16 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-extern int g_missionPickupEventKindsReady; // 0x6bb994
-extern EventKindSet g_missionPickupEventKinds; // 0x6bb998
-extern int g_missionPalaceEventKindsReady; // 0x6bb9a4
-extern EventKindSet g_missionPalaceEventKinds; // 0x6bb9a8
-extern int g_missionVacationEventKindsReady; // 0x6bba48
+extern int g_missionPickupEventKindsReady;       // 0x6bb994
+extern EventKindSet g_missionPickupEventKinds;   // 0x6bb998
+extern int g_missionPalaceEventKindsReady;       // 0x6bb9a4
+extern EventKindSet g_missionPalaceEventKinds;   // 0x6bb9a8
+extern int g_missionVacationEventKindsReady;     // 0x6bba48
 extern EventKindSet g_missionVacationEventKinds; // 0x6bba40
-extern int g_dagobahMissionEventKindsReady; // 0x6bbab4
-extern EventKindSet g_dagobahMissionEventKinds; // 0x6bbab8
-extern int g_missionBountyEventKindsReady; // 0x6bbad4
-extern EventKindSet g_missionBountyEventKinds; // 0x6bbad8
+extern int g_dagobahMissionEventKindsReady;      // 0x6bbab4
+extern EventKindSet g_dagobahMissionEventKinds;  // 0x6bbab8
+extern int g_missionBountyEventKindsReady;       // 0x6bbad4
+extern EventKindSet g_missionBountyEventKinds;   // 0x6bbad8
 
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
@@ -73,12 +73,11 @@ constexpr int kPhaseTrainingEnded = 0xb;
 constexpr int kTrainingLevelNeeded = 8;
 constexpr int kConstantMissionValue = 100;
 
-// The record the order-check callbacks of slot 111 receive, as the story missions read it: the original names its fields by
-// offset (+0x04 team flag, +0x08 key-set flag, +0x0c target flag, +0x10 side, +0x18.. reference lists, +0x24.. key sets, +0x30
-// summary, +0x34 palace origin, +0x38 target); a copy of those fields of MissionCheckArgs, so that the checks do not depend on
-// the record's memory layout.
-struct StoryOrderCheck
-{
+// The record the order-check callbacks of slot 111 receive, as the story missions read it: the original names its
+// fields by offset (+0x04 team flag, +0x08 key-set flag, +0x0c target flag, +0x10 side, +0x18.. reference lists,
+// +0x24.. key sets, +0x30 summary, +0x34 palace origin, +0x38 target); a copy of those fields of MissionCheckArgs, so
+// that the checks do not depend on the record's memory layout.
+struct StoryOrderCheck {
   int m_hasTeam;
   int m_useKeySets; // 0 = the three object-reference lists, else the three key sets
   int m_hasTarget;
@@ -89,16 +88,16 @@ struct StoryOrderCheck
   GameObjRoot* m_target;
 
   explicit StoryOrderCheck(const MissionCheckArgs* args)
-  : m_hasTeam(args->m_flag04),
-    m_useKeySets(args->m_flag08),
-    m_hasTarget(args->m_flag0c),
-    m_side(args->m_controlSide),
-    m_refLists{static_cast<ObjectRefList*>(args->m_refs[0]), static_cast<ObjectRefList*>(args->m_refs[1]),
-               static_cast<ObjectRefList*>(args->m_refs[2])},
-    m_keySets{reinterpret_cast<ObjectKeySet*>(args->m_team), reinterpret_cast<ObjectKeySet*>(args->m_decoys),
-              reinterpret_cast<ObjectKeySet*>(args->m_captured)},
-    m_palaceOrigin(args->m_target),
-    m_target(args->m_objective)
+      : m_hasTeam(args->m_flag04)
+      , m_useKeySets(args->m_flag08)
+      , m_hasTarget(args->m_flag0c)
+      , m_side(args->m_controlSide)
+      , m_refLists{static_cast<ObjectRefList*>(args->m_refs[0]), static_cast<ObjectRefList*>(args->m_refs[1]),
+                   static_cast<ObjectRefList*>(args->m_refs[2])}
+      , m_keySets{static_cast<ObjectKeySet*>(args->m_team), static_cast<ObjectKeySet*>(args->m_decoys),
+                  static_cast<ObjectKeySet*>(args->m_captured)}
+      , m_palaceOrigin(args->m_target)
+      , m_target(args->m_objective)
   {
   }
 };
@@ -122,43 +121,47 @@ uint32_t keyOf(GameObjRoot* object)
 
 void rejectCapturedOrDecoy(Character* member, StatusCode* status, int* out)
 {
-  if (statusOk(status) && (member->m_flagsAc & 1))
+  if (statusOk(status) && (member->m_flagsAc & 1)) {
     reject(status, out, kReasonCaptured);
-  if (statusOk(status) && (member->m_flags78 & role_flag::kDecoy))
+  }
+  if (statusOk(status) && (member->m_flags78 & role_flag::kDecoy)) {
     reject(status, out, kReasonDecoy);
+  }
 }
 
-// Walks the candidate keys of one team set: every key must satisfy `isAllowed`, name a character that is neither captured
-// nor a decoy.
+// Walks the candidate keys of one team set: every key must satisfy `isAllowed`, name a character that is neither
+// captured nor a decoy.
 template <bool (*IsAllowed)(const ObjectKey&), int Reason>
 int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out)
 {
   int result = 1;
   *status = StatusCode(story::kStatusCategory, story::kStatusOk);
   *out = 0;
-  for (const auto& nodeEntry : keys->Entries())
-  {
+  for (const auto& nodeEntry : keys->Entries()) {
     auto* node = nodeEntry.get();
-    if (!(result && statusOk(status)))
+    if (!(result && statusOk(status))) {
       break;
+    }
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
-    if (!IsAllowed(key))
+    if (!IsAllowed(key)) {
       reject(status, out, Reason);
-    if (statusOk(status))
-    {
+    }
+    if (statusOk(status)) {
       ObjectKey lookupKey;
       static_cast<ObjectKeyNode*>(node)->GetKey(&lookupKey);
       GameObj* any;
       GameObj* specialForces;
       GameObj* character;
       result = SplitRoleFromKey(&lookupKey, &any, &specialForces, &character);
-      if (!result)
+      if (!result) {
         continue;
+      }
       result = character != nullptr;
-      if (result)
+      if (result) {
         rejectCapturedOrDecoy(static_cast<Character*>(character), status, out);
+      }
     }
   }
   return result;
@@ -169,16 +172,17 @@ int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out)
 {
   *status = StatusCode(story::kStatusCategory, story::kStatusOk);
   *out = 0;
-  for (const auto& nodeEntry : refs->Entries())
-  {
+  for (const auto& nodeEntry : refs->Entries()) {
     auto* node = nodeEntry.get();
-    if (!(statusOk(status)))
+    if (!(statusOk(status))) {
       break;
+    }
 
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
-    if (!IsAllowed(key))
+    if (!IsAllowed(key)) {
       reject(status, out, Reason);
+    }
   }
   return 1;
 }
@@ -187,16 +191,21 @@ int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out)
 template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
 int checkThreeSets(MissionCheckArgs* check, Set* const (&sets)[3], StatusCode* status, int* out, int result)
 {
-  if (!result)
+  if (!result) {
     return result;
-  if (statusOk(status))
+  }
+  if (statusOk(status)) {
     result = Check(sets[0], check, status, out);
-  if (!result)
+  }
+  if (!result) {
     return result;
-  if (statusOk(status))
+  }
+  if (statusOk(status)) {
     result = Check(sets[1], check, status, out);
-  if (result && statusOk(status))
+  }
+  if (result && statusOk(status)) {
     result = Check(sets[2], check, status, out);
+  }
   return result;
 }
 
@@ -206,8 +215,9 @@ int checkCandidates(MissionCheckArgs* check, StatusCode* status, int* out, int r
 {
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_useKeySets == 0)
+  if (fields->m_useKeySets == 0) {
     return checkThreeSets<ObjectRefList, CheckRefs>(check, fields->m_refLists, status, out, result);
+  }
   return checkThreeSets<ObjectKeySet, CheckKeys>(check, fields->m_keySets, status, out, result);
 }
 
@@ -247,8 +257,9 @@ int succeedMission(Mission* mission, int* out, NotifyContext* ctx)
 int startMissionIfIdle(Mission* mission, NotifyContext* ctx)
 {
   int result = 1;
-  if (mission->m_taskStatus == 0)
+  if (mission->m_taskStatus == 0) {
     result = mission->SetTaskStatus(kTaskStarted, ctx);
+  }
   return result;
 }
 
@@ -381,16 +392,17 @@ int MissionPickup::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
   const int found = GetTargetLocationSystem(&objective);
   CharacterMgr* manager = GetCharacterManager();
   int result = (manager && found) ? 1 : 0;
-  if (!manager || !objective)
+  if (!manager || !objective) {
     return result;
+  }
 
   bool ok = manager->SetPickupInProgress(1, ctx) && result;
   CharacterIterator members(objective, 1, ControlSide());
-  for (members.Begin(); members.Current(); members.Advance())
-  {
+  for (members.Begin(); members.Current(); members.Advance()) {
     auto* member = static_cast<Character*>(members.Current());
-    if ((member->m_flags78 & role_flag::kOnMission) || !(member->m_flagsAc & 1))
+    if ((member->m_flags78 & role_flag::kOnMission) || !(member->m_flagsAc & 1)) {
       continue;
+    }
     *out = 1;
     ObjectKey memberKey;
     member->GetKey(&memberKey);
@@ -419,10 +431,10 @@ int MissionPickup::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
   int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_hasTeam != 0)
-  {
-    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyPickupSystem)
+  if (fields->m_hasTeam != 0) {
+    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyPickupSystem) {
       reject(status, out, kReasonPickupTarget);
+    }
     result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
   }
   return result;
@@ -430,11 +442,9 @@ int MissionPickup::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
 
 int MissionPickup::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_missionPickupEventKindsReady,
-                               []
-                               {
-                                 return MissionStoryBase::InitEventKinds(0, &g_missionPickupEventKinds);
-                               });
+  return story::buildKindsOnce(&g_missionPickupEventKindsReady, [] {
+    return MissionStoryBase::InitEventKinds(0, &g_missionPickupEventKinds);
+  });
 }
 
 // ---- MissionPalace ----------------------------------------------------------------------------------------------
@@ -522,33 +532,34 @@ int MissionPalace::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 {
   int result = 1;
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return result;
+  }
   *out = 1;
   int ok = SetTaskStatus(kTaskSucceeded, ctx) ? 1 : 0;
   Role* role = static_cast<Role*>(person);
-  if (role->IsCharacter())
-  {
+  if (role->IsCharacter()) {
     ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb181A, ctx) && ok ? 1 : 0;
     ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1819, ctx) && ok ? 1 : 0;
   }
   GameObj* objectiveCharacter = nullptr;
   ok = GetObjectiveCharacter(&objectiveCharacter) && ok ? 1 : 0;
-  if (objectiveCharacter)
-  {
+  if (objectiveCharacter) {
     ObjectKey personKey;
-    ok = static_cast<Character*>(objectiveCharacter)->AssignHolderAndState(person->GetKey(&personKey), ctx) && ok ? 1 : 0;
+    ok = static_cast<Character*>(objectiveCharacter)->AssignHolderAndState(person->GetKey(&personKey), ctx) && ok ? 1
+                                                                                                                  : 0;
   }
   GameObj* objective = nullptr;
   result = GetTargetObject(&objective) && ok ? 1 : 0;
-  if (!objective)
+  if (!objective) {
     return result;
+  }
   CharacterIterator members(objective, 1);
-  for (members.Begin(); members.Current(); members.Advance())
-  {
+  for (members.Begin(); members.Current(); members.Advance()) {
     auto* member = static_cast<Character*>(members.Current());
-    if (!(member->m_flagsAc & 1))
+    if (!(member->m_flagsAc & 1)) {
       continue;
+    }
     ObjectKey personKey;
     result = member->AssignHolderAndState(person->GetKey(&personKey), ctx) && result ? 1 : 0;
   }
@@ -558,13 +569,13 @@ int MissionPalace::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 int MissionPalace::AfterScoringResults(NotifyContext* ctx)
 {
   int result = 1;
-  if (m_taskStatus != 0)
+  if (m_taskStatus != 0) {
     return result;
+  }
   result = SetTaskStatus(kTaskStarted, ctx) ? 1 : 0;
   MissionCharacterIterator members(this);
   ObjectKey noHolder;
-  for (members.Begin(); members.Current(); members.Advance())
-  {
+  for (members.Begin(); members.Current(); members.Advance()) {
     auto* member = static_cast<Character*>(members.Current());
     result = member->HandleCaptureByOpponent(&noHolder, ctx) && result ? 1 : 0;
     result = member->SetCanEscape(0, ctx) && result ? 1 : 0;
@@ -588,14 +599,14 @@ int MissionPalace::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
   int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_hasTeam != 0)
-  {
-    if (fields->m_hasTarget != 0 && result)
-    {
-      if (statusOk(status) && keyOf(fields->m_palaceOrigin) != kKeyPickupSystem)
+  if (fields->m_hasTeam != 0) {
+    if (fields->m_hasTarget != 0 && result) {
+      if (statusOk(status) && keyOf(fields->m_palaceOrigin) != kKeyPickupSystem) {
         reject(status, out, kReasonPalaceOrigin);
-      if (result && statusOk(status) && keyOf(fields->m_target) == kKeyHan)
+      }
+      if (result && statusOk(status) && keyOf(fields->m_target) == kKeyHan) {
         reject(status, out, kReasonPalaceHan);
+      }
     }
     result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
   }
@@ -604,11 +615,9 @@ int MissionPalace::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
 
 int MissionPalace::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_missionPalaceEventKindsReady,
-                               []
-                               {
-                                 return MissionCharacterTargetBase::InitEventKinds(0, &g_missionPalaceEventKinds);
-                               });
+  return story::buildKindsOnce(&g_missionPalaceEventKindsReady, [] {
+    return MissionCharacterTargetBase::InitEventKinds(0, &g_missionPalaceEventKinds);
+  });
 }
 
 // ---- MissionVacation --------------------------------------------------------------------------------------------
@@ -715,10 +724,10 @@ int MissionVacation::CheckTarget(MissionCheckArgs* check, StatusCode* status, in
   int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_hasTeam != 0)
-  {
-    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyVacationSystem)
+  if (fields->m_hasTeam != 0) {
+    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyVacationSystem) {
       reject(status, out, kReasonVacationTarget);
+    }
     result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
   }
   return result;
@@ -726,16 +735,15 @@ int MissionVacation::CheckTarget(MissionCheckArgs* check, StatusCode* status, in
 
 int MissionVacation::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_missionVacationEventKindsReady,
-                               []
-                               {
-                                 return MissionStoryBase::InitEventKinds(0, &g_missionVacationEventKinds);
-                               });
+  return story::buildKindsOnce(&g_missionVacationEventKindsReady, [] {
+    return MissionStoryBase::InitEventKinds(0, &g_missionVacationEventKinds);
+  });
 }
 
 // ---- DagobahMission ---------------------------------------------------------------------------------------------
 
-DagobahMission::DagobahMission() : m_firstTrainingDay(0)
+DagobahMission::DagobahMission()
+    : m_firstTrainingDay(0)
 {
 }
 
@@ -779,32 +787,36 @@ int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx)
 int DagobahMission::ReadBody(istream* in)
 {
   const int result = MissionStoryReadForward(this, in);
-  if (result)
+  if (result) {
     ReadValue32(in, &m_firstTrainingDay);
+  }
   return result;
 }
 
 int DagobahMission::WriteBody(ostream* out)
 {
   const int result = MissionStoryWriteForward(this, out);
-  if (result)
+  if (result) {
     WriteValue32(out, &m_firstTrainingDay);
+  }
   return result;
 }
 
 int DagobahMission::ChecksumBody(Crc32* crc)
 {
   const int result = MissionStoryChecksumForward(this, crc);
-  if (result)
+  if (result) {
     crc->AddInt(m_firstTrainingDay);
+  }
   return result;
 }
 
 int DagobahMission::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = MissionStoryApplyAllForward(this, ctx);
-  if (result && ctx->m_flag04 == 1)
+  if (result && ctx->m_flag04 == 1) {
     ApplyFirstTrainingDay(ctx);
+  }
   return result;
 }
 
@@ -858,11 +870,9 @@ int DagobahMission::AfterScoringResults(NotifyContext* ctx)
 int DagobahMission::SetFirstTrainingDay(int value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result)
-  {
+  if (result) {
     const int oldValue = m_firstTrainingDay;
-    if (oldValue != value)
-    {
+    if (oldValue != value) {
       m_firstTrainingDay = value;
       static_cast<DagobahMission*>(ViewAs(story::kViewAlliance))->ApplyFirstTrainingDay(ctx);
       static_cast<DagobahMission*>(ViewAs(story::kViewEmpire))->ApplyFirstTrainingDay(ctx);
@@ -875,17 +885,15 @@ int DagobahMission::SetFirstTrainingDay(int value, NotifyContext* ctx)
 int DagobahMission::ApplyFirstTrainingDay(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     auto* master = static_cast<DagobahMission*>(GetViewObject(0));
-    if (MatchesSideMask(ctx->m_flag08))
-    {
+    if (MatchesSideMask(ctx->m_flag08)) {
       const int oldValue = m_firstTrainingDay;
-      if (oldValue != master->m_firstTrainingDay)
-      {
+      if (oldValue != master->m_firstTrainingDay) {
         m_firstTrainingDay = master->m_firstTrainingDay;
-        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
+        if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide()))) {
           result = OnFirstTrainingDayNotified(oldValue, m_firstTrainingDay, ctx);
+        }
       }
     }
   }
@@ -895,31 +903,37 @@ int DagobahMission::ApplyFirstTrainingDay(NotifyContext* ctx)
 int DagobahMission::OnFirstTrainingDayNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogInt("(DagobahMissionFirstTrainingDayNotif)", "FirstTrainingDay", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int DagobahMission::OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
   int ok = MissionStoryBase::OnPhaseChanged(oldValue, newValue, ctx) ? 1 : 0;
-  if (newValue == kPhaseTrainingStarted)
+  if (newValue == kPhaseTrainingStarted) {
     ok = SetFirstTrainingDay(CallGameHook2B08(), ctx) && ok ? 1 : 0;
-  if (newValue != kPhaseTrainingEnded)
+  }
+  if (newValue != kPhaseTrainingEnded) {
     return ok;
-  if (GetDataField1c() < kTrainingLevelNeeded)
+  }
+  if (GetDataField1c() < kTrainingLevelNeeded) {
     return ok;
+  }
   const int firstDay = m_firstTrainingDay;
-  if (firstDay == 0)
+  if (firstDay == 0) {
     return ok;
+  }
   const int days = CallGameHook2B08() - firstDay;
   int gain = 0;
   Luke* luke = static_cast<Luke*>(GetMaster_32000242());
   ok = luke && ok ? 1 : 0;
-  if (!luke)
+  if (!luke) {
     return ok;
-  const int computed = m_taskStatus == kTaskSucceeded ? ComputeDagobahBonusA(luke->m_force, &gain) :
-                                                        ComputeDagobahBonusB(luke->m_force, days, &gain);
+  }
+  const int computed = m_taskStatus == kTaskSucceeded ? ComputeDagobahBonusA(luke->m_force, &gain)
+                                                      : ComputeDagobahBonusB(luke->m_force, days, &gain);
   ok = computed && ok ? 1 : 0;
   ok = luke->SetForceExperience(luke->m_forceExperience + gain - luke->m_force, ctx) && ok ? 1 : 0;
   return luke->SetDagobahCompleted(1, ctx) && ok ? 1 : 0;
@@ -941,10 +955,10 @@ int DagobahMission::CheckTarget(MissionCheckArgs* check, StatusCode* status, int
   int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_hasTeam != 0)
-  {
-    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyDagobahSystem)
+  if (fields->m_hasTeam != 0) {
+    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyDagobahSystem) {
       reject(status, out, kReasonDagobahTarget);
+    }
     result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
   }
   return result;
@@ -952,11 +966,9 @@ int DagobahMission::CheckTarget(MissionCheckArgs* check, StatusCode* status, int
 
 int DagobahMission::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_dagobahMissionEventKindsReady,
-                               []
-                               {
-                                 return MissionStoryBase::InitEventKinds(0, &g_dagobahMissionEventKinds);
-                               });
+  return story::buildKindsOnce(&g_dagobahMissionEventKindsReady, [] {
+    return MissionStoryBase::InitEventKinds(0, &g_dagobahMissionEventKinds);
+  });
 }
 
 // ---- MissionBounty ----------------------------------------------------------------------------------------------
@@ -1048,20 +1060,20 @@ int MissionBounty::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
   GameObj* target = nullptr;
   int ok = GetObjectiveCharacter(&target) ? 1 : 0;
   Han* han = nullptr;
-  if (target)
-  {
+  if (target) {
     ok = target->GetFamily() == kFamilyHan && ok ? 1 : 0;
-    if (ok)
+    if (ok) {
       han = static_cast<Han*>(target);
+    }
   }
-  if (!han)
+  if (!han) {
     return ok;
+  }
   ok = han->SetBountyAttack(1, ctx) && ok ? 1 : 0;
   ObjectKey personKey;
   ok = han->RollCombatCheck(person->GetKey(&personKey), 0, ctx) && ok ? 1 : 0;
   int newStatus = kTaskStarted;
-  if (han->m_flagsAc & 1)
-  {
+  if (han->m_flagsAc & 1) {
     newStatus = kTaskSucceeded;
     ok = han->SetCanEscape(0, ctx) && ok ? 1 : 0;
     ok = han->SetCapturedByBountyHunters(1, ctx) && ok ? 1 : 0;
@@ -1084,11 +1096,11 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* chec
 {
   int result = 1;
   beginCheck(status, out);
-  for (const auto& nodeEntry : keys->Entries())
-  {
+  for (const auto& nodeEntry : keys->Entries()) {
     auto* node = nodeEntry.get();
-    if (!(result && statusOk(status)))
+    if (!(result && statusOk(status))) {
       break;
+    }
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
@@ -1097,20 +1109,23 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* chec
     GameObj* character;
     const int found = SplitRoleFromKey(&key, &any, &specialForces, &character);
     result = found && specialForces ? 1 : 0;
-    if (!result)
+    if (!result) {
       continue;
-    if (statusOk(status))
-    {
+    }
+    if (statusOk(status)) {
       DatRecord* record = static_cast<GameObjNotifier*>(specialForces)->m_record;
       result = record != nullptr;
-      if (!result)
+      if (!result) {
         continue;
+      }
       ObjectKey recordKey;
-      if (!isBountyUnitKey(*GetAiRecordKey(record, &recordKey)))
+      if (!isBountyUnitKey(*GetAiRecordKey(record, &recordKey))) {
         reject(status, out, kReasonWrongBountyUnit);
+      }
     }
-    if (statusOk(status) && (static_cast<Role*>(specialForces)->m_flags78 & role_flag::kDecoy))
+    if (statusOk(status) && (static_cast<Role*>(specialForces)->m_flags78 & role_flag::kDecoy)) {
       reject(status, out, kReasonDecoy);
+    }
   }
   return result;
 }
@@ -1126,10 +1141,10 @@ int MissionBounty::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
   int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
   StoryOrderCheck fieldsView(check);
   StoryOrderCheck* fields = &fieldsView;
-  if (fields->m_hasTeam != 0)
-  {
-    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) == kKeyHan)
+  if (fields->m_hasTeam != 0) {
+    if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) == kKeyHan) {
       reject(status, out, kReasonBountyHan);
+    }
     result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
   }
   return result;
@@ -1137,11 +1152,9 @@ int MissionBounty::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
 
 int MissionBounty::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_missionBountyEventKindsReady,
-                               []
-                               {
-                                 return MissionCharacterTargetBase::InitEventKinds(0, &g_missionBountyEventKinds);
-                               });
+  return story::buildKindsOnce(&g_missionBountyEventKindsReady, [] {
+    return MissionCharacterTargetBase::InitEventKinds(0, &g_missionBountyEventKinds);
+  });
 }
 EventKindSet g_dagobahMissionEventKinds{};
 EventKindSet g_missionBountyEventKinds{};

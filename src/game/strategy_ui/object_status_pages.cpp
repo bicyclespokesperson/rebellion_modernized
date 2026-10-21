@@ -2,13 +2,13 @@
 #include <string>
 
 #include "app/app_cdcheck_version.h"
+#include "app/enhancements.h"
 #include "character/role.h"
 #include "core/game_string.h"
 #include "fleet/capship.h"
 #include "fleet/fleet.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
-#include "gameobj/object_lookup.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/object_status_window.h"
 #include "ui/cool_label.h"
@@ -44,23 +44,15 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
   text.clear();
   const uint32_t state = static_cast<GameObj*>(m_object)->m_stateFlags;
   uint16_t stateId;
-  if ((state & 0x10) == 0)
-  {
-    if ((state & 4) == 0)
-    {
+  if ((state & 0x10) == 0) {
+    if ((state & 4) == 0) {
       stateId = 0x8757;
-    }
-    else if ((state & 0x20) != 0)
-    {
+    } else if ((state & 0x20) != 0) {
       stateId = 0x8744;
-    }
-    else
-    {
+    } else {
       stateId = 0x8748;
     }
-  }
-  else
-  {
+  } else {
     stateId = 0x8744;
   }
   SetText(&text, stateId);
@@ -69,8 +61,7 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
   StatusCode status(1, static_cast<uint32_t>(-1));
   int ruleValue = 0;
   QueryRuleValueB(static_cast<GameObj*>(m_object), &status, &ruleValue);
-  if (status.m_second == static_cast<uint32_t>(-1) && ruleValue != 0)
-  {
+  if (status.m_second == static_cast<uint32_t>(-1) && ruleValue != 0) {
     const ResourceStringId ruleLabelId = StringId(0x3814);
     std::string ruleLabel = LoadStringResource(&ruleLabelId);
     text.clear();
@@ -91,13 +82,11 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
     AddStatusRow(3, &text, values);
   }
 
-  static constexpr struct
-  {
+  static constexpr struct {
     uint16_t m_labelId;
     int m_shipNumber;
   } kShipRows[] = {{0x3046, 2}, {0x3048, 3}, {0x3044, 1}};
-  for (int i = 0; i < 3; ++i)
-  {
+  for (int i = 0; i < 3; ++i) {
     text.clear();
     SetText(&text, kShipRows[i].m_labelId);
     Append(&text, g_statusSeparator);
@@ -105,12 +94,9 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
     text.clear();
     GameObjNotifier* ship = nullptr;
     static_cast<Fleet*>(fleet)->FindShipByNumber(kShipRows[i].m_shipNumber, &ship);
-    if (!ship)
-    {
+    if (!ship) {
       SetText(&text, 0x8762);
-    }
-    else
-    {
+    } else {
       std::string name(static_cast<GameObj*>(ship)->GetName()->c_str());
       text += name;
     }
@@ -119,25 +105,35 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
   SetText(&text, 0x8740);
   AddStatusRow(row + 4, &text, labels);
   text.clear();
-  const uint32_t shipCount =
-    CountCapitalShipChildren(static_cast<GameObj*>(fleet), (static_cast<GameObjRoot*>(fleet)->m_flags >> 6) & 3, 3);
+  const uint32_t shipCount
+      = CountCapitalShipChildren(static_cast<GameObj*>(fleet), (static_cast<GameObjRoot*>(fleet)->m_flags >> 6) & 3, 3);
   text.append(std::to_string(static_cast<long>(shipCount)));
   AddStatusRow(row + 4, &text, values);
 
   int damaged = 0;
   int fighterCapacity = 0;
   int troopCapacity = 0;
+  int availableFighterCapacity = 0;
+  int availableTroopCapacity = 0;
   int fighters = 0;
   int troops = 0;
   int roles = 0;
   CapShipIterator ships(fleet, 3);
-  for (ships.Begin(); ships.Current(); ships.Advance())
-  {
+  for (ships.Begin(); ships.Current(); ships.Advance()) {
     auto* ship = static_cast<CapShip*>(ships.Current());
-    if (ship->m_stateFlags & 0x200)
+    if (ship->m_stateFlags & 0x200) {
       ++damaged;
+    }
     fighterCapacity += ship->GetFighterCapacity();
     troopCapacity += ship->GetTroopCapacity();
+    const uint32_t shipState = ship->m_stateFlags;
+    // Fleet::UpdateUsable considers a ship ready once it is completed and no longer in its enroute-active phase.
+    // CreateProducts attaches queued ships to their deployment fleet before construction completes, so all children
+    // counted above contribute to the assigned total while only completed, ready ships contribute to usable capacity.
+    if ((shipState & 0x4) != 0 && (shipState & 0x20) == 0) {
+      availableFighterCapacity += ship->GetFighterCapacity();
+      availableTroopCapacity += ship->GetTroopCapacity();
+    }
     fighters += ship->CountFighterSquadrons();
     troops += ship->CountTroopRegiments();
     RoleIterator shipRoles(ship, 3);
@@ -145,18 +141,39 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
   }
   SetText(&text, 0x8704);
   AddStatusRow(row + 5, &text, labels);
-  text.clear();
-  Append(&text, g_emptyText);
-  AddStatusRow(row + 5, &text, values);
-  AddLabelS(&text, 0x3820, row + 6, labels);
-  text.clear();
-  text.append(std::to_string(static_cast<long>(fighterCapacity)));
-  AddStatusRow(row + 6, &text, values);
-  SetText(&text, 0x8705);
-  AddStatusRow(row + 7, &text, labels);
-  text.clear();
-  text.append(std::to_string(static_cast<long>(troopCapacity)));
-  AddStatusRow(row + 7, &text, values);
+  if (EnhancementsEnabled()) {
+    text = "Ready / assigned";
+    AddStatusRow(row + 5, &text, values);
+    SetText(&text, 0x3820);
+    Append(&text, g_statusSeparator);
+    AddStatusRow(row + 6, &text, labels);
+    text.clear();
+    text.append(std::to_string(static_cast<long>(availableFighterCapacity)));
+    text.append(" / ");
+    text.append(std::to_string(static_cast<long>(fighterCapacity)));
+    AddStatusRow(row + 6, &text, values);
+    SetText(&text, 0x8705);
+    Append(&text, g_statusSeparator);
+    AddStatusRow(row + 7, &text, labels);
+    text.clear();
+    text.append(std::to_string(static_cast<long>(availableTroopCapacity)));
+    text.append(" / ");
+    text.append(std::to_string(static_cast<long>(troopCapacity)));
+    AddStatusRow(row + 7, &text, values);
+  } else {
+    text.clear();
+    Append(&text, g_emptyText);
+    AddStatusRow(row + 5, &text, values);
+    AddLabelS(&text, 0x3820, row + 6, labels);
+    text.clear();
+    text.append(std::to_string(static_cast<long>(fighterCapacity)));
+    AddStatusRow(row + 6, &text, values);
+    SetText(&text, 0x8705);
+    AddStatusRow(row + 7, &text, labels);
+    text.clear();
+    text.append(std::to_string(static_cast<long>(troopCapacity)));
+    AddStatusRow(row + 7, &text, values);
+  }
   SetText(&text, 0x8706);
   AddStatusRow(row + 8, &text, labels);
   text.clear();
@@ -185,16 +202,11 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
   AddStatusRow(row + 13, &text, labels);
   text.clear();
   auto* fleetObject = static_cast<GameObj*>(m_object);
-  if (GetVersionCheckResult() == 0)
-  {
+  if (GetVersionCheckResult() == 0) {
     SetText(&text, fleetObject->GetTransitSpeed(1) == 0 ? 0x8755 : 0x8756);
-  }
-  else if (fleetObject->GetTransitSpeed(1) == 0)
-  {
+  } else if (fleetObject->GetTransitSpeed(1) == 0) {
     Append(&text, g_noText);
-  }
-  else
-  {
+  } else {
     Append(&text, g_yesText);
   }
   AddStatusRow(row + 13, &text, values);

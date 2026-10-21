@@ -39,22 +39,21 @@ bool IsKeySet(const ObjectKey& key)
   return (key.m_value & 0xff000000) != 0;
 }
 
-// Order 0x214 (or 0x210-0x212) for the manager `manager`, given to `side`. The order stays unset up to its team when the
-// team's node could not be made.
+// Order 0x214 (or 0x210-0x212) for the manager `manager`, given to `side`. The order stays unset up to its team when
+// the team's node could not be made.
 OrderBase* NewOrderForManager(int orderKind, int side, const ObjectKey& manager, const ObjectKey* target)
 {
   ObjectKeyValueSet team;
   auto* order = static_cast<OrderBase*>(CreateMessageByKind(orderKind));
-  if (order)
-  {
+  if (order) {
     auto* node = NewOrNull<ObjectKeyValueNode>(manager, 0);
-    if (node)
-    {
+    if (node) {
       team.Add(node);
       order->m_side = side;
       order->SetTeam(&team);
-      if (target)
+      if (target) {
         order->SetTarget(target);
+      }
     }
   }
   return order;
@@ -69,9 +68,11 @@ ObjectKey KeyOfObject(GameObjNotifier* object)
 
 } // namespace
 
-// ---- AdvisorTaskBase ----------------------------------------------------------------------------------------------------
+// ---- AdvisorTaskBase
+// ----------------------------------------------------------------------------------------------------
 
-AdvisorTaskBase::AdvisorTaskBase(int id, int view) : AiTaskNode(id)
+AdvisorTaskBase::AdvisorTaskBase(int id, int view)
+    : AiTaskNode(id)
 {
   m_finished = 0;
   m_count = 0;
@@ -105,16 +106,18 @@ void AdvisorTaskBase::Write(ostream* out)
 
 void AdvisorTaskBase::Evaluate()
 {
-  if (m_flags.Get() != 1 && m_flags.Get() != 2)
-  {
+  if (m_flags.Get() != 1 && m_flags.Get() != 2) {
     m_flags.m_value = 1;
     m_finished = 0;
   }
 }
 
-// ---- AdvisorTask20 ------------------------------------------------------------------------------------------------------
+// ---- AdvisorTask20
+// ------------------------------------------------------------------------------------------------------
 
-AdvisorTask20::AdvisorTask20(int view) : AdvisorTaskBase(0x14, view), m_selector()
+AdvisorTask20::AdvisorTask20(int view)
+    : AdvisorTaskBase(0x14, view)
+    , m_selector()
 {
   m_item.m_value = 0;
   m_x34 = 0;
@@ -147,8 +150,9 @@ void AdvisorTask20::Write(ostream* out)
 
 OrderBase* AdvisorTask20::Step()
 {
-  if (m_flags.Get() == 1)
+  if (m_flags.Get() == 1) {
     return Advance();
+  }
   m_x34 = 0;
   m_state = 0;
   m_finished = 1;
@@ -158,26 +162,22 @@ OrderBase* AdvisorTask20::Step()
 OrderBase* AdvisorTask20::Advance()
 {
   OrderBase* result = nullptr;
-  switch (m_state)
-  {
+  switch (m_state) {
     case 1:
-      if (PickManager())
-      {
+      if (PickManager()) {
         m_state = 2;
         return nullptr;
       }
       break;
     case 2:
-      if (PickSupplySystem())
-      {
+      if (PickSupplySystem()) {
         m_state = 3;
         return nullptr;
       }
       break;
     case 3:
       result = BuildDestinationOrder();
-      if (result)
-      {
+      if (result) {
         m_state = 4;
         m_finished = 1;
         ++m_count;
@@ -207,14 +207,11 @@ int AdvisorTask20::PickManager()
   m_selector.Add(m_analysis->RankSystemsOfSector(&m_manager, 0x204, 0, 0x1000, 0, 7, 2));
   m_manager = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (IsSystem(m_manager))
-  {
+  if (IsSystem(m_manager)) {
     auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_manager));
-    if (system)
-    {
+    if (system) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(1);
-      if (manager)
-      {
+      if (manager) {
         m_manager = KeyOfObject(manager);
         result = 1;
       }
@@ -229,14 +226,11 @@ int AdvisorTask20::PickSupplySystem()
   ObjectKey scratch;
   uint32_t sectorMask;
   uint32_t systemMask;
-  if (analysis->Total(0xa8) < analysis->Total(0xac))
-  {
+  if (analysis->Total(0xa8) < analysis->Total(0xac)) {
     sectorMask = 0x180;
     systemMask = 0x60;
     m_item.m_value = 0x2c000001;
-  }
-  else
-  {
+  } else {
     systemMask = 0x20;
     sectorMask = 0x80;
     m_item.m_value = 0x2d000002;
@@ -257,23 +251,21 @@ int AdvisorTask20::PickSupplySystem()
 OrderBase* AdvisorTask20::BuildDestinationOrder()
 {
   OrderBase* order = nullptr;
-  if (IsSystem(m_supply) && KeyInFamilies(m_manager, 0xa0, 0xa2))
+  if (IsSystem(m_supply) && KeyInFamilies(m_manager, 0xa0, 0xa2)) {
     order = NewOrderForManager(kDestinationOrder, m_view, m_manager, &m_supply);
+  }
   return order;
 }
 
 OrderBase* AdvisorTask20::BuildManufactureOrder()
 {
   OrderBase* order = nullptr;
-  if (KeyInFamilies(m_manager, 0xa0, 0xa2))
-  {
+  if (KeyInFamilies(m_manager, 0xa0, 0xa2)) {
     ObjectKeyValueSet team;
     order = static_cast<OrderBase*>(CreateMessageByKind(kManufactureOrderBase));
-    if (order)
-    {
+    if (order) {
       auto* node = NewOrNull<ObjectKeyValueNode>(m_manager, 0);
-      if (node)
-      {
+      if (node) {
         team.Add(node);
         order->m_side = m_view;
         order->SetTeam(&team);
@@ -286,9 +278,12 @@ OrderBase* AdvisorTask20::BuildManufactureOrder()
   return order;
 }
 
-// ---- AdvisorTask21 ------------------------------------------------------------------------------------------------------
+// ---- AdvisorTask21
+// ------------------------------------------------------------------------------------------------------
 
-AdvisorTask21::AdvisorTask21(int view) : AdvisorTaskBase(0x15, view), m_selector()
+AdvisorTask21::AdvisorTask21(int view)
+    : AdvisorTaskBase(0x15, view)
+    , m_selector()
 {
   m_item.m_value = 0;
   m_x34 = 0;
@@ -324,8 +319,9 @@ void AdvisorTask21::Write(ostream* out)
 
 OrderBase* AdvisorTask21::Step()
 {
-  if (m_flags.Get() == 1)
+  if (m_flags.Get() == 1) {
     return Advance();
+  }
   m_x34 = 0;
   m_state = 0;
   m_finished = 1;
@@ -338,8 +334,9 @@ void AdvisorTask20::Refused(int*, OrderBase* order)
   m_x34 = 0;
   m_state = 0;
   m_count = 0;
-  if (order)
+  if (order) {
     delete order;
+  }
 }
 
 void AdvisorTask21::Refused(int* status, OrderBase* order)
@@ -348,40 +345,36 @@ void AdvisorTask21::Refused(int* status, OrderBase* order)
   m_x34 = 0;
   m_state = 0;
   m_count = 0;
-  if (order)
+  if (order) {
     delete order;
+  }
 }
 
 OrderBase* AdvisorTask21::Advance()
 {
   OrderBase* result = nullptr;
-  switch (m_state)
-  {
+  switch (m_state) {
     case 1:
-      if (PickSite())
-      {
+      if (PickSite()) {
         m_state = 3;
         return nullptr;
       }
       break;
     case 2:
-      if (ChooseTarget())
-      {
+      if (ChooseTarget()) {
         m_state = 1;
         return nullptr;
       }
       break;
     case 3:
-      if (ComputeCount())
-      {
+      if (ComputeCount()) {
         m_state = 4;
         return nullptr;
       }
       break;
     case 4:
       result = BuildDestinationOrder();
-      if (result)
-      {
+      if (result) {
         m_state = 5;
         m_finished = 1;
         ++m_count;
@@ -411,8 +404,7 @@ int AdvisorTask21::ChooseTarget()
   m_selector.Add(analysis->RankSystemsOfSector(&m_target, 0x10000005, 0, 2, 0, 0x14, 1));
   m_target = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!IsSystem(m_target))
-  {
+  if (!IsSystem(m_target)) {
     m_selector.Add(analysis->RankSectors(0x1000000, 0, 0, 0, 2, 2));
     m_target = *m_selector.PickBest(&scratch);
     m_selector.Reset();
@@ -433,14 +425,11 @@ int AdvisorTask21::PickSite()
   m_selector.Add(analysis->RankSystemsOfSectorByDistance(&m_site, &m_target, 0x104, 0, 0x800, 0, 2));
   m_site = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (IsSystem(m_site))
-  {
+  if (IsSystem(m_site)) {
     auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_site));
-    if (system)
-    {
+    if (system) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(2);
-      if (manager)
-      {
+      if (manager) {
         m_site = KeyOfObject(manager);
         return 1;
       }
@@ -454,36 +443,31 @@ int AdvisorTask21::ComputeCount()
   m_units = 0;
   int result = 0;
   const int shortfall = m_analysis->Total(0x80) - m_analysis->Total(0x84);
-  if (0 < shortfall)
-  {
+  if (0 < shortfall) {
     AiSystemScan* scan = m_analysis->FindSystemScan(&m_target);
     uint32_t mode;
     int descending;
-    if (!scan)
-    {
+    if (!scan) {
       mode = 0;
       descending = 0;
-    }
-    else if ((scan->m_flagsA.m_value & 1) == 0)
-    {
+    } else if ((scan->m_flagsA.m_value & 1) == 0) {
       mode = 0x2000;
       descending = 1;
-    }
-    else
-    {
+    } else {
       mode = 1;
       descending = 2;
     }
     m_units = 1;
     const int perUnit = m_analysis->ChooseFromSide(&m_item, 0x29, 0x2000, mode, descending);
-    if (IsKeySet(m_item) && perUnit != 0)
-    {
+    if (IsKeySet(m_item) && perUnit != 0) {
       const int total = perUnit * m_units;
-      if (total - shortfall != 0 && shortfall <= total)
+      if (total - shortfall != 0 && shortfall <= total) {
         m_units = shortfall / perUnit;
+      }
     }
-    if (0 < m_units)
+    if (0 < m_units) {
       result = 1;
+    }
   }
   return result;
 }
@@ -491,23 +475,21 @@ int AdvisorTask21::ComputeCount()
 OrderBase* AdvisorTask21::BuildDestinationOrder()
 {
   OrderBase* order = nullptr;
-  if (IsSystem(m_target) && KeyInFamilies(m_site, 0xa4, 0xa6))
+  if (IsSystem(m_target) && KeyInFamilies(m_site, 0xa4, 0xa6)) {
     order = NewOrderForManager(kDestinationOrder, m_view, m_site, &m_target);
+  }
   return order;
 }
 
 OrderBase* AdvisorTask21::BuildManufactureOrder()
 {
   OrderBase* order = nullptr;
-  if (KeyInFamilies(m_site, 0xa4, 0xa6))
-  {
+  if (KeyInFamilies(m_site, 0xa4, 0xa6)) {
     ObjectKeyValueSet team;
     order = static_cast<OrderBase*>(CreateMessageByKind(0x212));
-    if (order)
-    {
+    if (order) {
       auto* node = NewOrNull<ObjectKeyValueNode>(m_site, 0);
-      if (node)
-      {
+      if (node) {
         team.Add(node);
         order->m_side = m_view;
         order->SetTeam(&team);
@@ -520,9 +502,12 @@ OrderBase* AdvisorTask21::BuildManufactureOrder()
   return order;
 }
 
-// ---- AdvisorTask23 ------------------------------------------------------------------------------------------------------
+// ---- AdvisorTask23
+// ------------------------------------------------------------------------------------------------------
 
-AdvisorTask23::AdvisorTask23(int view) : AdvisorTaskBase(0x17, view), m_selector()
+AdvisorTask23::AdvisorTask23(int view)
+    : AdvisorTaskBase(0x17, view)
+    , m_selector()
 {
   m_advisor = nullptr;
   m_phase = 0;
@@ -578,18 +563,14 @@ void FinishTask(AdvisorTask23* task)
 void AdvisorTask23::SetTarget(const ObjectKey* target)
 {
   const uint32_t family = target->Family();
-  const bool pickable =
-    KeyInFamilies(*target, 0x90, 0x98) || KeyInFamilies(*target, 8, 0x10) || KeyInFamilies(*target, 0x14, 0x1c);
-  if (pickable)
-  {
-    if (m_kind == 3 && KeyInFamilies(*target, 0x90, 0x98))
-    {
+  const bool pickable
+      = KeyInFamilies(*target, 0x90, 0x98) || KeyInFamilies(*target, 8, 0x10) || KeyInFamilies(*target, 0x14, 0x1c);
+  if (pickable) {
+    if (m_kind == 3 && KeyInFamilies(*target, 0x90, 0x98)) {
       auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, target));
-      if (system && static_cast<int>(system->ControlSide()) != m_view && CountFleets(system, m_view, 1) == 0)
-      {
+      if (system && static_cast<int>(system->ControlSide()) != m_view && CountFleets(system, m_view, 1) == 0) {
         auto* order = static_cast<OrderBase*>(CreateMessageByKind(kDestinationOrder));
-        if (order)
-        {
+        if (order) {
           order->m_side = m_view;
           order->SetTarget(target);
           StatusCode status(1, 0x24);
@@ -602,13 +583,9 @@ void AdvisorTask23::SetTarget(const ObjectKey* target)
     }
     m_target = *target;
     m_flags.m_value = 0;
-  }
-  else if (family == 0)
-  {
+  } else if (family == 0) {
     FinishTask(this);
-  }
-  else
-  {
+  } else {
     StatusCode status(1, 0x27);
     m_advisor->HandleRefusedOrder(nullptr, &status);
     FinishTask(this);
@@ -617,16 +594,16 @@ void AdvisorTask23::SetTarget(const ObjectKey* target)
 
 OrderBase* AdvisorTask23::Step()
 {
-  if (m_flags.Get() != 1)
-  {
+  if (m_flags.Get() != 1) {
     m_kind = 0;
     m_phase = 0;
     m_finished = 1;
     m_flags.m_value = kTaskDone;
     return nullptr;
   }
-  if (m_kind != 0)
+  if (m_kind != 0) {
     return Advance();
+  }
   m_kind = 0;
   m_finished = 1;
   m_flags.m_value = kTaskDone;
@@ -641,54 +618,50 @@ void AdvisorTask23::Refused(int* status, OrderBase* order)
   m_flags.m_value = kTaskDone;
   m_count = 0;
   m_advisor->HandleRefusedOrder(order, reinterpret_cast<StatusCode*>(status));
-  if (order)
+  if (order) {
     delete order;
+  }
 }
 
 OrderBase* AdvisorTask23::Advance()
 {
-  switch (m_phase)
-  {
+  switch (m_phase) {
     case 1:
-      if (!IsKeySet(m_target))
-      {
+      if (!IsKeySet(m_target)) {
         m_finished = 1;
         return nullptr;
       }
-      if (PickSite())
-      {
+      if (PickSite()) {
         m_phase = 2;
         return nullptr;
       }
       break;
     case 2:
-    {
-      OrderBase* order = BuildDestinationOrder();
-      if (order)
       {
-        m_phase = 3;
-        m_finished = 1;
-        ++m_count;
-        return order;
+        OrderBase* order = BuildDestinationOrder();
+        if (order) {
+          m_phase = 3;
+          m_finished = 1;
+          ++m_count;
+          return order;
+        }
+        break;
       }
-      break;
-    }
     case 3:
-    {
-      auto* order = static_cast<ManufactureOrderBase*>(BuildManufactureOrder(OrderKind()));
-      if (order)
       {
-        OpenWindow(order);
-        g_humanUiFlags.m_value |= kTaskHandOff;
-        m_advisor->SetRefusedOrder(order);
-        m_phase = 0;
-        m_kind = 0;
-        m_finished = 1;
-        m_flags.m_value = kTaskDone;
-        return nullptr;
+        auto* order = static_cast<ManufactureOrderBase*>(BuildManufactureOrder(OrderKind()));
+        if (order) {
+          OpenWindow(order);
+          g_humanUiFlags.m_value |= kTaskHandOff;
+          m_advisor->SetRefusedOrder(order);
+          m_phase = 0;
+          m_kind = 0;
+          m_finished = 1;
+          m_flags.m_value = kTaskDone;
+          return nullptr;
+        }
+        break;
       }
-      break;
-    }
     default:
       m_phase = 1;
       return nullptr;
@@ -713,21 +686,17 @@ int AdvisorTask23::PickSite()
   m_selector.Add(m_analysis->RankSystemsOfSectorByDistance(&m_site, &m_target, mask | 4, 0, 0, 0, 2));
   m_site = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (IsSystem(m_site))
-  {
+  if (IsSystem(m_site)) {
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_view, &m_site);
-    if (system)
-    {
+    if (system) {
       GameObjNotifier* manager = FindManager(system);
-      if (manager)
-      {
+      if (manager) {
         m_site = KeyOfObject(manager);
         result = 1;
       }
     }
   }
-  if (result == 0)
-  {
+  if (result == 0) {
     StatusCode status(0xa0, 3);
     m_advisor->HandleRefusedOrder(nullptr, &status);
   }
@@ -737,87 +706,91 @@ int AdvisorTask23::PickSite()
 OrderBase* AdvisorTask23::BuildDestinationOrder()
 {
   OrderBase* order = nullptr;
-  if (IsKeySet(m_target) && IsKeySet(m_site))
+  if (IsKeySet(m_target) && IsKeySet(m_site)) {
     order = NewOrderForManager(kDestinationOrder, m_view, m_site, &m_target);
+  }
   return order;
 }
 
 OrderBase* AdvisorTask23::BuildManufactureOrder(int kind)
 {
   OrderBase* order = nullptr;
-  if (KeyInFamilies(m_site, 0xa0, 0xb0))
+  if (KeyInFamilies(m_site, 0xa0, 0xb0)) {
     order = NewOrderForManager(kind, m_view, m_site, nullptr);
+  }
   return order;
 }
 
 int AdvisorTask23::OrderKind()
 {
-  if (m_kind == 1)
+  if (m_kind == 1) {
     return 0x210;
-  if (m_kind == 2)
+  }
+  if (m_kind == 2) {
     return 0x211;
-  if (m_kind == 3)
+  }
+  if (m_kind == 3) {
     return 0x212;
+  }
   return 0;
 }
 
 void AdvisorTask23::GetFacilityMask(uint32_t* out)
 {
-  if (m_kind == 1)
+  if (m_kind == 1) {
     *out = 0x4000;
-  else if (m_kind == 2)
+  } else if (m_kind == 2) {
     *out = 0x1000;
-  else if (m_kind == 3)
+  } else if (m_kind == 3) {
     *out = 0x2000;
-  else
+  } else {
     *out = 0;
+  }
 }
 
 void AdvisorTask23::GetSystemMask(uint32_t* out)
 {
-  if (m_kind == 1)
+  if (m_kind == 1) {
     *out = 0x200;
-  else if (m_kind == 2)
+  } else if (m_kind == 2) {
     *out = 0x80;
-  else if (m_kind == 3)
+  } else if (m_kind == 3) {
     *out = 0x100;
-  else
+  } else {
     *out = 0;
+  }
 }
 
 GameObjNotifier* AdvisorTask23::FindManager(GameObjNotifier* system)
 {
   auto* typed = static_cast<System*>(system);
-  if (m_kind == 1)
+  if (m_kind == 1) {
     return typed->FindManufacturingManagerByKind(1);
-  if (m_kind == 2)
+  }
+  if (m_kind == 2) {
     return typed->FindManufacturingManagerByKind(0);
-  if (m_kind == 3)
+  }
+  if (m_kind == 3) {
     return typed->FindManufacturingManagerByKind(2);
+  }
   return nullptr;
 }
 
 void AdvisorTask23::OpenWindow(ManufactureOrderBase* order)
 {
-  if (m_kind == 1)
-  {
+  if (m_kind == 1) {
     UiOpenManufactureWindow(order, 0x2a);
-  }
-  else if (m_kind == 2)
-  {
+  } else if (m_kind == 2) {
     UiOpenManufactureWindow(order, 0x28);
-  }
-  else if (m_kind == 3)
-  {
+  } else if (m_kind == 3) {
     UiOpenManufactureWindow(order, 0x29);
-  }
-  else if (order)
-  {
+  } else if (order) {
     delete order;
   }
 }
 
-// ---- AdvisorTaskManager -------------------------------------------------------------------------------------------------
+// ---- AdvisorTaskManager
+// -------------------------------------------------------------------------------------------------
 
 AdvisorTaskManager::AdvisorTaskManager()
 {
@@ -854,8 +827,7 @@ void AdvisorTaskManager::Save(ostream* out)
   WriteValue32(out, &m_view);
   int16_t count = Count();
   WriteValue16(out, &count);
-  for (const auto& entry : Entries())
-  {
+  for (const auto& entry : Entries()) {
     AdvisorTaskBase* task = entry.second.get();
     uint32_t id = task->m_id;
     WriteValue32(out, &id);
@@ -873,31 +845,29 @@ void AdvisorTaskManager::Load(istream* in, AiGalaxyAnalysis* analysis)
 {
   Clear();
   ReadValue32(in, &m_view);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
+  }
   int16_t count;
   ReadValue16(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0)
-  {
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0) {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
     return;
   }
-  while (count > 0)
-  {
+  while (count > 0) {
     int type = 0;
     ReadValue32(in, &type);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return;
+    }
     AdvisorTaskBase* task = MakeTask(type);
-    if (!task)
-    {
+    if (!task) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     task->SetAnalysis(analysis);
     task->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0)
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0) {
       delete task;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
@@ -916,11 +886,11 @@ void AdvisorTaskManager::Load(istream* in, AiGalaxyAnalysis* analysis)
 uint32_t AdvisorTaskManager::CreateTask(int type, AiGalaxyAnalysis* analysis)
 {
   uint32_t id = 0;
-  if (FindById(type))
+  if (FindById(type)) {
     return id;
+  }
   AdvisorTaskBase* task = MakeTask(type);
-  if (task)
-  {
+  if (task) {
     task->SetAnalysis(analysis);
     task->m_flags.m_value = 0;
     id = AddWithId(task);
@@ -931,30 +901,30 @@ uint32_t AdvisorTaskManager::CreateTask(int type, AiGalaxyAnalysis* analysis)
 AdvisorTaskBase* AdvisorTaskManager::SelectNext()
 {
   m_last = PickBest();
-  if (m_last != nullptr)
+  if (m_last != nullptr) {
     return m_last;
+  }
   auto position = PositionOf(m_current);
-  if (position == Entries().end() || ++position == Entries().end())
+  if (position == Entries().end() || ++position == Entries().end()) {
     position = Entries().begin();
+  }
   m_current = position == Entries().end() ? nullptr : position->second.get();
   AdvisorTaskBase* start = m_current;
   bool wrapped = false;
   int wants = m_current->m_flags.Get();
-  while (wants != 1)
-  {
-    if (wrapped)
-    {
+  while (wants != 1) {
+    if (wrapped) {
       m_last = nullptr;
       return m_last;
     }
-    if (++position == Entries().end())
+    if (++position == Entries().end()) {
       position = Entries().begin();
+    }
     m_current = position == Entries().end() ? nullptr : position->second.get();
     wrapped = start == m_current;
     wants = m_current->m_flags.Get();
   }
-  if (!wrapped)
-  {
+  if (!wrapped) {
     m_last = m_current;
     return m_current;
   }
@@ -964,8 +934,7 @@ AdvisorTaskBase* AdvisorTaskManager::SelectNext()
 
 AdvisorTaskBase* AdvisorTaskManager::MakeTask(int type)
 {
-  switch (type)
-  {
+  switch (type) {
     case 0x14:
       return NewOrNull<AdvisorTask20>(m_view);
     case 0x15:
@@ -981,27 +950,29 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
   AdvisorTaskBase* best = nullptr;
   uint32_t bestCount = 0;
   auto position = PositionOf(m_cursor);
-  if (position == Entries().end() || ++position == Entries().end())
+  if (position == Entries().end() || ++position == Entries().end()) {
     position = Entries().begin();
+  }
   m_cursor = position == Entries().end() ? nullptr : position->second.get();
   AdvisorTaskBase* task = m_cursor;
-  while (task)
-  {
-    if (task->m_flags.Get() == 1 && bestCount < static_cast<uint32_t>(task->m_count))
-    {
+  while (task) {
+    if (task->m_flags.Get() == 1 && bestCount < static_cast<uint32_t>(task->m_count)) {
       bestCount = task->m_count;
       best = task;
     }
-    if (++position == Entries().end())
+    if (++position == Entries().end()) {
       position = Entries().begin();
+    }
     task = position == Entries().end() ? nullptr : position->second.get();
-    if (task == m_cursor)
+    if (task == m_cursor) {
       task = nullptr;
+    }
   }
   return best;
 }
 
-// ---- AdvisorEntryTree ---------------------------------------------------------------------------------------------------
+// ---- AdvisorEntryTree
+// ---------------------------------------------------------------------------------------------------
 
 AdvisorEntryTree::AdvisorEntryTree() = default;
 
@@ -1022,29 +993,29 @@ uint32_t AdvisorEntryTree::AddWithId(DroidScript* entry)
 
 void AdvisorEntryTree::Save(ostream* out)
 {
-  if (!WriteCount32(out, Count()))
+  if (!WriteCount32(out, Count())) {
     return;
-  for (const auto& entry : Entries())
+  }
+  for (const auto& entry : Entries()) {
     entry.second->Write(out);
+  }
 }
 
 void AdvisorEntryTree::Load(istream* in)
 {
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  }
+  for (uint32_t index = 0; index < count; ++index) {
     auto* entry = NewOrNull<DroidScript>();
-    if (!entry)
-    {
+    if (!entry) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     entry->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(entry) == 0)
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(entry) == 0) {
       delete entry;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;

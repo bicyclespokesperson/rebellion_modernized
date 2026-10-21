@@ -3,14 +3,14 @@
 #include "core/checked_new.h"
 #include "story/story_characters.h"
 
-extern int g_majorCharacterEventKindsReady; // 0x6bc070
+extern int g_majorCharacterEventKindsReady;     // 0x6bc070
 extern EventKindSet g_majorCharacterEventKinds; // 0x6bc068
-extern int g_majorChar30EventKindsReady; // 0x6bb9d0
-extern EventKindSet g_majorChar30EventKinds; // 0x6bb9c8
-extern int g_majorChar34EventKindsReady; // 0x6bba78
-extern EventKindSet g_majorChar34EventKinds; // 0x6bba70
-extern int g_majorChar35EventKindsReady; // 0x6bbacc
-extern EventKindSet g_majorChar35EventKinds; // 0x6bbac0
+extern int g_majorChar30EventKindsReady;        // 0x6bb9d0
+extern EventKindSet g_majorChar30EventKinds;    // 0x6bb9c8
+extern int g_majorChar34EventKindsReady;        // 0x6bba78
+extern EventKindSet g_majorChar34EventKinds;    // 0x6bba70
+extern int g_majorChar35EventKindsReady;        // 0x6bbacc
+extern EventKindSet g_majorChar35EventKinds;    // 0x6bbac0
 
 namespace
 {
@@ -28,8 +28,7 @@ template <typename Init>
 int buildKindsOnce(int* ready, Init init)
 {
   int result = 1;
-  if (!*ready)
-  {
+  if (!*ready) {
     *ready = 1;
     result = init();
   }
@@ -38,16 +37,18 @@ int buildKindsOnce(int* ready, Init init)
 
 int copyKinds(int ready, EventKindSet& kinds, EventKindSet* out)
 {
-  if (ready)
+  if (ready) {
     *out = kinds;
+  }
   return ready;
 }
 
 int checkOrder(int ready, EventKindSet& kinds, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
-  if (ready && kinds.Contains(orderKind))
+  if (ready && kinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return ready;
 }
 
@@ -68,8 +69,9 @@ int MajorCharacter::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_majorCharacterEventKinds.Contains(orderKind))
+  if (result && g_majorCharacterEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -87,18 +89,17 @@ int MajorCharacter::HandleMissionResignationRequest(NotifyContext* ctx)
 int MajorCharacter::ValidateBody()
 {
   int result = Character::Validate();
-  if (result)
+  if (result) {
     result = (m_stateFlags & kDestroyedFlag) ? 0 : 1;
+  }
   return result;
 }
 
 int MajorCharacter::BuildEventKinds()
 {
-  return buildKindsOnce(&g_majorCharacterEventKindsReady,
-                        []
-                        {
-                          return Character::InitEventKinds(0, &g_majorCharacterEventKinds);
-                        });
+  return buildKindsOnce(&g_majorCharacterEventKindsReady, [] {
+    return Character::InitEventKinds(0, &g_majorCharacterEventKinds);
+  });
 }
 
 int MajorCharacter::InitEventKinds(int unused, EventKindSet* out)
@@ -189,8 +190,9 @@ int MajorChar30::Validate()
 int MajorChar30::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return MajorLeafApplyAll(this, ctx);
+  }
   return isSideView;
 }
 
@@ -221,11 +223,9 @@ GameObjNotifier* MajorChar30::Create()
 
 int MajorChar30::BuildEventKinds()
 {
-  return buildKindsOnce(&g_majorChar30EventKindsReady,
-                        []
-                        {
-                          return MajorCharacter::InitEventKinds(0, &g_majorChar30EventKinds);
-                        });
+  return buildKindsOnce(&g_majorChar30EventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_majorChar30EventKinds);
+  });
 }
 
 // ---- MajorChar34 ---------------------------------------------------------------------------------------------
@@ -263,8 +263,9 @@ int MajorChar34::Validate()
 int MajorChar34::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return MajorLeafApplyAll(this, ctx);
+  }
   return isSideView;
 }
 
@@ -295,11 +296,9 @@ GameObjNotifier* MajorChar34::Create()
 
 int MajorChar34::BuildEventKinds()
 {
-  return buildKindsOnce(&g_majorChar34EventKindsReady,
-                        []
-                        {
-                          return MajorCharacter::InitEventKinds(0, &g_majorChar34EventKinds);
-                        });
+  return buildKindsOnce(&g_majorChar34EventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_majorChar34EventKinds);
+  });
 }
 
 // ---- MajorChar35 ---------------------------------------------------------------------------------------------
@@ -337,8 +336,9 @@ int MajorChar35::Validate()
 int MajorChar35::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return MajorLeafApplyAll(this, ctx);
+  }
   return isSideView;
 }
 
@@ -369,11 +369,9 @@ GameObjNotifier* MajorChar35::Create()
 
 int MajorChar35::BuildEventKinds()
 {
-  return buildKindsOnce(&g_majorChar35EventKindsReady,
-                        []
-                        {
-                          return MajorCharacter::InitEventKinds(0, &g_majorChar35EventKinds);
-                        });
+  return buildKindsOnce(&g_majorChar35EventKindsReady, [] {
+    return MajorCharacter::InitEventKinds(0, &g_majorChar35EventKinds);
+  });
 }
 EventKindSet g_majorChar30EventKinds{};
 EventKindSet g_majorChar34EventKinds{};

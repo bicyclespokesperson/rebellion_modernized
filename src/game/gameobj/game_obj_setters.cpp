@@ -35,14 +35,11 @@ constexpr uint32_t kReasonAutoscrap = 0x15;
 int GameObj::SetName(std::string* value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
-  {
-    if (CompareStrings(*GetName(), *value) != 0)
-    {
+  if (result) {
+    if (CompareStrings(*GetName(), *value) != 0) {
       std::string oldName(*GetName());
       result = InstallName();
-      if (result)
-      {
+      if (result) {
         *m_name = *value;
         ViewAs(kAllianceView)->ApplyName(ctx);
         ViewAs(kEmpireView)->ApplyName(ctx);
@@ -56,13 +53,12 @@ int GameObj::SetName(std::string* value, NotifyContext* ctx)
 int GameObj::SetControlKind(uint32_t value, NotifyContext* ctx)
 {
   int valid = 0;
-  if (IsMasterView())
+  if (IsMasterView()) {
     valid = static_cast<int>(value) >= 1 && static_cast<int>(value) <= 3;
-  if (valid)
-  {
+  }
+  if (valid) {
     const uint32_t oldKind = ControlSide();
-    if (oldKind != value)
-    {
+    if (oldKind != value) {
       SetControlSide(value);
       ViewAs(kAllianceView)->ApplyControlKind(ctx);
       ViewAs(kEmpireView)->ApplyControlKind(ctx);
@@ -75,15 +71,12 @@ int GameObj::SetControlKind(uint32_t value, NotifyContext* ctx)
 int GameObj::SetParent(GameObjNotifier* value, NotifyContext* ctx)
 {
   int result = 0;
-  if (value && IsMasterView() && value->IsMasterView())
-  {
+  if (value && IsMasterView() && value->IsMasterView()) {
     result = value->CanAdopt(this);
     GameObjNotifier* const oldParent = m_parent;
-    if (result && value != oldParent)
-    {
+    if (result && value != oldParent) {
       result = static_cast<GameObj*>(value)->AdoptChild(this, ctx);
-      if (result)
-      {
+      if (result) {
         ViewAs(kAllianceView)->ApplyParent(ctx);
         ViewAs(kEmpireView)->ApplyParent(ctx);
         OnParentChanged(oldParent, value, ctx);
@@ -96,8 +89,7 @@ int GameObj::SetParent(GameObjNotifier* value, NotifyContext* ctx)
 int GameObj::SetBuilderKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_builderKey.m_value != value->m_value)
-  {
+  if (result && m_builderKey.m_value != value->m_value) {
     ObjectKey oldKey(m_builderKey);
     m_builderKey = *value;
     ViewAs(kAllianceView)->ApplyBuilderKey(ctx);
@@ -110,8 +102,7 @@ int GameObj::SetBuilderKey(ObjectKey* value, NotifyContext* ctx)
 int GameObj::SetDepartureKey(ObjectKey* value, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && m_departureKey.m_value != value->m_value)
-  {
+  if (result && m_departureKey.m_value != value->m_value) {
     ObjectKey oldKey(m_departureKey);
     m_departureKey = *value;
     ViewAs(kAllianceView)->ApplyDepartureKey(ctx);
@@ -124,13 +115,12 @@ int GameObj::SetDepartureKey(ObjectKey* value, NotifyContext* ctx)
 int GameObj::SetDestroyedReason(uint32_t value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
+  if (result) {
     result = IsInRange(value, 0, value, "Invalid DestroyedReason value!");
-  if (result)
-  {
+  }
+  if (result) {
     const uint32_t oldPacked = m_packed;
-    if ((oldPacked & 0xff) != value)
-    {
+    if ((oldPacked & 0xff) != value) {
       m_packed = ((value ^ oldPacked) & 0xff) ^ oldPacked;
       ViewAs(kAllianceView)->ApplyDestroyedReason(ctx);
       ViewAs(kEmpireView)->ApplyDestroyedReason(ctx);
@@ -143,14 +133,13 @@ int GameObj::SetDestroyedReason(uint32_t value, NotifyContext* ctx)
 int GameObj::SetDeploymentCount(uint32_t value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
+  if (result) {
     result = IsInRange(value, 0, value, "capshp.cpp: Invalid DeploymentCount value!");
-  if (result)
-  {
+  }
+  if (result) {
     const uint32_t oldPacked = m_packed;
     const uint32_t oldCount = (oldPacked >> 8) & 0xff;
-    if (oldCount != value)
-    {
+    if (oldCount != value) {
       m_packed = (oldPacked & 0xffff00ff) | ((value & 0xff) << 8);
       ViewAs(kAllianceView)->ApplyDeploymentCount(ctx);
       ViewAs(kEmpireView)->ApplyDeploymentCount(ctx);
@@ -163,13 +152,12 @@ int GameObj::SetDeploymentCount(uint32_t value, NotifyContext* ctx)
 int GameObj::SetDestinationCount(uint32_t value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
+  if (result) {
     result = IsInRange(value, 0, value, "capshp.cpp: Invalid DestinationCount value!");
-  if (result)
-  {
+  }
+  if (result) {
     const uint32_t oldCount = (m_packed >> 16) & 0xff;
-    if (oldCount != value)
-    {
+    if (oldCount != value) {
       m_packed = ((value & 0xff) << 16) | (m_packed & 0xff00ffff);
       ViewAs(kAllianceView)->ApplyDestinationCount(ctx);
       ViewAs(kEmpireView)->ApplyDestinationCount(ctx);
@@ -182,10 +170,10 @@ int GameObj::SetDestinationCount(uint32_t value, NotifyContext* ctx)
 int GameObj::SetEta(int value, NotifyContext* ctx)
 {
   int result = IsMasterView();
-  if (result)
+  if (result) {
     result = IsInRange(value, 0, value, "Invalid ETA value!");
-  if (result && m_eta != value)
-  {
+  }
+  if (result && m_eta != value) {
     const int oldEta = m_eta;
     m_eta = value;
     ViewAs(kAllianceView)->ApplyEta(ctx);
@@ -200,8 +188,7 @@ int GameObj::SetEta(int value, NotifyContext* ctx)
 int GameObj::SetUsable(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kUsable, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kUsable, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyUsable(ctx);
     ViewAs(kEmpireView)->ApplyUsable(ctx);
     OnUsableChanged(on, ctx);
@@ -212,8 +199,7 @@ int GameObj::SetUsable(int on, NotifyContext* ctx)
 int GameObj::SetCreated(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kCreated, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kCreated, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyCreated(ctx);
     ViewAs(kEmpireView)->ApplyCreated(ctx);
     OnCreatedChanged(on, ctx);
@@ -224,8 +210,7 @@ int GameObj::SetCreated(int on, NotifyContext* ctx)
 int GameObj::SetCompleted(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kCompleted, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kCompleted, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyCompleted(ctx);
     ViewAs(kEmpireView)->ApplyCompleted(ctx);
     OnCompletedChanged(on, ctx);
@@ -236,8 +221,7 @@ int GameObj::SetCompleted(int on, NotifyContext* ctx)
 int GameObj::SetDestroyed(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kDestroyed, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kDestroyed, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyDestroyed(ctx);
     ViewAs(kEmpireView)->ApplyDestroyed(ctx);
     OnDestroyedChanged(on, ctx);
@@ -248,8 +232,7 @@ int GameObj::SetDestroyed(int on, NotifyContext* ctx)
 int GameObj::SetEnroute(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kEnroute, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kEnroute, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyEnroute(ctx);
     ViewAs(kEmpireView)->ApplyEnroute(ctx);
     OnEnrouteChanged(on, ctx);
@@ -260,8 +243,7 @@ int GameObj::SetEnroute(int on, NotifyContext* ctx)
 int GameObj::SetEnrouteActive(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kEnrouteActive, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kEnrouteActive, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyEnrouteActive(ctx);
     ViewAs(kEmpireView)->ApplyEnrouteActive(ctx);
     OnEnrouteActiveChanged(on, ctx);
@@ -272,8 +254,7 @@ int GameObj::SetEnrouteActive(int on, NotifyContext* ctx)
 int GameObj::SetExisting(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kExisting, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kExisting, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyExisting(ctx);
     ViewAs(kEmpireView)->ApplyExisting(ctx);
     OnExistingChanged(on, ctx);
@@ -284,8 +265,7 @@ int GameObj::SetExisting(int on, NotifyContext* ctx)
 int GameObj::SetObservedByAlliance(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kObservedByAlliance, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kObservedByAlliance, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyObservedByAlliance(ctx);
     ViewAs(kEmpireView)->ApplyObservedByAlliance(ctx);
     OnObservedByAllianceChanged(on, ctx);
@@ -296,8 +276,7 @@ int GameObj::SetObservedByAlliance(int on, NotifyContext* ctx)
 int GameObj::SetObservedByEmpire(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kObservedByEmpire, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kObservedByEmpire, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyObservedByEmpire(ctx);
     ViewAs(kEmpireView)->ApplyObservedByEmpire(ctx);
     OnObservedByEmpireChanged(on, ctx);
@@ -308,8 +287,7 @@ int GameObj::SetObservedByEmpire(int on, NotifyContext* ctx)
 int GameObj::SetDamaged(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kDamaged, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kDamaged, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyDamaged(ctx);
     ViewAs(kEmpireView)->ApplyDamaged(ctx);
     OnDamagedChanged(on, ctx);
@@ -320,8 +298,7 @@ int GameObj::SetDamaged(int on, NotifyContext* ctx)
 int GameObj::SetHyperdriveActive(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kHyperdriveActive, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kHyperdriveActive, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyHyperdriveActive(ctx);
     ViewAs(kEmpireView)->ApplyHyperdriveActive(ctx);
     OnHyperdriveActiveChanged(on, ctx);
@@ -332,8 +309,7 @@ int GameObj::SetHyperdriveActive(int on, NotifyContext* ctx)
 int GameObj::SetAutorouting(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kAutorouting, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kAutorouting, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyAutorouting(ctx);
     ViewAs(kEmpireView)->ApplyAutorouting(ctx);
     OnAutoroutingChanged(on, ctx);
@@ -344,8 +320,7 @@ int GameObj::SetAutorouting(int on, NotifyContext* ctx)
 int GameObj::SetAutoscrapRequest(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kAutoscrapRequest, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kAutoscrapRequest, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyAutoscrapRequest(ctx);
     ViewAs(kEmpireView)->ApplyAutoscrapRequest(ctx);
     OnAutoscrapRequestChanged(on, ctx);
@@ -356,8 +331,7 @@ int GameObj::SetAutoscrapRequest(int on, NotifyContext* ctx)
 int GameObj::SetLocked(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kLocked, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kLocked, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyLocked(ctx);
     ViewAs(kEmpireView)->ApplyLocked(ctx);
     OnLockedChanged(on, ctx);
@@ -368,8 +342,7 @@ int GameObj::SetLocked(int on, NotifyContext* ctx)
 int GameObj::SetReadyForDelete(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kReadyForDelete, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kReadyForDelete, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyReadyForDelete(ctx);
     ViewAs(kEmpireView)->ApplyReadyForDelete(ctx);
     OnReadyForDeleteChanged(on, ctx);
@@ -380,8 +353,7 @@ int GameObj::SetReadyForDelete(int on, NotifyContext* ctx)
 int GameObj::SetConstructed(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kConstructed, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kConstructed, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyConstructed(ctx);
     ViewAs(kEmpireView)->ApplyConstructed(ctx);
     OnConstructedChanged(on, ctx);
@@ -392,8 +364,7 @@ int GameObj::SetConstructed(int on, NotifyContext* ctx)
 int GameObj::SetDeployed(int on, NotifyContext* ctx)
 {
   const int result = IsMasterView();
-  if (result && UpdateFlagBit(kDeployed, on, &m_stateFlags))
-  {
+  if (result && UpdateFlagBit(kDeployed, on, &m_stateFlags)) {
     ViewAs(kAllianceView)->ApplyDeployed(ctx);
     ViewAs(kEmpireView)->ApplyDeployed(ctx);
     OnDeployedChanged(on, ctx);
@@ -419,12 +390,10 @@ int GameObj::UpdateObservedByAlliance(NotifyContext* ctx)
 {
   int observed = 0;
   int ok = 1;
-  if (IsNotGameRoot())
-  {
+  if (IsNotGameRoot()) {
     GameObjNotifier* parent = nullptr;
     ok = GetParent(&parent) != 0;
-    if (parent && !(m_stateFlags & kEnrouteActive) && IsObservable())
-    {
+    if (parent && !(m_stateFlags & kEnrouteActive) && IsObservable()) {
       observed = (static_cast<GameObj*>(parent)->m_stateFlags >> 7) & 1;
     }
   }
@@ -435,12 +404,10 @@ int GameObj::UpdateObservedByEmpire(NotifyContext* ctx)
 {
   int observed = 0;
   int ok = 1;
-  if (IsNotGameRoot())
-  {
+  if (IsNotGameRoot()) {
     GameObjNotifier* parent = nullptr;
     ok = GetParent(&parent) != 0;
-    if (parent && !(m_stateFlags & kEnrouteActive) && IsObservable())
-    {
+    if (parent && !(m_stateFlags & kEnrouteActive) && IsObservable()) {
       observed = (static_cast<GameObj*>(parent)->m_stateFlags >> 8) & 1;
     }
   }

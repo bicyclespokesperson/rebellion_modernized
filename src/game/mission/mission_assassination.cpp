@@ -4,7 +4,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionAssassinationEventKindsReady; // 0x6bbb08
+extern int g_missionAssassinationEventKindsReady;     // 0x6bbb08
 extern EventKindSet g_missionAssassinationEventKinds; // 0x6bbb00
 
 namespace
@@ -63,10 +63,11 @@ int MissionAssassination::GetPersonSuccessChance(GameObj* person, int* out)
 {
   Character* target = nullptr;
   const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
-    reinterpret_cast<GameObj**>(&target));
+      &target);
   bool ok = found != 0;
-  if (!target)
+  if (!target) {
     return ok;
+  }
   const int targetCombat = target->GetCombat();
   const int personCombat = static_cast<Role*>(person)->GetCombat();
   return LookupMissionTable1D(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
@@ -85,28 +86,31 @@ int MissionAssassination::AfterScoringResults(NotifyContext* ctx)
 int MissionAssassination::ApplyPersonResult(GameObj* personObject, int roll, int* out, NotifyContext* ctx)
 {
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return 1;
+  }
   *out = 1;
   Character* target = nullptr;
   const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
-    reinterpret_cast<GameObj**>(&target));
+      &target);
   bool ok = found != 0;
-  if (target)
+  if (target) {
     ok = target->RollAndApplyFatalInjury(ctx) && ok;
-  if (!target || !(target->m_stateFlags & kDestroyedState))
+  }
+  if (!target || !(target->m_stateFlags & kDestroyedState)) {
     return ok;
+  }
   ok = SetTaskStatus(kTaskSucceeded, ctx) && ok;
   Role* person = static_cast<Role*>(personObject);
-  if (!person->IsCharacter())
+  if (!person->IsCharacter()) {
     return ok;
+  }
   return person->SetBaseCombat(person->m_baseCombat + g_gnprtb1814, ctx) && ok ? 1 : 0;
 }
 
 int MissionAssassination::BuildEventKinds()
 {
-  if (!g_missionAssassinationEventKindsReady)
-  {
+  if (!g_missionAssassinationEventKindsReady) {
     g_missionAssassinationEventKindsReady = 1;
     return MissionCharacterTargetBase::InitEventKinds(0, &g_missionAssassinationEventKinds);
   }

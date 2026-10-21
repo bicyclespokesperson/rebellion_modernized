@@ -1,5 +1,5 @@
-// Operation sequences on 8-bit DIB sections, written with plain Win32 names. The same source is built against the real gdi32 (run
-// under Wine to produce the reference) and against minwin_impl/gdi (the implementation under test); the dumps are diffed.
+// Operation sequences on 8-bit DIB sections, written with plain Win32 names. The same source is built against the real
+// gdi32 (gdi_dump_real, Windows only: the reference) and against minwin_impl/gdi (gdi_dump_ours); the dumps are diffed.
 #pragma once
 #include <stdint.h>
 #include <stdio.h>
@@ -8,9 +8,9 @@
 #include <vector>
 
 struct Dump {
-    std::string name;
-    int width = 0, height = 0;
-    std::vector<uint8_t> pixels;  // top-down, one palette index per pixel
+  std::string name;
+  int width = 0, height = 0;
+  std::vector<uint8_t> pixels; // top-down, one palette index per pixel
 };
 
 // Runs every scenario (or only those whose name contains `filter`), appending results to `out`.

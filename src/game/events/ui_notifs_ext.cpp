@@ -23,7 +23,9 @@ bool inFamilyRange(const ObjectKey& key, uint32_t first, uint32_t last)
 
 // ---- UiNotif200 -----------------------------------------------------------------------------------------------
 
-UiNotif200::UiNotif200() : IntPairPayload(), m_missionKey()
+UiNotif200::UiNotif200()
+    : IntPairPayload()
+    , m_missionKey()
 {
   m_leadsMission = 0;
 }
@@ -47,14 +49,17 @@ void UiNotif200::Write(ostream* out)
 void UiNotif200::PrepareForDispatch()
 {
   Role* character = static_cast<Role*>(GetObjectInFamilies_30_40(m_value18, &m_key));
-  if (!character)
+  if (!character) {
     return;
+  }
   m_missionKey = ObjectKey(character->m_missionKey);
-  if (!m_missionKey.OrNull())
+  if (!m_missionKey.OrNull()) {
     return;
+  }
   auto* mission = static_cast<Mission*>(GetObjectInFamilies_40_80(m_value18, &m_missionKey));
-  if (mission)
+  if (mission) {
     m_leadsMission = m_key.m_value == mission->m_leaderKey.m_value;
+  }
 }
 
 void UiNotif200::Dispatch(PlayerController* controller)
@@ -69,7 +74,12 @@ void* CreateUiNotif200()
 
 // ---- UiNotif1e0 -----------------------------------------------------------------------------------------------
 
-UiNotif1e0::UiNotif1e0() : IntPairPayload(), m_shipKey(), m_grandparentKey(), m_systemKey(), m_locationKey()
+UiNotif1e0::UiNotif1e0()
+    : IntPairPayload()
+    , m_shipKey()
+    , m_grandparentKey()
+    , m_systemKey()
+    , m_locationKey()
 {
 }
 
@@ -103,28 +113,30 @@ void UiNotif1e0::PrepareForDispatch()
   auto* character = static_cast<GameObj*>(GetObjectInFamilies_30_3c(m_value18, &m_key));
   ObjectKey parentKey;
   ObjectKey ownerKey;
-  if (!character)
+  if (!character) {
     return;
+  }
   character->GetValidParentKey(&parentKey);
   character->GetOwnerKey(&ownerKey);
-  if (inFamilyRange(parentKey, 0x14, 0x1c))
-  {
+  if (inFamilyRange(parentKey, 0x14, 0x1c)) {
     m_shipKey = ObjectKey(parentKey);
     GameObjNotifier* parent = nullptr;
     GameObjNotifier* grandparent = nullptr;
     character->GetParent(&parent);
-    if (parent)
+    if (parent) {
       static_cast<GameObj*>(parent)->GetParent(&grandparent);
-    if (grandparent)
-    {
+    }
+    if (grandparent) {
       ObjectKey scratch;
       m_grandparentKey = ObjectKey(*GetObjectKey(grandparent, &scratch));
     }
   }
-  if (inFamilyRange(ownerKey, 0x90, 0x98))
+  if (inFamilyRange(ownerKey, 0x90, 0x98)) {
     m_systemKey = ObjectKey(ownerKey);
-  if (inFamilyRange(ownerKey, 0x98, 0xa0))
+  }
+  if (inFamilyRange(ownerKey, 0x98, 0xa0)) {
     m_locationKey = ObjectKey(ownerKey);
+  }
 }
 
 ObjectKey* UiNotif1e0::CopyGrandparentKey(ObjectKey* out)

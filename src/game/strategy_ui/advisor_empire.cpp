@@ -1,4 +1,6 @@
 #include "economy/side.h"
+#include <cstdio>
+#include <cstdlib>
 #include <new>
 #include <set>
 
@@ -17,7 +19,7 @@
 #include "strategy_ui/game_ui_facade.h"
 
 extern std::set<uint32_t> g_empireChoices; // 0x6b2918 the list the display-mode switches show
-extern const char* g_invalidCommandText; // 0x6a8838 "Processing Invalid Command"
+extern const char* g_invalidCommandText;   // 0x6a8838 "Processing Invalid Command"
 
 using namespace advisor_sides;
 
@@ -52,10 +54,10 @@ void ShowChoices(int mode, std::set<uint32_t>* tree, int16_t titleId)
 GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
 {
   ObjectKey key;
-  for (GameObjNotifier* parent = object->m_parent; parent; parent = parent->m_parent)
-  {
-    if (KeyIn(*parent->GetKey(&key), 0x90, 0x98))
+  for (GameObjNotifier* parent = object->m_parent; parent; parent = parent->m_parent) {
+    if (KeyIn(*parent->GetKey(&key), 0x90, 0x98)) {
       return parent;
+    }
   }
   return nullptr;
 }
@@ -63,11 +65,9 @@ GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
 void ShowFirstSystemChoice(EmpireAdvisor* advisor, std::set<uint32_t>* tree, ObjectKey key, int16_t titleId, int mode)
 {
   GameObjNotifier* object = GetObjectInFamilies_01_ff(advisor->m_side, &key);
-  if (object)
-  {
+  if (object) {
     GameObjNotifier* system = FindSystemAbove(object);
-    if (system)
-    {
+    if (system) {
       ObjectKey systemKey;
       AddChoice(tree, system->GetKey(&systemKey)->Id());
     }
@@ -87,14 +87,14 @@ void EmpireScheduleFallback(AdvisorBase* advisor)
 
 } // namespace
 
-EmpireAdvisor::EmpireAdvisor(int side, HumanPlayer* player) : AdvisorBase(side, player)
+EmpireAdvisor::EmpireAdvisor(int side, HumanPlayer* player)
+    : AdvisorBase(side, player)
 {
   m_cueCount = kCueCount;
   g_humanUiFlags.m_value |= kUiFlagChatty;
   m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
   m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
-  for (uint32_t i = 0; i < m_cueCount; ++i)
-  {
+  for (uint32_t i = 0; i < m_cueCount; ++i) {
     m_cueDue[i] = 0;
     m_cueCooldown[i] = 0;
   }
@@ -118,53 +118,42 @@ void EmpireAdvisor::Write(ostream* out)
 
 void EmpireAdvisor::HandleRefusedOrder(OrderBase* order, IntPair* status)
 {
-  OutputDebugStringA(g_invalidCommandText);
-  if (m_enabled == 0)
+  if (std::getenv("REB_DEBUG_OUTPUT")) {
+    std::fputs(g_invalidCommandText, stderr);
+  }
+  if (m_enabled == 0) {
     return;
-  if (status->m_first == m_lastStatus.m_first && status->m_second == m_lastStatus.m_second)
-  {
+  }
+  if (status->m_first == m_lastStatus.m_first && status->m_second == m_lastStatus.m_second) {
     ToggleRepeatedStatus(status);
     return;
   }
   m_lastStatus = *status;
   m_statusRepeat = 0;
   const uint32_t category = status->m_first;
-  if (category >= 0x90 && category < 0x98)
-  {
+  if (category >= 0x90 && category < 0x98) {
     RefusedSystem(order, status);
-  }
-  else if (category >= 0xa0 && category < 0xb0)
-  {
+  } else if (category >= 0xa0 && category < 0xb0) {
     RefusedManager(order, status);
-  }
-  else if (category >= 8 && category < 0x10)
-  {
+  } else if (category >= 8 && category < 0x10) {
     RefusedFleet(order, status);
-  }
-  else if (category >= 0x14 && category < 0x1c)
-  {
+  } else if (category >= 0x14 && category < 0x1c) {
     RefusedShip(order, status);
-  }
-  else if (category == 0xf3)
-  {
+  } else if (category == 0xf3) {
     RefusedSide(order, status);
-  }
-  else
-  {
+  } else {
     RefusedOther(order, status);
   }
 }
 
 void EmpireAdvisor::HandleUiFlags(unsigned flags)
 {
-  if ((flags & 0x100000) != 0)
-  {
+  if ((flags & 0x100000) != 0) {
     CueDue(0x150) = g_advisorNow + kNeverTicks;
     UiMarkGalaxyViewUnknownAc();
     return;
   }
-  if ((flags & 0x1000000) != 0)
-  {
+  if ((flags & 0x1000000) != 0) {
     CueDue(0x154) = g_advisorNow + kNeverTicks;
     UiMarkGalaxyViewUnknownAc();
   }
@@ -175,50 +164,42 @@ int EmpireAdvisor::Update()
   bool played = false;
   uint32_t cue = 1;
   g_advisorNow = GameHookTickCount();
-  if (g_advisorPendingMode != 0)
-  {
+  if (g_advisorPendingMode != 0) {
     RunPendingCommand();
     return 1;
   }
   g_advisorPendingMode = 0;
-  while (g_advisorMaySpeak != 0)
-  {
-    if (played)
-    {
+  while (g_advisorMaySpeak != 0) {
+    if (played) {
       g_advisorLastRun = g_advisorNow;
       return 1;
     }
     played = false;
-    if (m_cueCount <= cue)
+    if (m_cueCount <= cue) {
       break;
+    }
     uint32_t* due = &m_cueDue[cue];
-    if (*due == 0 || *due < g_advisorNow)
-    {
+    if (*due == 0 || *due < g_advisorNow) {
       *due = 0;
       ++cue;
       continue;
     }
     *due = 0;
-    if (m_cueCooldown[cue] < g_advisorNow)
-    {
+    if (m_cueCooldown[cue] < g_advisorNow) {
       m_cueCooldown[cue] = g_advisorNow + 0x3c;
       played = true;
       auto* script = static_cast<DroidScript*>(Cues()->FindById(cue));
-      if (script)
-      {
-        while (DroidScriptEntry* entry = script->NextEntry())
-        {
-          if ((entry->m_flags & 1) == 0 ||
-              ((g_humanUiFlags.m_value & kUiFlagChatty) != 0 && (g_humanUiFlags.m_value & 0x4000) == 0))
-          {
+      if (script) {
+        while (DroidScriptEntry* entry = script->NextEntry()) {
+          if ((entry->m_flags & 1) == 0
+              || ((g_humanUiFlags.m_value & kUiFlagChatty) != 0 && (g_humanUiFlags.m_value & 0x4000) == 0)) {
             PlayEntry(entry);
           }
         }
       }
     }
   }
-  if (played)
-  {
+  if (played) {
     g_advisorLastRun = g_advisorNow;
     return 1;
   }
@@ -232,8 +213,7 @@ int EmpireAdvisor::LoadCueScripts()
   char* dataLocation = GetDataLocation();
   ScopedStrstream name;
   ostream* out = iostream_access::AsOstream(name.get());
-  if (dataLocation)
-  {
+  if (dataLocation) {
     ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, dataLocation), "\\");
     ::operator delete(dataLocation);
   }
@@ -243,8 +223,7 @@ int EmpireAdvisor::LoadCueScripts()
   OpenInputFile(file.get(), strstreambuf_str(iostream_access::BufferOf(name.get())));
   strstreambuf_freeze(iostream_access::BufferOf(name.get()), 0);
   const int error = GetFileError();
-  if (error == 0)
-  {
+  if (error == 0) {
     m_cueTree.Load(file.get()->In());
     CloseFileStream(file.get());
   }
@@ -254,10 +233,8 @@ int EmpireAdvisor::LoadCueScripts()
 void EmpireAdvisor::ProcessIdle()
 {
   auto& flags = reinterpret_cast<uint32_t&>(g_humanUiFlags.m_value);
-  if (m_enabled == 0)
-  {
-    if ((flags & kUiFlagWake) != 0)
-    {
+  if (m_enabled == 0) {
+    if ((flags & kUiFlagWake) != 0) {
       CueDue(0x6c) = g_advisorNow + kLongCue;
       flags &= ~kUiFlagWake;
       m_enabled = 1;
@@ -266,60 +243,49 @@ void EmpireAdvisor::ProcessIdle()
     return;
   }
   g_advisorMaySpeak = 0;
-  if ((flags & kUiFlagSleep) != 0)
-  {
+  if ((flags & kUiFlagSleep) != 0) {
     CueDue(0x68) = g_advisorNow + kShortCue;
     flags &= ~kUiFlagSleep;
     m_enabled = 0;
     ResetTasks();
     return;
   }
-  if ((flags & kUiFlagIdleRequested) != 0)
-  {
+  if ((flags & kUiFlagIdleRequested) != 0) {
     CueDue(0x124) = g_advisorNow + kNeverTicks;
     UiBeginGameInput();
     flags &= ~kUiFlagIdleRequested;
     return;
   }
-  if ((flags & 1) != 0)
-  {
+  if ((flags & 1) != 0) {
     CueDue(0x70) = g_advisorNow + kShortCue;
     flags &= ~1u;
     return;
   }
-  if ((flags & 0x10) != 0)
-  {
+  if ((flags & 0x10) != 0) {
     CueDue(0x74) = g_advisorNow + kShortCue;
     flags &= ~0x10u;
     return;
   }
-  if ((flags & 0x20) != 0)
-  {
+  if ((flags & 0x20) != 0) {
     CueDue(0x7c) = g_advisorNow + kShortCue;
     flags &= ~0x20u;
     return;
   }
-  if ((flags & 0x100) != 0)
-  {
+  if ((flags & 0x100) != 0) {
     CueDue(0x78) = g_advisorNow + kLongCue;
     flags &= ~0x100u;
     return;
   }
-  if ((flags & 0x200) != 0)
-  {
+  if ((flags & 0x200) != 0) {
     CueDue(0x80) = g_advisorNow + kLongCue;
     flags &= ~0x200u;
     return;
   }
-  if ((flags & 0x2000000) != 0)
-  {
+  if ((flags & 0x2000000) != 0) {
     uint32_t cue = g_advisorNagCount + 0x49;
-    if (cue < 0x4b)
-    {
+    if (cue < 0x4b) {
       cue = 0x4b;
-    }
-    else if (cue > 0x4d)
-    {
+    } else if (cue > 0x4d) {
       cue = 0x4d;
       g_advisorNagCount = 0;
     }
@@ -327,11 +293,11 @@ void EmpireAdvisor::ProcessIdle()
     flags &= ~0x2000000u;
     return;
   }
-  if ((flags & 0x80000000) != 0)
-  {
+  if ((flags & 0x80000000) != 0) {
     const uint32_t pick = UiSessionRandom(0xc);
-    if (pick < 6)
+    if (pick < 6) {
       CueDue(0x138 + pick * 4) = g_advisorNow + kQuickCue;
+    }
     g_advisorMaySpeak = 1;
     flags &= 0x7fffffff;
   }
@@ -339,23 +305,12 @@ void EmpireAdvisor::ProcessIdle()
 
 void EmpireAdvisor::RunPendingCommand()
 {
-  if (g_advisorPendingMode != 1)
-  {
-    if (g_advisorPendingMode == 2)
-    {
+  if (g_advisorPendingMode != 1) {
+    if (g_advisorPendingMode == 2) {
       RunCommand(g_advisorPendingArg);
-    }
-    else if (g_advisorPendingMode == 3)
-    {
+    } else if (g_advisorPendingMode == 3) {
       GameObjNotifier* side = GetSideObject(2, 2);
-      if (!side)
-      {
-        UiSetAlternateDisplayMode(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)));
-      }
-      else
-      {
-        UiSetAlternateDisplayMode(static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions));
-      }
+      UiSetAlternateDisplayMode(side ? static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions) : 0u);
     }
   }
   g_advisorPendingMode = 0;
@@ -365,8 +320,7 @@ void EmpireAdvisor::RunPendingCommand()
 void EmpireAdvisor::RunCommand(int command)
 {
   std::set<uint32_t>* choices = ChoicesTree();
-  switch (command)
-  {
+  switch (command) {
     case 1:
       UiSetDisplayMode(0x11, 0);
       break;
@@ -416,8 +370,7 @@ void EmpireAdvisor::RunCommand(int command)
       break;
     case 0xd:
       UnloadBriefingDll();
-      if ((g_humanUiFlags.m_value & 0x8000) == 0)
-      {
+      if ((g_humanUiFlags.m_value & 0x8000) == 0) {
         FlushPending();
         UiPostOpenType0dWindow(1, 0x82);
       }
@@ -441,40 +394,26 @@ void EmpireAdvisor::RunCommand(int command)
 
 void EmpireAdvisor::RefusedSystem(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0x90, 1))
-  {
+  if (Is(status, 0x90, 1)) {
     Raise(this, 0x30, kShortCue);
-  }
-  else if (Is(status, 0x90, 2))
-  {
+  } else if (Is(status, 0x90, 2)) {
     Raise(this, 0x34, kShortCue);
-  }
-  else if (Is(status, 0x90, 4))
-  {
+  } else if (Is(status, 0x90, 4)) {
     Raise(this, 0x58, kShortCue);
-  }
-  else if (Is(status, 0x90, 3))
-  {
+  } else if (Is(status, 0x90, 3)) {
     Raise(this, 0x2c, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
 
 void EmpireAdvisor::RefusedManager(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0xa0, 2))
-  {
+  if (Is(status, 0xa0, 2)) {
     Raise(this, 8, kShortCue);
-  }
-  else if (Is(status, 0xa0, 3))
-  {
+  } else if (Is(status, 0xa0, 3)) {
     Raise(this, 100, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
@@ -491,12 +430,9 @@ void EmpireAdvisor::RefusedShip(OrderBase* order, IntPair* status)
 
 void EmpireAdvisor::RefusedSide(OrderBase* order, IntPair* status)
 {
-  if (Is(status, 0xf3, 1))
-  {
+  if (Is(status, 0xf3, 1)) {
     Raise(this, 0x28, kShortCue);
-  }
-  else
-  {
+  } else {
     ScheduleRandomPair();
   }
 }
@@ -509,8 +445,7 @@ void EmpireAdvisor::RefusedOther(OrderBase* order, IntPair* status)
 
 void EmpireAdvisor::ToggleRepeatedStatus(IntPair* status)
 {
-  if (m_statusRepeat == 0)
-  {
+  if (m_statusRepeat == 0) {
     m_statusRepeat = 1;
     CueDue(0x40) = g_advisorNow + kShortCue;
     return;
@@ -524,33 +459,35 @@ void EmpireAdvisor::ToggleRepeatedStatus(IntPair* status)
 void EmpireAdvisor::ScheduleRandomPair()
 {
   const int pick = UiSessionRandom(2);
-  if (pick < 2)
+  if (pick < 2) {
     CueDue(0x48 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void EmpireAdvisor::ScheduleRandomQuad()
 {
-  for (int i = 0; i < 4; ++i)
-  {
-    if (CueDue(0x108 + i * 4) != 0)
+  for (int i = 0; i < 4; ++i) {
+    if (CueDue(0x108 + i * 4) != 0) {
       return;
+    }
   }
   const int pick = UiSessionRandom(4);
-  if (pick < 4)
+  if (pick < 4) {
     CueDue(0x108 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void EmpireAdvisor::ScheduleRandomPairAt118()
 {
   const int pick = UiSessionRandom(2);
-  if (pick < 2)
+  if (pick < 2) {
     CueDue(0x118 + pick * 4) = g_advisorNow + kShortCue;
+  }
 }
 
 void EmpireAdvisor::ScheduleCue(int cue)
 {
-  switch (cue)
-  {
+  switch (cue) {
     case 1:
       Raise(this, 0xc0, kShortCue);
       break;
@@ -661,8 +598,7 @@ void EmpireAdvisor::ScheduleCue(int cue)
 
 int EmpireAdvisor::PickMoodCue()
 {
-  switch (m_mood)
-  {
+  switch (m_mood) {
     case 1:
       return 9;
     case 2:

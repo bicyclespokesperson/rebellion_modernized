@@ -12,7 +12,8 @@ using events::kStatusOk;
 using events::succeeded;
 using events::succeedWithoutChecks;
 
-RefineryQueueEvent::RefineryQueueEvent() : PlainEvent()
+RefineryQueueEvent::RefineryQueueEvent()
+    : PlainEvent()
 {
 }
 
@@ -43,8 +44,9 @@ int RefineryQueueEvent::Execute()
   StatusCode status(kStatusCategory, kStatusOk);
   const StatusCode missing(kStatusCategory, kStatusMissingTarget);
   int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
-  if (ok && succeeded(status))
+  if (ok && succeeded(status)) {
     static_cast<Side*>(owner)->ServeRefineryQueue(&more, &ctx);
+  }
   return more;
 }
 
@@ -53,7 +55,8 @@ RefineryQueueEvent* CreateRefineryQueueEvent()
   return NewOrNull<RefineryQueueEvent>();
 }
 
-ManufacturerQueueEvent::ManufacturerQueueEvent() : PlainEvent()
+ManufacturerQueueEvent::ManufacturerQueueEvent()
+    : PlainEvent()
 {
 }
 
@@ -84,8 +87,9 @@ int ManufacturerQueueEvent::Execute()
   StatusCode status(kStatusCategory, kStatusOk);
   const StatusCode missing(kStatusCategory, kStatusMissingTarget);
   int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
-  if (ok && succeeded(status))
+  if (ok && succeeded(status)) {
     static_cast<Side*>(owner)->ServeManufacturerQueue(&more, &ctx);
+  }
   return more;
 }
 
@@ -94,7 +98,8 @@ ManufacturerQueueEvent* CreateManufacturerQueueEvent()
   return NewOrNull<ManufacturerQueueEvent>();
 }
 
-ReparentToRootEvent::ReparentToRootEvent() : PlainEvent()
+ReparentToRootEvent::ReparentToRootEvent()
+    : PlainEvent()
 {
 }
 
@@ -124,16 +129,13 @@ int ReparentToRootEvent::Execute()
   StatusCode status(kStatusCategory, kStatusOk);
   const StatusCode missing(kStatusCategory, kStatusMissingTarget);
   int ok = ResolveMasterInFamilies_01_ff(&m_key, &owner, &missing, &status);
-  if (ok && owner)
-  {
+  if (ok && owner) {
     GameObjNotifier* parent = GetGameRootMember_b0();
     ObjectKey currentParent;
     static_cast<GameObj*>(owner)->GetValidParentKey(&currentParent);
-    if (parent)
-    {
+    if (parent) {
       ObjectKey wanted;
-      if (GetObjectKey(parent, &wanted)->m_value != currentParent.m_value)
-      {
+      if (GetObjectKey(parent, &wanted)->m_value != currentParent.m_value) {
         ObjectKey target;
         static_cast<GameObj*>(owner)->Reparent(GetObjectKey(parent, &target), &ctx);
       }

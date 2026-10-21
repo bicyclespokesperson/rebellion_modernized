@@ -3,9 +3,9 @@
 #include <new>
 
 extern ObjectKeyValueSet g_emptyKeyValueSet; // 0x6b2960
-extern uint8_t g_emptyKeyValueSetBuilt; // 0x6b2954, bit 0
-extern ObjectKey g_emptyKey; // 0x6b2958
-extern uint8_t g_emptyKeyBuilt; // 0x6b2950, bit 0
+extern uint8_t g_emptyKeyValueSetBuilt;      // 0x6b2954, bit 0
+extern ObjectKey g_emptyKey;                 // 0x6b2958
+extern uint8_t g_emptyKeyBuilt;              // 0x6b2950, bit 0
 
 ObjectKeyValueSet* GetEmptyKeyValueSet()
 {
@@ -30,14 +30,9 @@ void ResetKey(ObjectKey* key)
 
 int CallSlot1(void* object)
 {
-  struct SlotOne
-  {
-    virtual void UnusedSlot0()
-    {
-    }
-    virtual void InvokeSlot1()
-    {
-    }
+  struct SlotOne {
+    virtual void UnusedSlot0() {}
+    virtual void InvokeSlot1() {}
   };
   static_cast<SlotOne*>(object)->InvokeSlot1();
   return 1;

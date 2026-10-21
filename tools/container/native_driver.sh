@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# In-container driver of the native executable (tools/run_native.sh). $1 = scenario file (syntax of
-# tools/container/run_in_container.sh: "<sec> <action> [args]", seconds since launch), $2 = the executable, $3 = output directory.
+# In-container driver of the native executable (tools/run_native.sh). $1 = scenario file (one action per line,
+# "<sec> <action> [args]", seconds since launch; tests/scenarios), $2 = the executable, $3 = output directory.
 # Xvfb 640x480, the game with its own SDL window at the origin, xdotool for input, ImageMagick `import` for screenshots.
 set -uo pipefail
 scenario="$1"; exe="$2"; out="$3"

@@ -2,7 +2,12 @@
 
 #include "core/utility_classes.h"
 
-SeedKey::SeedKey() : m_key(0), m_second(0), m_third(0), m_fourth(0), m_fifth(0)
+SeedKey::SeedKey()
+    : m_key(0)
+    , m_second(0)
+    , m_third(0)
+    , m_fourth(0)
+    , m_fifth(0)
 {
 }
 
@@ -12,20 +17,24 @@ SeedKey& SeedKey::operator=(const SeedKey& other) = default;
 
 int SeedKey::operator==(const SeedKey& other) const
 {
-  return m_key == other.m_key && m_second == other.m_second && m_third == other.m_third && m_fourth == other.m_fourth &&
-         m_fifth == other.m_fifth;
+  return m_key == other.m_key && m_second == other.m_second && m_third == other.m_third && m_fourth == other.m_fourth
+         && m_fifth == other.m_fifth;
 }
 
 int SeedKey::operator<(const SeedKey& other) const
 {
-  if (m_key != other.m_key)
+  if (m_key != other.m_key) {
     return m_key < other.m_key;
-  if (m_second != other.m_second)
+  }
+  if (m_second != other.m_second) {
     return m_second < other.m_second;
-  if (m_third != other.m_third)
+  }
+  if (m_third != other.m_third) {
     return m_third < other.m_third;
-  if (m_fourth != other.m_fourth)
+  }
+  if (m_fourth != other.m_fourth) {
     return m_fourth < other.m_fourth;
+  }
   return m_fifth < other.m_fifth;
 }
 

@@ -26,16 +26,16 @@ constexpr uint32_t kBitmapKind = 10;
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
 
 uint32_t ResourceOfKind(uint32_t kind, int side)
 {
-  switch (kind)
-  {
+  switch (kind) {
     case 0x11:
       return side == 1 ? 0x27c7 : 0x27c8;
     case 0x12:
@@ -89,15 +89,9 @@ uint32_t ResourceOfKind(uint32_t kind, int side)
 
 } // namespace
 
-AdvisorPanel::AdvisorPanel(HINSTANCE instance,
-                           int x,
-                           int y,
-                           int width,
-                           int height,
-                           GalaxyWindow* parent,
-                           uint32_t childId,
-                           uint32_t kind)
-: CoolGameWindow(instance, x, y, width, height, parent, kStringSlot, kArtSlot, 0, childId, kPanelStyle, 0, 0, 0)
+AdvisorPanel::AdvisorPanel(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
+                           uint32_t childId, uint32_t kind)
+    : CoolGameWindow(instance, x, y, width, height, parent, kStringSlot, kArtSlot, 0, childId, kPanelStyle, 0, 0, 0)
 {
   m_style &= ~kStyleVisible;
   CoolGameWindow::m_flags |= 4;
@@ -113,8 +107,9 @@ AdvisorPanel::~AdvisorPanel()
 {
   delete m_closeButton;
   DeleteBitmap(m_layer);
-  if (m_remapTable)
+  if (m_remapTable) {
     ::operator delete(m_remapTable);
+  }
   DeleteBitmap(m_paintBackground);
 }
 
@@ -122,10 +117,12 @@ void AdvisorPanel::DrawOverlay(HDC dc)
 {
   m_galaxy->m_offscreen->Blit(m_paintBackground, 0, 0, m_x, m_y, m_clientWidth, m_clientHeight);
   m_paintBackground->ApplyRemapTable(0, 0, static_cast<int16_t>(m_clientWidth), static_cast<int16_t>(m_clientHeight));
-  if (m_layer)
+  if (m_layer) {
     m_layer->DrawKeyed(m_paintBackground, 0, 0);
-  if (m_frame)
+  }
+  if (m_frame) {
     m_frame->DrawKeyed(m_paintBackground, 0, 0);
+  }
   m_paintBackground->DrawToDc(dc, 0x40, SRCCOPY, 0, 0, 0, 0, 0, 0);
 }
 
@@ -135,18 +132,19 @@ void AdvisorPanel::OnCreate1()
   m_paintBackground = NewOrNull<DibBitmap>(m_clientWidth, m_clientHeight, m_galaxy->m_offscreen);
   m_remapTable = m_paintBackground->BuildRemapTable(DimMenuColor);
   const uint32_t resourceId = ResourceOfKind(m_kind, m_galaxy->m_side);
-  if (resourceId == 0)
+  if (resourceId == 0) {
     return;
+  }
   BuildFromResource(art, resourceId);
   BuildFrame(art, 0x2779, 0x277a, 0x277b, 0x2778, 0x2775, 0x2774, 0x2777, 0x2776);
   auto* closeImage = NewOrNull<DibBitmap>(art, 0x277cu, 2u);
-  if (!closeImage)
+  if (!closeImage) {
     return;
-  m_closeButton =
-    NewOrNull<CoolStrobeButton>(art, (m_width - closeImage->Width()) - 3, 3, closeImage->Width(), closeImage->Height(),
-                                this, kCloseId, 0x277cu, 0x277du, GetPaintBackgroundIfOwned(), 0, 1);
-  if (m_closeButton)
-  {
+  }
+  m_closeButton = NewOrNull<CoolStrobeButton>(art, (m_width - closeImage->Width()) - 3, 3, closeImage->Width(),
+                                              closeImage->Height(), this, kCloseId, 0x277cu, 0x277du,
+                                              GetPaintBackgroundIfOwned(), 0, 1);
+  if (m_closeButton) {
     m_closeButton->Create(0);
     DeleteBitmap(closeImage);
   }
@@ -154,14 +152,16 @@ void AdvisorPanel::OnCreate1()
 
 void AdvisorPanel::OnCommand(int a, int b, int c)
 {
-  if (static_cast<int16_t>(a) == static_cast<int16_t>(kCloseId))
+  if (static_cast<int16_t>(a) == static_cast<int16_t>(kCloseId)) {
     PostCloseRequest();
+  }
 }
 
 LRESULT AdvisorPanel::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (message == WM_LBUTTONUP)
-    InvalidateRect(m_hwnd, nullptr, FALSE);
+  if (message == WM_LBUTTONUP) {
+    reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+  }
   return CoolGameWindow::WindowProc(message, wParam, lParam);
 }
 
@@ -169,51 +169,44 @@ void AdvisorPanel::BuildFromResource(HMODULE module, uint32_t resourceId)
 {
   HDC memoryDc = nullptr;
   HGDIOBJ previousBitmap = nullptr;
-  HRSRC resource = FindResourceA(module, MAKEINTRESOURCEA(resourceId & 0xffff), MAKEINTRESOURCEA(kRcData));
-  if (resource)
-  {
-    HGLOBAL data = LoadResource(module, resource);
-    const auto* entry = static_cast<const uint16_t*>(LockResource(data));
+  HRSRC resource = reb::compat::FindResourceA(module, MAKEINTRESOURCEA(resourceId & 0xffff), MAKEINTRESOURCEA(kRcData));
+  if (resource) {
+    HGLOBAL data = reb::compat::LoadResource(module, resource);
+    const auto* entry = static_cast<const uint16_t*>(reb::compat::LockResource(data));
     const uint16_t width = entry[0];
     const uint16_t height = entry[1];
-    if (width < static_cast<uint16_t>(m_clientWidth) || height < static_cast<uint16_t>(m_clientHeight))
-    {
-      SetWindowPos(m_hwnd, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+    if (width < static_cast<uint16_t>(m_clientWidth) || height < static_cast<uint16_t>(m_clientHeight)) {
+      reb::compat::SetWindowPos(m_hwnd, nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
       m_width = m_clientWidth;
       m_height = m_clientHeight;
       DeleteBitmap(m_paintBackground);
-      if (m_remapTable)
+      if (m_remapTable) {
         ::operator delete(m_remapTable);
+      }
       m_paintBackground = NewOrNull<DibBitmap>(m_clientWidth, m_clientHeight, m_galaxy->m_offscreen);
       m_remapTable = m_paintBackground->BuildRemapTable(DimMenuColor);
     }
-    HDC window = GetDC(m_hwnd);
+    HDC window = reb::compat::GetDC(m_hwnd);
     m_layer = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), m_paintBackground, window);
-    memoryDc = CreateCompatibleDC(window);
-    previousBitmap = SelectObject(memoryDc, m_layer->DibSectionHandle());
-    ReleaseDC(m_hwnd, window);
+    memoryDc = reb::compat::CreateCompatibleDC(window);
+    previousBitmap = reb::compat::SelectObject(memoryDc, m_layer->DibSectionHandle());
+    reb::compat::ReleaseDC(m_hwnd, window);
     HMODULE entryModule = CoolAppGetResourceModule(entry[2]);
     const auto stringGroup = static_cast<int16_t>(entry[3]);
     entry += 4;
-    for (uint16_t kind = *entry; kind != 0; kind = *entry)
-    {
-      if (kind < 3)
-      {
+    for (uint16_t kind = *entry; kind != 0; kind = *entry) {
+      if (kind < 3) {
         const uint16_t x = entry[1];
         const uint16_t y = entry[2];
         const uint16_t bitmapId = entry[3];
         entry += 3;
-        if (bitmapId != 0)
-        {
-          if (auto* bitmap = NewOrNull<DibBitmap>(entryModule, static_cast<uint32_t>(bitmapId), kBitmapKind))
-          {
+        if (bitmapId != 0) {
+          if (auto* bitmap = NewOrNull<DibBitmap>(entryModule, static_cast<uint32_t>(bitmapId), kBitmapKind)) {
             bitmap->DrawKeyed(m_layer, x, y);
             DeleteBitmap(bitmap);
           }
         }
-      }
-      else if (kind == 3)
-      {
+      } else if (kind == 3) {
         uint16_t x = entry[1];
         uint16_t y = entry[2];
         const uint16_t stringId = entry[3];
@@ -222,15 +215,12 @@ void AdvisorPanel::BuildFromResource(HMODULE module, uint32_t resourceId)
         const uint16_t green = entry[6];
         const uint16_t blue = entry[7];
         entry += 7;
-        if (stringId != 0)
-        {
+        if (stringId != 0) {
           const ResourceStringId id = {static_cast<int16_t>(stringId), stringGroup};
-          if (auto* label = NewOrNull<CoolLabel>(&id, 0, 0, 0, 0, 0u, 0u))
-          {
+          if (auto* label = NewOrNull<CoolLabel>(&id, 0, 0, 0, 0, 0u, 0u)) {
             label->SetColor(((((blue & 0xff) | 0x200) << 8) | (green & 0xff)) << 8 | (red & 0xff), nullptr);
             label->SetFont(font);
-            if (y == 1)
-            {
+            if (y == 1) {
               label->m_width = width;
               label->m_layoutFlags = 1;
               label->m_drawFlags = 1;
@@ -246,11 +236,10 @@ void AdvisorPanel::BuildFromResource(HMODULE module, uint32_t resourceId)
       }
       ++entry;
     }
-    FreeResource(data);
+    reb::compat::FreeResource(data);
   }
-  if (memoryDc)
-  {
-    SelectObject(memoryDc, previousBitmap);
-    DeleteObject(memoryDc);
+  if (memoryDc) {
+    reb::compat::SelectObject(memoryDc, previousBitmap);
+    reb::compat::DeleteObject(memoryDc);
   }
 }

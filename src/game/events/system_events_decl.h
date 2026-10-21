@@ -1,6 +1,6 @@
 #pragma once
-// STAND-IN declarations: the system-side handlers (0x515c00-0x515f40, the "combat_strat" module) that events 0x303-0x31b
-// call, and the SideBits setter. Drop a declaration when the owning module's header provides it.
+// STAND-IN declarations: the system-side handlers (0x515c00-0x515f40, the "combat_strat" module) that events
+// 0x303-0x31b call, and the SideBits setter. Drop a declaration when the owning module's header provides it.
 #include <cstdint>
 
 #include "gameobj/object_key.h"

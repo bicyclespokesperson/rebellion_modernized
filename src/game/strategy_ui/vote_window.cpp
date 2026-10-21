@@ -21,7 +21,7 @@
 #include "strategy_ui/battle_in_progress_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
-#include "tactical/comm2.h"
+#include "multiplayer/comm_helpers.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -45,9 +45,9 @@ constexpr uint32_t kHelperBitmapKind = 10;
 constexpr int kAlliance = 1;
 constexpr uint32_t kMessageCategory = 3;
 
-constexpr int kFightButton = 0x65;
-constexpr int kRetreatButton = 0x66;
-constexpr int kResolveButton = 0x67;
+constexpr int kSimulateButton = 0x65;
+constexpr int kTakeCommandButton = 0x66;
+constexpr int kRetreatButton = 0x67;
 constexpr uint32_t kTabsId = 200;
 constexpr uint32_t kListId = 100;
 constexpr uint32_t kBannerChildId = 7;
@@ -72,15 +72,14 @@ constexpr int16_t kFacilitiesHeader = 0x1925;
 constexpr int16_t kAllianceHeader = 0x1923;
 constexpr int16_t kEmpireHeader = 0x1924;
 
-struct SideArt
-{
+struct SideArt {
   uint32_t m_backdrop;
   uint32_t m_listOverlay;
   uint32_t m_buttonOverlay;
   COLORREF m_color;
-  uint32_t m_fightNormal, m_fightPressed, m_fightDisabled;
+  uint32_t m_simulateNormal, m_simulatePressed, m_simulateDisabled;
+  uint32_t m_takeCommandNormal, m_takeCommandPressed, m_takeCommandDisabled;
   uint32_t m_retreatNormal, m_retreatPressed, m_retreatDisabled;
-  uint32_t m_resolveNormal, m_resolvePressed, m_resolveDisabled;
   int m_tabsX, m_tabsY, m_tabsWidth, m_tabsHeight;
   int m_tabWidth, m_tabHeight;
 };
@@ -90,8 +89,7 @@ constexpr SideArt kAllianceArt = {0x29d6, 0x29d8, 0x29da, 0xff,  0x29e2, 0x29e3,
 constexpr SideArt kEmpireArt = {0x29d7, 0x29d9, 0x29db, 0xff00, 0x29dc, 0x29dd, 0x29de, 0x29df, 0x29e0, 0x29e1,
                                 0x2adb, 0x2adc, 0x2add, 0x1aa,  0x11,   0x2c,   0xe9,   0x2c,   0x2d};
 
-struct TabArt
-{
+struct TabArt {
   int m_y;
   uint32_t m_normal;
   uint32_t m_pressed;
@@ -126,23 +124,17 @@ DibBitmap* NewBitmapLike(DibBitmap* model, HDC dc)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (bitmap)
+  if (bitmap) {
     delete bitmap;
+  }
 }
 
-CoolStrobeButton* NewVoteButton(VoteWindow* window,
-                                HMODULE module,
-                                int x,
-                                uint32_t childId,
-                                uint32_t normalId,
-                                uint32_t pressedId,
-                                uint32_t disabledId,
-                                int16_t tooltipId)
+CoolStrobeButton* NewVoteButton(VoteWindow* window, HMODULE module, int x, uint32_t childId, uint32_t normalId,
+                                uint32_t pressedId, uint32_t disabledId, int16_t tooltipId)
 {
-  auto* button = NewOrNull<CoolStrobeButton>(module, x, 0x128, 0x86, 0x1b, window, childId, normalId,
-                                                         pressedId, window->GetPaintBackgroundIfOwned(), 0, 0);
-  if (button)
-  {
+  auto* button = NewOrNull<CoolStrobeButton>(module, x, 0x128, 0x86, 0x1b, window, childId, normalId, pressedId,
+                                             window->GetPaintBackgroundIfOwned(), 0, 0);
+  if (button) {
     button->Create(0);
     button->LoadStateBitmap(2, disabledId);
     const ResourceStringId tooltip = StringId(tooltipId);
@@ -154,10 +146,9 @@ CoolStrobeButton* NewVoteButton(VoteWindow* window,
 void AddTab(VoteWindow* window, HMODULE module, const SideArt& art, const TabArt& tab, uint32_t tabId)
 {
   CoolTabControl* tabs = window->m_tabs;
-  auto* button = NewOrNull<CoolStrobeButton>(module, 0, tab.m_y, art.m_tabWidth, art.m_tabHeight, tabs,
-                                                         tabId, tab.m_normal, tab.m_pressed, tabs->m_background, 0, 0);
-  if (button)
-  {
+  auto* button = NewOrNull<CoolStrobeButton>(module, 0, tab.m_y, art.m_tabWidth, art.m_tabHeight, tabs, tabId,
+                                             tab.m_normal, tab.m_pressed, tabs->m_background, 0, 0);
+  if (button) {
     button->Create(0);
     button->SetClickSound(kClickSound);
     const ResourceStringId tooltip = StringId(tab.m_tooltip);
@@ -183,7 +174,7 @@ VoteFamilyRange::VoteFamilyRange(uint32_t first, uint32_t last)
 }
 
 VoteWindow::VoteWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, Notice2* notice)
-: CoolGameWindow(instance, 0, 0, kWidth, kHeight, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
+    : CoolGameWindow(instance, 0, 0, kWidth, kHeight, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
 {
   m_style = kStyle;
   m_notice = notice;
@@ -192,39 +183,44 @@ VoteWindow::VoteWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childI
   m_items = nullptr;
   m_tab = 0;
   m_tabs = nullptr;
-  m_fightButton = nullptr;
+  m_simulateButton = nullptr;
+  m_takeCommandButton = nullptr;
   m_retreatButton = nullptr;
-  m_resolveButton = nullptr;
   m_extra = nullptr;
   m_module = FindResourceModule(kGokresSlot);
-  if (!m_module)
-  {
+  if (!m_module) {
     char* dllLocation = GetDllLocation();
     m_module = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
 }
 
 VoteWindow::~VoteWindow()
 {
-  if (m_list)
+  if (m_list) {
     delete m_list;
-  if (m_items)
-  {
+  }
+  if (m_items) {
     m_items->Clear();
     delete m_items;
   }
-  if (m_tabs)
+  if (m_tabs) {
     delete m_tabs;
-  if (m_fightButton)
-    delete m_fightButton;
-  if (m_retreatButton)
+  }
+  if (m_simulateButton) {
+    delete m_simulateButton;
+  }
+  if (m_takeCommandButton) {
+    delete m_takeCommandButton;
+  }
+  if (m_retreatButton) {
     delete m_retreatButton;
-  if (m_resolveButton)
-    delete m_resolveButton;
-  if (m_extra)
+  }
+  if (m_extra) {
     delete m_extra;
+  }
 }
 
 void VoteWindow::OnCreate1()
@@ -237,9 +233,9 @@ void VoteWindow::OnCreate1()
   const TabArt* tabArt = alliance ? kAllianceTabs : kEmpireTabs;
 
   DibBitmap* frame = NewResourceBitmap(module, art.m_backdrop);
-  HDC windowDc = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(windowDc);
-  ReleaseDC(m_hwnd, windowDc);
+  HDC windowDc = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+  reb::compat::ReleaseDC(m_hwnd, windowDc);
 
   CoolLabel headline(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
   CoolLabel details(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
@@ -255,7 +251,7 @@ void VoteWindow::OnCreate1()
   DibBitmap* textBackground = NewBitmapLike(frame, dc);
   listOverlay->Blit(textBackground, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(textBackground, 0, 0);
-  HGDIOBJ previous = SelectObject(dc, textBackground->DibSectionHandle());
+  HGDIOBJ previous = reb::compat::SelectObject(dc, textBackground->DibSectionHandle());
   headline.Draw(dc);
   details.SetText(m_notice->m_text60.c_str());
   details.m_layoutFlags = kLabelFixedWidth;
@@ -276,19 +272,18 @@ void VoteWindow::OnCreate1()
   DibBitmap* listBackground = NewBitmapLike(frame, dc);
   buttonOverlay->Blit(listBackground, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(listBackground, 0, 0);
-  SelectObject(dc, listBackground->DibSectionHandle());
+  reb::compat::SelectObject(dc, listBackground->DibSectionHandle());
   headline.Draw(dc);
   AddOverlay(listBackground, kListBackground);
   DeleteBitmap(frame);
   DeleteBitmap(buttonOverlay);
-  SelectObject(dc, previous);
-  DeleteDC(dc);
+  reb::compat::SelectObject(dc, previous);
+  reb::compat::DeleteDC(dc);
 
   m_items = NewOrNull<CoolListItemList>(4);
   m_list = NewOrNull<CoolDragList>(instance, 0x53, 0x28, 0x100, 0xea, this, FindOverlayBitmap(kListBackground), kListId,
                                    0xf0, 0x28, 0, 0, 0, 0, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_options.m_value = 0x30000;
     m_list->m_style &= ~0x10000000u;
     m_list->Create(0);
@@ -301,23 +296,24 @@ void VoteWindow::OnCreate1()
 
   m_tabs = NewOrNull<CoolTabControl>(module, art.m_tabsX, art.m_tabsY, art.m_tabsWidth, art.m_tabsHeight, kTabsId, this,
                                      GetPaintBackgroundIfOwned());
-  if (m_tabs)
-  {
+  if (m_tabs) {
     m_tabs->Create(0);
-    for (uint32_t index = 0; index < 4; ++index)
+    for (uint32_t index = 0; index < 4; ++index) {
       AddTab(this, module, art, tabArt[index], index + 1);
+    }
   }
 
-  m_fightButton =
-    NewVoteButton(this, module, 0x92, kFightButton, art.m_fightNormal, art.m_fightPressed, art.m_fightDisabled, 0x1926);
-  m_retreatButton = NewVoteButton(this, module, 0x118, kRetreatButton, art.m_retreatNormal, art.m_retreatPressed,
-                                  art.m_retreatDisabled, 0x1927);
-  m_resolveButton = NewVoteButton(this, module, 0xc, kResolveButton, art.m_resolveNormal, art.m_resolvePressed,
-                                  art.m_resolveDisabled, 0x194a);
-  if (m_notice->m_attack == 0)
-    m_resolveButton->Disable();
-  else
-    m_resolveButton->Enable();
+  m_simulateButton = NewVoteButton(this, module, 0x92, kSimulateButton, art.m_simulateNormal, art.m_simulatePressed,
+                                   art.m_simulateDisabled, 0x1926);
+  m_takeCommandButton = NewVoteButton(this, module, 0x118, kTakeCommandButton, art.m_takeCommandNormal,
+                                      art.m_takeCommandPressed, art.m_takeCommandDisabled, 0x1927);
+  m_retreatButton = NewVoteButton(this, module, 0xc, kRetreatButton, art.m_retreatNormal, art.m_retreatPressed,
+                                  art.m_retreatDisabled, 0x194a);
+  if (m_notice->m_attack == 0) {
+    m_retreatButton->Disable();
+  } else {
+    m_retreatButton->Enable();
+  }
 
   SetTab(1);
   PlayAdviceMusic(alliance ? 10 : 0xb);
@@ -328,17 +324,16 @@ void VoteWindow::OnCreate1()
 void VoteWindow::OnCommand(int a, int b, int c)
 {
   int choice, timed;
-  switch (static_cast<int16_t>(a))
-  {
-    case kFightButton:
+  switch (static_cast<int16_t>(a)) {
+    case kSimulateButton:
       timed = 0;
       choice = 1;
       break;
-    case kRetreatButton:
+    case kTakeCommandButton:
       timed = 0;
       choice = 0;
       break;
-    case kResolveButton:
+    case kRetreatButton:
       timed = 1;
       choice = 1;
       break;
@@ -361,16 +356,17 @@ void VoteWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 
 void VoteWindow::SetTab(int tab)
 {
-  if (tab == m_tab)
+  if (tab == m_tab) {
     return;
+  }
   m_items->Clear();
-  switch (tab)
-  {
+  switch (tab) {
     case 1:
       m_list->Hide();
       SetPaintBackgroundById(kTextBackground);
-      if (m_extra)
+      if (m_extra) {
         m_extra->Show(kShow);
+      }
       break;
     case 2:
     case 3:
@@ -378,16 +374,18 @@ void VoteWindow::SetTab(int tab)
       FillList(tab - 1);
       m_list->Refresh();
       m_list->Show(kShow);
-      if (m_extra)
+      if (m_extra) {
         m_extra->Hide();
+      }
       break;
     case 4:
       SetPaintBackgroundById(kListBackground);
       FillList(0);
       m_list->Refresh();
       m_list->Show(kShow);
-      if (m_extra)
+      if (m_extra) {
         m_extra->Hide();
+      }
       break;
   }
   m_tab = tab;
@@ -401,15 +399,14 @@ void VoteWindow::FillList(int page)
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
 
   std::string title;
-  const ResourceStringId headerId = StringId(page == 0 ? kFacilitiesHeader :
-                                             page == 1 ? kAllianceHeader :
-                                                         kEmpireHeader);
+  const ResourceStringId headerId = StringId(page == 0   ? kFacilitiesHeader
+                                             : page == 1 ? kAllianceHeader
+                                                         : kEmpireHeader);
   title = LoadStringResource(&headerId);
   SetHeaderLook(header, kHeaderFont, title.c_str());
   m_items->Insert(header);
 
-  if (page == 0)
-  {
+  if (page == 0) {
     FacilityIterator facilities(system, kStateUsable);
     AddItems(&facilities, VoteFamilyRange(0, 0), 0);
     TroopRegIterator troops(system, kStateUsable);
@@ -420,12 +417,10 @@ void VoteWindow::FillList(int page)
   }
 
   FleetIterator fleets(system, kStateUsable, page);
-  for (fleets.Begin(); fleets.Current(); fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
     AddItem(fleets.Current(), kFleetFont, 0, 0);
     CapShipIterator ships(fleets.Current(), kStateUsable);
-    for (ships.Begin(); ships.Current(); ships.Advance())
-    {
+    for (ships.Begin(); ships.Current(); ships.Advance()) {
       GameObjNotifier* ship = ships.Current();
       AddItem(ship, kFleetFont, 0, 1);
       FightSquadIterator squadrons(ship, kStateUsable);
@@ -438,8 +433,7 @@ void VoteWindow::FillList(int page)
   }
 
   FightSquadIterator defenders(system, kStateUsable, page);
-  if (defenders.Count() != 0)
-  {
+  if (defenders.Count() != 0) {
     ObjectKey key;
     auto* item = NewOrNull<ObjectListItem>(GetObjectKey(system, &key));
     item->m_text = static_cast<GameObj*>(system)->GetName()->c_str();
@@ -454,13 +448,13 @@ void VoteWindow::FillList(int page)
 void VoteWindow::AddItems(ChildIterator* objects, VoteFamilyRange families, int widePicture)
 {
   const bool acceptAll = families.m_first == 0 && families.m_last == 0;
-  for (objects->Begin(); objects->Current(); objects->Advance())
-  {
+  for (objects->Begin(); objects->Current(); objects->Advance()) {
     ObjectKey key;
     GetObjectKey(objects->Current(), &key);
     const uint32_t family = key.Family();
-    if (acceptAll || (family >= families.m_first && family < families.m_last))
+    if (acceptAll || (family >= families.m_first && family < families.m_last)) {
       AddItem(objects->Current(), kObjectFont, widePicture, 1);
+    }
   }
 }
 
@@ -470,14 +464,12 @@ void VoteWindow::AddItem(GameObjNotifier* object, int fontSlot, int widePicture,
   ObjectKey itemKey;
   auto* item = NewOrNull<ObjectListItem>(GetObjectKey(object, &itemKey));
   item->m_textFormat = 1;
-  if (withPicture)
-  {
+  if (withPicture) {
     ObjectKey pictureKey;
     DibBitmap* picture = CreateObjectPicture(m_module, GetObjectKey(object, &pictureKey), object, 0, 1);
     item->m_textOffsetX = kPictureOffset;
     image = picture;
-    if (widePicture)
-    {
+    if (widePicture) {
       const int height = picture->Height();
       const int width = picture->Width();
       auto* wide = NewOrNull<DibBitmap>(width + kWidePictureExtra, height, picture);
@@ -501,26 +493,25 @@ void VoteWindow::AddItem(GameObjNotifier* object, int fontSlot, int widePicture,
 
 void VoteWindow::ShowButtons(int which, int disabled)
 {
-  CoolStrobeButton* button = which == 0 ? m_fightButton : m_retreatButton;
-  if (disabled)
-  {
+  CoolStrobeButton* button = which == 0 ? m_simulateButton : m_takeCommandButton;
+  if (disabled) {
     button->Disable();
-    m_resolveButton->Disable();
+    m_retreatButton->Disable();
     return;
   }
   button->Enable();
-  if (m_notice->m_attack != 0)
-    m_resolveButton->Enable();
-  else
-    m_resolveButton->Disable();
+  if (m_notice->m_attack != 0) {
+    m_retreatButton->Enable();
+  } else {
+    m_retreatButton->Disable();
+  }
 }
 
 void VoteWindow::OpenBattleBanner()
 {
   EndPopup();
   auto* banner = NewOrNull<BattleInProgressWindow>(m_instance, m_galaxy, kBannerChildId);
-  if (banner)
-  {
+  if (banner) {
     banner->Create(0);
     banner->ShowAndTrack(kShow);
     m_galaxy->m_children.Insert(banner);

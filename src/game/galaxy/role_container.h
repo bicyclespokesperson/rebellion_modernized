@@ -14,28 +14,30 @@
 // 37 CreateViews (shared stub 0x5774f0), 57 CreateViewObject.
 class RoleContainer : public GameObj
 {
-public:
-  RoleContainer(); // 0x577050
+  public:
+  RoleContainer();           // 0x577050
   ~RoleContainer() override; // 0x577070 (scalar deleting), 0x577090
 
-  uint32_t GetFamily() override; // 1, 0x577520: 0x98
-  int GetOwnerKey(ObjectKey* out) override; // 3, 0x577130: its own key
-  int Read(istream* in) override; // 5, shared stub 0x569840
-  int Write(ostream* out) override; // 6, shared stub 0x569850
-  int Checksum(Crc32* crc) override; // 7, shared stub 0x569860
-  int Validate() override; // 8, 0x577510 (jump stub to ValidateImpl)
-  int ApplyAll(NotifyContext* ctx) override; // 9, shared with GameRoot (0x513f20)
-  int SetRecord(DatRecord* record) override; // 10, 0x50e1c0 (shared with Character)
+  uint32_t GetFamily() override;                             // 1, 0x577520: 0x98
+  int GetOwnerKey(ObjectKey* out) override;                  // 3, 0x577130: its own key
+  int Read(istream* in) override;                            // 5, shared stub 0x569840
+  int Write(ostream* out) override;                          // 6, shared stub 0x569850
+  int Checksum(Crc32* crc) override;                         // 7, shared stub 0x569860
+  int Validate() override;                                   // 8, 0x577510 (jump stub to ValidateImpl)
+  int ApplyAll(NotifyContext* ctx) override;                 // 9, shared with GameRoot (0x513f20)
+  int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0 (shared with Character)
   int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x577190
   int ShouldRetainWhenDestroyed() override
   {
     return 1;
   } // 16, shared 0x40f340
   int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x5771b0
-  int CheckIncomingUnitOrder(int side, int argument, int kind, intptr_t range, StatusCode* out) override; // 29, 0x577270
-  int GetIncomingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited, int* remaining, StatusCode* out) override; // 30, 0x5773b0
+  int CheckIncomingUnitOrder(int side, int argument, int kind, intptr_t range,
+                             StatusCode* out) override; // 29, 0x577270
+  int GetIncomingUnitCapacity(const FamilyRange* range, int stateFilter, int* allowed, int* unlimited, int* remaining,
+                              StatusCode* out) override;         // 30, 0x5773b0
   int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, 0x5774f0
-  GameObj* CreateViewObject() override; // 57, 0x577480
+  GameObj* CreateViewObject() override;                          // 57, 0x577480
 
   int ValidateImpl(); // 0x5775a0
   // Walks the container's characters (usable or en route) and reports 0 of them in *out; always 1. The two
@@ -43,7 +45,7 @@ public:
   int CountCharacterChildren(int* out, int unused1, int unused2); // 0x5770b0
 
   // The event-kind set of RoleContainer (g_roleContainerEventKinds, 0x6bbb40): an empty set, made on first use.
-  static int BuildEventKinds(); // 0x577740
+  static int BuildEventKinds();     // 0x577740
   static GameObjNotifier* Create(); // 0x577530, the object factory of family 0x98
 };
 

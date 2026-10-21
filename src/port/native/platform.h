@@ -30,12 +30,14 @@ std::string BundledFontDir();
 // Operating-system identifier of the calling thread (kernel32 GetCurrentThreadId).
 uint32_t CurrentThreadId();
 
+// Runs the calling (audio or video) thread slightly above normal priority where the OS allows it.
+void RaiseCurrentThreadPriority();
+
 // Names the calling thread for debuggers and profilers (the two OSes take different pthread_setname_np forms).
 void SetCurrentThreadName(const char* name);
 
 #if !defined(_WIN32)
-struct FileTimestamps
-{
+struct FileTimestamps {
   timespec modified;
   timespec accessed;
   timespec created;

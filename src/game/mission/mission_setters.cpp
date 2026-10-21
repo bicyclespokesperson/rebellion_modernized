@@ -17,10 +17,10 @@ int Mission::SetUserId(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int valid = 0;
-  if (master)
+  if (master) {
     valid = IsInRange(value, 0, value, "Invalid UserID value!");
-  if (valid && m_userId != value)
-  {
+  }
+  if (valid && m_userId != value) {
     const int oldValue = m_userId;
     m_userId = value;
     ViewAsMission(kAllianceView)->ApplyUserId(ctx);
@@ -34,10 +34,10 @@ int Mission::SetUserId2(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int valid = 0;
-  if (master)
+  if (master) {
     valid = IsInRange(value, 0, value, "Invalid UserID2 value!");
-  if (valid && m_userId2 != value)
-  {
+  }
+  if (valid && m_userId2 != value) {
     const int oldValue = m_userId2;
     m_userId2 = value;
     ViewAsMission(kAllianceView)->ApplyUserId2(ctx);
@@ -51,10 +51,10 @@ int Mission::SetTaskStatus(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int valid = 0;
-  if (master)
+  if (master) {
     valid = IsInRange(value, 0, kTaskStatusMax, "Invalid TaskStatus value!");
-  if (valid && m_taskStatus != value)
-  {
+  }
+  if (valid && m_taskStatus != value) {
     const int oldValue = m_taskStatus;
     m_taskStatus = value;
     ViewAsMission(kAllianceView)->ApplyTaskStatus(ctx);
@@ -68,10 +68,10 @@ int Mission::SetCompletionStatus(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int valid = 0;
-  if (master)
+  if (master) {
     valid = IsInRange(value, kCompletionStatusMin, kCompletionStatusMax, "Invalid CompletionStatus value!");
-  if (valid && m_completionStatus != value)
-  {
+  }
+  if (valid && m_completionStatus != value) {
     const int oldValue = m_completionStatus;
     m_completionStatus = value;
     ViewAsMission(kAllianceView)->ApplyCompletionStatus(ctx);
@@ -85,10 +85,10 @@ int Mission::SetPhase(int value, NotifyContext* ctx)
 {
   const int master = IsMasterView();
   int valid = 0;
-  if (master)
+  if (master) {
     valid = IsInRange(value, mission_phase::kMin, mission_phase::kMax, "Invalid Phase value!");
-  if (valid && m_phase != value)
-  {
+  }
+  if (valid && m_phase != value) {
     const int oldValue = m_phase;
     m_phase = value;
     ViewAsMission(kAllianceView)->ApplyPhase(ctx);
@@ -98,19 +98,18 @@ int Mission::SetPhase(int value, NotifyContext* ctx)
   return valid;
 }
 
-#define REB_MISSION_KEY_SETTER(Name, field)                  \
-  int Mission::Set##Name(ObjectKey* key, NotifyContext* ctx) \
-  {                                                          \
-    const int master = IsMasterView();                       \
-    if (master && field.m_value != key->m_value)             \
-    {                                                        \
-      ObjectKey oldKey(field);                               \
-      field = *key;                                          \
-      ViewAsMission(kAllianceView)->Apply##Name(ctx);        \
-      ViewAsMission(kEmpireView)->Apply##Name(ctx);          \
-      On##Name##Changed(&oldKey, &field, ctx);               \
-    }                                                        \
-    return master;                                           \
+#define REB_MISSION_KEY_SETTER(Name, field)                                                                            \
+  int Mission::Set##Name(ObjectKey* key, NotifyContext* ctx)                                                           \
+  {                                                                                                                    \
+    const int master = IsMasterView();                                                                                 \
+    if (master && field.m_value != key->m_value) {                                                                     \
+      ObjectKey oldKey(field);                                                                                         \
+      field = *key;                                                                                                    \
+      ViewAsMission(kAllianceView)->Apply##Name(ctx);                                                                  \
+      ViewAsMission(kEmpireView)->Apply##Name(ctx);                                                                    \
+      On##Name##Changed(&oldKey, &field, ctx);                                                                         \
+    }                                                                                                                  \
+    return master;                                                                                                     \
   }
 
 REB_MISSION_KEY_SETTER(OriginLocationKey, m_originLocationKey)
@@ -123,8 +122,7 @@ REB_MISSION_KEY_SETTER(LeaderKey, m_leaderKey)
 int Mission::SetLeaderSeedKey(NullableKey* key, NotifyContext* ctx)
 {
   const int master = IsMasterView();
-  if (master && m_leaderSeedKey.m_value != key->m_value)
-  {
+  if (master && m_leaderSeedKey.m_value != key->m_value) {
     NullableKey oldKey = m_leaderSeedKey;
     m_leaderSeedKey = *key;
     ViewAsMission(kAllianceView)->ApplyLeaderSeedKey(ctx);
@@ -134,19 +132,18 @@ int Mission::SetLeaderSeedKey(NullableKey* key, NotifyContext* ctx)
   return master;
 }
 
-#define REB_MISSION_SET_SETTER(Name, field)                          \
-  int Mission::Set##Name(ObjectKeyValueSet* set, NotifyContext* ctx) \
-  {                                                                  \
-    const int master = IsMasterView();                               \
-    if (master && field != *set)                                     \
-    {                                                                \
-      ObjectKeyValueSet oldSet(field);                               \
-      field = *set;                                                  \
-      ViewAsMission(kAllianceView)->Apply##Name(ctx);                \
-      ViewAsMission(kEmpireView)->Apply##Name(ctx);                  \
-      On##Name##Changed(&oldSet, &field, ctx);                       \
-    }                                                                \
-    return master;                                                   \
+#define REB_MISSION_SET_SETTER(Name, field)                                                                            \
+  int Mission::Set##Name(ObjectKeyValueSet* set, NotifyContext* ctx)                                                   \
+  {                                                                                                                    \
+    const int master = IsMasterView();                                                                                 \
+    if (master && field != *set) {                                                                                     \
+      ObjectKeyValueSet oldSet(field);                                                                                 \
+      field = *set;                                                                                                    \
+      ViewAsMission(kAllianceView)->Apply##Name(ctx);                                                                  \
+      ViewAsMission(kEmpireView)->Apply##Name(ctx);                                                                    \
+      On##Name##Changed(&oldSet, &field, ctx);                                                                         \
+    }                                                                                                                  \
+    return master;                                                                                                     \
   }
 
 REB_MISSION_SET_SETTER(Team, m_team)
@@ -155,17 +152,16 @@ REB_MISSION_SET_SETTER(Captured, m_captured)
 REB_MISSION_SET_SETTER(FinishedMembers, m_finishedMembers)
 #undef REB_MISSION_SET_SETTER
 
-#define REB_MISSION_FLAG_SETTER(Name, mask)               \
-  int Mission::Set##Name(int value, NotifyContext* ctx)   \
-  {                                                       \
-    const int master = IsMasterView();                    \
-    if (master && UpdateFlagBit(mask, value, &m_flagsA4)) \
-    {                                                     \
-      ViewAsMission(kAllianceView)->Apply##Name(ctx);     \
-      ViewAsMission(kEmpireView)->Apply##Name(ctx);       \
-      On##Name##Changed(value, ctx);                      \
-    }                                                     \
-    return master;                                        \
+#define REB_MISSION_FLAG_SETTER(Name, mask)                                                                            \
+  int Mission::Set##Name(int value, NotifyContext* ctx)                                                                \
+  {                                                                                                                    \
+    const int master = IsMasterView();                                                                                 \
+    if (master && UpdateFlagBit(mask, value, &m_flagsA4)) {                                                            \
+      ViewAsMission(kAllianceView)->Apply##Name(ctx);                                                                  \
+      ViewAsMission(kEmpireView)->Apply##Name(ctx);                                                                    \
+      On##Name##Changed(value, ctx);                                                                                   \
+    }                                                                                                                  \
+    return master;                                                                                                     \
   }
 
 REB_MISSION_FLAG_SETTER(ReadyForNextPhase, mission_flag::kReadyForNextPhase)

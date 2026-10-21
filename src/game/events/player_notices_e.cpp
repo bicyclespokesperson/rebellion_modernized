@@ -31,7 +31,8 @@ bool dagobahDone(GameObjNotifier* luke)
 
 // ---- Notice21 (kind 21) ----
 
-Notice21::Notice21() : UiKeyNotice()
+Notice21::Notice21()
+    : UiKeyNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
@@ -39,7 +40,8 @@ Notice21::Notice21() : UiKeyNotice()
   m_unk40 = 0;
 }
 
-Notice21::Notice21(const AiNoticeGroup* payloads, int owner) : UiKeyNotice(owner)
+Notice21::Notice21(const AiNoticeGroup* payloads, int owner)
+    : UiKeyNotice(owner)
 {
   m_unk40 = 0;
   m_categories = GetCategories();
@@ -67,17 +69,17 @@ UiNotice* Notice21::CreateEmptyNotice()
 
 void Notice21::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 2)
-  {
-    if (kind != 0x182)
+  if (kind != 2) {
+    if (kind != 0x182) {
       return;
+    }
     GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_owner, reinterpret_cast<const ObjectKey*>(a));
-    if (!fleet)
+    if (!fleet) {
       return;
+    }
     DeathStarIterator it(fleet, 3);
     it.Begin();
-    if (it.Current())
-    {
+    if (it.Current()) {
       ObjectKey key;
       it.Current()->GetKey(&key);
       m_subject = ObjectKey(key);
@@ -87,33 +89,36 @@ void Notice21::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
   }
   GetSideObject(m_owner, 2);
   GameObjNotifier* side = nullptr;
-  if (m_f64 == 1)
+  if (m_f64 == 1) {
     side = GetSideObject(m_owner, 1);
-  else if (m_f64 == 2)
+  } else if (m_f64 == 2) {
     side = GetSideObject(m_owner, 2);
+  }
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_key);
   GameObjNotifier* unit = GetObjectInFamilies_01_ff(m_owner, &m_subject);
   ExpandMessageTemplate(&m_text0, 0x70c8, notice::nameOf(unit), notice::nameOf(system), nullptr, nullptr);
-  if (!side)
+  if (!side) {
     ExpandMessageTemplate(&m_text1, 0x70ca, notice::nameOf(unit), notice::nameOf(system), nullptr, nullptr);
-  else
+  } else {
     ExpandMessageTemplate(&m_text1, 0x70c9, notice::nameOf(side), notice::nameOf(unit), notice::nameOf(system),
                           nullptr);
+  }
   m_value = 0x6f;
 }
 
 void Notice21::OnObjectAndTwoValuesPayload(int kind, intptr_t a, intptr_t b, intptr_t c)
 {
-  if (kind != 0x14f)
+  if (kind != 0x14f) {
     return;
+  }
   GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, reinterpret_cast<const ObjectKey*>(a));
-  if (!system)
+  if (!system) {
     return;
+  }
   ObjectKey key;
   system->GetKey(&key);
   m_key = ObjectKey(key);
-  if (b == 0)
-  {
+  if (b == 0) {
     m_unk40 = 1;
     return;
   }
@@ -138,14 +143,16 @@ void Notice21::Write(ostream* out)
 
 // ---- Notice20 (kind 20) ----
 
-Notice20::Notice20() : UiTextNotice()
+Notice20::Notice20()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
   m_unk40 = 0;
 }
 
-Notice20::Notice20(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice20::Notice20(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -168,71 +175,62 @@ UiNotice* Notice20::CreateEmptyNotice()
 void Notice20::OnPayload(int kind, intptr_t payload)
 {
   ObjectKey characterKey;
-  if (kind != 0x200)
+  if (kind != 0x200) {
     return;
+  }
   const auto* notif = reinterpret_cast<const UiNotif200*>(payload);
   characterKey = ObjectKey(notif->m_key);
   ObjectKey missionKey(notif->m_missionKey);
   GameObjNotifier* character = GetObjectInFamilies_01_ff(m_owner, &characterKey);
   GameObjNotifier* place = nullptr;
   bool showName = true;
-  if (m_f64 == 0)
-  {
+  if (m_f64 == 0) {
     m_f64 = 1;
     m_picture[1] = (m_owner != 1) + 0x412;
     m_sound[0] = (m_owner != 1) + 0x47c;
   }
-  if (!character || notif->m_valueB != 0 || (static_cast<GameObj*>(character)->m_stateFlags & 0x20) != 0)
-  {
+  if (!character || notif->m_valueB != 0 || (static_cast<GameObj*>(character)->m_stateFlags & 0x20) != 0) {
     m_unk40 = 0;
-  }
-  else
-  {
+  } else {
     GameObjNotifier* walker = character->m_parent;
-    do
-    {
-      if (!walker)
+    do {
+      if (!walker) {
         break;
+      }
       ObjectKey walkerKey;
       walker->GetKey(&walkerKey);
       GameObjNotifier* candidate = walker;
-      if (!notice::inFamilies(walkerKey, 0x90, 0x98))
-      {
+      if (!notice::inFamilies(walkerKey, 0x90, 0x98)) {
         walker->GetKey(&walkerKey);
         candidate = place;
-        if (notice::inFamilies(walkerKey, 0x98, 0xa0))
-        {
+        if (notice::inFamilies(walkerKey, 0x98, 0xa0)) {
           walker = nullptr;
           m_unk40 = 0;
-        }
-        else
-        {
+        } else {
           walker = walker->m_parent;
         }
       }
       place = candidate;
     } while (!place);
     m_unk40 = place ? 1 : 0;
-    if (!notice::inFamilies(missionKey, 0x40, 0x50))
+    if (!notice::inFamilies(missionKey, 0x40, 0x50)) {
       m_unk40 = 0;
+    }
     ObjectKey recordKey;
-    if (GetObjectRecordKey(character, &recordKey)->m_value == 0x3c000009)
+    if (GetObjectRecordKey(character, &recordKey)->m_value == 0x3c000009) {
       m_unk40 = 0;
+    }
   }
-  if (m_unk40 != 0)
-  {
-    if (notif->m_leadsMission != 0)
-    {
+  if (m_unk40 != 0) {
+    if (notif->m_leadsMission != 0) {
       m_unitKey = ObjectKey(characterKey);
       m_key = ObjectKey(characterKey);
-      if (notice::inFamilies(m_unitKey, 0x30, 0x38))
-      {
+      if (notice::inFamilies(m_unitKey, 0x30, 0x38)) {
         ExpandMessageTemplate(&m_text0, 0x70c1, notice::nameOf(character), notice::nameOf(place), nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, m_f78 < 2 ? 0x70c5 : 0x70c4, notice::nameOf(character), notice::nameOf(place),
                               nullptr, nullptr);
         showName = false;
-        switch (m_unitKey.m_value & 0xffffff)
-        {
+        switch (m_unitKey.m_value & 0xffffff) {
           case 0x240:
             m_unk28 = 0x17;
             m_sound[1] = AdvisorPickAdviceLine(0xf0);
@@ -258,40 +256,42 @@ void Notice20::OnPayload(int kind, intptr_t payload)
             m_sound[1] = AdvisorPickAdviceLine(0xfa);
             break;
         }
-      }
-      else
-      {
+      } else {
         ExpandMessageTemplate(&m_text0, 0x70c0, notice::nameOf(character), notice::nameOf(place), nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, 0x70c3, notice::nameOf(character), notice::nameOf(place), nullptr, nullptr);
         m_unk28 = 0x15;
       }
       uint32_t family = character->GetFamily();
-      if (family >= 0x30 && family < 0x3c)
+      if (family >= 0x30 && family < 0x3c) {
         m_picture[0] = AdvisorRecordTypeResource(static_cast<GameObj*>(character));
+      }
     }
-    if (m_unk40 != 0 && showName)
+    if (m_unk40 != 0 && showName) {
       ExpandMessageTemplate(&m_name, 0x70c2, notice::nameOf(character), notice::nameOf(place), nullptr, nullptr);
+    }
   }
-  if (!m_key.IsSet())
+  if (!m_key.IsSet()) {
     m_unk40 = 0;
+  }
 }
 
 int Notice20::DispatchPayloads(const AiNoticeGroup* payloads)
 {
   int result = 1;
   m_unk28 = 0x14;
-  if (!payloads)
+  if (!payloads) {
     return 0;
+  }
   m_f78 = CountUnscheduled(payloads);
-  for (const auto& node : payloads->Entries())
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(this);
-  if (m_unk40 != 0)
-  {
-    if (m_picture[0] == 0 && notice::inFamilies(m_unitKey, 0x3c, 0x40))
-    {
+  }
+  if (m_unk40 != 0) {
+    if (m_picture[0] == 0 && notice::inFamilies(m_unitKey, 0x3c, 0x40)) {
       GameObjNotifier* unit = GetObjectInFamilies_01_ff(m_owner, &m_unitKey);
-      if (unit)
+      if (unit) {
         m_picture[1] = AdvisorRecordTypeResource(static_cast<GameObj*>(unit));
+      }
     }
     std::string suffix(m_name.c_str());
     m_text1 += suffix;
@@ -302,11 +302,11 @@ int Notice20::DispatchPayloads(const AiNoticeGroup* payloads)
 int Notice20::CountUnscheduled(const AiNoticeGroup* payloads)
 {
   int count = 0;
-  for (const auto& node : payloads->Entries())
-  {
+  for (const auto& node : payloads->Entries()) {
     NotifPayload* payload = node.get();
-    if (payload->GetKind() == 0x200 && static_cast<IntPairPayload*>(payload)->m_valueB == 0)
+    if (payload->GetKind() == 0x200 && static_cast<IntPairPayload*>(payload)->m_valueB == 0) {
       ++count;
+    }
   }
   return count;
 }

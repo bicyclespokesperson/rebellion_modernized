@@ -6,7 +6,7 @@
 // DirectPlay 6 (IDirectPlay2A through platform/dplay.h) for the session and its players; the methods that call
 // DirectPlay are in comm_dplay.cpp, the protocol is in comm_mgr.cpp.
 //
-// The game talks to it through the thin wrappers of tactical/comm2.h; the lobby (MultiPlayerWindow) also uses the
+// The game talks to it through the thin wrappers of multiplayer/comm_helpers.h; the lobby (MultiPlayerWindow) also uses the
 // session functions. Player indices run 0..15 (one nibble of a packet id): index 0xf is the broadcast buffer.
 #include <cstdint>
 #include <map>
@@ -20,17 +20,15 @@
 #include "platform/win32.h"
 
 // Notification codes posted to the owner window (message 0x40c, wParam = code, lParam = player index).
-enum CommNotify : int
-{
-  kCommPlayerLeft = 1, // DeactivatePlayer: a player was dropped
-  kCommPlayerLost = 3, // no packet from the other side for 90 seconds
+enum CommNotify : int {
+  kCommPlayerLeft = 1,   // DeactivatePlayer: a player was dropped
+  kCommPlayerLost = 3,   // no packet from the other side for 90 seconds
   kCommSessionEnded = 4, // the session is gone (quit message, failed send, last opponent left)
 };
 constexpr UINT kCommNotifyMessage = 0x40c;
 
 // Result codes of the session functions.
-enum CommResult : int
-{
+enum CommResult : int {
   kCommOk = 0,
   kCommNotConnected = 1, // no DirectPlay session
   kCommBadParameter = 3,
@@ -50,8 +48,8 @@ enum CommResult : int
 
 class CommMgr
 {
-public:
-  CommMgr(); // 0x5f8410
+  public:
+  CommMgr();  // 0x5f8410
   ~CommMgr(); // 0x5f8740
 
   // ---- messages --------------------------------------------------------------------------------------------
@@ -89,12 +87,12 @@ public:
   void PingOpponents(); // 0x5fa400
 
   // The name the other players see.
-  void SetPlayerName(std::string name); // 0x5974e0 (tactical/comm2.cpp)
+  void SetPlayerName(std::string name); // 0x5974e0 (multiplayer/comm_helpers.cpp)
 
   // ---- players ---------------------------------------------------------------------------------------------
-  int GetLastLatency() const; // 0x5f8400
-  int GetLocalIndex() const; // 0x5f88c0
-  uint32_t GetEnumeratedCount() const; // 0x5f8a20
+  int GetLastLatency() const;            // 0x5f8400
+  int GetLocalIndex() const;             // 0x5f88c0
+  uint32_t GetEnumeratedCount() const;   // 0x5f8a20
   uint32_t GetPlayerId(int index) const; // 0x5f8ff0 DirectPlay id of the player
   // Index of the player with DirectPlay id `id` (0xffffffff if none).
   uint32_t FindPlayerIndex(uint32_t id) const; // 0x5f9000
@@ -113,11 +111,11 @@ public:
   uint32_t ResetPlayerList(); // 0x5f8a30
   // The service providers DirectPlay offers (the lobby's first list).
   ServiceProviderList* EnumerateServiceProviders(); // 0x5f9eb0
-  int OpenProvider(ServiceProviderInfo* provider); // 0x5f9ee0 (kCommBadParameter without a provider)
-  int HostNewSession(const char* sessionName); // 0x5f9f70
+  int OpenProvider(ServiceProviderInfo* provider);  // 0x5f9ee0 (kCommBadParameter without a provider)
+  int HostNewSession(const char* sessionName);      // 0x5f9f70
   // The sessions a joined provider offers (g_sessionList); *status gets a CommResult.
   SessionList* GetSessionList(uint32_t timeoutMs, int* status); // 0x5fa050
-  int JoinSession(SessionInfo* session); // 0x5fa180
+  int JoinSession(SessionInfo* session);                        // 0x5fa180
   // After the session was opened: creates the local player and lists the players.
   int StartPlayerCreation(); // 0x5fa270
   // Fills a DPSESSIONDESC2 for Open/CreateSession; kCommNameRequired when creating without a name.
@@ -128,48 +126,47 @@ public:
   // ---- state -----------------------------------------------------------------------------------------------
   std::map<uint32_t, std::unique_ptr<CommPacket>> m_pending; // CommPackets by id: everything queued and not yet settled
   std::map<uint32_t, std::unique_ptr<ReceivedPacket>> m_received; // ReceivedPackets by packet ID
-  std::set<uint32_t> m_seen; // packet IDs delivered already
-  int m_isHost; // +0x24
-  int m_clientMode; // +0x28 1 after Init
-  HWND m_notifyWindow; // +0x2c
-  HANDLE m_receiveEvent; // +0x30 signalled by DirectPlay when a message arrives
+  std::set<uint32_t> m_seen;                                      // packet IDs delivered already
+  int m_isHost;                                                   // +0x24
+  int m_clientMode;                                               // +0x28 1 after Init
+  HWND m_notifyWindow;                                            // +0x2c
   uint32_t m_playerIds[16]; // +0x34 DirectPlay ids by player index, 0xffffffff for none; [15] is cleared to 0
-  uint32_t m_unknown74; // +0x74
+  uint32_t m_unknown74;     // +0x74
   std::map<uint32_t, std::unique_ptr<PartialMessage>> m_assembling; // PartialMessages by first packet ID
-  std::map<uint32_t, std::unique_ptr<CommOutgoing>> m_outgoing; // reliable messages by first packet ID
-  uint32_t m_enumeratedCount; // +0x90 players DirectPlay listed
-  uint32_t m_playerCount; // +0x94 players in the session
-  std::string m_playerName; // +0x98
-  uint32_t m_unknownA4; // +0xa4
-  uint32_t m_unknownA8; // +0xa8 0x3000
-  uint32_t m_unknownAC; // +0xac GetTickCount() + m_unknownA8 at Init
-  GUID m_application; // +0xb0 application GUID of the session description
-  uint32_t m_lastLatency; // +0xc0 round trip of the last acknowledged packet (ms)
-  uint32_t m_latencyCount; // +0xc4
-  uint32_t m_latencyTotal; // +0xc8
-  uint32_t m_latencyAverage; // +0xcc
-  uint32_t m_lastReceiveTime; // +0xd0 timeGetTime() of the last datagram
-  int m_pingSent; // +0xd4
-  int m_minSendLatency; // +0xd8 the network test settings, read from the settings map at Init
-  int m_maxSendLatency; // +0xdc
-  int m_minReceiveLatency; // +0xe0
-  int m_maxReceiveLatency; // +0xe4
-  float m_dropSendPercent; // +0xe8
-  float m_dropReceivePercent; // +0xec
-  float m_dupeSendPercent; // +0xf0
-  float m_dupeReceivePercent; // +0xf4
-  int m_unknownF8[4]; // +0xf8
-  IDirectPlay2A* m_dplay; // +0x108 null when not connected
-  int m_localIndex; // +0x10c our player index, -1 before the player list is known
-  DPID m_localId; // +0x110
-  char m_ackName[0x80]; // +0x114 payload of acknowledgements
-  uint32_t m_resendInterval; // +0x194 ms before an unacknowledged packet is sent again
-  StringMap m_unknown198; // +0x198
-  StringMap m_unknown1a4; // +0x1a4
-  SendBuffer m_sendBuffers[17]; // +0x1b0 one per player index; [15] is the broadcast buffer
+  std::map<uint32_t, std::unique_ptr<CommOutgoing>> m_outgoing;     // reliable messages by first packet ID
+  uint32_t m_enumeratedCount;                                       // +0x90 players DirectPlay listed
+  uint32_t m_playerCount;                                           // +0x94 players in the session
+  std::string m_playerName;                                         // +0x98
+  uint32_t m_unknownA4;                                             // +0xa4
+  uint32_t m_unknownA8;                                             // +0xa8 0x3000
+  uint32_t m_unknownAC;                                             // +0xac GetTickCount() + m_unknownA8 at Init
+  GUID m_application;                                               // +0xb0 application GUID of the session description
+  uint32_t m_lastLatency;        // +0xc0 round trip of the last acknowledged packet (ms)
+  uint32_t m_latencyCount;       // +0xc4
+  uint32_t m_latencyTotal;       // +0xc8
+  uint32_t m_latencyAverage;     // +0xcc
+  uint32_t m_lastReceiveTime;    // +0xd0 timeGetTime() of the last datagram
+  int m_pingSent;                // +0xd4
+  int m_minSendLatency;          // +0xd8 the network test settings, read from the settings map at Init
+  int m_maxSendLatency;          // +0xdc
+  int m_minReceiveLatency;       // +0xe0
+  int m_maxReceiveLatency;       // +0xe4
+  float m_dropSendPercent;       // +0xe8
+  float m_dropReceivePercent;    // +0xec
+  float m_dupeSendPercent;       // +0xf0
+  float m_dupeReceivePercent;    // +0xf4
+  int m_unknownF8[4];            // +0xf8
+  IDirectPlay2A* m_dplay;        // +0x108 null when not connected
+  int m_localIndex;              // +0x10c our player index, -1 before the player list is known
+  DPID m_localId;                // +0x110
+  char m_ackName[0x80];          // +0x114 payload of acknowledgements
+  uint32_t m_resendInterval;     // +0x194 ms before an unacknowledged packet is sent again
+  StringMap m_unknown198;        // +0x198
+  StringMap m_unknown1a4;        // +0x1a4
+  SendBuffer m_sendBuffers[17];  // +0x1b0 one per player index; [15] is the broadcast buffer
   ReceiveBuffer m_receiveBuffer; // +0x247c
 
-private:
+  private:
   void ClearOwnedRegistries();
 };
 
@@ -182,15 +179,15 @@ int IsEnumeratingSessions(); // 0x5fa7a0
 // returns whether it was.
 int QueryLobbyConnection(); // 0x5fa5e0
 
-extern CommMgr* g_commMgr; // 0x6be3a8
-extern int g_commEnumerating; // 0x6be3a4
-extern uint32_t g_commPacketCounter; // 0x6be39c next packet sequence number (top byte: player index)
-extern const GUID* g_commProviderGuid; // 0x6be3ac the service provider the session runs on
-extern int g_commSessionFlags; // 0x6be3b4 DPSESSIONDESC2::dwFlags for new sessions
-extern GUID g_commSessionGuid; // 0x6be380 instance GUID of the session we joined/created
-extern uint32_t g_commMaxPlayers; // 0x6ac294
+extern CommMgr* g_commMgr;                        // 0x6be3a8
+extern int g_commEnumerating;                     // 0x6be3a4
+extern uint32_t g_commPacketCounter;              // 0x6be39c next packet sequence number (top byte: player index)
+extern const GUID* g_commProviderGuid;            // 0x6be3ac the service provider the session runs on
+extern int g_commSessionFlags;                    // 0x6be3b4 DPSESSIONDESC2::dwFlags for new sessions
+extern GUID g_commSessionGuid;                    // 0x6be380 instance GUID of the session we joined/created
+extern uint32_t g_commMaxPlayers;                 // 0x6ac294
 extern ServiceProviderList g_serviceProviderList; // 0x6be340
-extern SessionList g_sessionList; // 0x6be330
-extern LobbyConnection g_lobbyConnection; // 0x6be350
-extern GUID g_lobbySessionGuid; // 0x6be360 instance GUID the lobby launched us into
-extern StringMap g_commSettings; // 0x6be370 network test settings ("MinimumSendLatency" ...)
+extern SessionList g_sessionList;                 // 0x6be330
+extern LobbyConnection g_lobbyConnection;         // 0x6be350
+extern GUID g_lobbySessionGuid;                   // 0x6be360 instance GUID the lobby launched us into
+extern StringMap g_commSettings;                  // 0x6be370 network test settings ("MinimumSendLatency" ...)

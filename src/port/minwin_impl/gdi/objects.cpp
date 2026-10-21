@@ -1,5 +1,5 @@
-// GDI objects: pens, brushes, bitmaps and DIB sections, palettes; SelectObject / DeleteObject / GetObject / GetStockObject.
-#define MINWIN_IMPLEMENTATION 1
+// GDI objects: pens, brushes, bitmaps and DIB sections, palettes; SelectObject / DeleteObject / GetObject /
+// GetStockObject.
 #include <cstdlib>
 #include <cstring>
 
@@ -14,12 +14,16 @@ void (*g_fontCacheFree)(void*) = nullptr;
 
 Font::~Font()
 {
-  if (textCache && g_fontCacheFree)
+  if (textCache && g_fontCacheFree) {
     g_fontCacheFree(textCache);
-  if (g_fontCacheFree)
-    for (void* cache : scaledTextCache)
-      if (cache)
+  }
+  if (g_fontCacheFree) {
+    for (void* cache : scaledTextCache) {
+      if (cache) {
         g_fontCacheFree(cache);
+      }
+    }
+  }
 }
 
 Bitmap::~Bitmap()
@@ -48,24 +52,24 @@ void Unregister(Object* o)
 
 bool IsLive(const void* handle, ObjType type)
 {
-  if (!handle || !Live().count(handle))
+  if (!handle || !Live().count(handle)) {
     return false;
+  }
   return static_cast<const Object*>(handle)->type == type;
 }
 
 Palette* DefaultPalette()
 {
-  static Palette* p = []
-  {
+  static Palette* p = [] {
     auto* d = new Palette;
     d->stock = true;
-    for (unsigned int c : kStaticColors)
-    {
+    for (unsigned int c : kStaticColors) {
       d->entries.push_back({uint8_t(c >> 16), uint8_t(c >> 8), uint8_t(c), 0});
     }
     d->toPhysical.resize(20);
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 20; ++i) {
       d->toPhysical[i] = static_cast<uint8_t>(i < 10 ? i : 236 + i);
+    }
     d->realized = true;
     Register(d);
     return d;
@@ -101,10 +105,10 @@ Pen* MakeStockPen(COLORREF color, int style)
 Brush* StockBrush(int which)
 {
   static Brush* brushes[6] = {};
-  if (which < 0 || which > 5)
+  if (which < 0 || which > 5) {
     return nullptr;
-  if (!brushes[which])
-  {
+  }
+  if (!brushes[which]) {
     static const COLORREF colors[6] = {0x00ffffff, 0x00c0c0c0, 0x00808080, 0x00404040, 0x00000000, 0};
     brushes[which] = MakeStockBrush(colors[which], which == 5 ? 1 : 0);
   }
@@ -114,11 +118,13 @@ Brush* StockBrush(int which)
 Pen* StockPen(int which)
 { // 6 WHITE_PEN, 7 BLACK_PEN, 8 NULL_PEN
   static Pen* pens[3] = {};
-  if (which < 6 || which > 8)
+  if (which < 6 || which > 8) {
     return nullptr;
+  }
   Pen*& p = pens[which - 6];
-  if (!p)
+  if (!p) {
     p = MakeStockPen(which == 6 ? 0x00ffffff : 0, which == 8 ? 5 : 0);
+  }
   return p;
 }
 
@@ -126,21 +132,20 @@ Pen* StockPen(int which)
 
 using namespace mwgdi;
 
-extern "C" {
-
-HGDIOBJ REB_STDCALL GetStockObject(int i)
+HGDIOBJ REB_STDCALL reb::compat::GetStockObject(int i)
 {
-  if (i >= 0 && i <= 5)
+  if (i >= 0 && i <= 5) {
     return StockBrush(i);
-  if (i >= 6 && i <= 8)
+  }
+  if (i >= 6 && i <= 8) {
     return StockPen(i);
-  if (i == 15)
+  }
+  if (i == 15) {
     return DefaultPalette();
+  }
   static Font* fonts[32] = {};
-  if (i >= 10 && i < 32 && i != 15)
-  { // OEM_FIXED_FONT..DEFAULT_GUI_FONT: one shared ANSI font each
-    if (!fonts[i])
-    {
+  if (i >= 10 && i < 32 && i != 15) { // OEM_FIXED_FONT..DEFAULT_GUI_FONT: one shared ANSI font each
+    if (!fonts[i]) {
       Font* f = new Font;
       f->stock = true;
       f->lf.lfHeight = (i == 10 || i == 11) ? 12 : 13;
@@ -154,7 +159,7 @@ HGDIOBJ REB_STDCALL GetStockObject(int i)
   return nullptr;
 }
 
-HBRUSH REB_STDCALL CreateSolidBrush(COLORREF color)
+HBRUSH REB_STDCALL reb::compat::CreateSolidBrush(COLORREF color)
 {
   auto* b = new Brush;
   b->color = color;
@@ -162,10 +167,11 @@ HBRUSH REB_STDCALL CreateSolidBrush(COLORREF color)
   return reinterpret_cast<HBRUSH>(b);
 }
 
-HBRUSH REB_STDCALL CreateBrushIndirect(const LOGBRUSH* plbrush)
+HBRUSH REB_STDCALL reb::compat::CreateBrushIndirect(const LOGBRUSH* plbrush)
 {
-  if (!plbrush)
+  if (!plbrush) {
     return nullptr;
+  }
   auto* b = new Brush;
   b->style = plbrush->lbStyle == 1 ? 1 : 0; // BS_NULL; hatch and pattern brushes draw as solid
   b->color = plbrush->lbColor;
@@ -173,7 +179,7 @@ HBRUSH REB_STDCALL CreateBrushIndirect(const LOGBRUSH* plbrush)
   return reinterpret_cast<HBRUSH>(b);
 }
 
-HPEN REB_STDCALL CreatePen(int iStyle, int cWidth, COLORREF color)
+HPEN REB_STDCALL reb::compat::CreatePen(int iStyle, int cWidth, COLORREF color)
 {
   Pen* p = new Pen;
   p->style = iStyle;
@@ -183,50 +189,48 @@ HPEN REB_STDCALL CreatePen(int iStyle, int cWidth, COLORREF color)
   return reinterpret_cast<HPEN>(p);
 }
 
-HGDIOBJ REB_STDCALL SelectObject(HDC hdc, HGDIOBJ h)
+HGDIOBJ REB_STDCALL reb::compat::SelectObject(HDC hdc, HGDIOBJ h)
 {
   Dc* dc = DcOf(hdc);
-  if (!dc || !h)
+  if (!dc || !h) {
     return nullptr;
-  if (IsLive(h, ObjType::Pen))
-  {
+  }
+  if (IsLive(h, ObjType::Pen)) {
     Pen* old = dc->pen;
     dc->pen = static_cast<Pen*>(h);
     ++dc->pen->selectCount;
     --old->selectCount;
     return old;
   }
-  if (IsLive(h, ObjType::Brush))
-  {
+  if (IsLive(h, ObjType::Brush)) {
     Brush* old = dc->brush;
     dc->brush = static_cast<Brush*>(h);
     ++dc->brush->selectCount;
     --old->selectCount;
     return old;
   }
-  if (IsLive(h, ObjType::Font))
-  {
+  if (IsLive(h, ObjType::Font)) {
     Font* old = dc->font;
     dc->font = static_cast<Font*>(h);
     ++dc->font->selectCount;
     --old->selectCount;
     return old;
   }
-  if (IsLive(h, ObjType::Palette))
-  {
+  if (IsLive(h, ObjType::Palette)) {
     Palette* old = dc->palette;
     dc->palette = static_cast<Palette*>(h);
     UpdateMapping(dc->palette);
     return old;
   }
-  if (IsLive(h, ObjType::Bitmap))
-  {
+  if (IsLive(h, ObjType::Bitmap)) {
     auto* bm = static_cast<Bitmap*>(h);
-    if (!dc->memory || (bm->selectedIn && bm->selectedIn != dc))
+    if (!dc->memory || (bm->selectedIn && bm->selectedIn != dc)) {
       return nullptr;
+    }
     Bitmap* old = dc->bitmap;
-    if (old)
+    if (old) {
       old->selectedIn = nullptr;
+    }
     dc->bitmap = bm;
     bm->selectedIn = dc;
     dc->surface = SurfaceOfDc(dc);
@@ -236,33 +240,39 @@ HGDIOBJ REB_STDCALL SelectObject(HDC hdc, HGDIOBJ h)
   return nullptr;
 }
 
-BOOL REB_STDCALL DeleteObject(HGDIOBJ ho)
+BOOL REB_STDCALL reb::compat::DeleteObject(HGDIOBJ ho)
 {
   auto* o = static_cast<Object*>(ho);
-  if (!ho || !IsLive(ho, o->type) || o->type == ObjType::Dc)
+  if (!ho || !IsLive(ho, o->type) || o->type == ObjType::Dc) {
     return FALSE;
-  if (o->stock)
+  }
+  if (o->stock) {
     return TRUE;
-  if (o->type == ObjType::Bitmap && static_cast<Bitmap*>(o)->selectedIn)
+  }
+  if (o->type == ObjType::Bitmap && static_cast<Bitmap*>(o)->selectedIn) {
     return FALSE;
-  if (o->selectCount > 0)
+  }
+  if (o->selectCount > 0) {
     return FALSE;
+  }
   Unregister(o);
   delete o;
   return TRUE;
 }
 
-int REB_STDCALL GetObjectA(HANDLE h, int c, LPVOID pv)
+int REB_STDCALL reb::compat::GetObjectA(HANDLE h, int c, LPVOID pv)
 {
-  if (!h)
+  if (!h) {
     return 0;
-  if (IsLive(h, ObjType::Bitmap))
-  {
+  }
+  if (IsLive(h, ObjType::Bitmap)) {
     auto* b = static_cast<Bitmap*>(h);
-    if (!pv)
+    if (!pv) {
       return sizeof(BITMAP);
-    if (c < static_cast<int>(sizeof(BITMAP)))
+    }
+    if (c < static_cast<int>(sizeof(BITMAP))) {
       return 0;
+    }
     auto* bm = static_cast<BITMAP*>(pv);
     bm->bmType = 0;
     bm->bmWidth = b->width;
@@ -273,17 +283,17 @@ int REB_STDCALL GetObjectA(HANDLE h, int c, LPVOID pv)
     bm->bmBits = b->isDib ? b->bits : nullptr;
     return sizeof(BITMAP);
   }
-  if (IsLive(h, ObjType::Palette))
-  {
-    if (!pv || c < 2)
+  if (IsLive(h, ObjType::Palette)) {
+    if (!pv || c < 2) {
       return 0;
+    }
     *static_cast<uint16_t*>(pv) = static_cast<uint16_t>(static_cast<Palette*>(h)->entries.size());
     return 2;
   }
-  if (IsLive(h, ObjType::Brush))
-  {
-    if (!pv || c < static_cast<int>(sizeof(LOGBRUSH)))
+  if (IsLive(h, ObjType::Brush)) {
+    if (!pv || c < static_cast<int>(sizeof(LOGBRUSH))) {
       return 0;
+    }
     auto* b = static_cast<Brush*>(h);
     auto* lb = static_cast<LOGBRUSH*>(pv);
     lb->lbStyle = b->style;
@@ -291,14 +301,12 @@ int REB_STDCALL GetObjectA(HANDLE h, int c, LPVOID pv)
     lb->lbHatch = 0;
     return sizeof(LOGBRUSH);
   }
-  if (IsLive(h, ObjType::Font))
-  {
-    if (!pv || c < static_cast<int>(sizeof(LOGFONTA)))
+  if (IsLive(h, ObjType::Font)) {
+    if (!pv || c < static_cast<int>(sizeof(LOGFONTA))) {
       return 0;
+    }
     *static_cast<LOGFONTA*>(pv) = static_cast<Font*>(h)->lf;
     return sizeof(LOGFONTA);
   }
   return 0;
 }
-
-} // extern "C"

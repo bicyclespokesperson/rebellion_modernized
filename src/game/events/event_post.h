@@ -24,9 +24,9 @@ class TimerEvent;
 
 // ---- events -----------------------------------------------------------------------------------------------
 
-// Builds the event of `kind` for `object` (its key, parent key, owner key, context and view side) and stores it in *out.
-// Returns 1 when setup has not started or the event is built, 0 when no factory/event is available or the object lacks
-// a parent/owner; *out is null on failure or when setup has not started.
+// Builds the event of `kind` for `object` (its key, parent key, owner key, context and view side) and stores it in
+// *out. Returns 1 when setup has not started or the event is built, 0 when no factory/event is available or the object
+// lacks a parent/owner; *out is null on failure or when setup has not started.
 int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, KeyedEvent** out); // 0x53ff90
 
 // Events 0x300-0x31f (SourceEvent): sets the two values and queues the event.
@@ -34,10 +34,7 @@ int PostSourceEvent(int kind, GameObjNotifier* object, int valueA, int valueB, N
 // PostSourceEvent(kind, object, flag == 0, flag, ctx).
 int PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyContext* ctx); // 0x53f9c0
 // Events 0x320-0x323 (TwoKeyEvent): sets the two keys and queues the event.
-int PostTwoKeyEvent(int kind,
-                    GameObjNotifier* object,
-                    const ObjectKey* keyC,
-                    const ObjectKey* keyD,
+int PostTwoKeyEvent(int kind, GameObjNotifier* object, const ObjectKey* keyC, const ObjectKey* keyD,
                     NotifyContext* ctx); // 0x53f9f0
 // Events 0x300-0x37f without any data of their own.
 int PostEvent(int kind, GameObjNotifier* object, NotifyContext* ctx); // 0x53fbd0
@@ -48,21 +45,15 @@ int PostEvent(int kind, GameObjNotifier* object, NotifyContext* ctx); // 0x53fbd
 // TimerEvent::RollDelay days. Returns 0 if no timer of that kind exists.
 int ArmTimer(int kind, GameObjNotifier* object, TrackedStat* stat, NotifyContext* ctx); // 0x53fb00
 // Sets the stat's flag, then arms the timer if that changed the stat and the flag is now on.
-int ArmTimerAfterSetFlag(int kind,
-                         int flag,
-                         GameObjNotifier* object,
-                         TrackedStat* stat,
+int ArmTimerAfterSetFlag(int kind, int flag, GameObjNotifier* object, TrackedStat* stat,
                          NotifyContext* ctx); // 0x53fa60
 // Sets the stat's level, then arms the timer if that changed the stat and the flag is on.
-int ArmTimerAfterSetLevel(int kind,
-                          int level,
-                          GameObjNotifier* object,
-                          TrackedStat* stat,
+int ArmTimerAfterSetLevel(int kind, int level, GameObjNotifier* object, TrackedStat* stat,
                           NotifyContext* ctx); // 0x53fab0
 
 // ---- queueing ---------------------------------------------------------------------------------------------
 
-int QueueEvent(EventBase* event); // 0x53fcd0, calls the type-queue hook; returns 1
+int QueueEvent(EventBase* event);          // 0x53fcd0, calls the type-queue hook; returns 1
 int QueueEventConfirmed(EventBase* event); // 0x53fcb0, QueueEvent and returns 1
 // Callers push an assertion text as a fourth argument; the release build ignores it.
 int IsInRange(int value, int first, int last, const char* message); // 0x53fc90, first <= value <= last
@@ -76,29 +67,15 @@ int CreatePayload(int kind, GameObjNotifier* object, NotifyContext* ctx, KeyedNo
 // IntPairPayload kinds 0x100-0x242.
 int PostPayloadInts(uint32_t kind, GameObjNotifier* object, int valueA, int valueB, NotifyContext* ctx); // 0x53fcf0
 // IntQuadPayload kinds 0x600-0x621.
-int PostPayloadFourInts(uint32_t kind,
-                        GameObjNotifier* object,
-                        int valueA,
-                        int valueB,
-                        int valueC,
-                        int valueD,
+int PostPayloadFourInts(uint32_t kind, GameObjNotifier* object, int valueA, int valueB, int valueC, int valueD,
                         NotifyContext* ctx); // 0x53fd60
 // IntPairPayload kinds 0x100-0x242 with (flag == 0, flag).
 int PostPayloadFlag(uint32_t kind, GameObjNotifier* object, int flag, NotifyContext* ctx); // 0x53fdd0
 // KeyPairPayload kinds 0x300-0x391 / 0x400-0x421.
-int PostPayloadKeysA(uint32_t kind,
-                     GameObjNotifier* object,
-                     const ObjectKey* keyA,
-                     const ObjectKey* keyB,
+int PostPayloadKeysA(uint32_t kind, GameObjNotifier* object, const ObjectKey* keyA, const ObjectKey* keyB,
                      NotifyContext* ctx); // 0x53fe40
-int PostPayloadKeysB(uint32_t kind,
-                     GameObjNotifier* object,
-                     const ObjectKey* keyA,
-                     const ObjectKey* keyB,
+int PostPayloadKeysB(uint32_t kind, GameObjNotifier* object, const ObjectKey* keyA, const ObjectKey* keyB,
                      NotifyContext* ctx); // 0x53feb0
 // StringPairPayload kinds 0x500-0x541.
-int PostPayloadStrings(uint32_t kind,
-                       GameObjNotifier* object,
-                       const std::string* textA,
-                       const std::string* textB,
+int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const std::string* textA, const std::string* textB,
                        NotifyContext* ctx); // 0x53ff20

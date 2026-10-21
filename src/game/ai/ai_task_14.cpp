@@ -23,14 +23,12 @@ constexpr uint32_t kShipOther = 0x40;
 constexpr uint32_t kShipReportable = 0x4000;
 constexpr uint32_t kShipUnreportable = 0x8002800;
 
-struct TextTable
-{
+struct TextTable {
   int16_t firstId;
   int16_t count;
 };
 
-struct SideTexts
-{
+struct SideTexts {
   TextTable enroute;
   TextTable damaged;
   TextTable other;
@@ -48,7 +46,9 @@ void UseText(std::string* text, const TextTable& table, int16_t* next)
 
 } // namespace
 
-AiTask14::AiTask14(int view) : AiTaskBase(14, view), m_resume()
+AiTask14::AiTask14(int view)
+    : AiTaskBase(14, view)
+    , m_resume()
 {
   m_count = 0;
   m_cursor = nullptr;
@@ -84,8 +84,7 @@ void AiTask14::Write(ostream* out)
 
 void AiTask14::Evaluate()
 {
-  if (m_flags.Get() != 1 && m_flags.Get() != 2 && 0 < m_owner->Stat(0x264))
-  {
+  if (m_flags.Get() != 1 && m_flags.Get() != 2 && 0 < m_owner->Stat(0x264)) {
     m_flags.m_value = 1;
     m_finished = 0;
   }
@@ -94,15 +93,13 @@ void AiTask14::Evaluate()
 OrderBase* AiTask14::Step()
 {
   OrderBase* order = nullptr;
-  if (m_flags.Get() != 1)
-  {
+  if (m_flags.Get() != 1) {
     m_count = 0;
     m_finished = 1;
     m_cursor = nullptr;
     return order;
   }
-  if (m_count >= kMessagesPerPass)
-  {
+  if (m_count >= kMessagesPerPass) {
     m_count = 0;
     m_finished = 1;
     ObjectKey key;
@@ -111,25 +108,24 @@ OrderBase* AiTask14::Step()
     m_cursor = nullptr;
     return order;
   }
-  if (!m_cursor)
-  {
-    if (KeyInFamilies(m_resume, 0x14, 0x1c))
+  if (!m_cursor) {
+    if (KeyInFamilies(m_resume, 0x14, 0x1c)) {
       m_cursor = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&m_resume));
-    if (!m_cursor)
+    }
+    if (!m_cursor) {
       m_cursor = static_cast<AiShipRecord*>(m_owner->m_ships.First());
+    }
     return order;
   }
   const uint32_t flags = m_cursor->m_flags.m_value;
-  if ((flags & kShipReportable) != 0 && (flags & kShipUnreportable) == 0)
-  {
+  if ((flags & kShipReportable) != 0 && (flags & kShipUnreportable) == 0) {
     order = BuildMessage(m_cursor);
     ++m_count;
   }
   auto position = m_owner->m_ships.PositionOf(m_cursor);
   ++position;
   m_cursor = position == m_owner->m_ships.Entries().end() ? nullptr : static_cast<AiShipRecord*>((*position).get());
-  if (!m_cursor)
-  {
+  if (!m_cursor) {
     m_count = 0;
     m_finished = 1;
     m_resume.Reset();
@@ -139,8 +135,9 @@ OrderBase* AiTask14::Step()
 
 void AiTask14::Refused(int*, OrderBase* order)
 {
-  if (order)
+  if (order) {
     delete order;
+  }
   m_priority = 0;
 }
 
@@ -151,53 +148,43 @@ OrderBase* AiTask14::BuildMessage(AiShipRecord* record)
   const SideTexts& table = m_view == 1 ? kAllianceTexts : kEmpireTexts;
   const uint32_t flags = record->m_flags.m_value;
   bool chosen = false;
-  auto tryTable = [&](const TextTable& entries, int16_t* next, bool allowed)
-  {
-    if (chosen || !allowed)
+  auto tryTable = [&](const TextTable& entries, int16_t* next, bool allowed) {
+    if (chosen || !allowed) {
       return;
+    }
     UseText(&text, entries, next);
     chosen = true;
   };
-  auto fresh = [](const TextTable& entries, int16_t next)
-  {
+  auto fresh = [](const TextTable& entries, int16_t next) {
     return next < entries.count;
   };
 
-  if (flags & kShipEnroute)
-  {
+  if (flags & kShipEnroute) {
     tryTable(table.enroute, &m_enrouteTexts, fresh(table.enroute, m_enrouteTexts));
-  }
-  else if (flags & kShipDamaged)
-  {
+  } else if (flags & kShipDamaged) {
     tryTable(table.damaged, &m_damagedTexts, fresh(table.damaged, m_damagedTexts));
     tryTable(table.enroute, &m_enrouteTexts, fresh(table.enroute, m_enrouteTexts));
-  }
-  else if (flags & kShipOther)
-  {
+  } else if (flags & kShipOther) {
     tryTable(table.other, &m_otherTexts, fresh(table.other, m_otherTexts));
     tryTable(table.damaged, &m_damagedTexts, fresh(table.damaged, m_damagedTexts));
     tryTable(table.enroute, &m_enrouteTexts, fresh(table.enroute, m_enrouteTexts));
   }
-  if (!chosen)
-  {
+  if (!chosen) {
     ObjectKey key;
     record->GetKey(&key);
     auto* ship = static_cast<GameObj*>(GetObjectInFamilies_14_1c(m_view, &key));
-    if (ship)
-    {
+    if (ship) {
       std::string name;
       ship->GetNameCopy(&name);
       (text = name);
     }
   }
   auto* order = static_cast<TextMessage*>(CreateMessageByKind(kAdvisorOrderKind));
-  if (order)
-  {
+  if (order) {
     ObjectKey key;
     record->GetKey(&key);
     auto* node = NewOrNull<ObjectKeyValueNode>(key, 0);
-    if (node)
-    {
+    if (node) {
       team.Add(node);
       order->m_side = m_view;
       order->SetTeam(&team);

@@ -24,7 +24,10 @@ void SetStatus(StatusCode* status, uint32_t code)
 
 // ---- ObjectEntry -------------------------------------------------------------------------------------------
 
-ObjectEntry::ObjectEntry() : IdNode(), m_flag(1), m_family(0)
+ObjectEntry::ObjectEntry()
+    : IdNode()
+    , m_flag(1)
+    , m_family(0)
 {
   m_objects[0] = nullptr;
   m_objects[1] = nullptr;
@@ -41,14 +44,15 @@ ObjectKey* ObjectEntry::GetKey(ObjectKey* out) const
 
 int ObjectEntry::AddObject(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return 0;
+  }
   bool matches = m_family == object->GetFamily();
   const uint32_t view = object->ViewSide();
-  if (view > 2)
+  if (view > 2) {
     matches = false;
-  if (matches && m_objects[view] == nullptr)
-  {
+  }
+  if (matches && m_objects[view] == nullptr) {
     m_objects[view] = object;
     object->m_entry = this;
     return 1;
@@ -58,14 +62,15 @@ int ObjectEntry::AddObject(GameObjNotifier* object)
 
 int ObjectEntry::RemoveObject(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return 0;
+  }
   bool matches = m_family == object->GetFamily();
   const uint32_t view = object->ViewSide();
-  if (view > 2)
+  if (view > 2) {
     matches = false;
-  if (matches && object == m_objects[view])
-  {
+  }
+  if (matches && object == m_objects[view]) {
     m_objects[view] = nullptr;
     object->m_entry = nullptr;
     return 1;
@@ -75,31 +80,32 @@ int ObjectEntry::RemoveObject(GameObjNotifier* object)
 
 GameObjNotifier* ObjectEntry::GetObject(int view) const
 {
-  if (view >= 0 && view <= 2)
+  if (view >= 0 && view <= 2) {
     return m_objects[view];
+  }
   return nullptr;
 }
 
 int ObjectEntry::IsFullyLinked() const
 {
   int linked = 1;
-  for (int view = 0; view <= 2; ++view)
-  {
+  for (int view = 0; view <= 2; ++view) {
     GameObjNotifier* object = m_objects[view];
     linked = 0;
-    if (object && this == object->m_entry)
-    {
+    if (object && this == object->m_entry) {
       linked = !(object->m_parent == nullptr && object->IsNotGameRoot());
     }
-    if (!linked)
+    if (!linked) {
       return 0;
+    }
   }
   return linked;
 }
 
 // ---- ObjectDatabase ----------------------------------------------------------------------------------------
 
-ObjectDatabase::ObjectDatabase() : m_ok(1)
+ObjectDatabase::ObjectDatabase()
+    : m_ok(1)
 {
 }
 
@@ -107,43 +113,50 @@ ObjectDatabase::~ObjectDatabase() = default;
 
 uint32_t ObjectDatabase::AddWithId(ObjectEntry* node)
 {
-  if (!node)
+  if (!node) {
     return 0;
+  }
   const uint32_t id = node->m_id == 0 ? m_nextId : node->m_id;
-  if (!id)
+  if (!id) {
     return 0;
+  }
   const uint32_t key = ObjectKey::Make(node->m_family, id).m_value;
   auto [position, inserted] = m_nodes.try_emplace(key);
-  if (!inserted)
+  if (!inserted) {
     return 0;
+  }
   position->second.reset(node);
   node->m_id = id;
-  if (m_nextId != 0 && m_nextId <= id)
+  if (m_nextId != 0 && m_nextId <= id) {
     m_nextId = id + 1;
+  }
   return id;
 }
 
 void ObjectDatabase::Remove(ObjectEntry* node)
 {
-  if (!node)
+  if (!node) {
     return;
+  }
   const auto found = m_nodes.find(ObjectKey::Make(node->m_family, node->m_id).m_value);
-  if (found != m_nodes.end() && found->second.get() == node)
+  if (found != m_nodes.end() && found->second.get() == node) {
     m_nodes.extract(found).mapped().release();
+  }
 }
 
 int ObjectDatabase::AddObject(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return 0;
+  }
   ObjectKey key;
   object->GetKey(&key);
   ObjectEntry* entry = FindEntry(&key);
-  if (!entry)
-  {
+  if (!entry) {
     entry = NewOrNull<ObjectEntry>();
-    if (!entry)
+    if (!entry) {
       return 0;
+    }
     entry->SetId(object->m_id);
     entry->m_family = object->GetFamily();
     AddWithId(entry);
@@ -153,24 +166,26 @@ int ObjectDatabase::AddObject(GameObjNotifier* object)
 
 int ObjectDatabase::RemoveObject(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return 0;
+  }
   ObjectKey key;
   object->GetKey(&key);
   ObjectEntry* entry = FindEntry(&key);
-  if (!entry)
+  if (!entry) {
     return 0;
+  }
   int result = entry->RemoveObject(object);
-  if (result)
-  {
+  if (result) {
     bool empty = true;
-    for (int view = 0; view < 3; ++view)
-    {
-      if (entry->GetObject(view))
+    for (int view = 0; view < 3; ++view) {
+      if (entry->GetObject(view)) {
         empty = false;
+      }
     }
-    if (empty)
+    if (empty) {
       result = DeleteEntry(entry);
+    }
   }
   return result;
 }
@@ -178,26 +193,28 @@ int ObjectDatabase::RemoveObject(GameObjNotifier* object)
 int ObjectDatabase::DetachEntry(ObjectEntry* entry)
 {
   const int present = entry != nullptr;
-  if (present)
+  if (present) {
     Remove(entry);
+  }
   return present;
 }
 
 int ObjectDatabase::DeleteEntry(ObjectEntry* entry)
 {
   const int detached = DetachEntry(entry);
-  if (detached && entry)
+  if (detached && entry) {
     delete entry;
+  }
   return detached;
 }
 
 int ObjectDatabase::AreAllLinked()
 {
   int linked = 1;
-  for (const auto& entry : Entries())
-  {
-    if (!linked)
+  for (const auto& entry : Entries()) {
+    if (!linked) {
       break;
+    }
     linked = static_cast<ObjectEntry*>(entry.get())->IsFullyLinked();
   }
   return linked;
@@ -217,7 +234,8 @@ ObjectEntry* ObjectDatabase::FindEntryInRange(const FamilyRange* range)
 
 // ---- ChildList ---------------------------------------------------------------------------------------------
 
-ChildList::ChildList() : m_ok(1)
+ChildList::ChildList()
+    : m_ok(1)
 {
 }
 
@@ -225,29 +243,35 @@ ChildList::~ChildList() = default;
 
 uint32_t ChildList::AddWithId(GameObjNotifier* node)
 {
-  if (!node)
+  if (!node) {
     return 0;
+  }
   const uint32_t id = node->m_id == 0 ? m_nextId : node->m_id;
-  if (!id)
+  if (!id) {
     return 0;
+  }
   const uint32_t key = ObjectKey::Make(node->GetFamily(), id).m_value;
   auto [position, inserted] = m_nodes.try_emplace(key);
-  if (!inserted)
+  if (!inserted) {
     return 0;
+  }
   position->second.reset(node);
   node->m_id = id;
-  if (m_nextId != 0 && m_nextId <= id)
+  if (m_nextId != 0 && m_nextId <= id) {
     m_nextId = id + 1;
+  }
   return id;
 }
 
 void ChildList::Remove(GameObjNotifier* node)
 {
-  if (!node)
+  if (!node) {
     return;
+  }
   const auto found = m_nodes.find(ObjectKey::Make(node->GetFamily(), node->m_id).m_value);
-  if (found != m_nodes.end() && found->second.get() == node)
+  if (found != m_nodes.end() && found->second.get() == node) {
     m_nodes.extract(found).mapped().release();
+  }
 }
 
 int ChildList::Read(istream* in)
@@ -266,8 +290,9 @@ int ChildList::Write(ostream* out)
 int ChildList::RemoveChild(GameObjNotifier* child)
 {
   GameObjNotifier* found = Find(child->GetFamily(), child->m_id);
-  if (found)
+  if (found) {
     Remove(found);
+  }
   return found != nullptr;
 }
 
@@ -287,10 +312,10 @@ GameObjNotifier* ChildList::FindFirstInRange(const FamilyRange* range) const
 
 GameObjNotifier* GetObjectForView(const ObjectKey* key, int view)
 {
-  if (view >= 1 && view <= 2)
-  {
-    if (view == 1)
+  if (view >= 1 && view <= 2) {
+    if (view == 1) {
       return LookupObject(key, 1);
+    }
     return LookupObject(key, 2);
   }
   return nullptr;
@@ -298,10 +323,10 @@ GameObjNotifier* GetObjectForView(const ObjectKey* key, int view)
 
 GameObjNotifier* GetFirstObjectInRangeForView(const FamilyRange* range, int view, int resolve)
 {
-  if (view >= 1 && view <= 2)
-  {
-    if (view == 1)
+  if (view >= 1 && view <= 2) {
+    if (view == 1) {
       return FindObjectInRange(range, 1, resolve);
+    }
     return FindObjectInRange(range, 2, resolve);
   }
   return nullptr;
@@ -319,13 +344,14 @@ GameObjNotifier* GetFirstMasterObjectInRange(const FamilyRange* range)
 
 GameObjNotifier* LookupObject(const ObjectKey* key, int view)
 {
-  if (!key)
+  if (!key) {
     return nullptr;
+  }
   ObjectEntry* entry = g_objectDatabase ? g_objectDatabase->FindEntry(key) : nullptr;
-  if (!entry)
-  {
-    if (key->IsSet() && g_unresolvedKeys)
+  if (!entry) {
+    if (key->IsSet() && g_unresolvedKeys) {
       g_unresolvedKeys->Find(key);
+    }
     return nullptr;
   }
   return entry->GetObject(view);
@@ -334,14 +360,13 @@ GameObjNotifier* LookupObject(const ObjectKey* key, int view)
 GameObjNotifier* FindObjectInRange(const FamilyRange* range, int view, int resolve)
 {
   GameObjNotifier* object = nullptr;
-  if (g_objectDatabase)
-  {
+  if (g_objectDatabase) {
     ObjectEntry* entry = g_objectDatabase->FindEntryInRange(range);
-    if (entry && entry->IsFullyLinked())
-    {
+    if (entry && entry->IsFullyLinked()) {
       object = entry->GetObject(view);
-      if (resolve && object && object->IsUnderSideRoot())
+      if (resolve && object && object->IsUnderSideRoot()) {
         object = FindNextObjectInRange(object, range, 1);
+      }
     }
   }
   return object;
@@ -350,26 +375,27 @@ GameObjNotifier* FindObjectInRange(const FamilyRange* range, int view, int resol
 GameObjNotifier* FindNextObjectInRange(GameObjNotifier* object, const FamilyRange* range, int resolve)
 {
   GameObjNotifier* result = nullptr;
-  if (object && object->HasAllViews())
-  {
+  if (object && object->HasAllViews()) {
     ObjectEntry* entry = object->m_entry;
     auto position = g_objectDatabase->PositionOf(entry);
-    if (position != g_objectDatabase->Entries().end())
+    if (position != g_objectDatabase->Entries().end()) {
       ++position;
-    while (position != g_objectDatabase->Entries().end())
-    {
+    }
+    while (position != g_objectDatabase->Entries().end()) {
       entry = static_cast<ObjectEntry*>((*position).get());
-      if (entry->m_family < range->m_first || entry->m_family >= range->m_second)
+      if (entry->m_family < range->m_first || entry->m_family >= range->m_second) {
         break;
-      ++position;
-      if (entry->IsFullyLinked())
-      {
-        result = entry->GetObject(static_cast<int>(object->ViewSide()));
-        if (resolve && result->IsUnderSideRoot())
-          result = nullptr;
       }
-      if (result)
+      ++position;
+      if (entry->IsFullyLinked()) {
+        result = entry->GetObject(static_cast<int>(object->ViewSide()));
+        if (resolve && result->IsUnderSideRoot()) {
+          result = nullptr;
+        }
+      }
+      if (result) {
         return result;
+      }
     }
   }
   return result;
@@ -378,14 +404,13 @@ GameObjNotifier* FindNextObjectInRange(GameObjNotifier* object, const FamilyRang
 GameObjNotifier* CreateObjectForKey(const ObjectKey* key)
 {
   GameObjNotifier* object = nullptr;
-  if (key->Family() != 0)
-  {
+  if (key->Family() != 0) {
     DatRecord* record = FindDataRecord(AsLookupKey(const_cast<ObjectKey*>(key)));
-    if (record)
-    {
+    if (record) {
       object = GameObjRoot::CreateObjectOfFamily(key->Family());
-      if (object)
+      if (object) {
         object->SetRecord(record);
+      }
     }
   }
   return object;
@@ -395,16 +420,17 @@ int DescribeKeyValueSet(ObjectKeyValueSet* keys, std::string* out)
 {
   out->clear();
   *out += std::string("(IDs=");
-  if (!keys->First())
+  if (!keys->First()) {
     *out += std::string("<none>");
+  }
   bool first = true;
-  for (const auto& entry : keys->Entries())
-  {
+  for (const auto& entry : keys->Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
-    if (first)
+    if (first) {
       first = false;
-    else
+    } else {
       *out += std::string(";");
+    }
     std::string separator(",");
     const int value = static_cast<ObjectKeyValueNode*>(node)->m_value;
     ObjectKey key;
@@ -422,35 +448,34 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
   SetStatus(status, kStatusOk);
   *collected = ObjectKeyValueSet();
   ObjectKeyValueSet dependencies;
-  for (const auto& keyEntry : keys->Entries())
-  {
-    if (!ok || status->m_second != kStatusOk)
+  for (const auto& keyEntry : keys->Entries()) {
+    if (!ok || status->m_second != kStatusOk) {
       break;
+    }
     auto* node = static_cast<ObjectKeyNode*>(keyEntry.get());
     dependencies.Clear();
     ObjectKey key;
     node->GetKey(&key);
     GameObjNotifier* object = GetMasterObject(&key);
-    if (!object)
+    if (!object) {
       SetStatus(status, kStatusUnknownObject);
-    if (object && status->m_second == kStatusOk)
-    {
+    }
+    if (object && status->m_second == kStatusOk) {
       ok = object->CollectDependencies(context, static_cast<ObjectKeyValueNode*>(node)->m_value, &dependencies);
-      for (const auto& depEntry : dependencies.Entries())
-      {
+      for (const auto& depEntry : dependencies.Entries()) {
         auto* dep = static_cast<ObjectKeyNode*>(depEntry.get());
         ObjectKey depKey;
         dep->GetKey(&depKey);
-        if (!collected->Find(&depKey))
-        {
+        if (!collected->Find(&depKey)) {
           dep->GetKey(&depKey);
           collected->AddKeyValue(&depKey, 0);
         }
       }
     }
   }
-  if (!ok)
+  if (!ok) {
     SetStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
@@ -459,16 +484,18 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
 int RegisterObject(GameObjNotifier* object)
 {
   const bool haveDatabase = g_objectDatabase != nullptr;
-  if (haveDatabase)
+  if (haveDatabase) {
     g_objectDatabase->AddObject(object);
+  }
   return haveDatabase;
 }
 
 int UnregisterObject(GameObjNotifier* object)
 {
   const bool haveDatabase = g_objectDatabase != nullptr;
-  if (haveDatabase)
+  if (haveDatabase) {
     g_objectDatabase->RemoveObject(object);
+  }
   return haveDatabase;
 }
 
@@ -476,14 +503,14 @@ void CreateObjectDatabase()
 {
   DestroyObjectDatabase();
   g_objectDatabase = NewOrNull<ObjectDatabase>();
-  if (!g_objectDatabase)
+  if (!g_objectDatabase) {
     DestroyObjectDatabase();
+  }
 }
 
 void DestroyObjectDatabase()
 {
-  if (g_objectDatabase)
-  {
+  if (g_objectDatabase) {
     delete g_objectDatabase;
     g_objectDatabase = nullptr;
   }
@@ -491,16 +518,16 @@ void DestroyObjectDatabase()
 
 int CheckObjectDatabase()
 {
-  if (!g_objectDatabase)
+  if (!g_objectDatabase) {
     return 0;
+  }
   return g_objectDatabase->AreAllLinked();
 }
 
 int NoteUnresolvedKeyOf(GameObjNotifier* object)
 {
   const bool haveSet = g_unresolvedKeys != nullptr;
-  if (haveSet)
-  {
+  if (haveSet) {
     ObjectKey key;
     object->GetKey(&key);
     g_unresolvedKeys->AddKey(&key);
@@ -512,14 +539,14 @@ void CreateUnresolvedKeySet()
 {
   DestroyUnresolvedKeySet();
   g_unresolvedKeys = NewOrNull<ObjectKeySet>();
-  if (!g_unresolvedKeys)
+  if (!g_unresolvedKeys) {
     DestroyUnresolvedKeySet();
+  }
 }
 
 void DestroyUnresolvedKeySet()
 {
-  if (g_unresolvedKeys)
-  {
+  if (g_unresolvedKeys) {
     delete g_unresolvedKeys;
     g_unresolvedKeys = nullptr;
   }
@@ -529,19 +556,22 @@ int LoadUnresolvedKeySet(istream* in)
 {
   DestroyUnresolvedKeySet();
   g_unresolvedKeys = NewOrNull<ObjectKeySet>();
-  if (!g_unresolvedKeys)
+  if (!g_unresolvedKeys) {
     DestroyUnresolvedKeySet();
+  }
   const bool haveSet = g_unresolvedKeys != nullptr;
-  if (haveSet)
+  if (haveSet) {
     g_unresolvedKeys->Load(in);
+  }
   return haveSet;
 }
 
 int SaveUnresolvedKeySet(ostream* out)
 {
   const bool haveSet = g_unresolvedKeys != nullptr;
-  if (haveSet)
+  if (haveSet) {
     g_unresolvedKeys->Save(out);
+  }
   return haveSet;
 }
 
@@ -552,10 +582,12 @@ namespace
 
 GameObjNotifier* FindParentFor(GameObjNotifier* object, int view)
 {
-  if (object->m_id == kGameRootId)
+  if (object->m_id == kGameRootId) {
     return FindObjectInRange(&kGameRootFamilies, view, 1);
-  if (object->IsNotGameRoot())
+  }
+  if (object->IsNotGameRoot()) {
     return FindObjectInRange(&kSideRootFamilies, view, 1);
+  }
   return nullptr;
 }
 
@@ -564,13 +596,13 @@ GameObjNotifier* FindParentFor(GameObjNotifier* object, int view)
 int AttachMasterObject(GameObjNotifier* object)
 {
   const bool valid = object != nullptr;
-  if (!valid)
+  if (!valid) {
     return false;
+  }
   object->ApplyDefaultId();
   object->SetViewSide(0);
   object->SetSideMask(1);
-  if (GameObjNotifier* parent = FindParentFor(object, 0))
-  {
+  if (GameObjNotifier* parent = FindParentFor(object, 0)) {
     GameObjNotifier* previousParent;
     parent->AddChild(object, &previousParent);
   }
@@ -580,17 +612,16 @@ int AttachMasterObject(GameObjNotifier* object)
 int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view)
 {
   const bool valid = object != nullptr;
-  if (valid)
-  {
+  if (valid) {
     object->SetId(master->m_id);
     object->SetRecord(master->m_record);
     object->SetViewSide(static_cast<uint32_t>(view));
     object->SetSideMask(2);
   }
-  if (!valid)
+  if (!valid) {
     return false;
-  if (GameObjNotifier* parent = FindParentFor(object, view))
-  {
+  }
+  if (GameObjNotifier* parent = FindParentFor(object, view)) {
     GameObjNotifier* previousParent;
     parent->AddChild(object, &previousParent);
   }
@@ -599,9 +630,11 @@ int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view)
 
 int DetachObject(GameObjNotifier* object)
 {
-  if (!object)
+  if (!object) {
     return false;
-  if (FindParentFor(object, static_cast<int>(object->ViewSide())))
+  }
+  if (FindParentFor(object, static_cast<int>(object->ViewSide()))) {
     GameObjNotifier::RemoveFromParent(object);
+  }
   return object != nullptr;
 }

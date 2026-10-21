@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 
 #include "platform/win32.h"
 
@@ -8,7 +9,8 @@
 // reconstructed in src/game/iostream. This is the only declaration of the library: game code includes it and calls the
 // entry points below, which are hooked over the original addresses.
 //
-// The old Microsoft stream library is implemented with typed C++ ownership while retaining its game-specific parsing and serialization entry points.
+// The old Microsoft stream library is implemented with typed C++ ownership while retaining its game-specific parsing
+// and serialization entry points.
 
 class ios;
 class streambuf;
@@ -57,7 +59,7 @@ constexpr int kTrunc = 0x10;
 
 class ios
 {
-public:
+  public:
   ios();
   ~ios();
   ios(const ios&) = delete;
@@ -79,7 +81,7 @@ public:
   char m_fill{};
   int m_width{};
   int m_lockCount{-1};
-  CRITICAL_SECTION m_lock{};
+  std::recursive_mutex m_lock;
 
   bool m_lockInitialized{};
   bool m_bufferReleased{};
@@ -87,7 +89,7 @@ public:
 
 class streambuf
 {
-public:
+  public:
   streambuf();
   virtual ~streambuf();
   streambuf(const streambuf&) = delete;
@@ -119,7 +121,7 @@ public:
   char* m_gptr{};
   char* m_egptr{};
   int m_lockCount{-1};
-  CRITICAL_SECTION m_lock{};
+  std::recursive_mutex m_lock;
 
   bool m_lockInitialized{};
   bool m_cleaned{};
@@ -127,7 +129,7 @@ public:
 
 class strstreambuf : public streambuf
 {
-public:
+  public:
   strstreambuf();
   ~strstreambuf() override;
 
@@ -148,7 +150,7 @@ public:
 
 class filebuf : public streambuf
 {
-public:
+  public:
   filebuf();
   ~filebuf() override;
 
@@ -164,8 +166,9 @@ public:
 
 class istream
 {
-public:
-  explicit istream(ios* state = nullptr) : m_state(state)
+  public:
+  explicit istream(ios* state = nullptr)
+      : m_state(state)
   {
   }
   ios* State() const
@@ -179,14 +182,15 @@ public:
   int m_fGline{};
   int m_gcount{};
 
-private:
+  private:
   ios* m_state{};
 };
 
 class ostream
 {
-public:
-  explicit ostream(ios* state = nullptr) : m_state(state)
+  public:
+  explicit ostream(ios* state = nullptr)
+      : m_state(state)
   {
   }
   ios* State() const
@@ -199,14 +203,16 @@ public:
   }
   int m_floatUsed{};
 
-private:
+  private:
   ios* m_state{};
 };
 
 class iostream
 {
-public:
-  iostream() : m_in(&m_ios), m_out(&m_ios)
+  public:
+  iostream()
+      : m_in(&m_ios)
+      , m_out(&m_ios)
   {
   }
   istream* In()
@@ -234,7 +240,7 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   istream m_in;
   ostream m_out;
@@ -242,8 +248,9 @@ private:
 
 class istrstream
 {
-public:
-  istrstream() : m_in(&m_ios)
+  public:
+  istrstream()
+      : m_in(&m_ios)
   {
   }
   istream* In()
@@ -263,15 +270,16 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   istream m_in;
 };
 
 class ostrstream
 {
-public:
-  ostrstream() : m_out(&m_ios)
+  public:
+  ostrstream()
+      : m_out(&m_ios)
   {
   }
   ostream* Out()
@@ -291,15 +299,17 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   ostream m_out;
 };
 
 class strstream
 {
-public:
-  strstream() : m_in(&m_ios), m_out(&m_ios)
+  public:
+  strstream()
+      : m_in(&m_ios)
+      , m_out(&m_ios)
   {
   }
   istream* In()
@@ -327,7 +337,7 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   istream m_in;
   ostream m_out;
@@ -335,8 +345,9 @@ private:
 
 class ifstream
 {
-public:
-  ifstream() : m_in(&m_ios)
+  public:
+  ifstream()
+      : m_in(&m_ios)
   {
   }
   istream* In()
@@ -356,15 +367,16 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   istream m_in;
 };
 
 class ofstream
 {
-public:
-  ofstream() : m_out(&m_ios)
+  public:
+  ofstream()
+      : m_out(&m_ios)
   {
   }
   ostream* Out()
@@ -384,19 +396,17 @@ public:
     return &m_ios;
   }
 
-private:
+  private:
   ios m_ios;
   ostream m_out;
 };
 
 // ---- ios -------------------------------------------------------------------------------------------------------
-ios* ios_ctor(ios* self); // 0x6153b0
-void ios_dtor(ios* self); // 0x615440
+ios* ios_ctor(ios* self);                    // 0x6153b0
+void ios_dtor(ios* self);                    // 0x615440
 void ios_init(ios* self, streambuf* buffer); // 0x6154a0
-void mtx_init(void* criticalSection); // 0x615ec0
-void mtx_term(void* criticalSection); // 0x615ed0
-void mtx_lock(void* criticalSection); // 0x615ee0
-void mtx_unlock(void* criticalSection); // 0x615ef0
+void mtx_lock(std::recursive_mutex* mutex);        // 0x615ee0
+void mtx_unlock(std::recursive_mutex* mutex);      // 0x615ef0
 
 // The out-of-line copies of ios::lock(), unlock(), unsetf() and setf() the game's own code carries (0x4f90b0-0x4f9130).
 void ios_lock(ios* stream);
@@ -405,106 +415,106 @@ ios* ios_unsetf(ios* stream, unsigned mask);
 ios* ios_setf(ios* stream, unsigned mask);
 
 // ---- streambuf -------------------------------------------------------------------------------------------------
-streambuf* streambuf_ctor(streambuf* self); // 0x617d60
-void streambuf_dtor(streambuf* self); // 0x617dd0
-int streambuf_sync(streambuf* self); // 0x617fa0
-streambuf* streambuf_setbuf(streambuf* self, char* buffer, int size); // 0x617e10
-int streambuf_seekoff(streambuf* self, long offset, int dir, int mode); // 0x618060
-int streambuf_seekpos(streambuf* self, long position, int mode); // 0x618070
-int streambuf_xsputn(streambuf* self, const char* text, int count); // 0x617e50
-int streambuf_xsgetn(streambuf* self, char* buffer, int count); // 0x617eb0
-int streambuf_pbackfail(streambuf* self, int c); // 0x618090
-int streambuf_doallocate(streambuf* self); // 0x617fe0
-int streambuf_allocate(streambuf* self); // 0x617fc0
+streambuf* streambuf_ctor(streambuf* self);                              // 0x617d60
+void streambuf_dtor(streambuf* self);                                    // 0x617dd0
+int streambuf_sync(streambuf* self);                                     // 0x617fa0
+streambuf* streambuf_setbuf(streambuf* self, char* buffer, int size);    // 0x617e10
+int streambuf_seekoff(streambuf* self, long offset, int dir, int mode);  // 0x618060
+int streambuf_seekpos(streambuf* self, long position, int mode);         // 0x618070
+int streambuf_xsputn(streambuf* self, const char* text, int count);      // 0x617e50
+int streambuf_xsgetn(streambuf* self, char* buffer, int count);          // 0x617eb0
+int streambuf_pbackfail(streambuf* self, int c);                         // 0x618090
+int streambuf_doallocate(streambuf* self);                               // 0x617fe0
+int streambuf_allocate(streambuf* self);                                 // 0x617fc0
 void streambuf_setb(streambuf* self, char* begin, char* end, int owned); // 0x618020
-int streambuf_snextc(streambuf* self); // 0x6183e0
-int streambuf_sbumpc(streambuf* self); // 0x618440
-void streambuf_stossc(streambuf* self); // 0x618490
-int streambuf_sgetc(streambuf* self); // 0x6184e0
+int streambuf_snextc(streambuf* self);                                   // 0x6183e0
+int streambuf_sbumpc(streambuf* self);                                   // 0x618440
+void streambuf_stossc(streambuf* self);                                  // 0x618490
+int streambuf_sgetc(streambuf* self);                                    // 0x6184e0
 
 // ---- strstreambuf ----------------------------------------------------------------------------------------------
-strstreambuf* strstreambuf_ctor(strstreambuf* self); // 0x6154e0
+strstreambuf* strstreambuf_ctor(strstreambuf* self);                                          // 0x6154e0
 strstreambuf* strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, char* start); // 0x615530
-void strstreambuf_dtor(strstreambuf* self); // 0x6155f0
-void strstreambuf_freeze(streambuf* self, int frozen); // 0x615660
-char* strstreambuf_str(streambuf* self); // 0x615680
-int strstreambuf_doallocate(strstreambuf* self); // 0x615690
-streambuf* strstreambuf_setbuf(strstreambuf* self, char* buffer, int size); // 0x6157c0
-int strstreambuf_overflow(strstreambuf* self, int c); // 0x6157d0
-int strstreambuf_underflow(strstreambuf* self); // 0x615860
-int strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode); // 0x6158c0
+void strstreambuf_dtor(strstreambuf* self);                                                   // 0x6155f0
+void strstreambuf_freeze(streambuf* self, int frozen);                                        // 0x615660
+char* strstreambuf_str(streambuf* self);                                                      // 0x615680
+int strstreambuf_doallocate(strstreambuf* self);                                              // 0x615690
+streambuf* strstreambuf_setbuf(strstreambuf* self, char* buffer, int size);                   // 0x6157c0
+int strstreambuf_overflow(strstreambuf* self, int c);                                         // 0x6157d0
+int strstreambuf_underflow(strstreambuf* self);                                               // 0x615860
+int strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode);                 // 0x6158c0
 
 // ---- istream / ostream / iostream construction -----------------------------------------------------------------
 istream* istream_ctor(istream* self, streambuf* buffer, int constructVirtualBase); // 0x6179e0
-void istream_dtor(void* istreamEnd); // 0x617a80: ECX = istream part + 0xc
+void istream_dtor(void* istreamEnd);                                               // 0x617a80: ECX = istream part + 0xc
 ostream* ostream_ctor(ostream* self, streambuf* buffer, int constructVirtualBase); // 0x616210
-void ostream_dtor(void* ostreamEnd); // 0x6162a0: ECX = ostream part + 8
+void ostream_dtor(void* ostreamEnd);                                               // 0x6162a0: ECX = ostream part + 8
 iostream* iostream_ctor(iostream* self, streambuf* buffer, int constructVirtualBase); // 0x618130
-void iostream_dtor(ios* iosBase); // 0x6181d0
+void iostream_dtor(ios* iosBase);                                                     // 0x6181d0
 
-istrstream* istrstream_ctor_str(istrstream* self, char* text, int constructVirtualBase); // 0x6159e0
+istrstream* istrstream_ctor_str(istrstream* self, char* text, int constructVirtualBase);                 // 0x6159e0
 istrstream* istrstream_ctor_str_len(istrstream* self, char* text, int length, int constructVirtualBase); // 0x615ad0
-void istrstream_dtor(ios* iosBase); // 0x615b90
-ostrstream* ostrstream_ctor(ostrstream* self, int constructVirtualBase); // 0x615bb0
-ostrstream*
-ostrstream_ctor_buf(ostrstream* self, char* buffer, int length, int mode, int constructVirtualBase); // 0x615c90
-void ostrstream_vbase_dtor(ios* iosBase); // 0x615d70
-void ostrstream_dtor(ios* iosBase); // 0x615d90
+void istrstream_dtor(ios* iosBase);                                                                      // 0x615b90
+ostrstream* ostrstream_ctor(ostrstream* self, int constructVirtualBase);                                 // 0x615bb0
+ostrstream* ostrstream_ctor_buf(ostrstream* self, char* buffer, int length, int mode,
+                                int constructVirtualBase);            // 0x615c90
+void ostrstream_vbase_dtor(ios* iosBase);                             // 0x615d70
+void ostrstream_dtor(ios* iosBase);                                   // 0x615d90
 strstream* strstream_ctor(strstream* self, int constructVirtualBase); // 0x615db0
-void strstream_dtor(ios* iosBase); // 0x615ea0
+void strstream_dtor(ios* iosBase);                                    // 0x615ea0
 
 // ---- ostream ---------------------------------------------------------------------------------------------------
-ostream* ostream_operator_ls_char(ostream* out, char value); // 0x615f00
-int ostream_opfx(ostream* out); // 0x615fc0
-void ostream_osfx(ostream* out); // 0x616040
-ostream* ostream_operator_ls_cstr(ostream* out, const char* text); // 0x616110
-ostream* ostream_flush(ostream* out); // 0x616140
+ostream* ostream_operator_ls_char(ostream* out, char value);             // 0x615f00
+int ostream_opfx(ostream* out);                                          // 0x615fc0
+void ostream_osfx(ostream* out);                                         // 0x616040
+ostream* ostream_operator_ls_cstr(ostream* out, const char* text);       // 0x616110
+ostream* ostream_flush(ostream* out);                                    // 0x616140
 void ostream_outstr(ostream* out, const char* prefix, const char* text); // 0x6162b0
-ostream* ostream_seekp_pos(ostream* out, long position); // 0x616900
-ostream* ostream_seekp_off(ostream* out, long offset, int dir); // 0x6169a0
-long ostream_tellp(ostream* out); // 0x616a40
+ostream* ostream_seekp_pos(ostream* out, long position);                 // 0x616900
+ostream* ostream_seekp_off(ostream* out, long offset, int dir);          // 0x6169a0
+long ostream_tellp(ostream* out);                                        // 0x616a40
 ostream* ostream_operator_ls_streambuf(ostream* out, streambuf* buffer); // 0x616ae0
-ostream* ostream_operator_ls_long(ostream* out, long value); // 0x616e10
-ostream* ostream_write(ostream* out, const void* buffer, int count); // 0x617430
-ostream* ostream_operator_ls_ulong(ostream* out, unsigned long value); // 0x617480
-ostream* ostream_operator_ls_int(ostream* out, int value); // 0x617540
+ostream* ostream_operator_ls_long(ostream* out, long value);             // 0x616e10
+ostream* ostream_write(ostream* out, const void* buffer, int count);     // 0x617430
+ostream* ostream_operator_ls_ulong(ostream* out, unsigned long value);   // 0x617480
+ostream* ostream_operator_ls_int(ostream* out, int value);               // 0x617540
 
 // ---- istream ---------------------------------------------------------------------------------------------------
-istream* istream_operator_rs_streambuf(istream* in, streambuf* buffer); // 0x616b70
-istream* istream_seekg_pos(istream* in, long position); // 0x616c30
-istream* istream_seekg_off(istream* in, long offset, int dir); // 0x616cd0
-long istream_tellg(istream* in); // 0x616d70
-int istream_get(istream* in); // 0x617330
-istream* istream_read(istream* in, void* buffer, int count); // 0x6173b0
-istream* istream_operator_rs_long(istream* in, int* value); // 0x617610
-istream* istream_operator_rs_ushort(istream* in, unsigned short* value); // 0x6176a0
-istream* istream_operator_rs_ulong(istream* in, unsigned int* value); // 0x617760
+istream* istream_operator_rs_streambuf(istream* in, streambuf* buffer);        // 0x616b70
+istream* istream_seekg_pos(istream* in, long position);                        // 0x616c30
+istream* istream_seekg_off(istream* in, long offset, int dir);                 // 0x616cd0
+long istream_tellg(istream* in);                                               // 0x616d70
+int istream_get(istream* in);                                                  // 0x617330
+istream* istream_read(istream* in, void* buffer, int count);                   // 0x6173b0
+istream* istream_operator_rs_long(istream* in, int* value);                    // 0x617610
+istream* istream_operator_rs_ushort(istream* in, unsigned short* value);       // 0x6176a0
+istream* istream_operator_rs_ulong(istream* in, unsigned int* value);          // 0x617760
 istream* istream_getline(istream* in, char* buffer, int limit, int delimiter); // 0x617800
-istream* istream_operator_rs_short(istream* in, short* value); // 0x617900
-int istream_ipfx(istream* in, int need); // 0x617a90
-istream* istream_operator_rs_charptr(istream* in, char* value); // 0x617b90
-void istream_eatwhite(istream* in); // 0x617cb0
-int istream_getint(istream* in, char* buffer); // 0x618510
+istream* istream_operator_rs_short(istream* in, short* value);                 // 0x617900
+int istream_ipfx(istream* in, int need);                                       // 0x617a90
+istream* istream_operator_rs_charptr(istream* in, char* value);                // 0x617b90
+void istream_eatwhite(istream* in);                                            // 0x617cb0
+int istream_getint(istream* in, char* buffer);                                 // 0x618510
 
 // ---- filebuf / fstream -----------------------------------------------------------------------------------------
-filebuf* filebuf_ctor(filebuf* self); // 0x616ed0
-void filebuf_dtor(filebuf* self); // 0x616f10
-filebuf* filebuf_close(filebuf* self); // 0x616f90
-int filebuf_overflow(filebuf* self, int c); // 0x617010
-int filebuf_underflow(filebuf* self); // 0x6170a0
-int filebuf_seekoff(filebuf* self, long offset, int dir, int mode); // 0x617160
-int filebuf_sync(filebuf* self); // 0x6171b0
-streambuf* filebuf_setbuf(filebuf* self, char* buffer, int size); // 0x6172b0
+filebuf* filebuf_ctor(filebuf* self);                                             // 0x616ed0
+void filebuf_dtor(filebuf* self);                                                 // 0x616f10
+filebuf* filebuf_close(filebuf* self);                                            // 0x616f90
+int filebuf_overflow(filebuf* self, int c);                                       // 0x617010
+int filebuf_underflow(filebuf* self);                                             // 0x6170a0
+int filebuf_seekoff(filebuf* self, long offset, int dir, int mode);               // 0x617160
+int filebuf_sync(filebuf* self);                                                  // 0x6171b0
+streambuf* filebuf_setbuf(filebuf* self, char* buffer, int size);                 // 0x6172b0
 filebuf* filebuf_open(filebuf* self, const char* name, int mode, int protection); // 0x618240
 
-ofstream* ofstream_ctor(ofstream* self, int constructVirtualBase); // 0x6164b0
-void ofstream_dtor(ios* iosBase); // 0x616590
+ofstream* ofstream_ctor(ofstream* self, int constructVirtualBase);              // 0x6164b0
+void ofstream_dtor(ios* iosBase);                                               // 0x616590
 void ofstream_open(ofstream* self, const char* name, int mode, int protection); // 0x6165b0
-ifstream* ifstream_ctor(ifstream* self, int constructVirtualBase); // 0x616620
-ifstream*
-ifstream_ctor_open(ifstream* self, const char* name, int mode, int protection, int constructVirtualBase); // 0x616700
-void ifstream_vbase_dtor(ios* iosBase); // 0x6167f0
-void ifstream_dtor(ios* iosBase); // 0x616810
+ifstream* ifstream_ctor(ifstream* self, int constructVirtualBase);              // 0x616620
+ifstream* ifstream_ctor_open(ifstream* self, const char* name, int mode, int protection,
+                             int constructVirtualBase);                         // 0x616700
+void ifstream_vbase_dtor(ios* iosBase);                                         // 0x6167f0
+void ifstream_dtor(ios* iosBase);                                               // 0x616810
 void ifstream_open(ifstream* self, const char* name, int mode, int protection); // 0x616830
 void fstreambase_close(istream* stream);
 void fstreambase_close(ostream* stream); // 0x6168a0
@@ -569,13 +579,15 @@ inline streambuf* BufferOf(const T* stream)
 
 inline void Lock(ios* stream)
 {
-  if (stream->m_lockCount < 0)
+  if (stream->m_lockCount < 0) {
     mtx_lock(&stream->m_lock);
+  }
 }
 inline void Unlock(ios* stream)
 {
-  if (stream->m_lockCount < 0)
+  if (stream->m_lockCount < 0) {
     mtx_unlock(&stream->m_lock);
+  }
 }
 inline void Clear(ios* stream, int state)
 {
@@ -589,13 +601,15 @@ inline void SetState(ios* stream, int bits)
 }
 inline void LockBuffer(streambuf* buffer)
 {
-  if (buffer->m_lockCount < 0)
+  if (buffer->m_lockCount < 0) {
     mtx_lock(&buffer->m_lock);
+  }
 }
 inline void UnlockBuffer(streambuf* buffer)
 {
-  if (buffer->m_lockCount < 0)
+  if (buffer->m_lockCount < 0) {
     mtx_unlock(&buffer->m_lock);
+  }
 }
 inline int& GetlineCount(strstream* stream)
 {

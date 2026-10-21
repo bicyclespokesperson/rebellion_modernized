@@ -18,7 +18,7 @@ class Crc32;
 // machine code of ReadVersion is shared with an unrelated class by the linker).
 class TableBase
 {
-public:
+  public:
   TableBase();
   ~TableBase();
   virtual int Read(istream* in) = 0;
@@ -39,7 +39,7 @@ public:
 // TableEntry objects keyed by their ids. Entries are created by name through the table-entry class registry.
 class Table : public TableBase
 {
-public:
+  public:
   static constexpr int kNameSize = 0x28;
 
   Table();
@@ -55,14 +55,14 @@ public:
   // threshold is above it, the last entry if none is.
   TableEntry* FindStepEntry(int value);
 
-  char m_name[kNameSize]; // +0x08, entry class name; uninitialised beyond its terminator
+  char m_name[kNameSize];           // +0x08, entry class name; uninitialised beyond its terminator
   IdRegistry<TableEntry> m_entries; // +0x30
 };
 
 // A Table loaded under a table id. m_version mirrors the table's version when the object is built.
 class TableFile : public IdNode
 {
-public:
+  public:
   TableFile();
   ~TableFile() override;
 
@@ -75,7 +75,7 @@ public:
 // All loaded tables, keyed by table id.
 class TableFileList
 {
-public:
+  public:
   void Clear()
   {
     m_registry.Clear();
@@ -128,14 +128,14 @@ public:
   ~TableFileList();
 
   int m_ready; // +0x0c, 1
-private:
+  private:
   IdRegistry<TableFile> m_registry;
 };
 
 // The registry of every GData table of the game.
 class GDataTables
 {
-public:
+  public:
   GDataTables();
   virtual ~GDataTables();
 
@@ -147,7 +147,7 @@ public:
   int ChecksumAll(Crc32* crc);
   TableEntry* Lookup(uint32_t tableId, int value);
 
-  int m_ready; // +0x04, the list's m_ready
+  int m_ready;             // +0x04, the list's m_ready
   TableFileList* m_tables; // +0x08
 };
 

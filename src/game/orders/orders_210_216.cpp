@@ -106,7 +106,8 @@ bool isCapitalShip(GameObjNotifier* object)
 
 // ---- DestinationOrder (0x214) ---------------------------------------------------------------------------------
 
-DestinationOrder::DestinationOrder() : OrderBase()
+DestinationOrder::DestinationOrder()
+    : OrderBase()
 {
 }
 
@@ -135,136 +136,122 @@ int DestinationOrder::CheckDestination(StatusCode* status)
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
   uint32_t side = 0;
-  if (ok != 0 && isOk(status))
+  if (ok != 0 && isOk(status)) {
     ok = GetCommandSide(m_commands, &side);
+  }
 
   GameObjNotifier* destination = nullptr;
-  if (ok != 0)
-  {
+  if (ok != 0) {
     StatusCode resolveStatus(kStatusCategory, kStatusOk);
-    if (isOk(status))
-    {
+    if (isOk(status)) {
       StatusCode missing(kStatusCategory, kStatusNoDestination);
       ok = ResolveMasterInFamilies_01_ff(&request.m_target, &destination, &missing, &resolveStatus);
-      if (ok != 0 && destination == nullptr)
+      if (ok != 0 && destination == nullptr) {
         *status = resolveStatus;
+      }
     }
-    if (ok != 0 && isOk(status))
-    {
+    if (ok != 0 && isOk(status)) {
       bool onlyCapitalShips = true;
-      for (const auto& commandEntry : m_commands->Entries())
-      {
-        if (!isOk(status) || !onlyCapitalShips)
+      for (const auto& commandEntry : m_commands->Entries()) {
+        if (!isOk(status) || !onlyCapitalShips) {
           break;
+        }
         auto* command = static_cast<Command*>(commandEntry.get());
         GameObjNotifier* manager = managerOfCommand(command);
-        if (!manager)
+        if (!manager) {
           continue;
+        }
         ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->ManuMgr::GetQueue();
-        for (const auto& childEntry : children->Entries())
-        {
-          if (!isOk(status) || !onlyCapitalShips)
+        for (const auto& childEntry : children->Entries()) {
+          if (!isOk(status) || !onlyCapitalShips) {
             break;
+          }
           auto* node = childEntry.get();
-          if (!isCapitalShip(keyOfNode(node)))
+          if (!isCapitalShip(keyOfNode(node))) {
             onlyCapitalShips = false;
+          }
         }
       }
-      if (destination->ControlSide() != side && !onlyCapitalShips)
+      if (destination->ControlSide() != side && !onlyCapitalShips) {
         setStatus(status, kStatusWrongSide);
+      }
     }
   }
 
   RouteContext route;
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       int mode = 3;
       ok = route.InitFromRequest(&request, static_cast<int>(side), &mode);
     }
-    if (ok != 0)
-    {
-      if (isOk(status))
+    if (ok != 0) {
+      if (isOk(status)) {
         ok = route.AddContainerLegs(&request.m_target);
-      if (ok != 0 && isOk(status))
-      {
-        for (const auto& commandEntry : m_commands->Entries())
-        {
-          if (ok == 0 || !isOk(status))
+      }
+      if (ok != 0 && isOk(status)) {
+        for (const auto& commandEntry : m_commands->Entries()) {
+          if (ok == 0 || !isOk(status)) {
             break;
+          }
           auto* command = static_cast<Command*>(commandEntry.get());
           GameObjNotifier* manager = managerOfCommand(command);
-          if (!manager || !inFamilies(manager->GetFamily(), 0xa0, 0xb0))
-          {
+          if (!manager || !inFamilies(manager->GetFamily(), 0xa0, 0xb0)) {
             setStatus(status, kStatusRefused);
             break;
           }
-          if (static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0)
-          {
+          if (static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
             GameObjNotifier* target = nullptr;
             StatusCode missing(kStatusCategory, kStatusNoDestination);
             ok = ResolveMasterInFamilies_01_ff(&request.m_target, &target, &missing, status);
-            if (ok != 0 && isOk(status))
-            {
-              if (inFamilies(manager->GetFamily(), 0xa0, 0xa2))
-              {
+            if (ok != 0 && isOk(status)) {
+              if (inFamilies(manager->GetFamily(), 0xa0, 0xa2)) {
                 int mode = request.m_side == 1 ? 1 : (request.m_side == 2 ? 2 : 0);
-                if (isOk(status))
+                if (isOk(status)) {
                   ok = CheckControlAndState(static_cast<GameObj*>(target), static_cast<uint32_t>(mode), side, 1, 1,
                                             status);
-                if (ok == 0)
+                }
+                if (ok == 0) {
                   continue;
-                if (isOk(status) && !isSystem(target))
+                }
+                if (isOk(status) && !isSystem(target)) {
                   setStatus(status, kStatusBadDestinationKind);
-              }
-              else
-              {
-                if (isOk(status))
-                {
+                }
+              } else {
+                if (isOk(status)) {
                   uint32_t flags = static_cast<GameObj*>(target)->m_stateFlags;
-                  if ((flags & kUnitFlagRecruited) == 0)
-                  {
+                  if ((flags & kUnitFlagRecruited) == 0) {
                     setStatus(status, kStatusNotRecruited);
-                  }
-                  else if ((flags & kUnitFlagEnroute) != 0)
-                  {
+                  } else if ((flags & kUnitFlagEnroute) != 0) {
                     setStatus(status, kStatusBusy);
-                  }
-                  else if ((flags & kUnitFlagUntraced) != 0 && !isSystem(target))
-                  {
+                  } else if ((flags & kUnitFlagUntraced) != 0 && !isSystem(target)) {
                     setStatus(status, kStatusNoDestination);
                   }
                 }
-                if (isOk(status) && !isSystem(target) && !isFleet(target) && !isCapitalShip(target))
+                if (isOk(status) && !isSystem(target) && !isFleet(target) && !isCapitalShip(target)) {
                   setStatus(status, kStatusBadDestinationKind);
+                }
               }
-              if (ok != 0 && isOk(status))
-              {
+              if (ok != 0 && isOk(status)) {
                 ObjectKey targetKey;
                 target->GetKey(&targetKey);
                 command->m_request.m_target = targetKey;
               }
             }
-          }
-          else
-          {
+          } else {
             ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
             ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->ManuMgr::GetQueue();
-            for (const auto& childEntry : children->Entries())
-            {
-              if (ok == 0 || !isOk(status))
+            for (const auto& childEntry : children->Entries()) {
+              if (ok == 0 || !isOk(status)) {
                 break;
+              }
               auto* node = childEntry.get();
               ObjectKey legKey;
               CapacityScratch leg;
-              if (ok != 0 && isOk(status))
-              {
+              if (ok != 0 && isOk(status)) {
                 ObjectKey unitKey = keyOfNode(node);
                 ok = route.CheckArrival(&unitKey, &request.m_target, status, &leg, &legKey);
               }
-              if (ok != 0 && isOk(status))
-              {
+              if (ok != 0 && isOk(status)) {
                 ObjectKey unitKey = keyOfNode(node);
                 ok = static_cast<DestinationCommand*>(command)->m_pairs.AddPair(&legKey, &unitKey);
               }
@@ -274,14 +261,16 @@ int DestinationOrder::CheckDestination(StatusCode* status)
       }
     }
   }
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
 // ---- RenameOrder215 (0x215) --------------------------------------------------------------------------------------
 
-RenameOrder215::RenameOrder215() : TextMessage()
+RenameOrder215::RenameOrder215()
+    : TextMessage()
 {
 }
 
@@ -302,10 +291,10 @@ int RenameOrder215::CheckEnabled(StatusCode* status)
   int ownsQueue = static_cast<int>(m_unk1c);
   *status = StatusCode(kStatusCategory, kStatusOk);
   TextMessage::CheckEnabled(status);
-  if (ownsQueue != 0 && isOk(status))
-  {
-    if (static_cast<uint16_t>(m_commands->Count()) > 1)
+  if (ownsQueue != 0 && isOk(status)) {
+    if (static_cast<uint16_t>(m_commands->Count()) > 1) {
       setStatus(status, kStatusTooManyCommands);
+    }
   }
   return isOk(status);
 }
@@ -322,24 +311,25 @@ int RenameOrder215::CheckDestination(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
-  if (ok != 0)
-  {
-    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-    {
+  if (ok != 0) {
+    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
       Command* command = static_cast<Command*>((*(commandPosition++)).get());
-      if (!(true && isOk(status)))
+      if (!(true && isOk(status))) {
         break;
+      }
       static_cast<ManagerRenameCommand*>(command)->m_name = m_text;
     }
   }
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
 // ---- ManufactureOrderBase (0x6610f0) --------------------------------------------------------------------------
 
-ManufactureOrderBase::ManufactureOrderBase() : OrderBase()
+ManufactureOrderBase::ManufactureOrderBase()
+    : OrderBase()
 {
   m_item.m_value = 0;
   m_count = 0;
@@ -350,8 +340,7 @@ ManufactureOrderBase::~ManufactureOrderBase() = default;
 int ManufactureOrderBase::Read(istream* in)
 {
   int result = OrderBase::Read(in);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamRead32(in, &m_item);
     StreamRead32(in, &m_count);
   }
@@ -361,8 +350,7 @@ int ManufactureOrderBase::Read(istream* in)
 int ManufactureOrderBase::Write(ostream* out)
 {
   int result = OrderBase::Write(out);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamWrite32(out, &m_item);
     StreamWrite32(out, &m_count);
   }
@@ -384,44 +372,40 @@ uint32_t ManufactureOrderBase::FillChoices(ObjectNameList* choices)
   ObjectKeyValueSet dependencies;
   StatusCode status(kStatusCategory, kStatusOk);
   uint32_t result = CollectKeyDependencies(&request, GetTeam(), &dependencies, &status);
-  if (result != 0 && isOk(&status))
-  {
+  if (result != 0 && isOk(&status)) {
     int item = 0;
     bool first = true;
-    for (const auto& entry : dependencies.Entries())
-    {
+    for (const auto& entry : dependencies.Entries()) {
       auto* node = entry.get();
-      if (inFamilies(keyOfNode(node), 0xa0, 0xb0))
-      {
+      if (inFamilies(keyOfNode(node), 0xa0, 0xb0)) {
         ObjectKey managerKey = keyOfNode(node);
         GameObjNotifier* manager = GetMasterInFamilies_a0_b0(&managerKey);
         result = manager != nullptr;
-        if (result != 0 && first)
-        {
+        if (result != 0 && first) {
           side = manager->ControlSide();
           item = static_cast<ManuMgr*>(manager)->GetFacilityKind();
           first = false;
         }
       }
-      if (result == 0)
+      if (result == 0) {
         break;
+      }
     }
-    if (result != 0)
-    {
+    if (result != 0) {
       result = !first;
-      if (result != 0 && side != 3)
-      {
+      if (result != 0 && side != 3) {
         GameObjNotifier* sideObject = GetGameRootSideMemberThunk(sideIndexOf(side));
         int kind = 0;
         bool known = true;
-        if (item == 0)
+        if (item == 0) {
           kind = 0x28;
-        else if (item == 1)
+        } else if (item == 1) {
           kind = 0x2a;
-        else if (item == 2)
+        } else if (item == 2) {
           kind = 0x29;
-        else
+        } else {
           known = false;
+        }
         result = known ? static_cast<Side*>(sideObject)->Side::CollectRdRecords(kind, choices) : 0;
       }
     }
@@ -439,13 +423,11 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
   *status = StatusCode(kStatusCategory, kStatusOk);
   ObjectKey item;
   GetItemKey(&item);
-  if (inFamilies(item, 0x10, 0x40))
-  {
+  if (inFamilies(item, 0x10, 0x40)) {
     ObjectKey recordKey;
     DatRecord* record = FindDataRecord(AsLookupKey(GetItemKey(&recordKey)));
     ok = record != nullptr;
-    if (record)
-    {
+    if (record) {
       *out1 = static_cast<SdRecord*>(record)->GetField4c() * m_count;
       *out2 = static_cast<SdRecord*>(record)->GetField48() * m_count;
     }
@@ -455,33 +437,32 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
   int result = (gameRoot != nullptr && ok != 0) ? 1 : 0;
   int peakFirst = 0;
   int peakSecond = 0;
-  if (isOk(status) && gameRoot)
-  {
-    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-    {
+  if (isOk(status) && gameRoot) {
+    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
       Command* command = static_cast<Command*>((*(commandPosition++)).get());
-      if (!(true && isOk(status)))
+      if (!(true && isOk(status))) {
         break;
+      }
 
       GameObjNotifier* manager = managerOfCommand(command);
-      if (!manager)
+      if (!manager) {
         continue;
+      }
       int perUnit = static_cast<uint16_t>(static_cast<ManufactureCommand*>(command)->m_items.Count());
       int first = 0;
       int second = 0;
-      if (isOk(status))
-      {
+      if (isOk(status)) {
         ObjectKey firstItem;
+        NullableKey firstSeed;
+        firstSeed.m_value = GetItemKey(&firstItem)->m_value;
         int accepted = GetRulesMgr()->RulesMgr::EstimateBuildDays(
-          manager, reinterpret_cast<const NullableKey*>(GetItemKey(&firstItem)), perUnit, status, &first);
+            manager, &firstSeed, perUnit, status, &first);
         result = (accepted != 0 && result != 0) ? 1 : 0;
-        if (isOk(status))
-        {
+        if (isOk(status)) {
           ObjectKey secondItem;
           accepted = GetRulesMgr()->RulesMgr::EstimateDeploymentDays(manager, GetItemKey(&secondItem), status, &second);
           result = (accepted != 0 && result != 0) ? 1 : 0;
-          if (isOk(status))
-          {
+          if (isOk(status)) {
             peakFirst = MaxInt(peakFirst, first);
             peakSecond = MaxInt(peakSecond, second);
           }
@@ -489,10 +470,10 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
       }
     }
   }
-  if (result == 0)
+  if (result == 0) {
     setStatus(status, kStatusRefused);
-  if (isOk(status))
-  {
+  }
+  if (isOk(status)) {
     *out3 = peakFirst;
     *out4 = peakSecond;
   }
@@ -506,67 +487,67 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status)
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
   uint32_t side = 0;
-  if (ok != 0 && isOk(status))
+  if (ok != 0 && isOk(status)) {
     ok = GetCommandSide(m_commands, &side);
+  }
 
-  if (ok != 0 && isOk(status))
-  {
-    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-    {
+  if (ok != 0 && isOk(status)) {
+    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
       Command* command = static_cast<Command*>((*(commandPosition++)).get());
 
-      if (!(ok != 0 && isOk(status)))
+      if (!(ok != 0 && isOk(status))) {
         break;
+      }
       GameObjNotifier* manager = managerOfCommand(command);
-      if (!manager)
+      if (!manager) {
         continue;
+      }
       GameObjNotifier* destination = nullptr;
       StatusCode resolveStatus(kStatusCategory, kStatusOk);
-      if (isOk(status))
-      {
+      if (isOk(status)) {
         StatusCode missing(kStatusCategory, kStatusNoDestination);
         ObjectKey locationKey;
         ManagerGetLocationKey(manager, &locationKey);
         ok = ResolveMasterInFamilies_01_ff(&locationKey, &destination, &missing, &resolveStatus);
-        if (ok != 0 && destination == nullptr)
+        if (ok != 0 && destination == nullptr) {
           *status = resolveStatus;
+        }
       }
-      if (ok != 0 && isOk(status) && destination->ControlSide() != side)
-      {
+      if (ok != 0 && isOk(status) && destination->ControlSide() != side) {
         ObjectKey itemKey;
         GetItemKey(&itemKey);
-        if (!isCapitalShip(itemKey))
+        if (!isCapitalShip(itemKey)) {
           setStatus(status, kStatusWrongSide);
+        }
       }
     }
   }
 
   RouteContext route;
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       int mode = 3;
       ok = route.InitFromRequest(&request, static_cast<int>(side), &mode);
     }
-    if (ok != 0 && isOk(status))
-    {
+    if (ok != 0 && isOk(status)) {
       GameObjNotifier* sideObject = GetGameRootSideMember(sideIndexOf(side));
       ok = sideObject != nullptr;
-      if (ok != 0)
+      if (ok != 0) {
+        ObjectKey itemKey;
+        itemKey.m_value = m_item.m_value;
         ok = static_cast<Side*>(sideObject)
-               ->Side::CheckMaintCapacity(reinterpret_cast<const ObjectKey*>(&m_item), m_count, status);
+                 ->Side::CheckMaintCapacity(&itemKey, m_count, status);
+      }
     }
   }
 
   int capacity = 0;
-  if (ok != 0 && isOk(status))
-  {
-    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-    {
+  if (ok != 0 && isOk(status)) {
+    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
       Command* command = static_cast<Command*>((*(commandPosition++)).get());
-      if (!(true && ok != 0))
+      if (!(true && ok != 0)) {
         break;
+      }
 
       GameObjNotifier* manager = managerOfCommand(command);
       capacity += static_cast<ManuMgr*>(manager)->ManuMgr::CountHostFacilities(1);
@@ -577,59 +558,55 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status)
 
   int share = 0;
   int remainder = 0;
-  if (ok != 0 && isOk(status) && capacity != 0)
-  {
+  if (ok != 0 && isOk(status) && capacity != 0) {
     share = m_count / capacity;
     remainder = m_count % capacity;
   }
 
-  if (ok != 0 && isOk(status))
-  {
-    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-    {
+  if (ok != 0 && isOk(status)) {
+    for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
       Command* command = static_cast<Command*>((*(commandPosition++)).get());
-      if (!(true && ok != 0 && isOk(status)))
+      if (!(true && ok != 0 && isOk(status))) {
         break;
+      }
 
       GameObjNotifier* manager = managerOfCommand(command);
       ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
       int toBuild = 0;
-      if (ok != 0)
-      {
+      if (ok != 0) {
         int managerCapacity = static_cast<ManuMgr*>(manager)->ManuMgr::CountHostFacilities(1);
         int extra = managerCapacity < remainder ? managerCapacity : remainder;
         toBuild = managerCapacity * share + extra;
         remainder -= extra;
       }
-      for (int built = 0; ok != 0 && isOk(status) && built < toBuild; ++built)
-      {
+      for (int built = 0; ok != 0 && isOk(status) && built < toBuild; ++built) {
         ObjectKey legKey;
         CapacityScratch leg;
-        if (isOk(status))
-        {
+        if (isOk(status)) {
           ObjectKey originKey;
           ManagerGetLocationKey(manager, &originKey);
           ObjectKey itemKey;
           GetItemKey(&itemKey);
           ok = route.CheckArrivalOfFamily(&itemKey, &originKey, status, &leg, &legKey);
         }
-        if (ok != 0 && isOk(status))
-        {
+        if (ok != 0 && isOk(status)) {
           ObjectKey itemKey;
           ok = static_cast<ManufactureCommand*>(command)->m_items.ObjectKeyIntSet::AddPair(
-            legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
+              legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
         }
       }
     }
   }
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
 // ---- ManufactureOrder210/211/212 --------------------------------------------------------------------------------
 
-ManufactureOrder210::ManufactureOrder210() : ManufactureOrderBase()
+ManufactureOrder210::ManufactureOrder210()
+    : ManufactureOrderBase()
 {
 }
 ManufactureOrder210::~ManufactureOrder210() = default;
@@ -642,7 +619,8 @@ void* CreateManufactureOrder210()
   return NewOrNull<ManufactureOrder210>();
 }
 
-ManufactureOrder211::ManufactureOrder211() : ManufactureOrderBase()
+ManufactureOrder211::ManufactureOrder211()
+    : ManufactureOrderBase()
 {
 }
 ManufactureOrder211::~ManufactureOrder211() = default;
@@ -655,7 +633,8 @@ void* CreateManufactureOrder211()
   return NewOrNull<ManufactureOrder211>();
 }
 
-ManufactureOrder212::ManufactureOrder212() : ManufactureOrderBase()
+ManufactureOrder212::ManufactureOrder212()
+    : ManufactureOrderBase()
 {
 }
 ManufactureOrder212::~ManufactureOrder212() = default;
@@ -670,7 +649,8 @@ void* CreateManufactureOrder212()
 
 // ---- Order213 -------------------------------------------------------------------------------------------------
 
-Order213::Order213() : OrderBase()
+Order213::Order213()
+    : OrderBase()
 {
 }
 
@@ -694,7 +674,8 @@ void* CreateOrder213()
 
 // ---- Order216 -------------------------------------------------------------------------------------------------
 
-Order216::Order216() : OrderBase()
+Order216::Order216()
+    : OrderBase()
 {
 }
 
@@ -723,22 +704,22 @@ int Order216::CheckDestination(StatusCode* status)
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
   int flag = 0;
-  if (ok != 0)
-  {
-    if (isOk(status))
+  if (ok != 0) {
+    if (isOk(status)) {
       flag = IsChecked() == 0;
-    if (isOk(status))
-    {
-      for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-      {
+    }
+    if (isOk(status)) {
+      for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
         Command* command = static_cast<Command*>((*(commandPosition++)).get());
-        if (!(true && isOk(status)))
+        if (!(true && isOk(status))) {
           break;
+        }
         static_cast<ManagerCommand216*>(command)->m_value = flag;
       }
     }
   }
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }

@@ -1,5 +1,7 @@
 #include "strategy_ui/message_index_window.h"
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <iterator>
 #include <set>
 #include <string>
@@ -26,10 +28,10 @@
 
 extern const char* g_encyBitmapDllName; // 0x6a8750 "encybmap.dll"
 
-extern int g_modalReportId; // 0x6b2904 the notice a report window was opened for
-extern int g_modalReportMode; // 0x6b2908 the mode and tab the message index was in
-extern int g_modalReportTab; // 0x6b290c
-extern int g_modalReportOwner; // 0x6b2910 the child id of the report window (0x1c), 0 for none
+extern int g_modalReportId;      // 0x6b2904 the notice a report window was opened for
+extern int g_modalReportMode;    // 0x6b2908 the mode and tab the message index was in
+extern int g_modalReportTab;     // 0x6b290c
+extern int g_modalReportOwner;   // 0x6b2910 the child id of the report window (0x1c), 0 for none
 extern int g_modalReportPending; // 0x6b2914 the report was closed with its notice: reopen the message index on it
 
 namespace
@@ -67,6 +69,7 @@ constexpr uint32_t kSendButtonId = 0x97;
 constexpr uint32_t kAcceptButtonId = 0x98;
 constexpr uint32_t kDeclineButtonId = 0x99;
 constexpr uint32_t kPreviousButtonId = 0x9a;
+constexpr uint32_t kRepeatButtonId = 0x9b;
 
 constexpr uint32_t kTabAll = 0x79;
 
@@ -89,8 +92,9 @@ DibBitmap* CopyOf(DibBitmap* source)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (bitmap)
+  if (bitmap) {
     delete bitmap;
+  }
 }
 
 bool IsAlliance(GalaxyWindow* galaxy)
@@ -104,8 +108,7 @@ CoolStrobeButton* AsButton(CoolWindow* window)
 }
 
 // The picture ids a button that opens a message by class shows: 3 and 5 go to the object, 4 to the encyclopedia.
-struct OpenButtonLook
-{
+struct OpenButtonLook {
   uint32_t normal;
   uint32_t pressed;
   uint16_t tooltip;
@@ -121,16 +124,120 @@ OpenButtonLook EncyclopediaLook(bool alliance)
   return alliance ? OpenButtonLook{0x2d20, 0x2d21, 0x8031} : OpenButtonLook{0x2d47, 0x2d48, 0x8031};
 }
 
+// ---- The Repeat mission button: the Accept button's art with a circular arrow in place of the check mark ----------
+
+int Luminance(const RGBQUAD& color)
+{
+  return color.rgbRed * 3 + color.rgbGreen * 6 + color.rgbBlue;
+}
+
+// A clockwise circular arrow around the centre: an open ring with its arrowhead at twelve o'clock.
+bool InRepeatGlyph(double dx, double dy)
+{
+  constexpr double kRadius = 7.0;
+  constexpr double kPi = 3.14159265358979323846;
+  const double angle = std::atan2(dy, dx) * 180.0 / kPi;
+  if (std::abs(std::hypot(dx, dy) - kRadius) <= 1.0 && !(angle > -90.0 && angle < -25.0)) {
+    return true;
+  }
+  const double along = (dx + 1.5) / 5.5;
+  return along >= 0.0 && along <= 1.0 && std::abs(dy + kRadius) <= 3.5 * (1.0 - along);
+}
+
+DibBitmap* MakeRepeatButtonArt(DibBitmap* accept)
+{
+  if (!accept || accept->BitCount() != 8) {
+    return nullptr;
+  }
+  auto* art = NewOrNull<DibBitmap>(accept->Width(), accept->Height(), accept);
+  accept->Blit(art, 0, 0, 0, 0, 0, 0);
+  art->CacheTransparentColor();
+  const int width = art->Width();
+  const int height = std::abs(art->Height());
+  auto pixel = [&](int x, int y) -> uint8_t& { return art->m_bits[art->RowIndex(y) * art->RowStride() + x]; };
+  const auto* palette
+      = reinterpret_cast<const RGBQUAD*>(reinterpret_cast<const uint8_t*>(art->m_info) + art->m_info->biSize);
+
+  std::array<int, 256> uses{};
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      ++uses[pixel(x, y)];
+    }
+  }
+  const auto face = static_cast<uint8_t>(std::ranges::max_element(uses) - uses.begin());
+  uint8_t highlight = face;
+  uint8_t shadow = face;
+  for (int index = 0; index < 256; ++index) {
+    if (uses[index] == 0 || index == art->m_colorKey) {
+      continue;
+    }
+    highlight = Luminance(palette[index]) > Luminance(palette[highlight]) ? static_cast<uint8_t>(index) : highlight;
+    shadow = Luminance(palette[index]) < Luminance(palette[shadow]) ? static_cast<uint8_t>(index) : shadow;
+  }
+
+  // The check mark's highlight bounds it; its engraving reaches a few pixels further down and right.
+  int left = width, top = height, right = -1, bottom = -1;
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      if (pixel(x, y) == highlight) {
+        left = std::min(left, x);
+        right = std::max(right, x);
+        top = std::min(top, y);
+        bottom = std::max(bottom, y);
+      }
+    }
+  }
+  if (right < 0) {
+    return art;
+  }
+  int centreX = 0;
+  int faceTop = height;
+  int faceBottom = -1;
+  for (int y = 0; y < height; ++y) {
+    int first = -1;
+    int last = -1;
+    for (int x = 0; x < width; ++x) {
+      if (pixel(x, y) == face) {
+        first = first < 0 ? x : first;
+        last = x;
+      }
+    }
+    if (last - first < width / 2) {
+      continue;
+    }
+    faceTop = std::min(faceTop, y);
+    faceBottom = std::max(faceBottom, y);
+    centreX = (first + last + 1) / 2;
+    if (y >= top && y <= bottom + 3) {
+      std::fill_n(&pixel(std::max(left, first), y), std::max(0, std::min(right + 3, last) - std::max(left, first) + 1),
+                  face);
+    }
+  }
+  const double centreY = (faceTop + faceBottom + 1) / 2.0;
+  auto inGlyph = [&](int x, int y) { return InRepeatGlyph(x + 0.5 - centreX, y + 0.5 - centreY); };
+  for (int y = faceTop; y <= faceBottom; ++y) {
+    for (int x = 0; x < width; ++x) {
+      if (inGlyph(x, y)) {
+        pixel(x, y) = highlight;
+      } else if (inGlyph(x - 1, y - 1) && pixel(x, y) == face) {
+        pixel(x, y) = shadow;
+      }
+    }
+  }
+  art->NotifyPixelsChanged();
+  return art;
+}
+
 } // namespace
 
 // ---- Construction ---------------------------------------------------------------------------------------------
 
 MessageIndexWindow::MessageIndexWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, int mode, int tab)
-: CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0),
-  m_soundA(0, 0, 0, 0, 0, 0),
-  m_soundB(0, 0, 0, 0, 0, 0),
-  m_title(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u),
-  m_tabLabel(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
+    : CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
+    , m_soundA(0, 0, 0, 0, 0, 0)
+    , m_soundB(0, 0, 0, 0, 0, 0)
+    , m_title(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
+    , m_tabLabel(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   m_style = 0x46000000;
   m_galaxy = static_cast<GalaxyWindow*>(parent);
@@ -144,36 +251,42 @@ MessageIndexWindow::MessageIndexWindow(HINSTANCE instance, CoolWindow* parent, u
   m_pictureBackdrop = nullptr;
   m_text = nullptr;
   m_encyclopediaModule = FindResourceModule(kEncyclopediaSlot);
-  if (!m_encyclopediaModule)
-  {
+  if (!m_encyclopediaModule) {
     char* dllLocation = GetDllLocation();
     m_encyclopediaModule = LoadResourceModule(dllLocation, g_encyBitmapDllName, kEncyclopediaSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
   m_artModule = CoolAppGetResourceModule(kBitmapSlot);
 }
 
 MessageIndexWindow::~MessageIndexWindow()
 {
-  if (m_unk15c)
+  if (m_unk15c) {
     delete m_unk15c;
-  if (m_tabs)
-    delete m_tabs;
-  if (m_pictureBackdrop)
-    delete m_pictureBackdrop;
-  if (m_items)
-  {
-    for (const auto& ownedRow : m_items->Entries())
-      static_cast<MessageListItem*>(ownedRow.get())->m_visible = 1;
-    m_items->Clear();
-    if (m_items)
-      delete m_items;
   }
-  if (m_list)
+  if (m_tabs) {
+    delete m_tabs;
+  }
+  if (m_pictureBackdrop) {
+    delete m_pictureBackdrop;
+  }
+  if (m_items) {
+    for (const auto& ownedRow : m_items->Entries()) {
+      static_cast<MessageListItem*>(ownedRow.get())->m_visible = 1;
+    }
+    m_items->Clear();
+    if (m_items) {
+      delete m_items;
+    }
+  }
+  if (m_list) {
     delete m_list;
-  if (m_text)
+  }
+  if (m_text) {
     delete m_text;
+  }
   UiSetHumanDispatchFlag(0);
 }
 
@@ -189,13 +302,10 @@ void MessageIndexWindow::OnCreate1()
   DibBitmap* titleBar = LoadBitmap(art, 0x2a46, kHelperBitmapKind);
   DibBitmap* frame;
   DibBitmap* rightEdge;
-  if (IsAlliance(m_galaxy))
-  {
+  if (IsAlliance(m_galaxy)) {
     frame = LoadBitmap(art, 0x285f, kHelperBitmapKind);
     rightEdge = LoadBitmap(art, 0x2a44, kHelperBitmapKind);
-  }
-  else
-  {
+  } else {
     frame = LoadBitmap(art, 0x2860, kHelperBitmapKind);
     rightEdge = LoadBitmap(art, 0x2a45, kHelperBitmapKind);
   }
@@ -242,8 +352,7 @@ void MessageIndexWindow::OnCreate1()
   m_items = NewOrNull<MessageItemList>(4);
   m_list = NewOrNull<CoolDragList>(instance, 0x19, 0x6c, 0x170, 0xc2, this, GetPaintBackgroundIfOwned(), kListId, 0x15a,
                                    0x15, 0, 0, 0, 0, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_style &= ~kHiddenStyle;
     m_list->Create(0);
     m_list->m_options.m_value |= kDragListNoDrag;
@@ -255,11 +364,9 @@ void MessageIndexWindow::OnCreate1()
   }
 
   m_tabs = NewOrNull<CoolTabControl>(instance, 0x16, 0x2e, 0x17a, 0x29, kTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_tabs)
-  {
+  if (m_tabs) {
     m_tabs->Create(0);
-    struct TabSpec
-    {
+    struct TabSpec {
       int x;
       int width;
       uint32_t id;
@@ -270,43 +377,38 @@ void MessageIndexWindow::OnCreate1()
       uint16_t tooltip;
     };
     static const TabSpec tabs[] = {
-      {0x00, 0x24, 0x79, 0x2a4e, 0x2a4f, 0x2a4e, 0x2a4f, 0x8010},
-      {0x26, 0x24, 0x7a, 0x2a50, 0x2a51, 0x2a52, 0x2a53, 0x8011},
-      {0x4c, 0x24, 0x7b, 0x2a58, 0x2a59, 0x2a56, 0x2a57, 0x8017},
-      {0x72, 0x24, 0x7c, 0x2a5a, 0x2a5b, 0x2a5c, 0x2a5d, 0x8014},
-      {0x97, 0x24, 0x7d, 0x2a54, 0x2a55, 0x2a54, 0x2a55, 0x8012},
-      {0xbd, 0x24, 0x7e, 0x2a64, 0x2a65, 0x2a64, 0x2a65, 0x8013},
-      {0xe3, 0x24, 0x7f, 0x2a68, 0x2a69, 0x2a68, 0x2a69, 0x8016},
-      {0x107, 0x24, 0x80, 0x2a66, 0x2a67, 0x2a66, 0x2a67, 0x8018},
-      {0x12d, 0x24, 0x81, 0x2a62, 0x2a63, 0x2a62, 0x2a63, 0x8015},
-      {0x152, 0x25, 0x82, 0x2a5e, 0x2a5f, 0x2a60, 0x2a61, 0x8032},
+        {0x00, 0x24, 0x79, 0x2a4e, 0x2a4f, 0x2a4e, 0x2a4f, 0x8010},
+        {0x26, 0x24, 0x7a, 0x2a50, 0x2a51, 0x2a52, 0x2a53, 0x8011},
+        {0x4c, 0x24, 0x7b, 0x2a58, 0x2a59, 0x2a56, 0x2a57, 0x8017},
+        {0x72, 0x24, 0x7c, 0x2a5a, 0x2a5b, 0x2a5c, 0x2a5d, 0x8014},
+        {0x97, 0x24, 0x7d, 0x2a54, 0x2a55, 0x2a54, 0x2a55, 0x8012},
+        {0xbd, 0x24, 0x7e, 0x2a64, 0x2a65, 0x2a64, 0x2a65, 0x8013},
+        {0xe3, 0x24, 0x7f, 0x2a68, 0x2a69, 0x2a68, 0x2a69, 0x8016},
+        {0x107, 0x24, 0x80, 0x2a66, 0x2a67, 0x2a66, 0x2a67, 0x8018},
+        {0x12d, 0x24, 0x81, 0x2a62, 0x2a63, 0x2a62, 0x2a63, 0x8015},
+        {0x152, 0x25, 0x82, 0x2a5e, 0x2a5f, 0x2a60, 0x2a61, 0x8032},
     };
     const bool alliance = IsAlliance(m_galaxy);
-    for (const TabSpec& spec : tabs)
-    {
+    for (const TabSpec& spec : tabs) {
       const uint32_t normal = alliance ? spec.allianceNormal : spec.empireNormal;
       const uint32_t pressed = alliance ? spec.alliancePressed : spec.empirePressed;
-      auto* tab = NewOrNull<CoolStrobeButton>(art, spec.x, 0, spec.width, 0x29, m_tabs, spec.id, normal,
-                                                          pressed, m_tabs->m_background, 0, 0);
+      auto* tab = NewOrNull<CoolStrobeButton>(art, spec.x, 0, spec.width, 0x29, m_tabs, spec.id, normal, pressed,
+                                              m_tabs->m_background, 0, 0);
       tab->Create(0);
       const ResourceStringId tip = StringId(spec.tooltip);
       AddToolFromString(tab, &tip);
       tab->SetStateFlags(0x80);
       tab->ClearStateFlags(0x10);
-      if (spec.id == kTabAll)
-      {
+      if (spec.id == kTabAll) {
         m_tabs->AddTab(tab, 1, 0);
-      }
-      else
-      {
+      } else {
         m_tabs->AddTab(tab, 0, 1);
       }
     }
   }
 
   const bool alliance = IsAlliance(m_galaxy);
-  struct ButtonGeometry
-  {
+  struct ButtonGeometry {
     int x;
     int y;
     int width;
@@ -316,11 +418,10 @@ void MessageIndexWindow::OnCreate1()
   const int buttonWidth = alliance ? 0x20 : 0x2c;
   const int buttonHeight = alliance ? 0x1f : 0x29;
 
-  auto* tipButton = NewOrNull<CoolStrobeButton>(
-    art, buttonX, alliance ? 0x19 : 0x15, buttonWidth, buttonHeight, this, 0x28, alliance ? 0x2882 : 0x2888,
-    alliance ? 0x2883 : 0x2889, GetPaintBackgroundIfOwned(), 0, 0);
-  if (tipButton)
-  {
+  auto* tipButton = NewOrNull<CoolStrobeButton>(art, buttonX, alliance ? 0x19 : 0x15, buttonWidth, buttonHeight, this,
+                                                0x28, alliance ? 0x2882 : 0x2888, alliance ? 0x2883 : 0x2889,
+                                                GetPaintBackgroundIfOwned(), 0, 0);
+  if (tipButton) {
     tipButton->Create(0);
     tipButton->SetClickSound(kClickSound);
     const ResourceStringId tip = StringId(0x1954);
@@ -328,9 +429,9 @@ void MessageIndexWindow::OnCreate1()
     m_children.Insert(tipButton);
   }
 
-  auto* backButton = NewOrNull<CoolStrobeButton>(
-    art, buttonX, alliance ? 0x5d : 0x59, buttonWidth, buttonHeight, this, kBackButtonId, alliance ? 0x2884 : 0x288a,
-    alliance ? 0x2885 : 0x288b, GetPaintBackgroundIfOwned(), 0, 0);
+  auto* backButton = NewOrNull<CoolStrobeButton>(art, buttonX, alliance ? 0x5d : 0x59, buttonWidth, buttonHeight, this,
+                                                 kBackButtonId, alliance ? 0x2884 : 0x288a, alliance ? 0x2885 : 0x288b,
+                                                 GetPaintBackgroundIfOwned(), 0, 0);
   backButton->Create(0);
   backButton->SetClickSound(kClickSound);
   {
@@ -339,9 +440,9 @@ void MessageIndexWindow::OnCreate1()
   }
   m_children.Insert(backButton);
 
-  auto* toggleButton = NewOrNull<CoolStrobeButton>(
-    art, buttonX, alliance ? 0x93 : 0x94, buttonWidth, buttonHeight, this, kToggleButtonId, alliance ? 0x2a78 : 0x2a7a,
-    alliance ? 0x2a79 : 0x2a7b, GetPaintBackgroundIfOwned(), 0, 0);
+  auto* toggleButton = NewOrNull<CoolStrobeButton>(art, buttonX, alliance ? 0x93 : 0x94, buttonWidth, buttonHeight,
+                                                   this, kToggleButtonId, alliance ? 0x2a78 : 0x2a7a,
+                                                   alliance ? 0x2a79 : 0x2a7b, GetPaintBackgroundIfOwned(), 0, 0);
   toggleButton->Create(0);
   toggleButton->SetClickSound(kClickSound);
   {
@@ -350,9 +451,9 @@ void MessageIndexWindow::OnCreate1()
   }
   m_children.Insert(toggleButton);
 
-  auto* openButton = NewOrNull<CoolStrobeButton>(
-    art, buttonX, alliance ? 0xc9 : 0xcf, buttonWidth, buttonHeight, this, kOpenButtonId, alliance ? 0x2a78 : 0x2a7a,
-    alliance ? 0x2a79 : 0x2a7b, GetPaintBackgroundIfOwned(), 0, 0);
+  auto* openButton = NewOrNull<CoolStrobeButton>(art, buttonX, alliance ? 0xc9 : 0xcf, buttonWidth, buttonHeight, this,
+                                                 kOpenButtonId, alliance ? 0x2a78 : 0x2a7a, alliance ? 0x2a79 : 0x2a7b,
+                                                 GetPaintBackgroundIfOwned(), 0, 0);
   openButton->Create(0);
   openButton->SetClickSound(kClickSound);
   {
@@ -363,9 +464,9 @@ void MessageIndexWindow::OnCreate1()
   m_children.Insert(openButton);
 
   const uint32_t composeDisabled = alliance ? 0x2a7e : 0x2a81;
-  auto* composeButton = NewOrNull<CoolStrobeButton>(
-    art, buttonX, alliance ? 0xff : 0x10a, buttonWidth, buttonHeight, this, kComposeButtonId,
-    alliance ? 0x2a7c : 0x2a7f, alliance ? 0x2a7d : 0x2a80, GetPaintBackgroundIfOwned(), 0, 0);
+  auto* composeButton = NewOrNull<CoolStrobeButton>(art, buttonX, alliance ? 0xff : 0x10a, buttonWidth, buttonHeight,
+                                                    this, kComposeButtonId, alliance ? 0x2a7c : 0x2a7f,
+                                                    alliance ? 0x2a7d : 0x2a80, GetPaintBackgroundIfOwned(), 0, 0);
   composeButton->Create(0);
   composeButton->SetClickSound(kClickSound);
   {
@@ -373,14 +474,12 @@ void MessageIndexWindow::OnCreate1()
     AddToolFromString(composeButton, &tip);
   }
   m_children.Insert(composeButton);
-  if (AppGetGameType() == 1)
-  {
+  if (AppGetGameType() == 1) {
     composeButton->LoadStateBitmap(2, composeDisabled);
     composeButton->Disable();
   }
 
-  struct HiddenButton
-  {
+  struct HiddenButton {
     int x;
     int y;
     int width;
@@ -393,41 +492,54 @@ void MessageIndexWindow::OnCreate1()
     bool useMessageBackground;
   };
   static const HiddenButton hiddenButtons[] = {
-    {0x11a, 0x57, 0x38, 0x14, kSelectAllButtonId, 0x2a94, 0x2a95, 0, 0x8008, false},
-    {0x154, 0x57, 0x38, 0x14, kDeleteButtonId, 0x2a96, 0x2a97, 0, 0x8009, false},
-    {0x186, 0xf, 0x13, 0xf, kNextButtonId, 0x2aa7, 0x2aa8, 0x2aa9, 0, true},
-    {0x16f, 0xf, 0x13, 0xf, kPreviousButtonId, 0x2ac4, 0x2ac5, 0x2ac6, 0, true},
-    {0x163, 0xf4, 0x33, 0x23, kAcceptButtonId, 0x2ab6, 0x2ab7, 0, 0, true},
-    {0x163, 0x119, 0x33, 0x23, kDeclineButtonId, 0x2aba, 0x2abb, 0, 0, true},
-    {0x160, 0xff, 0x33, 0x34, kSendButtonId, 0x2aba, 0x2abb, 0, 0x8030, true},
+      {0x11a, 0x57, 0x38, 0x14, kSelectAllButtonId, 0x2a94, 0x2a95, 0, 0x8008, false},
+      {0x154, 0x57, 0x38, 0x14, kDeleteButtonId, 0x2a96, 0x2a97, 0, 0x8009, false},
+      {0x186, 0xf, 0x13, 0xf, kNextButtonId, 0x2aa7, 0x2aa8, 0x2aa9, 0, true},
+      {0x16f, 0xf, 0x13, 0xf, kPreviousButtonId, 0x2ac4, 0x2ac5, 0x2ac6, 0, true},
+      {0x163, 0xf4, 0x33, 0x23, kAcceptButtonId, 0x2ab6, 0x2ab7, 0, 0, true},
+      {0x163, 0x119, 0x33, 0x23, kDeclineButtonId, 0x2aba, 0x2abb, 0, 0, true},
+      {0x160, 0xff, 0x33, 0x34, kSendButtonId, 0x2aba, 0x2abb, 0, 0x8030, true},
   };
-  for (const HiddenButton& spec : hiddenButtons)
-  {
-    DibBitmap* backdrop =
-      spec.useMessageBackground ? FindOverlayBitmap(kBackgroundCompose) : GetPaintBackgroundIfOwned();
-    auto* button = NewOrNull<CoolStrobeButton>(art, spec.x, spec.y, spec.width, spec.height, this, spec.id,
-                                                           spec.normal, spec.pressed, backdrop, 0, 0);
-    if (!button)
+  for (const HiddenButton& spec : hiddenButtons) {
+    DibBitmap* backdrop
+        = spec.useMessageBackground ? FindOverlayBitmap(kBackgroundCompose) : GetPaintBackgroundIfOwned();
+    auto* button = NewOrNull<CoolStrobeButton>(art, spec.x, spec.y, spec.width, spec.height, this, spec.id, spec.normal,
+                                               spec.pressed, backdrop, 0, 0);
+    if (!button) {
       continue;
-    if (spec.disabled != 0)
+    }
+    if (spec.disabled != 0) {
       button->LoadStateBitmap(2, spec.disabled);
+    }
     button->m_style &= ~kHiddenStyle;
-    if (spec.id == kSelectAllButtonId || spec.id == kDeleteButtonId)
+    if (spec.id == kSelectAllButtonId || spec.id == kDeleteButtonId) {
       button->SetStateFlags(0x80);
+    }
     button->Create(0);
     button->Hide();
-    if (spec.tooltip != 0)
-    {
+    if (spec.tooltip != 0) {
       const ResourceStringId tip = StringId(spec.tooltip);
       AddToolFromString(button, &tip);
     }
     m_children.Insert(button);
   }
 
-  m_text =
-    NewOrNull<TextScrollField>(instance, 0x11, 0xea, 0x18b, 0x50, this, FindOverlayBitmap(kBackgroundCompose), 0);
-  if (m_text)
-  {
+  if (auto* repeat = NewOrNull<CoolStrobeButton>(art, 0x163, 0xf4, 0x33, 0x23, this, kRepeatButtonId, 0x2aae, 0x2aaf,
+                                                 FindOverlayBitmap(kBackgroundCompose), 0, 0)) {
+    for (int state : {0, 1}) {
+      repeat->ReplaceBitmap(state, MakeRepeatButtonArt(repeat->GetStateBitmap(state)));
+    }
+    repeat->m_style &= ~kHiddenStyle;
+    repeat->Create(0);
+    repeat->Hide();
+    repeat->SetClickSound(kClickSound);
+    AddTool(repeat, "Repeat mission");
+    m_children.Insert(repeat);
+  }
+
+  m_text
+      = NewOrNull<TextScrollField>(instance, 0x11, 0xea, 0x18b, 0x50, this, FindOverlayBitmap(kBackgroundCompose), 0);
+  if (m_text) {
     m_text->m_style &= ~kHiddenStyle;
     m_text->m_childId = 0xa0;
     m_text->m_scrollBarSlot = 7;
@@ -444,23 +556,20 @@ void MessageIndexWindow::OnCreate1()
   m_tabs->SelectTab(initialTab, 0);
   SelectCategory(initialTab);
   UiSetHumanUiFlag4000(1);
-  if (g_modalReportPending != 0)
-  {
+  if (g_modalReportPending != 0) {
     bool firstVisible = true;
-    for (const auto& ownedRow : m_items->Entries())
-    {
+    for (const auto& ownedRow : m_items->Entries()) {
       auto* row = static_cast<MessageListItem*>(ownedRow.get());
-      if (!row->m_visible)
+      if (!row->m_visible) {
         continue;
-      if (firstVisible)
-      {
+      }
+      if (firstVisible) {
         row->m_state.m_value &= ~1;
         firstVisible = false;
       }
-      if (static_cast<int>(row->m_record->m_id) == g_modalReportId)
-      {
+      if (static_cast<int>(row->m_record->m_id) == g_modalReportId) {
         row->m_state.m_value |= 1;
-        SetFocus(m_list->m_hwnd);
+        reb::compat::SetFocus(m_list->m_hwnd);
         m_list->Refresh();
         break;
       }
@@ -473,21 +582,17 @@ void MessageIndexWindow::OnCreate1()
 
 LRESULT MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (message == WM_SETFOCUS)
-  {
-    SetFocus(m_list->m_hwnd);
-  }
-  else
-  {
-    if (message == 0x40d)
-    {
+  if (message == WM_SETFOCUS) {
+    reb::compat::SetFocus(m_list->m_hwnd);
+  } else {
+    if (message == 0x40d) {
       PostCloseRequest();
       return 0;
     }
-    if (message != 0x483)
+    if (message != 0x483) {
       return CoolGameWindow::WindowProc(message, wParam, lParam);
-    if (wParam == 0xbbe && m_mode != kIndexModeList)
-    {
+    }
+    if (wParam == 0xbbe && m_mode != kIndexModeList) {
       OnCommand(kBackButtonId, 0, 0);
       return 0;
     }
@@ -497,27 +602,23 @@ LRESULT MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lPara
 
 void MessageIndexWindow::DrawOverlay(HDC dc)
 {
-  if (m_mode == kIndexModeList)
-  {
+  if (m_mode == kIndexModeList) {
     m_title.MoveTo(0xf, 0x14);
     m_title.SetFont(0xb);
     const ResourceStringId heading = StringId(0x8019);
     m_title.SetTextFromResource(&heading);
     m_tabLabel.Draw(dc);
-  }
-  else if (m_mode == kIndexModeMessage)
-  {
-    if (m_current->m_image)
+  } else if (m_mode == kIndexModeMessage) {
+    if (m_current->m_image) {
       m_current->m_image->DrawToDc(dc, 0x13, 0xf, 0, 0, 0, 0, 0, 0);
+    }
     m_title.m_drawFlags = 0;
     m_title.MoveTo(0x28, 0xd);
     m_title.SetFont(4);
     m_title.SetText(m_current->m_text.c_str());
     m_title.Draw(dc);
     return;
-  }
-  else if (m_mode == kIndexModeCompose)
-  {
+  } else if (m_mode == kIndexModeCompose) {
     m_title.m_drawFlags = 0;
     m_title.MoveTo(0x28, 0xd);
     m_title.SetFont(4);
@@ -533,21 +634,20 @@ void MessageIndexWindow::PostCloseRequest()
 {
   UiHumanEndHold();
   UiSetHumanUiFlag4000(0);
-  if (m_tab != 0)
+  if (m_tab != 0) {
     UiClearHumanAlerts(m_filter);
+  }
   CoolGameWindow::PostCloseRequest();
 }
 
 void MessageIndexWindow::Refresh()
 {
-  if (m_mode == kIndexModeList)
-  {
+  if (m_mode == kIndexModeList) {
     m_mode = 0;
     SetMode(kIndexModeList);
     return;
   }
-  if (m_mode == kIndexModeMessage)
-  {
+  if (m_mode == kIndexModeMessage) {
     RebuildList(0);
     UpdateNavButtons();
   }
@@ -561,24 +661,33 @@ namespace
 int16_t CategoryPicture(uint32_t categories, bool alliance)
 {
   const int16_t bySide = alliance ? 0 : 1;
-  if (categories & 1)
+  if (categories & 1) {
     return 0x2a9a + bySide;
-  if (categories & 0x40)
+  }
+  if (categories & 0x40) {
     return 0x2ad3;
-  if (categories & 8)
+  }
+  if (categories & 8) {
     return 0x2a9c + bySide;
-  if (categories & 0x10)
+  }
+  if (categories & 0x10) {
     return 0x2a9e + bySide;
-  if (categories & 0x20)
+  }
+  if (categories & 0x20) {
     return 0x2aa4;
-  if (categories & 0x80)
+  }
+  if (categories & 0x80) {
     return 0x2ad4 + bySide;
-  if (categories & 4)
+  }
+  if (categories & 4) {
     return 0x2ad6;
-  if (categories & 0x100)
+  }
+  if (categories & 0x100) {
     return 0x2ad7;
-  if (categories & 0x200)
+  }
+  if (categories & 0x200) {
     return 0x2ad8 + bySide;
+  }
   return 0;
 }
 
@@ -595,18 +704,16 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
   std::set<uint32_t> selected;
   const bool alliance = IsAlliance(m_galaxy);
   DibBitmap rowFrame(art, (alliance ? 0u : 1u) + 0x2aa2, kHelperBitmapKind);
-  if (keepAllSelected == 0)
-  {
-    if (m_current)
+  if (keepAllSelected == 0) {
+    if (m_current) {
       AddSelected(&selected, m_current->m_id);
-  }
-  else
-  {
-    for (const auto& ownedRow : m_items->Entries())
-    {
+    }
+  } else {
+    for (const auto& ownedRow : m_items->Entries()) {
       auto* item = static_cast<CoolListItem*>(ownedRow.get());
-      if (item->m_state.m_value & 1)
+      if (item->m_state.m_value & 1) {
         AddSelected(&selected, item->m_id);
+      }
     }
   }
   m_items->Clear();
@@ -614,15 +721,14 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
   UiRecordTree* notices = UiGetHumanOrderTree();
   std::vector<MessageRecord*> messages;
   messages.reserve(notices->Count());
-  for (const auto& message : notices->Entries())
+  for (const auto& message : notices->Entries()) {
     messages.push_back(static_cast<MessageRecord*>(message.get()));
+  }
   std::reverse(messages.begin(), messages.end());
-  for (MessageRecord* record : messages)
-  {
+  for (MessageRecord* record : messages) {
     auto* item = NewOrNull<MessageListItem>(record);
     const int16_t picture = CategoryPicture(record->m_categories, alliance);
-    if (picture != 0)
-    {
+    if (picture != 0) {
       DibBitmap icon(art, static_cast<uint32_t>(picture), kHelperBitmapKind);
       DibBitmap* normal = CopyOf(&icon);
       DibBitmap* highlighted = CopyOf(&rowFrame);
@@ -635,12 +741,12 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
     item->m_textOffsetY = 1;
     item->m_fontSlot = (record->m_flags.m_value & 1) == 0 ? kNoticeFontUnread : kNoticeFontRead;
     m_items->Insert(item);
-    if (selected.find(item->m_id) != selected.end())
+    if (selected.find(item->m_id) != selected.end()) {
       m_list->SelectById(item->m_id, 1);
+    }
   }
   UpdateRowVisibility();
-  if (keepAllSelected == 0)
-  {
+  if (keepAllSelected == 0) {
     m_current = selected.empty() ? nullptr : static_cast<MessageListItem*>(m_items->FindById(*selected.begin()));
   }
   return 1;
@@ -649,63 +755,56 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
 void MessageIndexWindow::UpdateRowVisibility()
 {
   bool selectedVisible = false;
-  for (const auto& ownedNode : m_items->Entries())
-  {
+  for (const auto& ownedNode : m_items->Entries()) {
     auto* item = static_cast<MessageListItem*>(ownedNode.get());
-    if (!item->m_record)
+    if (!item->m_record) {
       continue;
+    }
     const uint32_t categories = item->m_record->m_categories;
     item->m_visible = 0;
-    if ((m_filter & categories) == 0 && (m_tab != static_cast<int>(kTabAll) || categories == 0x200))
-    {
+    if ((m_filter & categories) == 0 && (m_tab != static_cast<int>(kTabAll) || categories == 0x200)) {
       item->m_visible = 0;
       item->m_state.m_value &= ~1u;
-    }
-    else
-    {
+    } else {
       item->m_visible = 1;
       selectedVisible = selectedVisible || (item->m_state.m_value & 1) != 0;
     }
   }
   CoolListItem* first = m_items->First();
-  if (first && !selectedVisible)
+  if (first && !selectedVisible) {
     first->m_state.m_value |= 1;
+  }
 }
 
 void MessageIndexWindow::UpdateNavButtons()
 {
-  if (m_mode == kIndexModeList || m_mode != kIndexModeMessage)
+  if (m_mode == kIndexModeList || m_mode != kIndexModeMessage) {
     return;
+  }
   CoolWindow* next = m_children.FindById(kNextButtonId);
   auto position = m_items->PositionOf(m_current);
   auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
-  while (nextPosition != m_items->Entries().end() && !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
+  while (nextPosition != m_items->Entries().end() && !static_cast<MessageListItem*>((*nextPosition).get())->m_visible) {
     ++nextPosition;
-  if (nextPosition == m_items->Entries().end())
-  {
-    next->Disable();
   }
-  else
-  {
+  if (nextPosition == m_items->Entries().end()) {
+    next->Disable();
+  } else {
     next->Enable();
   }
   CoolWindow* previous = m_children.FindById(kPreviousButtonId);
-  if (previous)
-  {
+  if (previous) {
     auto previousPosition = position;
-    while (previousPosition != m_items->Entries().begin())
-    {
+    while (previousPosition != m_items->Entries().begin()) {
       --previousPosition;
-      if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
+      if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible) {
         break;
+      }
     }
-    if (position == m_items->Entries().end() || previousPosition == position ||
-        !static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
-    {
+    if (position == m_items->Entries().end() || previousPosition == position
+        || !static_cast<MessageListItem*>((*previousPosition).get())->m_visible) {
       previous->Disable();
-    }
-    else
-    {
+    } else {
       previous->Enable();
     }
   }
@@ -714,8 +813,7 @@ void MessageIndexWindow::UpdateNavButtons()
 DibBitmap* MessageIndexWindow::LoadPicture(uint32_t pictureId)
 {
   auto* picture = NewOrNull<DibBitmap>(m_artModule, pictureId, kResourceBitmapKind);
-  if (picture && picture->IsLoaded() == 0)
-  {
+  if (picture && picture->IsLoaded() == 0) {
     delete picture;
     picture = LoadEncyclopediaPicture(pictureId, m_encyclopediaModule);
   }
@@ -724,28 +822,22 @@ DibBitmap* MessageIndexWindow::LoadPicture(uint32_t pictureId)
 
 void MessageIndexWindow::ShowPictures(uint32_t pictureA, uint32_t pictureB)
 {
-  if (static_cast<int16_t>(pictureB) != 0 || static_cast<int16_t>(pictureA) != 0)
-  {
+  if (static_cast<int16_t>(pictureB) != 0 || static_cast<int16_t>(pictureA) != 0) {
     DibBitmap* composite = nullptr;
     DibBitmap* overlay = nullptr;
-    if (static_cast<int16_t>(pictureB) != 0)
-    {
+    if (static_cast<int16_t>(pictureB) != 0) {
       DibBitmap* base = LoadPicture(pictureB);
-      if (base)
-      {
-        if (base->IsLoaded() != 0)
-        {
+      if (base) {
+        if (base->IsLoaded() != 0) {
           composite = CopyOf(base);
           base->Blit(composite, 0, 0, 0, 0, 0, 0);
         }
         delete base;
       }
     }
-    if (static_cast<int16_t>(pictureA) != 0)
-    {
+    if (static_cast<int16_t>(pictureA) != 0) {
       overlay = LoadPicture(pictureA);
-      if (overlay && overlay->IsLoaded() != 0)
-      {
+      if (overlay && overlay->IsLoaded() != 0) {
         const int overlayWidth = overlay->Width();
         const int compositeWidth = composite->Width();
         const int overlayHeight = overlay->Height();
@@ -753,32 +845,32 @@ void MessageIndexWindow::ShowPictures(uint32_t pictureA, uint32_t pictureB)
         overlay->DrawKeyed(composite, (compositeWidth - overlayWidth) / 2, (compositeHeight - overlayHeight) / 2);
       }
     }
-    if (composite && composite->IsLoaded() != 0)
-    {
+    if (composite && composite->IsLoaded() != 0) {
       composite->Blit(GetPaintBackgroundIfOwned(), 0xc, 0x21, 0, 0, 0, 0);
       delete composite;
-      if (overlay)
+      if (overlay) {
         delete overlay;
+      }
     }
   }
   RECT page;
-  SetRect(&page, 0, 0, 0x19c, 0x14b);
-  InvalidateRect(m_hwnd, &page, 0);
+  reb::compat::SetRect(&page, 0, 0, 0x19c, 0x14b);
+  reb::compat::InvalidateRect(m_hwnd, &page, 0);
 }
 
 void MessageIndexWindow::StopSounds()
 {
-  if (m_soundA.m_soundId != 0)
-  {
+  if (m_soundA.m_soundId != 0) {
     SoundManager::Query(&m_soundA);
-    if (m_soundA.m_playing)
+    if (m_soundA.m_playing) {
       SoundManager::Stop(&m_soundA, 1);
+    }
   }
-  if (m_soundB.m_soundId != 0)
-  {
+  if (m_soundB.m_soundId != 0) {
     SoundManager::Query(&m_soundB);
-    if (m_soundB.m_playing)
+    if (m_soundB.m_playing) {
       SoundManager::Stop(&m_soundB, 1);
+    }
   }
 }
 
@@ -800,26 +892,25 @@ int MessageIndexWindow::SetMode(int request)
   CoolAppGetResourceModule(kBitmapSlot);
   int changed = 0;
   int newMode;
-  if (request == static_cast<int>(kBackButtonId))
-  {
+  if (request == static_cast<int>(kBackButtonId)) {
     newMode = 2 - (m_mode != kIndexModeList ? 1 : 0);
-  }
-  else
-  {
+  } else {
     newMode = request;
-    if (request == static_cast<int>(kComposeButtonId))
+    if (request == static_cast<int>(kComposeButtonId)) {
       newMode = kIndexModeCompose;
+    }
   }
-  if (newMode == 0)
+  if (newMode == 0) {
     return 0;
+  }
   const int previousMode = m_mode;
-  if (newMode == previousMode)
+  if (newMode == previousMode) {
     return 0;
+  }
   m_mode = newMode;
   const bool alliance = IsAlliance(m_galaxy);
   ChildWindowTree* children = &m_children;
-  if (newMode == kIndexModeList)
-  {
+  if (newMode == kIndexModeList) {
     m_list->m_options.m_value &= ~static_cast<int>(kDragListSingleSelect);
     SetPaintBackgroundById(kBackgroundList);
     m_list->Show(kShow);
@@ -830,27 +921,24 @@ int MessageIndexWindow::SetMode(int request)
     children->FindById(kPreviousButtonId)->Hide();
     children->FindById(kAcceptButtonId)->Hide();
     children->FindById(kDeclineButtonId)->Hide();
+    children->FindById(kRepeatButtonId)->Hide();
     m_text->Hide();
     ChildWindowTree* tabs = &m_tabs->m_children;
-    static const struct
-    {
+    static const struct {
       uint32_t id;
       uint16_t tooltip;
     } tabTips[] = {{0x79, 0x8010}, {0x7a, 0x8011}, {0x7d, 0x8012}, {0x7e, 0x8013}, {0x7c, 0x8014}, {0x7f, 0x8016}};
-    for (const auto& tip : tabTips)
-    {
+    for (const auto& tip : tabTips) {
       const ResourceStringId text = StringId(tip.tooltip);
       UpdateToolFromString(tabs->FindById(tip.id), &text);
     }
     CoolWindow* lastTab = tabs->FindById(0x81);
-    if (lastTab)
-    {
+    if (lastTab) {
       const ResourceStringId text = StringId(0x8015);
       UpdateToolFromString(lastTab, &text);
     }
     CoolStrobeButton* backButton = AsButton(FindChild(kBackButtonId));
-    if (backButton)
-    {
+    if (backButton) {
       const ResourceStringId text = StringId(0x8020);
       UpdateToolFromString(backButton, &text);
       SetButtonPictures(backButton, alliance ? 0x2a76 : 0x29f2, alliance ? 0x2a77 : 0x29f3);
@@ -859,21 +947,18 @@ int MessageIndexWindow::SetMode(int request)
     }
     RebuildList(1);
     RECT header;
-    SetRect(&header, 0xf, 0x14, 0x19a, 0x3c);
-    InvalidateRect(m_hwnd, &header, 0);
+    reb::compat::SetRect(&header, 0xf, 0x14, 0x19a, 0x3c);
+    reb::compat::InvalidateRect(m_hwnd, &header, 0);
     m_list->Refresh();
     const int tab = m_tab;
     m_tab = 0;
     SelectCategory(tab);
-    SetFocus(m_list->m_hwnd);
+    reb::compat::SetFocus(m_list->m_hwnd);
     changed = 1;
-  }
-  else if (newMode == kIndexModeMessage)
-  {
+  } else if (newMode == kIndexModeMessage) {
     CoolListItemList selection(1);
     m_list->CopySelectionTo(&selection);
-    if (selection.First() == nullptr)
-    {
+    if (selection.First() == nullptr) {
       m_mode = 0;
       OnCommand(kBackButtonId, 0, 0);
       m_mode = previousMode;
@@ -881,8 +966,7 @@ int MessageIndexWindow::SetMode(int request)
     }
     m_current = static_cast<MessageListItem*>(m_items->FindById(static_cast<CoolListItem*>(selection.First())->m_id));
     CoolStrobeButton* backButton = AsButton(FindChild(kBackButtonId));
-    if (backButton)
-    {
+    if (backButton) {
       const ResourceStringId text = StringId(0x8019);
       UpdateToolFromString(backButton, &text);
       SetButtonPictures(backButton, alliance ? 0x2884 : 0x288a, alliance ? 0x2885 : 0x288b);
@@ -893,11 +977,13 @@ int MessageIndexWindow::SetMode(int request)
     children->FindById(kSelectAllButtonId)->Hide();
     children->FindById(kNextButtonId)->Show(kShow);
     CoolWindow* previous = children->FindById(kPreviousButtonId);
-    if (previous)
+    if (previous) {
       previous->Show(kShow);
+    }
     children->FindById(kAcceptButtonId)->Hide();
     children->FindById(kDeclineButtonId)->Hide();
     children->FindById(kSendButtonId)->Hide();
+    children->FindById(kRepeatButtonId)->Hide();
     m_text->SetEditable(0);
     m_text->m_lineWidth = 0x140;
     m_text->m_leftMargin = 0;
@@ -906,17 +992,14 @@ int MessageIndexWindow::SetMode(int request)
     m_tabs->Hide();
     ShowMessage(m_current);
     FindChild(kBackButtonId)->Show(kShow);
-    SetFocus(m_text->m_hwnd);
+    reb::compat::SetFocus(m_text->m_hwnd);
     changed = 1;
-  }
-  else if (newMode == kIndexModeCompose)
-  {
-    SetWindowPos(m_text->m_hwnd, nullptr, 0, 0, 0x140, m_text->m_height, SWP_NOMOVE | SWP_NOZORDER);
+  } else if (newMode == kIndexModeCompose) {
+    reb::compat::SetWindowPos(m_text->m_hwnd, nullptr, 0, 0, 0x140, m_text->m_height, SWP_NOMOVE | SWP_NOZORDER);
     SetPaintBackgroundById(kBackgroundCompose);
     ShowPictures(0, 0x411);
     CoolStrobeButton* backButton = AsButton(FindChild(kBackButtonId));
-    if (backButton)
-    {
+    if (backButton) {
       const ResourceStringId text = StringId(0x8019);
       UpdateToolFromString(backButton, &text);
       SetButtonPictures(backButton, alliance ? 0x2884 : 0x288a, alliance ? 0x2885 : 0x288b);
@@ -933,19 +1016,21 @@ int MessageIndexWindow::SetMode(int request)
     SetButtonPictures(decline, 0x2aba, 0x2abb);
     decline->Show(kShow);
     children->FindById(kSendButtonId)->Hide();
+    children->FindById(kRepeatButtonId)->Hide();
     std::string empty;
-    if ((m_text->m_state & kTextEditable) == 0)
+    if ((m_text->m_state & kTextEditable) == 0) {
       m_text->SetEditable(1);
+    }
     m_text->m_lineWidth = 0x140;
     m_text->m_leftMargin = 0;
     m_text->m_text = empty;
     m_text->m_caret.m_index = 0;
     m_text->Reset();
     m_text->Show(kShow);
-    SetFocus(m_text->m_hwnd);
+    reb::compat::SetFocus(m_text->m_hwnd);
     m_list->Hide();
     m_tabs->Hide();
-    SetFocus(m_text->m_hwnd);
+    reb::compat::SetFocus(m_text->m_hwnd);
     changed = 1;
   }
   return changed;
@@ -954,15 +1039,16 @@ int MessageIndexWindow::SetMode(int request)
 void MessageIndexWindow::SelectCategory(int tab)
 {
   CoolAppGetResourceModule(kBitmapSlot);
-  if (tab == m_tab)
+  if (tab == m_tab) {
     return;
-  if (m_tab != 0)
+  }
+  if (m_tab != 0) {
     UiClearHumanAlerts(m_filter);
+  }
   m_tab = tab;
   DibBitmap* backdrop = FindOverlayBitmap(m_mode == kIndexModeList ? kBackgroundList : kBackgroundMessage);
   m_filter = 0;
-  switch (tab)
-  {
+  switch (tab) {
     case 0x79:
       UiHumanEndHold();
       break;
@@ -1003,46 +1089,34 @@ void MessageIndexWindow::SelectCategory(int tab)
       m_filter = 0x200;
   }
   const bool alliance = IsAlliance(m_galaxy);
-  if (m_mode == kIndexModeList)
-  {
+  if (m_mode == kIndexModeList) {
     UpdateRowVisibility();
     CoolListItem* first = m_items->First();
     CoolWindow* backButton = FindChild(kBackButtonId);
-    if (first == nullptr)
-    {
+    if (first == nullptr) {
       backButton->Disable();
-    }
-    else
-    {
+    } else {
       backButton->Enable();
     }
     backButton->Show(kShow);
     CoolListItemList selection(1);
     m_list->CopySelectionTo(&selection);
     CoolStrobeButton* openButton = AsButton(FindChild(kOpenButtonId));
-    if (openButton && (openButton->Disable(), selection.Count() == 1))
-    {
+    if (openButton && (openButton->Disable(), selection.Count() == 1)) {
       CoolListItem* row = m_items->FindById(static_cast<CoolListItem*>(selection.First())->m_id);
       MessageRecord* record = static_cast<MessageListItem*>(row)->m_record;
-      if (record)
-      {
+      if (record) {
         const int recordClass = record->GetClass();
         bool known = true;
         OpenButtonLook look{};
-        if (recordClass == 3 || (record->GetClass() == 5 && record->MessageKey().IsSet() != 0))
-        {
+        if (recordClass == 3 || (record->GetClass() == 5 && record->MessageKey().IsSet() != 0)) {
           look = ObjectLook(alliance);
-        }
-        else if (record->GetClass() == 4)
-        {
+        } else if (record->GetClass() == 4) {
           look = EncyclopediaLook(alliance);
-        }
-        else
-        {
+        } else {
           known = false;
         }
-        if (known)
-        {
+        if (known) {
           SetButtonPictures(openButton, look.normal, look.pressed);
           const ResourceStringId text = StringId(look.tooltip);
           UpdateToolFromString(openButton, &text);
@@ -1050,61 +1124,50 @@ void MessageIndexWindow::SelectCategory(int tab)
         }
       }
     }
-    const unsigned state =
-      m_filter == 0 ? static_cast<unsigned>(UiGetHumanDefaultState()) : UiGetHumanStateValue(m_filter);
+    const unsigned state
+        = m_filter == 0 ? static_cast<unsigned>(UiGetHumanDefaultState()) : UiGetHumanStateValue(m_filter);
     CoolStrobeButton* toggleButton = AsButton(FindChild(kToggleButtonId));
-    if (toggleButton)
-    {
+    if (toggleButton) {
       toggleButton->Enable();
-      if (((~state >> 2) & 1) == 0)
-      {
+      if (((~state >> 2) & 1) == 0) {
         const ResourceStringId text = StringId(0x8006);
         UpdateToolFromString(toggleButton, &text);
-        if (!alliance)
-        {
+        if (!alliance) {
           SetButtonPictures(toggleButton, 0x2ac9, 0x2a7b);
-        }
-        else
-        {
+        } else {
           SetButtonPictures(toggleButton, 0x2ac7, 0x2a79);
         }
-      }
-      else
-      {
+      } else {
         const ResourceStringId text = StringId(0x8005);
         UpdateToolFromString(toggleButton, &text);
-        if (alliance)
-        {
+        if (alliance) {
           SetButtonPictures(toggleButton, 0x2a78, 0x2a79);
-        }
-        else
-        {
+        } else {
           SetButtonPictures(toggleButton, 0x2a7a, 0x2a7b);
         }
       }
     }
   }
-  if (m_list->m_clientHeight != 0xc2)
-  {
+  if (m_list->m_clientHeight != 0xc2) {
     RECT area;
     area.left = 0x16;
     area.top = 0x6c;
     area.right = m_pictureBackdrop->Width() + 0x16;
     area.bottom = m_pictureBackdrop->Height() + 0x6c;
-    SetWindowPos(m_list->m_hwnd, nullptr, 0, 0, 0x170, 0xc2, SWP_NOMOVE | SWP_NOZORDER);
+    reb::compat::SetWindowPos(m_list->m_hwnd, nullptr, 0, 0, 0x170, 0xc2, SWP_NOMOVE | SWP_NOZORDER);
     m_list->SetBackground(backdrop, m_list->m_x, m_list->m_y);
-    InvalidateRect(m_hwnd, &area, 0);
+    reb::compat::InvalidateRect(m_hwnd, &area, 0);
   }
-  HDC dc = GetDC(m_hwnd);
+  HDC dc = reb::compat::GetDC(m_hwnd);
   RECT label = m_tabLabel.m_rect;
-  InvalidateRect(m_hwnd, &label, 0);
+  reb::compat::InvalidateRect(m_hwnd, &label, 0);
   const uint32_t selectedTab = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
   CoolStrobeButton* tabButton = AsButton(m_tabs->m_children.FindById(selectedTab));
   m_tabLabel.SetText(tabButton->GetTooltipText());
   m_tabLabel.Measure(dc);
   label = m_tabLabel.m_rect;
-  InvalidateRect(m_hwnd, &label, 0);
-  ReleaseDC(m_hwnd, dc);
+  reb::compat::InvalidateRect(m_hwnd, &label, 0);
+  reb::compat::ReleaseDC(m_hwnd, dc);
   m_list->Refresh();
 }
 
@@ -1112,12 +1175,12 @@ void MessageIndexWindow::SelectCategory(int tab)
 
 void MessageIndexWindow::ShowMessage(MessageListItem* item)
 {
-  if (!item)
+  if (!item) {
     return;
+  }
   MessageRecord* record = item->m_record;
   item->m_fontSlot = kNoticeFontRead;
-  if (record->GetKind() == 0xf)
-  {
+  if (record->GetKind() == 0xf) {
     EndPopup();
     g_modalReportId = record->m_id;
     g_modalReportMode = m_mode;
@@ -1138,33 +1201,36 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item)
   children->FindById(kSendButtonId)->Hide();
   children->FindById(kAcceptButtonId)->Hide();
   CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
-  if (openButton)
+  if (openButton) {
     openButton->Hide();
+  }
   CoolStrobeButton* decline = AsButton(children->FindById(kDeclineButtonId));
   decline->Hide();
+  CoolWindow* repeat = children->FindById(kRepeatButtonId);
+  const bool repeatable = UiHumanCanRepeatMission(record->m_id);
+  if (repeatable) {
+    repeat->Show(kShow);
+  } else {
+    repeat->Hide();
+  }
   const bool alliance = IsAlliance(m_galaxy);
-  SetWindowPos(m_text->m_hwnd, nullptr, 0, 0, record->GetClass() == 5 ? 0x140 : 0x18b, m_text->m_height,
-               SWP_NOMOVE | SWP_NOZORDER);
+  reb::compat::SetWindowPos(m_text->m_hwnd, nullptr, 0, 0, record->GetClass() == 5 || repeatable ? 0x140 : 0x18b,
+               m_text->m_height, SWP_NOMOVE | SWP_NOZORDER);
   const int recordClass = record->GetClass();
-  if (recordClass == 3 || recordClass == 4)
-  {
+  if (recordClass == 3 || recordClass == 4) {
     const OpenButtonLook look = recordClass == 3 ? ObjectLook(alliance) : EncyclopediaLook(alliance);
     SetButtonPictures(openButton, look.normal, look.pressed);
     const ResourceStringId tip = StringId(look.tooltip);
     UpdateToolFromString(openButton, &tip);
     openButton->Show(kShow);
     openButton->Enable();
-  }
-  else if (recordClass == 5)
-  {
+  } else if (recordClass == 5) {
     CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
-    if (record->MessageKey().IsSet() == 0)
-    {
-      if (openButton)
+    if (record->MessageKey().IsSet() == 0) {
+      if (openButton) {
         openButton->Disable();
-    }
-    else
-    {
+      }
+    } else {
       const OpenButtonLook look = ObjectLook(alliance);
       SetButtonPictures(openButton, look.normal, look.pressed);
       const ResourceStringId tip = StringId(look.tooltip);
@@ -1184,15 +1250,13 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item)
   const uint16_t soundB = record->m_sound[1];
   StopSounds();
   m_soundA.m_soundId = soundA;
-  if (soundA != 0)
-  {
+  if (soundA != 0) {
     m_soundA.m_moduleIndex = kSoundModuleA;
     m_soundA.m_kind = 1;
     SoundManager::Play(&m_soundA);
   }
   m_soundB.m_soundId = soundB;
-  if (soundB != 0)
-  {
+  if (soundB != 0) {
     m_soundB.m_moduleIndex = kSoundModuleB;
     m_soundB.m_kind = 1;
     SoundManager::Play(&m_soundB);
@@ -1216,34 +1280,30 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
 {
   const uint32_t command = static_cast<uint32_t>(a) & 0xffff;
   ChildWindowTree* children = &m_children;
-  auto markCurrentRead = [this]()
-  {
+  auto markCurrentRead = [this]() {
     m_current->m_record->m_flags.m_value = 1;
     m_current->m_fontSlot = kNoticeFontRead;
   };
-  auto refreshOpenButton = [this](CoolListItemList& selection, bool alliance)
-  {
+  auto refreshOpenButton = [this](CoolListItemList& selection, bool alliance) {
     CoolStrobeButton* openButton = AsButton(FindChild(kOpenButtonId));
-    if (!openButton)
+    if (!openButton) {
       return;
+    }
     openButton->Disable();
-    if (selection.Count() != 1)
+    if (selection.Count() != 1) {
       return;
+    }
     CoolListItem* row = m_items->FindById(static_cast<CoolListItem*>(selection.First())->m_id);
     MessageRecord* record = static_cast<MessageListItem*>(row)->m_record;
-    if (!record)
+    if (!record) {
       return;
+    }
     OpenButtonLook look;
-    if (OpensObject(record))
-    {
+    if (OpensObject(record)) {
       look = ObjectLook(alliance);
-    }
-    else if (record->GetClass() == 4)
-    {
+    } else if (record->GetClass() == 4) {
       look = EncyclopediaLook(alliance);
-    }
-    else
-    {
+    } else {
       return;
     }
     SetButtonPictures(openButton, look.normal, look.pressed);
@@ -1251,180 +1311,161 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
     UpdateToolFromString(openButton, &tip);
     openButton->Enable();
   };
-  switch (command)
-  {
+  switch (command) {
     case 0x28:
-      if (m_mode == kIndexModeMessage && m_current)
+      if (m_mode == kIndexModeMessage && m_current) {
         markCurrentRead();
+      }
       SetMode(command);
       PostCloseRequest();
       break;
     case 0x65:
     case 0x68:
-      if (m_mode == kIndexModeMessage && m_current)
+      if (m_mode == kIndexModeMessage && m_current) {
         markCurrentRead();
+      }
       SetMode(command);
       break;
     case 0x66:
-    {
-      unsigned state;
-      if (m_filter == 0)
       {
-        state = static_cast<unsigned>(UiGetHumanDefaultState());
-        UiSetHumanDefaultState(static_cast<int>(state ^ 4));
-      }
-      else
-      {
-        state = UiGetHumanStateValue(m_filter);
-        UiSetHumanStateValue(m_filter, static_cast<int>(state ^ 4));
-      }
-      CoolStrobeButton* toggleButton = AsButton(FindChild(kToggleButtonId));
-      if (!toggleButton)
-        return;
-      toggleButton->Enable();
-      const bool alliance = IsAlliance(m_galaxy);
-      if (((state >> 2) & 1) == 0)
-      {
-        const ResourceStringId text = StringId(0x8006);
-        UpdateToolFromString(toggleButton, &text);
-        if (!alliance)
-        {
-          SetButtonPictures(toggleButton, 0x2ac9, 0x2a7b);
+        unsigned state;
+        if (m_filter == 0) {
+          state = static_cast<unsigned>(UiGetHumanDefaultState());
+          UiSetHumanDefaultState(static_cast<int>(state ^ 4));
+        } else {
+          state = UiGetHumanStateValue(m_filter);
+          UiSetHumanStateValue(m_filter, static_cast<int>(state ^ 4));
         }
-        else
-        {
-          SetButtonPictures(toggleButton, 0x2ac7, 0x2a79);
+        CoolStrobeButton* toggleButton = AsButton(FindChild(kToggleButtonId));
+        if (!toggleButton) {
+          return;
         }
-      }
-      else
-      {
-        const ResourceStringId text = StringId(0x8005);
-        UpdateToolFromString(toggleButton, &text);
-        if (!alliance)
-        {
-          SetButtonPictures(toggleButton, 0x2a7a, 0x2a7b);
-        }
-        else
-        {
-          SetButtonPictures(toggleButton, 0x2a78, 0x2a79);
-        }
-      }
-      break;
-    }
-    case 0x67:
-    case 0x97:
-    {
-      MessageRecord* record = nullptr;
-      if (m_mode == kIndexModeList)
-      {
-        for (const auto& ownedRow : m_items->Entries())
-        {
-          auto* row = static_cast<CoolListItem*>(ownedRow.get());
-          if (row->m_state.m_value & 1)
-          {
-            record = static_cast<MessageListItem*>(row)->m_record;
-            break;
+        toggleButton->Enable();
+        const bool alliance = IsAlliance(m_galaxy);
+        if (((state >> 2) & 1) == 0) {
+          const ResourceStringId text = StringId(0x8006);
+          UpdateToolFromString(toggleButton, &text);
+          if (!alliance) {
+            SetButtonPictures(toggleButton, 0x2ac9, 0x2a7b);
+          } else {
+            SetButtonPictures(toggleButton, 0x2ac7, 0x2a79);
+          }
+        } else {
+          const ResourceStringId text = StringId(0x8005);
+          UpdateToolFromString(toggleButton, &text);
+          if (!alliance) {
+            SetButtonPictures(toggleButton, 0x2a7a, 0x2a7b);
+          } else {
+            SetButtonPictures(toggleButton, 0x2a78, 0x2a79);
           }
         }
+        break;
       }
-      else if (m_mode == kIndexModeMessage)
+    case 0x67:
+    case 0x97:
       {
-        record = m_current->m_record;
-        m_current->m_visible = 0;
-      }
-      if (!record)
-        return;
-      ObjectKey target = record->MessageKey();
-      record->m_flags.m_value = 1;
-      bool opened = false;
-      const int recordClass = record->GetClass();
-      if (recordClass == 3 || recordClass == 5)
-      {
-        if (target.IsSet() != 0)
-        {
-          m_galaxy->OpenWindowForObject(&target);
+        MessageRecord* record = nullptr;
+        if (m_mode == kIndexModeList) {
+          for (const auto& ownedRow : m_items->Entries()) {
+            auto* row = static_cast<CoolListItem*>(ownedRow.get());
+            if (row->m_state.m_value & 1) {
+              record = static_cast<MessageListItem*>(row)->m_record;
+              break;
+            }
+          }
+        } else if (m_mode == kIndexModeMessage) {
+          record = m_current->m_record;
+          m_current->m_visible = 0;
+        }
+        if (!record) {
+          return;
+        }
+        ObjectKey target = record->MessageKey();
+        record->m_flags.m_value = 1;
+        bool opened = false;
+        const int recordClass = record->GetClass();
+        if (recordClass == 3 || recordClass == 5) {
+          if (target.IsSet() != 0) {
+            m_galaxy->OpenWindowForObject(&target);
+            opened = true;
+          }
+        } else if (recordClass == 4) {
+          ObjectKey type(record->MessageTarget());
+          const NullableKey typeKey{type.m_value};
+          UiOpenEncyclopedia(&target, &typeKey);
           opened = true;
         }
+        if (opened) {
+          reb::compat::PostMessageA(m_hwnd, WM_COMMAND, 0x28, 0);
+        }
+        break;
       }
-      else if (recordClass == 4)
-      {
-        ObjectKey type(record->MessageTarget());
-        UiOpenEncyclopedia(&target, reinterpret_cast<NullableKey*>(&type));
-        opened = true;
-      }
-      if (opened)
-        PostMessageA(m_hwnd, WM_COMMAND, 0x28, 0);
-      break;
-    }
     case 0x6e:
-    {
-      const auto notification = static_cast<int16_t>(static_cast<uint32_t>(b) >> 16);
-      if (notification == 0x309 && m_mode == kIndexModeList)
       {
+        const auto notification = static_cast<int16_t>(static_cast<uint32_t>(b) >> 16);
+        if (notification == 0x309 && m_mode == kIndexModeList) {
+          CoolListItemList selection(1);
+          m_list->CopySelectionTo(&selection);
+          if (selection.Count() != 0) {
+            OnCommand(kBackButtonId, 0, 0);
+          }
+          return;
+        }
+        if (notification != 0x29b) {
+          return;
+        }
+        if (m_mode != kIndexModeList) {
+          return;
+        }
         CoolListItemList selection(1);
         m_list->CopySelectionTo(&selection);
-        if (selection.Count() != 0)
-          OnCommand(kBackButtonId, 0, 0);
-        return;
+        refreshOpenButton(selection, IsAlliance(m_galaxy));
+        break;
       }
-      if (notification != 0x29b)
-        return;
-      if (m_mode != kIndexModeList)
-        return;
-      CoolListItemList selection(1);
-      m_list->CopySelectionTo(&selection);
-      refreshOpenButton(selection, IsAlliance(m_galaxy));
-      break;
-    }
     case 0x78:
       SelectCategory(static_cast<int>(static_cast<uint32_t>(b) >> 16));
-      SetFocus(m_list->m_hwnd);
+      reb::compat::SetFocus(m_list->m_hwnd);
       break;
     case 0x90:
-    {
-      for (const auto& ownedRow : m_items->Entries())
       {
-        auto* row = static_cast<CoolListItem*>(ownedRow.get());
-        if (static_cast<MessageListItem*>(row)->m_visible != 0)
-          row->m_state.m_value |= 1;
+        for (const auto& ownedRow : m_items->Entries()) {
+          auto* row = static_cast<CoolListItem*>(ownedRow.get());
+          if (static_cast<MessageListItem*>(row)->m_visible != 0) {
+            row->m_state.m_value |= 1;
+          }
+        }
+        reb::compat::SetFocus(m_list->m_hwnd);
+        m_list->Refresh();
+        CoolListItemList selection(1);
+        m_list->CopySelectionTo(&selection);
+        refreshOpenButton(selection, IsAlliance(m_galaxy));
+        break;
       }
-      SetFocus(m_list->m_hwnd);
-      m_list->Refresh();
-      CoolListItemList selection(1);
-      m_list->CopySelectionTo(&selection);
-      refreshOpenButton(selection, IsAlliance(m_galaxy));
-      break;
-    }
     case 0x91:
-      if (m_mode == kIndexModeList)
-      {
+      if (m_mode == kIndexModeList) {
         CoolListItem* neighbour = nullptr;
         auto position = m_items->Entries().begin();
-        while (position != m_items->Entries().end())
-        {
+        while (position != m_items->Entries().end()) {
           auto current = position++;
           auto* row = static_cast<MessageListItem*>((*current).get());
-          if (!row->m_visible)
+          if (!row->m_visible) {
             continue;
-          if (row->m_state.m_value & 1)
-          {
-            if (neighbour == nullptr)
-            {
+          }
+          if (row->m_state.m_value & 1) {
+            if (neighbour == nullptr) {
               auto following = position;
-              while (following != m_items->Entries().end() &&
-                     !static_cast<MessageListItem*>((*following).get())->m_visible)
+              while (following != m_items->Entries().end()
+                     && !static_cast<MessageListItem*>((*following).get())->m_visible) {
                 ++following;
-              if (following != m_items->Entries().end())
+              }
+              if (following != m_items->Entries().end()) {
                 neighbour = static_cast<MessageListItem*>((*following).get());
-              else
-              {
+              } else {
                 auto previous = current;
-                while (previous != m_items->Entries().begin())
-                {
+                while (previous != m_items->Entries().begin()) {
                   --previous;
                   auto* previousRow = static_cast<MessageListItem*>((*previous).get());
-                  if (previousRow->m_visible)
-                  {
+                  if (previousRow->m_visible) {
                     neighbour = previousRow;
                     break;
                   }
@@ -1436,29 +1477,26 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
             delete row;
           }
         }
-        SetFocus(m_list->m_hwnd);
-        if (neighbour)
+        reb::compat::SetFocus(m_list->m_hwnd);
+        if (neighbour) {
           m_list->SelectById(neighbour->m_id, 1);
+        }
         m_list->Refresh();
-      }
-      else if (m_current)
-      {
+      } else if (m_current) {
         auto position = m_items->PositionOf(m_current);
         auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
-        while (nextPosition != m_items->Entries().end() &&
-               !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
+        while (nextPosition != m_items->Entries().end()
+               && !static_cast<MessageListItem*>((*nextPosition).get())->m_visible) {
           ++nextPosition;
-        MessageListItem* neighbour =
-          nextPosition == m_items->Entries().end() ? nullptr : static_cast<MessageListItem*>((*nextPosition).get());
-        if (!neighbour && position != m_items->Entries().end())
-        {
+        }
+        MessageListItem* neighbour
+            = nextPosition == m_items->Entries().end() ? nullptr : static_cast<MessageListItem*>((*nextPosition).get());
+        if (!neighbour && position != m_items->Entries().end()) {
           auto previousPosition = position;
-          while (previousPosition != m_items->Entries().begin())
-          {
+          while (previousPosition != m_items->Entries().begin()) {
             --previousPosition;
             auto* previous = static_cast<MessageListItem*>((*previousPosition).get());
-            if (previous->m_visible)
-            {
+            if (previous->m_visible) {
               neighbour = previous;
               break;
             }
@@ -1466,132 +1504,134 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
         }
         m_items->Remove(m_current);
         UiDeleteHumanMessage(m_current->m_id);
-        if (neighbour == nullptr)
-        {
+        if (neighbour == nullptr) {
           SetMode(kBackButtonId);
-        }
-        else
-        {
+        } else {
           m_current = neighbour;
           ShowMessage(neighbour);
         }
       }
       break;
     case 0x96:
-    {
-      markCurrentRead();
-      auto position = m_items->PositionOf(m_current);
-      auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
-      while (nextPosition != m_items->Entries().end() &&
-             !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
-        ++nextPosition;
-      if (nextPosition == m_items->Entries().end())
-        return;
-      auto* next = static_cast<MessageListItem*>((*nextPosition).get());
-      m_current = next;
-      ShowMessage(next);
-      SetFocus(m_text->m_hwnd);
-      break;
-    }
-    case 0x98:
-      if (m_mode != kIndexModeMessage)
       {
-        if (m_mode != kIndexModeCompose)
+        markCurrentRead();
+        auto position = m_items->PositionOf(m_current);
+        auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
+        while (nextPosition != m_items->Entries().end()
+               && !static_cast<MessageListItem*>((*nextPosition).get())->m_visible) {
+          ++nextPosition;
+        }
+        if (nextPosition == m_items->Entries().end()) {
           return;
-        if (m_text->m_text.empty())
+        }
+        auto* next = static_cast<MessageListItem*>((*nextPosition).get());
+        m_current = next;
+        ShowMessage(next);
+        reb::compat::SetFocus(m_text->m_hwnd);
+        break;
+      }
+    case 0x98:
+      if (m_mode != kIndexModeMessage) {
+        if (m_mode != kIndexModeCompose) {
           return;
+        }
+        if (m_text->m_text.empty()) {
+          return;
+        }
         std::string message(m_text->m_text);
         UiQueueHumanPopup(reinterpret_cast<intptr_t>(&message), 1);
         OnCommand(kBackButtonId, 0, 0);
-        SetFocus(m_text->m_hwnd);
+        reb::compat::SetFocus(m_text->m_hwnd);
         return;
       }
       m_current->m_visible = 0;
       m_current->m_record->m_flags.m_value = 1;
       m_current->m_record->AcceptFromMessageIndex();
       OnCommand(kBackButtonId, 0, 0);
-      SetFocus(m_list->m_hwnd);
+      reb::compat::SetFocus(m_list->m_hwnd);
       break;
     case 0x99:
-      if (m_mode == kIndexModeMessage)
-      {
+      if (m_mode == kIndexModeMessage) {
         m_current->m_visible = 0;
         m_current->m_record->m_flags.m_value = 1;
         m_current->m_fontSlot = kNoticeFontRead;
         m_current->m_record->DeclineFromMessageIndex();
-      }
-      else if (m_mode != kIndexModeCompose)
-      {
+      } else if (m_mode != kIndexModeCompose) {
         return;
       }
       OnCommand(kBackButtonId, 0, 0);
-      SetFocus(m_list->m_hwnd);
+      reb::compat::SetFocus(m_list->m_hwnd);
+      break;
+    case kRepeatButtonId:
+      if (m_mode == kIndexModeMessage && m_current) {
+        markCurrentRead();
+        UiHumanRepeatMission(m_current->m_record->m_id);
+        children->FindById(kRepeatButtonId)->Hide();
+        m_text->m_text = m_current->m_record->MessageText1();
+        m_text->m_caret.m_index = 0;
+        m_text->Reset();
+        reb::compat::SetFocus(m_text->m_hwnd);
+      }
       break;
     case 0x9a:
-    {
-      markCurrentRead();
-      auto position = m_items->PositionOf(m_current);
-      auto previousPosition = position;
-      while (previousPosition != m_items->Entries().begin())
       {
-        --previousPosition;
-        if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
-          break;
+        markCurrentRead();
+        auto position = m_items->PositionOf(m_current);
+        auto previousPosition = position;
+        while (previousPosition != m_items->Entries().begin()) {
+          --previousPosition;
+          if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible) {
+            break;
+          }
+        }
+        if (position == m_items->Entries().end() || previousPosition == position
+            || !static_cast<MessageListItem*>((*previousPosition).get())->m_visible) {
+          return;
+        }
+        auto* previous = static_cast<MessageListItem*>((*previousPosition).get());
+        m_current = previous;
+        ShowMessage(previous);
+        reb::compat::SetFocus(m_text->m_hwnd);
+        break;
       }
-      if (position == m_items->Entries().end() || previousPosition == position ||
-          !static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
-        return;
-      auto* previous = static_cast<MessageListItem*>((*previousPosition).get());
-      m_current = previous;
-      ShowMessage(previous);
-      SetFocus(m_text->m_hwnd);
-      break;
-    }
   }
 }
 
 void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  switch (key)
-  {
+  switch (key) {
     case VK_RETURN:
-    {
-      if (m_mode != kIndexModeMessage)
-        return;
-      if (!m_current)
-        return;
-      CoolStrobeButton* button = nullptr;
-      const int recordClass = m_current->m_record->GetClass();
-      if (recordClass > 2)
       {
-        uint32_t id;
-        if (recordClass < 5)
-        {
-          id = kSendButtonId;
-        }
-        else if (recordClass == 5)
-        {
-          id = kAcceptButtonId;
-        }
-        else
-        {
+        if (m_mode != kIndexModeMessage) {
           return;
         }
-        button = AsButton(m_children.FindById(id));
+        if (!m_current) {
+          return;
+        }
+        CoolStrobeButton* button = nullptr;
+        const int recordClass = m_current->m_record->GetClass();
+        if (recordClass > 2) {
+          uint32_t id;
+          if (recordClass < 5) {
+            id = kSendButtonId;
+          } else if (recordClass == 5) {
+            id = kAcceptButtonId;
+          } else {
+            return;
+          }
+          button = AsButton(m_children.FindById(id));
+        }
+        if (button) {
+          button->Click();
+          button->CancelPress();
+        }
+        return;
       }
-      if (button)
-      {
-        button->Click();
-        button->CancelPress();
-      }
-      return;
-    }
     default:
       m_parent->WindowProc(WM_KEYDOWN, key, lParam);
       return;
     case VK_ESCAPE:
-      if (m_mode == kIndexModeList)
-      {
+      if (m_mode == kIndexModeList) {
         PostCloseRequest();
         return;
       }
@@ -1599,39 +1639,39 @@ void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
       return;
     case VK_LEFT:
     case VK_RIGHT:
-    {
-      const uint32_t selectedId = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
-      CoolWindow* tab = m_tabs->m_children.FindById(selectedId);
-      auto position = m_tabs->m_children.PositionOf(tab);
-      if (position != m_tabs->m_children.Entries().end())
       {
-        if (key == VK_LEFT)
-          position =
-            position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() : std::prev(position);
-        else
-          position = std::next(position);
-        while (position != m_tabs->m_children.Entries().end())
-        {
-          tab = (*position).get();
-          CoolWindow* window = tab;
-          if (IsWindowVisible(window->m_hwnd) != 0)
-          {
-            m_tabs->SelectTab(window->m_childId, 1);
-            return;
-          }
-          if (key == VK_LEFT)
-            position = position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() :
-                                                                          std::prev(position);
-          else
+        const uint32_t selectedId = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
+        CoolWindow* tab = m_tabs->m_children.FindById(selectedId);
+        auto position = m_tabs->m_children.PositionOf(tab);
+        if (position != m_tabs->m_children.Entries().end()) {
+          if (key == VK_LEFT) {
+            position = position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end()
+                                                                        : std::prev(position);
+          } else {
             position = std::next(position);
+          }
+          while (position != m_tabs->m_children.Entries().end()) {
+            tab = (*position).get();
+            CoolWindow* window = tab;
+            if (reb::compat::IsWindowVisible(window->m_hwnd) != 0) {
+              m_tabs->SelectTab(window->m_childId, 1);
+              return;
+            }
+            if (key == VK_LEFT) {
+              position = position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end()
+                                                                          : std::prev(position);
+            } else {
+              position = std::next(position);
+            }
+          }
+          return;
+        }
+        CoolWindow* first = m_tabs->m_children.First();
+        if (first) {
+          m_tabs->SelectTab(first->m_childId, 1);
         }
         return;
       }
-      CoolWindow* first = m_tabs->m_children.First();
-      if (first)
-        m_tabs->SelectTab(first->m_childId, 1);
-      return;
-    }
     case VK_DELETE:
       OnCommand(kDeleteButtonId, 0, 0);
       return;
@@ -1642,10 +1682,10 @@ void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 
 void ModalReportClose(int owner, int notice)
 {
-  if (owner != g_modalReportOwner)
+  if (owner != g_modalReportOwner) {
     return;
-  if (notice != g_modalReportId)
-  {
+  }
+  if (notice != g_modalReportId) {
     ModalReportReset(owner);
     return;
   }
@@ -1655,8 +1695,9 @@ void ModalReportClose(int owner, int notice)
 
 void ModalReportReset(int owner)
 {
-  if (owner != g_modalReportOwner)
+  if (owner != g_modalReportOwner) {
     return;
+  }
   g_modalReportId = 0;
   g_modalReportMode = 0;
   g_modalReportTab = 0;

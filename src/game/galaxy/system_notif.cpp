@@ -12,8 +12,7 @@ constexpr uint32_t kEmpireSide = 2;
 int System::OnLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     std::string text;
     const std::string delta("Delta=");
     text += delta;
@@ -21,8 +20,7 @@ int System::OnLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx)
     LogInt("SystemLoyaltyNotif", "Loyalty", newValue, oldValue, reinterpret_cast<intptr_t>(text.c_str()), ctx);
     int shownOld = oldValue;
     int shownNew = newValue;
-    if (ViewSide() == kEmpireSide)
-    {
+    if (ViewSide() == kEmpireSide) {
       shownNew = 100 - newValue;
       shownOld = 100 - oldValue;
     }
@@ -34,8 +32,7 @@ int System::OnLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx)
 int System::OnEnergyNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemSystemEnergyNotif", "SystemEnergy", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x141, this, oldValue, newValue, ctx);
   }
@@ -45,8 +42,7 @@ int System::OnEnergyNotified(int oldValue, int newValue, NotifyContext* ctx)
 int System::OnEnergyAllocatedNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemSystemEnergyAllocatedNotif", "SystemEnergyAllocated", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x142, this, oldValue, newValue, ctx);
   }
@@ -56,8 +52,7 @@ int System::OnEnergyAllocatedNotified(int oldValue, int newValue, NotifyContext*
 int System::OnRawMaterialNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemSystemRawMaterialNotif", "SystemRawMaterial", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x143, this, oldValue, newValue, ctx);
   }
@@ -67,8 +62,7 @@ int System::OnRawMaterialNotified(int oldValue, int newValue, NotifyContext* ctx
 int System::OnRawMaterialAllocatedNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemSystemRawMaterialAllocatedNotif", "SystemRawMaterialAllocated", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x144, this, oldValue, newValue, ctx);
   }
@@ -78,8 +72,7 @@ int System::OnRawMaterialAllocatedNotified(int oldValue, int newValue, NotifyCon
 int System::OnSmugglingPercentNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemSmugglingPercentNotif", "SmugglingPercent", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x145, this, oldValue, newValue, ctx);
   }
@@ -89,8 +82,7 @@ int System::OnSmugglingPercentNotified(int oldValue, int newValue, NotifyContext
 int System::OnProductionModifierNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemProductionModifierNotif", "ProductionModifier", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x146, this, oldValue, newValue, ctx);
   }
@@ -100,8 +92,7 @@ int System::OnProductionModifierNotified(int oldValue, int newValue, NotifyConte
 int System::OnTroopRegWithdrawPercentNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemTroopRegWithdrawPercentNotif", "TroopRegWithdrawPercent", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x147, this, oldValue, newValue, ctx);
   }
@@ -111,8 +102,7 @@ int System::OnTroopRegWithdrawPercentNotified(int oldValue, int newValue, Notify
 int System::OnTroopRegSurplusNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemTroopRegSurplusNotif", "TroopRegSurplus", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x148, this, oldValue, newValue, ctx);
   }
@@ -122,8 +112,7 @@ int System::OnTroopRegSurplusNotified(int oldValue, int newValue, NotifyContext*
 int System::OnTroopRegRequiredNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("SystemTroopRegRequiredNotif", "TroopRegRequired", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x156, this, oldValue, newValue, ctx);
   }
@@ -133,24 +122,25 @@ int System::OnTroopRegRequiredNotified(int oldValue, int newValue, NotifyContext
 int System::OnControlKindBattleWonNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogSide("(SystemControlKindBattleWonNotif)", "ControlKindBattleWon", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int System::OnControlKindBattleWithdrewNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogSide("(SystemControlKindBattleWithdrewNotif)", "ControlKindBattleWithdrew", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int System::OnControlKindUprisingNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogSide("SystemControlKindUprisingNotif", "ControlKindUprising", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(0x151, this, oldValue, newValue, ctx);
   }
@@ -160,16 +150,16 @@ int System::OnControlKindUprisingNotified(int oldValue, int newValue, NotifyCont
 int System::OnControlKindBattleReadyNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogSide("(SystemControlKindBattleReadyNotif)", "ControlKindBattleReady", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int System::OnControlDataNotified(const SideBits* oldValue, const SideBits* newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     std::string newText;
     std::string oldText;
     const_cast<SideBits*>(newValue)->AppendDescription(&newText);
@@ -182,8 +172,7 @@ int System::OnControlDataNotified(const SideBits* oldValue, const SideBits* newV
 int System::OnPopulatedNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemPopulatedNotif", "Populated", value, 0, ctx);
     result = PostPayloadFlag(0x149, this, value, ctx);
   }
@@ -193,8 +182,7 @@ int System::OnPopulatedNotified(int value, NotifyContext* ctx)
 int System::OnExploredNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemExploredNotif", "Explored", value, 0, ctx);
     result = PostPayloadFlag(0x14a, this, value, ctx);
   }
@@ -204,8 +192,7 @@ int System::OnExploredNotified(int value, NotifyContext* ctx)
 int System::OnUprisingNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemUprisingNotif", "Uprising", value, 0, ctx);
     result = PostPayloadFlag(0x14b, this, value, ctx);
   }
@@ -215,8 +202,7 @@ int System::OnUprisingNotified(int value, NotifyContext* ctx)
 int System::OnNeverBeenControlledNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemNeverBeenControlledNotif", "NeverBeenControlled", value, 0, ctx);
     result = PostPayloadFlag(0x14c, this, value, ctx);
   }
@@ -226,8 +212,7 @@ int System::OnNeverBeenControlledNotified(int value, NotifyContext* ctx)
 int System::OnBattleNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemBattleNotif", "Battle", value, 0, ctx);
     result = PostPayloadFlag(0x14d, this, value, ctx);
   }
@@ -237,8 +222,7 @@ int System::OnBattleNotified(int value, NotifyContext* ctx)
 int System::OnBlockadeNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemBlockadeNotif", "Blockade", value, 0, ctx);
     result = PostPayloadFlag(0x14e, this, value, ctx);
   }
@@ -248,8 +232,7 @@ int System::OnBlockadeNotified(int value, NotifyContext* ctx)
 int System::OnBombardNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemBombardNotif", "Bombard", value, 0, ctx);
     result = PostPayloadInts(0x14f, this, ControlSide(), value, ctx);
   }
@@ -259,8 +242,7 @@ int System::OnBombardNotified(int value, NotifyContext* ctx)
 int System::OnAssaultNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemAssaultNotif", "Assault", value, 0, ctx);
     result = PostPayloadInts(0x150, this, ControlSide(), value, ctx);
   }
@@ -270,64 +252,70 @@ int System::OnAssaultNotified(int value, NotifyContext* ctx)
 int System::OnGarrisonedNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemGarrisonedNotif)", "Garrisoned", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnSuppressingNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemSuppressingNotif)", "Suppressing", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnCombatUnitFastRepairNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemCombatUnitFastRepairNotif)", "CombatUnitFastRepair", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnDeathStarNearbyNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemDeathStarNearbyNotif)", "DeathStarNearby", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnBattlePendingNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemBattlePendingNotif)", "BattlePending", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnLoyaltyCausedCurrentControlKindNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemLoyaltyCausedCurrentControlKindNotif)", "LoyaltyCausedCurrentControlKind", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnBattlePendingCausedCurrentBlockadeNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemBattlePendingCausedCurrentBlockade)", "BattlePendingCausedCurrentBlockade", value, 0, ctx);
+  }
   return result;
 }
 
 int System::OnUprisingIncidentNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemUprisingIncidentNotif", "UprisingIncident", value, 0, ctx);
     result = PostPayloadFlag(0x152, this, value, ctx);
   }
@@ -337,8 +325,7 @@ int System::OnUprisingIncidentNotified(int value, NotifyContext* ctx)
 int System::OnInformantIncidentNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemInformantIncidentNotif", "InformantIncident", value, 0, ctx);
     result = PostPayloadFlag(0x153, this, value, ctx);
   }
@@ -348,8 +335,7 @@ int System::OnInformantIncidentNotified(int value, NotifyContext* ctx)
 int System::OnDisasterIncidentNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemDisasterIncidentNotif", "DisasterIncident", value, 0, ctx);
     result = PostPayloadFlag(0x154, this, value, ctx);
   }
@@ -359,8 +345,7 @@ int System::OnDisasterIncidentNotified(int value, NotifyContext* ctx)
 int System::OnResourceIncidentNotified(int value, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("SystemResourceIncidentNotif", "ResourceIncident", value, 0, ctx);
     result = PostPayloadFlag(0x155, this, value, ctx);
   }
@@ -370,8 +355,9 @@ int System::OnResourceIncidentNotified(int value, NotifyContext* ctx)
 int System::OnBlockadeAndBattlePendingManagementRequiredNotified(int value, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(SystemBlockadeAndBattlePendingManagementRequiredNotif)", "BlockadeAndBattlePendingManagementRequired",
             value, 0, ctx);
+  }
   return result;
 }

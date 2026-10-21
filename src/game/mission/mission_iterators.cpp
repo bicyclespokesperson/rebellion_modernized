@@ -12,38 +12,35 @@ void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key)
   const ObjectKey previous = *key;
   key->Reset();
   auto position = set->Entries().end();
-  if (!previous.IsSet())
-  {
+  if (!previous.IsSet()) {
     position = set->Entries().begin();
-  }
-  else
-  {
+  } else {
     ObjectKeyNode* found = set->Find(&previous);
-    if (!found)
+    if (!found) {
       return;
+    }
     position = set->PositionOf(found);
-    if (position == set->Entries().end())
+    if (position == set->Entries().end()) {
       return;
+    }
     ++position;
   }
-  if (position != set->Entries().end())
+  if (position != set->Entries().end()) {
     static_cast<ObjectKeyNode*>((*position).get())->GetKey(key);
+  }
 }
 
-MissionMemberIterator::MissionMemberIterator(Mission* mission,
-                                             const FamilyRange* range,
-                                             int team,
-                                             int decoys,
+MissionMemberIterator::MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys,
                                              int captured)
-: m_mission(mission),
-  m_range(*range),
-  m_wantTeam(team),
-  m_wantDecoys(decoys),
-  m_wantCaptured(captured),
-  m_inTeam(0),
-  m_inDecoys(0),
-  m_inCaptured(0),
-  m_current(nullptr)
+    : m_mission(mission)
+    , m_range(*range)
+    , m_wantTeam(team)
+    , m_wantDecoys(decoys)
+    , m_wantCaptured(captured)
+    , m_inTeam(0)
+    , m_inDecoys(0)
+    , m_inCaptured(0)
+    , m_current(nullptr)
 {
 }
 
@@ -51,24 +48,24 @@ MissionMemberIterator::~MissionMemberIterator() = default;
 
 void MissionMemberIterator::StepKey()
 {
-  if (m_inTeam)
-  {
-    if (m_wantTeam)
+  if (m_inTeam) {
+    if (m_wantTeam) {
       NextMemberKey(&m_mission->m_team, &m_currentKey);
+    }
     m_inTeam = m_currentKey.IsSet();
     m_inDecoys = m_inTeam == 0;
   }
-  if (m_inDecoys)
-  {
-    if (m_wantDecoys)
+  if (m_inDecoys) {
+    if (m_wantDecoys) {
       NextMemberKey(&m_mission->m_decoys, &m_currentKey);
+    }
     m_inDecoys = m_currentKey.IsSet();
     m_inCaptured = m_inDecoys == 0;
   }
-  if (m_inCaptured)
-  {
-    if (m_wantCaptured)
+  if (m_inCaptured) {
+    if (m_wantCaptured) {
       NextMemberKey(&m_mission->m_captured, &m_currentKey);
+    }
     m_inCaptured = m_currentKey.IsSet();
   }
 }
@@ -81,11 +78,11 @@ void MissionMemberIterator::ResolveCurrent()
 int MissionMemberIterator::Accepts()
 {
   int accepted = 1;
-  if (m_current)
-  {
+  if (m_current) {
     const uint32_t family = m_current->GetFamily();
-    if (family < m_range.m_first || m_range.m_second <= family)
+    if (family < m_range.m_first || m_range.m_second <= family) {
       accepted = 0;
+    }
   }
   return accepted;
 }
@@ -93,8 +90,7 @@ int MissionMemberIterator::Accepts()
 MissionMemberIterator* MissionMemberIterator::Advance()
 {
   int accepted;
-  do
-  {
+  do {
     StepKey();
     ResolveCurrent();
     accepted = m_currentKey.IsSet() ? Accepts() : 1;
@@ -109,22 +105,18 @@ MissionMemberIterator* MissionMemberIterator::Begin()
   m_inCaptured = 0;
   m_currentKey.Reset();
   m_current = nullptr;
-  if (m_wantTeam)
-  {
+  if (m_wantTeam) {
     m_inTeam = 1;
-  }
-  else if (m_wantDecoys)
-  {
+  } else if (m_wantDecoys) {
     m_inDecoys = 1;
-  }
-  else if (m_wantCaptured)
-  {
+  } else if (m_wantCaptured) {
     m_inCaptured = 1;
   }
   StepKey();
   ResolveCurrent();
-  if (!Accepts())
+  if (!Accepts()) {
     Advance();
+  }
   return this;
 }
 
@@ -132,8 +124,7 @@ int MissionMemberIterator::Count()
 {
   int count = 0;
   Begin();
-  while (m_current)
-  {
+  while (m_current) {
     ++count;
     Advance();
   }
@@ -146,13 +137,12 @@ int MissionMemberIterator::HasAny()
   return m_current != nullptr;
 }
 
-#define REB_MISSION_ITERATOR_IMPL(Name, first, last, team, decoys, captured)                           \
-  Name::Name(Mission* mission) : MissionMemberIterator(mission, &kRange##Name, team, decoys, captured) \
-  {                                                                                                    \
-  }                                                                                                    \
-  Name::~Name()                                                                                        \
-  {                                                                                                    \
-  }
+#define REB_MISSION_ITERATOR_IMPL(Name, first, last, team, decoys, captured)                                           \
+  Name::Name(Mission* mission)                                                                                         \
+      : MissionMemberIterator(mission, &kRange##Name, team, decoys, captured)                                          \
+  {                                                                                                                    \
+  }                                                                                                                    \
+  Name::~Name() {}
 
 namespace
 {

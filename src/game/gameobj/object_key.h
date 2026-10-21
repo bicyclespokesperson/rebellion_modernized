@@ -28,7 +28,7 @@ class Crc32;
 
 class ObjectKey
 {
-public:
+  public:
   static constexpr uint32_t kUnsetValue = 2;
 
   // The family/id halves of a key are 0 only in the unset value.
@@ -66,7 +66,7 @@ public:
 // (SeedKey::m_key) are of this kind.
 class NullableKey
 {
-public:
+  public:
   NullableKey* OrNull();
   int IsSet() const;
 
@@ -75,7 +75,7 @@ public:
 
 class ObjectKeyNode : public AvlNode
 {
-public:
+  public:
   ObjectKeyNode();
   explicit ObjectKeyNode(const ObjectKey& key);
   ObjectKeyNode(const ObjectKeyNode& other);
@@ -100,7 +100,7 @@ public:
 
 class ObjectKeyValueNode : public ObjectKeyNode
 {
-public:
+  public:
   ObjectKeyValueNode();
   ObjectKeyValueNode(const ObjectKey& key, int value);
   ObjectKeyValueNode(const ObjectKeyValueNode& other);
@@ -117,7 +117,7 @@ public:
 
 class ObjectKeySet
 {
-public:
+  public:
   ObjectKeySet();
   // Copies the other set's nodes (through Clone).
   explicit ObjectKeySet(const ObjectKeySet& other);
@@ -161,17 +161,14 @@ public:
   }
   auto PositionOf(const ObjectKeyNode* node) const
   {
-    return std::ranges::find_if(m_keys,
-                                [node](const auto& owned)
-                                {
-                                  return owned.get() == node;
-                                });
+    return std::ranges::find_if(m_keys, [node](const auto& owned) {
+      return owned.get() == node;
+    });
   }
   void Remove(ObjectKeyNode* node);
 
-private:
-  struct KeyOrder
-  {
+  private:
+  struct KeyOrder {
     using is_transparent = void;
     bool operator()(const std::unique_ptr<ObjectKeyNode>& a, const std::unique_ptr<ObjectKeyNode>& b) const
     {
@@ -191,7 +188,7 @@ private:
 
 class ObjectKeyValueSet : public ObjectKeySet
 {
-public:
+  public:
   ObjectKeyValueSet();
   explicit ObjectKeyValueSet(const ObjectKeyValueSet& other);
   ~ObjectKeyValueSet() override;
@@ -211,7 +208,7 @@ public:
 // the non-virtual serialization helpers and the destructor are used here.
 class ObjectRefNode : public IdNode
 {
-public:
+  public:
   ObjectRefNode();
   ObjectRefNode(const ObjectRefNode& other);
   ~ObjectRefNode() override;
@@ -219,18 +216,18 @@ public:
   int Write(ostream* out);
   int Checksum(Crc32* crc);
 
-  int Set(const ObjectKey& key); // copies the key, zeroes m_count, returns 1
+  int Set(const ObjectKey& key);           // copies the key, zeroes m_count, returns 1
   ObjectKey* GetKey(ObjectKey* out) const; // 0x559950
 
-  int m_flag; // +0x1c
-  int m_count; // +0x20
+  int m_flag;      // +0x1c
+  int m_count;     // +0x20
   ObjectKey m_key; // +0x24
 };
 
 // ID registry of ObjectRefNodes; m_ok records whether the last Copy/Read/Add succeeded.
 class ObjectRefList
 {
-public:
+  public:
   void Clear()
   {
     m_registry.Clear();
@@ -292,6 +289,6 @@ public:
   ObjectRefNode* AddKey(ObjectKey key);
 
   int m_ok; // +0x0c
-private:
+  private:
   IdRegistry<ObjectRefNode> m_registry;
 };

@@ -1,6 +1,6 @@
 #include "mission/mission_autoroute.h"
 
-extern int g_missionAutorouteEventKindsReady; // 0x6bbae0
+extern int g_missionAutorouteEventKindsReady;     // 0x6bbae0
 extern EventKindSet g_missionAutorouteEventKinds; // 0x6bbae8
 
 namespace
@@ -70,8 +70,7 @@ GameObjNotifier* MissionAutoroute::Create()
 int MissionAutoroute::BuildEventKinds()
 {
   int result = 1;
-  if (!g_missionAutorouteEventKindsReady)
-  {
+  if (!g_missionAutorouteEventKindsReady) {
     g_missionAutorouteEventKindsReady = 1;
     result = MissionTypeBase::InitEventKinds(0, &g_missionAutorouteEventKinds);
   }

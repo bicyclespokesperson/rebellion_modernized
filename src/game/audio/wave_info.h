@@ -5,8 +5,7 @@
 #include "platform/win32.h"
 
 // Result codes of the WAVE parsers (0 = ok).
-enum WaveParseError : uint32_t
-{
+enum WaveParseError : uint32_t {
   kWaveBadRiff = 0xe003,
   kWaveBadFormatChunk = 0xe006,
   kWaveBadFormatOrData = 0xe007,
@@ -17,7 +16,7 @@ enum WaveParseError : uint32_t
 // Format and data location of a RIFF/WAVE (PCM only), read either from an open file or from memory.
 class WaveInfo
 {
-public:
+  public:
   WaveInfo();
   virtual ~WaveInfo();
 
@@ -39,7 +38,7 @@ public:
   int FindDataChunkInMemory(const uint8_t** position, int unused);
 
   WAVEFORMATEX m_format; // +0x04 (packed, 0x12 bytes)
-  uint8_t m_pad16[2]; // +0x16
-  uint32_t m_dataSize; // +0x18 length of the "data" chunk
+  uint8_t m_pad16[2];    // +0x16
+  uint32_t m_dataSize;   // +0x18 length of the "data" chunk
   uint32_t m_dataOffset; // +0x1c offset of the "data" chunk header from the start of the RIFF image
 };

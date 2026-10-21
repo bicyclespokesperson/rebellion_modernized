@@ -21,8 +21,9 @@ void DestroyTableRegistry()
 TableEntry* FindTableRecord(int tableType, int id)
 {
   TableRegistry* registry = GetTableRegistry();
-  if (!registry)
+  if (!registry) {
     return nullptr;
+  }
   return registry->Lookup(tableType, id);
 }
 
@@ -34,8 +35,9 @@ int TableRecordFirstValue(const TableEntry* record)
 void ChecksumTables(Crc32* crc)
 {
   TableRegistry* registry = GetTableRegistry();
-  if (registry)
+  if (registry) {
     registry->ChecksumAll(crc);
+  }
 }
 
 int LookupTableValue(int tableType, int id, int* value)
@@ -43,8 +45,9 @@ int LookupTableValue(int tableType, int id, int* value)
   *value = 0;
   const TableEntry* record = FindTableRecord(tableType, id);
   const int found = record != nullptr;
-  if (found)
+  if (found) {
     *value = TableRecordFirstValue(record);
+  }
   return found;
 }
 
@@ -53,8 +56,9 @@ int RollTableChanceWithValue(int tableType, int id, int* success, int* chance)
   *success = 1;
   *chance = 0;
   const int found = LookupTableValue(tableType, id, chance);
-  if (found)
+  if (found) {
     *success = PercentChance(*chance);
+  }
   return found;
 }
 

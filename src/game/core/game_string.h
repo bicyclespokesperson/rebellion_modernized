@@ -6,8 +6,7 @@
 class istream;
 class ostream;
 
-struct ResourceStringId
-{
+struct ResourceStringId {
   int16_t m_id;
   int16_t m_group;
 };
@@ -30,7 +29,7 @@ bool WriteLegacyString(ostream* out, const std::string& text);
 // Bounded borrow of a String's text; mutation of the owner invalidates attached cursors.
 class StringCursor
 {
-public:
+  public:
   StringCursor() = default;
   explicit StringCursor(const std::string& text);
   StringCursor& Attach(const std::string& text);

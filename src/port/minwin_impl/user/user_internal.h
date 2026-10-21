@@ -1,5 +1,5 @@
 // minwin_impl/user: the window manager, message queue, timers, hooks and input of minwin's USER32 on SDL3.
-// Single-threaded by design (docs/phase3_plan.md): every function here runs on the thread that pumps messages. The only
+// Single-threaded by design: every function here runs on the thread that pumps messages. The only
 // concession to the game's other threads is a lock around the few entry points they call (see Lock()).
 #pragma once
 #include <stdint.h>
@@ -10,9 +10,9 @@
 namespace minwin
 {
 
-// ---- constants the game does not use but the window manager sends or implements ---------------------------------------
-enum : unsigned
-{
+// ---- constants the game does not use but the window manager sends or implements
+// ---------------------------------------
+enum : unsigned {
   kWmNull = 0x00,
   kWmEnable = 0x0a,
   kWmSetText = 0x0c,
@@ -56,17 +56,8 @@ enum : unsigned
   kWmShowWindowMsg = 0x18,
   kWmSyncPaint = 0x88
 };
-enum : int
-{
-  kHtError = -2,
-  kHtTransparent = -1,
-  kHtNowhere = 0,
-  kHtClient = 1,
-  kHtCaption = 2,
-  kHtBorder = 18
-};
-enum : unsigned
-{
+enum : int { kHtError = -2, kHtTransparent = -1, kHtNowhere = 0, kHtClient = 1, kHtCaption = 2, kHtBorder = 18 };
+enum : unsigned {
   kSwpNoSize = 1,
   kSwpNoMove = 2,
   kSwpNoZOrder = 4,
@@ -81,8 +72,7 @@ enum : unsigned
   kSwpNoClientSize = 0x800,
   kSwpNoClientMove = 0x1000
 };
-enum : DWORD
-{
+enum : DWORD {
   kWsMaximizeBox = 0x10000,
   kWsMinimizeBox = 0x20000,
   kWsThickFrame = 0x40000,
@@ -99,8 +89,7 @@ enum : DWORD
   kWsExNoActivate = 0x08000000,
   kWsExTopmost = 8
 };
-enum : int
-{
+enum : int {
   kGwlWndProc = -4,
   kGwlHInstance = -6,
   kGwlHwndParent = -8,
@@ -109,8 +98,7 @@ enum : int
   kGwlExStyle = -20,
   kGwlUserData = -21
 };
-enum : int
-{
+enum : int {
   kSwHide = 0,
   kSwShowNormal = 1,
   kSwShowMinimized = 2,
@@ -124,42 +112,30 @@ enum : int
   kSwShowDefault = 10,
   kSwForceMinimize = 11
 };
-enum : int
-{
-  kSizeRestored = 0,
-  kSizeMinimized = 1,
-  kSizeMaximized = 2
-};
-enum : unsigned
-{
-  kHcAction = 0,
-  kHcNoRemove = 3
-};
+enum : int { kSizeRestored = 0, kSizeMinimized = 1, kSizeMaximized = 2 };
+enum : unsigned { kHcAction = 0, kHcNoRemove = 3 };
 constexpr int kScreenWidthDefault = 640, kScreenHeightDefault = 480;
 
-struct WindowPos
-{ // WINDOWPOS
+struct WindowPos { // WINDOWPOS
   HWND hwnd;
   HWND hwndInsertAfter;
   int x, y, cx, cy;
   UINT flags;
 };
-struct NcCalcSizeParams
-{ // NCCALCSIZE_PARAMS
+struct NcCalcSizeParams { // NCCALCSIZE_PARAMS
   RECT rgrc[3];
   WindowPos* lppos;
 };
-struct StyleStruct
-{ // STYLESTRUCT
+struct StyleStruct { // STYLESTRUCT
   DWORD styleOld;
   DWORD styleNew;
 };
-struct MinMaxInfo
-{ // MINMAXINFO
+struct MinMaxInfo { // MINMAXINFO
   POINT ptReserved, ptMaxSize, ptMaxPosition, ptMinTrackSize, ptMaxTrackSize;
 };
 
-// ---- rectangles and regions (rect lists: everything the game draws is rectangular) ------------------------------------
+// ---- rectangles and regions (rect lists: everything the game draws is rectangular)
+// ------------------------------------
 inline int Width(const RECT& r)
 {
   return r.right - r.left;
@@ -185,8 +161,7 @@ inline bool Intersect(RECT* out, const RECT& a, const RECT& b)
 {
   RECT r = MakeRect(a.left > b.left ? a.left : b.left, a.top > b.top ? a.top : b.top,
                     a.right < b.right ? a.right : b.right, a.bottom < b.bottom ? a.bottom : b.bottom);
-  if (IsEmpty(r))
-  {
+  if (IsEmpty(r)) {
     *out = MakeRect(0, 0, 0, 0);
     return false;
   }
@@ -199,10 +174,12 @@ inline RECT Offset(const RECT& r, int dx, int dy)
 }
 inline RECT Union(const RECT& a, const RECT& b)
 {
-  if (IsEmpty(a))
+  if (IsEmpty(a)) {
     return b;
-  if (IsEmpty(b))
+  }
+  if (IsEmpty(b)) {
     return a;
+  }
   return MakeRect(a.left < b.left ? a.left : b.left, a.top < b.top ? a.top : b.top,
                   a.right > b.right ? a.right : b.right, a.bottom > b.bottom ? a.bottom : b.bottom);
 }
@@ -210,7 +187,7 @@ inline RECT Union(const RECT& a, const RECT& b)
 // A set of non-overlapping rectangles.
 class Region
 {
-public:
+  public:
   Region() = default;
   ~Region();
   Region(const Region&) = delete;
@@ -238,16 +215,16 @@ public:
   RECT Bounds() const;
   bool Contains(int x, int y) const;
 
-private:
+  private:
   void Reserve(int n);
   RECT* rects_ = nullptr;
   int count_ = 0;
   int capacity_ = 0;
 };
 
-// ---- classes and windows ---------------------------------------------------------------------------------------------
-struct WindowClass
-{
+// ---- classes and windows
+// ---------------------------------------------------------------------------------------------
+struct WindowClass {
   char name[80];
   ATOM atom;
   UINT style;
@@ -261,8 +238,7 @@ struct WindowClass
   WindowClass* next;
 };
 
-struct Window
-{
+struct Window {
   Window* parent; // null: a top-level window (child of the desktop)
   Window* owner;
   Window* firstChild; // z-order: first is topmost
@@ -277,7 +253,7 @@ struct Window
   HINSTANCE instance;
   LONG_PTR userData;
   int x, y, width,
-    height; // window rectangle, relative to the parent's client origin (screen coordinates for top-level)
+      height; // window rectangle, relative to the parent's client origin (screen coordinates for top-level)
   int clientLeft, clientTop, clientWidth, clientHeight; // client rectangle relative to the window origin
   char* text;
   uint8_t* extra;
@@ -287,8 +263,8 @@ struct Window
   bool needErase;
   bool needNcPaint;
   uintptr_t handle; // the HWND value (a small integer, see the handle table in window.cpp)
-  uint32_t serial; // creation order
-  bool needSize; // WM_SIZE/WM_MOVE not yet sent after creation
+  uint32_t serial;  // creation order
+  bool needSize;    // WM_SIZE/WM_MOVE not yet sent after creation
   bool destroying;
   bool iconic;
   bool enabledFlag() const
@@ -300,8 +276,7 @@ struct Window
   int dispatchDepth;
 };
 
-struct Hook
-{
+struct Hook {
   int type;
   HOOKPROC proc;
   HINSTANCE module;
@@ -310,7 +285,8 @@ struct Hook
   bool dead;
 };
 
-// ---- window manager (window.cpp) --------------------------------------------------------------------------------------
+// ---- window manager (window.cpp)
+// --------------------------------------------------------------------------------------
 Window* FromHandle(HWND hwnd); // null unless a live window
 inline HWND ToHandle(const Window* w)
 {
@@ -320,22 +296,19 @@ bool IsLive(const Window* w);
 Window* TopLevelOf(Window* w);
 Window* RootOwner(Window* w);
 bool IsDescendant(const Window* ancestor, const Window* w); // strict
-bool IsWindowVisibleTree(const Window* w); // WS_VISIBLE on the window and every ancestor
+bool IsWindowVisibleTree(const Window* w);                  // WS_VISIBLE on the window and every ancestor
 bool IsEnabledTree(const Window* w);
 POINT ClientOriginOnScreen(const Window* w);
 POINT WindowOriginOnScreen(const Window* w);
 RECT ClientRectOnScreen(const Window* w);
 RECT WindowRectOnScreen(const Window* w);
-void ComputeVisibleRegion(const Window* w,
-                          bool clientOnly,
-                          bool clipChildren,
-                          bool clipSiblings,
+void ComputeVisibleRegion(const Window* w, bool clientOnly, bool clipChildren, bool clipSiblings,
                           Region* out); // screen coordinates
 Window* FirstTopLevel();
 Window* TopLevelsHead();
 Window* TopLevelsTail();
-Window*
-WindowAtPoint(POINT screen, bool skipDisabled, bool sendHitTest, int* hitTest); // deepest window under a screen point
+Window* WindowAtPoint(POINT screen, bool skipDisabled, bool sendHitTest,
+                      int* hitTest); // deepest window under a screen point
 Window* ChildAtPoint(Window* parent, POINT clientPoint, UINT flags);
 void LinkAfter(Window* w, Window* parent, Window* after); // after == null: topmost
 void Unlink(Window* w);
@@ -354,7 +327,8 @@ void SetCaptureWindow(Window* w);
 void OnWindowDestroyed(Window* w); // drops focus/active/capture references
 void OnWindowHidden(Window* w);
 
-// ---- messages (message.cpp) -------------------------------------------------------------------------------------------
+// ---- messages (message.cpp)
+// -------------------------------------------------------------------------------------------
 LRESULT Send(Window* w, UINT msg, WPARAM wp, LPARAM lp);
 bool Post(Window* w, UINT msg, WPARAM wp, LPARAM lp);
 LRESULT DefaultWindowProc(Window* w, UINT msg, WPARAM wp, LPARAM lp);
@@ -375,20 +349,21 @@ void TraceCreateNote(const char* what);
 LRESULT CallHooks(int type, int code, WPARAM wp, LPARAM lp);
 bool HasHook(int type);
 
-// ---- painting (paint.cpp) ---------------------------------------------------------------------------------------------
+// ---- painting (paint.cpp)
+// ---------------------------------------------------------------------------------------------
 void InvalidateWindowRect(Window* w, const RECT* clientRect, bool erase); // null rect: the whole client area
 void ValidateWindow(Window* w);
 void EraseWindowNow(Window* w); // WM_NCPAINT + WM_ERASEBKGND for the invalid part, like SetWindowPos does
 Window* FindWindowNeedingPaint();
-void ExposeArea(const RECT& screenRect,
-                Window* except,
-                bool paintNow); // invalidate the visible windows under an uncovered area, optionally painting now
+void ExposeArea(const RECT& screenRect, Window* except,
+                bool paintNow);      // invalidate the visible windows under an uncovered area, optionally painting now
 void SendPaintMessageFor(Window* w); // GetMessage's WM_PAINT delivery preparation (WM_NCPAINT); returns after queuing
 HDC AcquireWindowDc(Window* w, bool clientOnly, bool clipChildren);
 void ReleaseWindowDc(HDC dc);
 void DrawCaretOverlay(uint32_t* pixels, int pitchPixels, int scale);
 
-// ---- input (input.cpp) ------------------------------------------------------------------------------------------------
+// ---- input (input.cpp)
+// ------------------------------------------------------------------------------------------------
 void InitInput();
 void MarkLayoutChanged();
 void SynthesizeMouseMoveIfNeeded();
@@ -398,13 +373,15 @@ void SetCursorScreenPosition(POINT p);
 void UpdateCursorForWindow(Window* underMouse, int hitTest, UINT mouseMessage);
 extern int g_showCursorCount;
 
-// ---- platform (platform.cpp) -----------------------------------------------------------------------------------------
+// ---- platform (platform.cpp)
+// -----------------------------------------------------------------------------------------
 bool EnsurePlatform(); // SDL init + window; false if the platform could not be brought up
-void PresentScreen(); // convert the screen surface through the palette and show it
+void PresentScreen();  // convert the screen surface through the palette and show it
 void ShutdownPlatform();
 bool OutlinesEnabled();
 
-// ---- misc ---------------------------------------------------------------------------------------------------------------
+// ---- misc
+// ---------------------------------------------------------------------------------------------------------------
 void* Alloc(size_t n); // zeroed
 void Free(void* p);
 char* DuplicateString(const char* s);

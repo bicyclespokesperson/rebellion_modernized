@@ -33,31 +33,28 @@ ObjectKey KeyOfObject(GameObjNotifier* object)
 } // namespace
 
 AiShipRecord::AiShipRecord()
-: ObjectKeyNode(),
-  m_dirty(0),
-  m_view(0),
-  m_flags(0),
-  m_classKey(),
-  m_fleetKey(),
-  m_x30(0),
-  m_x34(0),
-  m_fleets(nullptr),
-  m_classes(nullptr),
-  m_owner(nullptr),
-  m_stat()
+    : ObjectKeyNode()
+    , m_dirty(0)
+    , m_view(0)
+    , m_flags(0)
+    , m_classKey()
+    , m_fleetKey()
+    , m_x30(0)
+    , m_x34(0)
+    , m_fleets(nullptr)
+    , m_classes(nullptr)
+    , m_owner(nullptr)
+    , m_stat()
 {
   m_classKey.m_value = 0;
 }
 
-AiShipRecord::AiShipRecord(GameObjNotifier* ship,
-                           int view,
-                           AiFleetEvalSet* fleets,
-                           AiClassTable* classes,
+AiShipRecord::AiShipRecord(GameObjNotifier* ship, int view, AiFleetEvalSet* fleets, AiClassTable* classes,
                            AiSideController* owner)
-: ObjectKeyNode(KeyOfObject(ship)),
-  m_flags(0),
-  m_classKey(),
-  m_fleetKey()
+    : ObjectKeyNode(KeyOfObject(ship))
+    , m_flags(0)
+    , m_classKey()
+    , m_fleetKey()
 {
   m_view = view;
   GetAiRecordKey(ship->m_record, &m_classKey);
@@ -69,8 +66,9 @@ AiShipRecord::AiShipRecord(GameObjNotifier* ship,
   AiClassRecordBase* entry = classes->Find(&m_classKey);
   m_flags.m_value |= entry->m_flags.m_value & 0x4ff;
   m_flags.m_value |= 0x20000;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
   m_dirty = 1;
 }
 
@@ -94,8 +92,9 @@ void AiShipRecord::ReadRecord(istream* in, AiFleetEvalSet* fleets, AiClassTable*
   ReadValue32(in, &m_x30);
   ReadValue32(in, &m_x34);
   ReadValue32(in, &m_dirty);
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     ReadValue32(in, &value);
+  }
   m_dirty = 1;
 }
 
@@ -109,8 +108,9 @@ void AiShipRecord::Save(ostream* out)
   WriteValue32(out, &m_x30);
   WriteValue32(out, &m_x34);
   WriteValue32(out, &m_dirty);
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     WriteValue32(out, &value);
+  }
 }
 
 int AiShipRecord::IsUnusable()
@@ -118,11 +118,11 @@ int AiShipRecord::IsUnusable()
   int result = 0;
   ObjectKey fleetKey = m_fleetKey;
   AiFleetEval* fleet = m_fleets->FindEval(fleetKey);
-  if (fleet)
-  {
+  if (fleet) {
     AiSystemEval* system = m_owner->m_systems.FindEval(fleet->m_systemKey);
-    if ((system && (system->m_flags30.m_value & 4)) || (fleet->m_flags.m_value & 0xf0000000))
+    if ((system && (system->m_flags30.m_value & 4)) || (fleet->m_flags.m_value & 0xf0000000)) {
       result = 1;
+    }
   }
   return result;
 }
@@ -148,8 +148,7 @@ int AiShipRecord::ChangeFleet(const ObjectKey* shipKey)
 {
   ObjectKey ownKey;
   GetKey(&ownKey);
-  if (shipKey->m_value == ownKey.m_value)
-  {
+  if (shipKey->m_value == ownKey.m_value) {
     m_fleets->RemoveShip(&m_fleetKey, &m_key);
     return 1;
   }
@@ -159,45 +158,50 @@ int AiShipRecord::ChangeFleet(const ObjectKey* shipKey)
 
 void AiShipRecord::Refresh()
 {
-  if (m_dirty == 0)
+  if (m_dirty == 0) {
     return;
+  }
   m_dirty = 0;
   m_flags.m_value &= 0x1b0204ff;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
-  auto stat = [this](int offset) -> int&
-  {
+  }
+  auto stat = [this](int offset) -> int& {
     return m_stat[(offset - 0x44) / 4];
   };
 
   const uint32_t viewBit = m_view == 1 ? 1 : (m_view == 2 ? 2 : 0);
   auto* ship = static_cast<CapShip*>(GetObjectInFamilies_14_1c(m_view, &m_key));
-  if (!ship || (ship->m_stateFlags & kStateDestroyed))
+  if (!ship || (ship->m_stateFlags & kStateDestroyed)) {
     return;
+  }
 
-  if (ship->ControlSide() == viewBit)
+  if (ship->ControlSide() == viewBit) {
     m_flags.m_value |= 0x4000;
-  if (ship->m_stateFlags & kStateEnroute)
+  }
+  if (ship->m_stateFlags & kStateEnroute) {
     m_flags.m_value |= 0x800;
-  if ((ship->m_stateFlags & kStateCompleted) == 0)
+  }
+  if ((ship->m_stateFlags & kStateCompleted) == 0) {
     m_flags.m_value = (m_flags.m_value & 0xf7ffffff) | 0x2000;
-  if (ship->m_stateFlags & kStateDamaged)
-  {
-    if (ship->GetTransitSpeed(1) == 0)
+  }
+  if (ship->m_stateFlags & kStateDamaged) {
+    if (ship->GetTransitSpeed(1) == 0) {
       m_flags.m_value |= 0x800000;
-    else
+    } else {
       m_flags.m_value |= 0x1000;
+    }
   }
 
   auto* ownClass = static_cast<AiCapitalShipClass*>(m_classes->Find(&m_classKey));
   stat(0x44) = ownClass->m_x40;
-  if ((m_flags.m_value & 0x1000) == 0)
+  if ((m_flags.m_value & 0x1000) == 0) {
     stat(0x48) = ownClass->m_x38;
+  }
   stat(0x50) = ownClass->ScaleC(ship->GetShieldRechargeRate() - ship->GetShieldRechargeRateLoss());
   stat(0x7c) = ownClass->ScaleA(ship->GetWeaponRechargeRate() - ship->GetWeaponRechargeRateLoss());
   stat(0x90) = ownClass->ScaleA(ship->GetWeaponRechargeRate() - ship->GetWeaponRechargeRateLoss());
-  if (m_flags.m_value & 2)
-  {
+  if (m_flags.m_value & 2) {
     stat(0x80) = ownClass->ScaleB(ship->GetWeaponRechargeRate() - ship->GetWeaponRechargeRateLoss());
     stat(0x94) = ownClass->ScaleB(ship->GetWeaponRechargeRate() - ship->GetWeaponRechargeRateLoss());
   }
@@ -208,8 +212,7 @@ void AiShipRecord::Refresh()
 
   FightSquadIterator squadrons(ship, 3);
   squadrons.Begin();
-  while (squadrons.m_current)
-  {
+  while (squadrons.m_current) {
     auto* squadron = static_cast<FightSquad*>(squadrons.m_current);
     ObjectKey recordKey;
     GetObjectRecordKey(squadron, &recordKey);
@@ -217,16 +220,12 @@ void AiShipRecord::Refresh()
     stat(0x78) += fighterClass->m_valueB;
     ++stat(0x58);
     m_flags.m_value |= 0x100;
-    if (((squadron->m_stateFlags >> 2) & 1) == 0)
-    {
+    if (((squadron->m_stateFlags >> 2) & 1) == 0) {
       m_flags.m_value |= 0x8000;
-    }
-    else
-    {
+    } else {
       stat(0x90) += fighterClass->ScaleX30(squadron->GetSquadSize() - squadron->GetSquadSizeDamage());
       stat(0x94) += fighterClass->ScaleX34(squadron->GetSquadSize() - squadron->GetSquadSizeDamage());
-      if (((squadron->m_stateFlags >> 5) & 1) == 0)
-      {
+      if (((squadron->m_stateFlags >> 5) & 1) == 0) {
         stat(0x84) += fighterClass->ScaleX38(squadron->GetSquadSize() - squadron->GetSquadSizeDamage());
         stat(0x7c) += fighterClass->ScaleX30(squadron->GetSquadSize() - squadron->GetSquadSizeDamage());
         stat(0x80) += fighterClass->ScaleX34(squadron->GetSquadSize() - squadron->GetSquadSizeDamage());
@@ -235,15 +234,15 @@ void AiShipRecord::Refresh()
         ++stat(0x5c);
       }
     }
-    if ((squadron->m_stateFlags >> 5) & 1)
+    if ((squadron->m_stateFlags >> 5) & 1) {
       m_flags.m_value |= 0x10000;
+    }
     squadrons.Advance();
   }
 
   TroopRegIterator troops(ship, 3);
   troops.Begin();
-  while (troops.m_current)
-  {
+  while (troops.m_current) {
     ObjectKey recordKey;
     GetObjectRecordKey(troops.m_current, &recordKey);
     auto* troopClass = static_cast<AiTroopClass*>(m_classes->Find(&recordKey));
@@ -251,69 +250,61 @@ void AiShipRecord::Refresh()
     m_flags.m_value |= 0x200;
     ++stat(0x64);
     const uint32_t troopState = static_cast<GameObj*>(troops.m_current)->m_stateFlags;
-    if (((troopState >> 2) & 1) == 0 || ((troopState >> 5) & 1) != 0)
-    {
+    if (((troopState >> 2) & 1) == 0 || ((troopState >> 5) & 1) != 0) {
       m_flags.m_value |= 0x8000;
-    }
-    else
-    {
+    } else {
       stat(0x4c) += troopClass->m_attackStrength;
       ++stat(0x88);
       ++stat(0x68);
     }
-    if ((troopState >> 5) & 1)
+    if ((troopState >> 5) & 1) {
       m_flags.m_value |= 0x10000;
+    }
     troops.Advance();
   }
 
   RoleIterator roles(ship, 3);
   roles.Begin();
-  while (roles.m_current)
-  {
+  while (roles.m_current) {
     ObjectKey key;
     GetObjectKey(roles.m_current, &key);
-    if (InFamilies(key.Family(), 0x30, 0x3c))
-    {
+    if (InFamilies(key.Family(), 0x30, 0x3c)) {
       auto* record = static_cast<AiCharacterRecord*>(m_owner->m_characters.Find(&key));
-      if (record)
-      {
+      if (record) {
         const uint32_t characterFlags = record->m_flags.m_value;
-        if (characterFlags & 0x2000000)
+        if (characterFlags & 0x2000000) {
           m_flags.m_value |= 0x20000000;
-        if ((characterFlags & 4) == 0)
-        {
-          m_flags.m_value |= (characterFlags & 0x40) == 0 ? 0x400000 : 0x80000;
         }
-        else if ((characterFlags & 0x40) == 0)
-        {
+        if ((characterFlags & 4) == 0) {
+          m_flags.m_value |= (characterFlags & 0x40) == 0 ? 0x400000 : 0x80000;
+        } else if ((characterFlags & 0x40) == 0) {
           ObjectKey storyKey;
           GetObjectKey(roles.m_current, &storyKey);
-          if (IsStoryKeyOf6(storyKey.m_value) == 0)
-          {
-            if ((characterFlags & 0x20) == 0)
+          if (IsStoryKeyOf6(storyKey.m_value) == 0) {
+            if ((characterFlags & 0x20) == 0) {
               m_flags.m_value |= 0x100000;
-          }
-          else
-          {
-            if ((characterFlags & 0x20) == 0)
+            }
+          } else {
+            if ((characterFlags & 0x20) == 0) {
               m_flags.m_value |= 0x40000;
-            if ((m_owner->m_flags.Get() & 1) == 0)
-            {
+            }
+            if ((m_owner->m_flags.Get() & 1) == 0) {
               GetObjectKey(roles.m_current, &storyKey);
-              if (IsStoryKeyOf4(storyKey.m_value) != 0)
+              if (IsStoryKeyOf4(storyKey.m_value) != 0) {
                 ++stat(0x8c);
+              }
             }
           }
-          if (characterFlags & 0x7000000)
+          if (characterFlags & 0x7000000) {
             m_flags.m_value |= 0x4000000;
-        }
-        else
-        {
+          }
+        } else {
           m_flags.m_value |= 0x200000;
         }
       }
-      if ((static_cast<GameObj*>(roles.m_current)->m_stateFlags >> 5) & 1)
+      if ((static_cast<GameObj*>(roles.m_current)->m_stateFlags >> 5) & 1) {
         m_flags.m_value |= 0x10000;
+      }
     }
     roles.Advance();
   }

@@ -10,7 +10,7 @@ ObjectKeyValueSet* GetEmptyKeyValueSet(); // 0x4f5d10
 // Constructs an unset key in place and returns it.
 ObjectKey* ConstructUnsetKey(ObjectKey* key); // 0x4f5d60
 // A shared unset ObjectKey (static at 0x6b2958).
-ObjectKey* GetEmptyKey(); // 0x4f5d80
+ObjectKey* GetEmptyKey();      // 0x4f5d80
 void ResetKey(ObjectKey* key); // 0x4f5dd0
 // Calls virtual slot 1 of the object and returns 1.
 int CallSlot1(void* object); // 0x4f5de0

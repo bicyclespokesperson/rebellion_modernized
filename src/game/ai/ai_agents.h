@@ -1,9 +1,9 @@
 #pragma once
 #include "ai/ai_agent_bases.h"
 
-// The concrete character agents (0x479a40-0x47aa90, kinds 1, 3, 4, 5, 6 of AiAgentSet::CreateAgent). Each looks for the character
-// that does its job (Evaluate), the system the character should go to (Prepare/ChooseTarget for the simple agents, the
-// AiSystemRecord the agent serves for the targeted ones) and the order to send it with (GetOrderKind):
+// The concrete character agents (0x479a40-0x47aa90, kinds 1, 3, 4, 5, 6 of AiAgentSet::CreateAgent). Each looks for the
+// character that does its job (Evaluate), the system the character should go to (Prepare/ChooseTarget for the simple
+// agents, the AiSystemRecord the agent serves for the targeted ones) and the order to send it with (GetOrderKind):
 //
 //   kind 1  AiAgentKind1  0x4c  simple, order 0x263 (VT 0x65a490): recruits a character into a system that needs one
 //   kind 3  AiAgentKind3  0x5c  targeted, order 0x262, character flag filter 0x1000000 (VT 0x65a460)
@@ -15,9 +15,9 @@
 
 class AiAgentKind6 : public AiAgentSimple
 {
-public:
+  public:
   AiAgentKind6(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x479a60
-  ~AiAgentKind6() override; // 0: 0x479a40 (deleting), 0x479a90
+  ~AiAgentKind6() override;                                                          // 0: 0x479a40 (deleting), 0x479a90
   int GetKind() override
   {
     return 6;
@@ -27,19 +27,17 @@ public:
     return 0;
   } // 7: 0x6158b0
   int GetCountSlot() override; // 10: 0x479ac0
-  void ReleaseHook() override
-  {
-  } // 11: 0x619730
+  void ReleaseHook() override {} // 11: 0x619730
   ObjectKey* ChooseTarget(ObjectKey* out) override; // 12: 0x479e30
-  void Prepare() override; // 13: 0x479ad0
-  int Evaluate() override; // 14: 0x479c00
+  void Prepare() override;                          // 13: 0x479ad0
+  int Evaluate() override;                          // 14: 0x479c00
 };
 
 class AiAgentKind1 : public AiAgentSimple
 {
-public:
+  public:
   AiAgentKind1(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47a430
-  ~AiAgentKind1() override; // 0: 0x47a410 (deleting), 0x47a460
+  ~AiAgentKind1() override;                                                          // 0: 0x47a410 (deleting), 0x47a460
   int GetKind() override
   {
     return 1;
@@ -48,18 +46,18 @@ public:
   {
     return 0x263;
   } // 7: 0x47a040
-  int GetCountSlot() override; // 10: 0x47a470
-  void ReleaseHook() override; // 11: 0x47a850
+  int GetCountSlot() override;                      // 10: 0x47a470
+  void ReleaseHook() override;                      // 11: 0x47a850
   ObjectKey* ChooseTarget(ObjectKey* out) override; // 12: 0x47a870
-  void Prepare() override; // 13: 0x47a480
-  int Evaluate() override; // 14: 0x47a5b0
+  void Prepare() override;                          // 13: 0x47a480
+  int Evaluate() override;                          // 14: 0x47a5b0
 };
 
 class AiAgentKind5 : public AiAgentTargeted
 {
-public:
+  public:
   AiAgentKind5(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x479f70
-  ~AiAgentKind5() override; // 0: 0x479f50 (deleting), 0x479fa0
+  ~AiAgentKind5() override;                                                          // 0: 0x479f50 (deleting), 0x479fa0
   int GetKind() override
   {
     return 5;
@@ -69,22 +67,22 @@ public:
 
 class AiAgentKind4 : public AiAgentTargeted
 {
-public:
+  public:
   AiAgentKind4(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47a000
-  ~AiAgentKind4() override; // 0: 0x479fe0 (deleting), 0x47a030
+  ~AiAgentKind4() override;                                                          // 0: 0x479fe0 (deleting), 0x47a030
   int GetKind() override
   {
     return 4;
   } // 6: 0x4047d0
   int GetOrderKind() override; // 7: 0x47a040
-  int Evaluate() override; // 10: 0x47a050
+  int Evaluate() override;     // 10: 0x47a050
 };
 
 class AiAgentKind3 : public AiAgentTargeted
 {
-public:
+  public:
   AiAgentKind3(int view, AiSideController* owner, AiCharacterRecordSet* characters); // 0x47a3c0
-  ~AiAgentKind3() override; // 0: 0x47a3a0 (deleting), 0x47a3f0
+  ~AiAgentKind3() override;                                                          // 0: 0x47a3a0 (deleting), 0x47a3f0
   int GetKind() override
   {
     return 3;

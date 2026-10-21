@@ -42,7 +42,11 @@ constexpr uint32_t kSystemUprising = 4;
 
 } // namespace
 
-AiSystemEval::AiSystemEval() : ObjectKeyNode(), m_flags28(0), m_flags2c(0), m_flags30(0)
+AiSystemEval::AiSystemEval()
+    : ObjectKeyNode()
+    , m_flags28(0)
+    , m_flags2c(0)
+    , m_flags30(0)
 {
   m_view = 0;
   m_x20 = 0;
@@ -52,15 +56,16 @@ AiSystemEval::AiSystemEval() : ObjectKeyNode(), m_flags28(0), m_flags2c(0), m_fl
   m_sector = nullptr;
   m_classes = nullptr;
   m_position = 0;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
 }
 
 AiSystemEval::AiSystemEval(int view, System* system)
-: ObjectKeyNode(KeyOfObject(system)),
-  m_flags28(0),
-  m_flags2c(0),
-  m_flags30(0)
+    : ObjectKeyNode(KeyOfObject(system))
+    , m_flags28(0)
+    , m_flags2c(0)
+    , m_flags30(0)
 {
   m_view = view;
   m_x20 = 0;
@@ -72,8 +77,9 @@ AiSystemEval::AiSystemEval(int view, System* system)
   m_position = static_cast<int>(position);
   m_sector = nullptr;
   m_classes = nullptr;
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
 }
 
 AiSystemEval::~AiSystemEval()
@@ -96,8 +102,9 @@ void AiSystemEval::Load(istream* in)
   m_flags28.Read(in);
   m_flags30.Read(in);
   m_flags2c.Read(in);
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     ReadValue32(in, &value);
+  }
   m_dirty = 1;
 }
 
@@ -115,8 +122,9 @@ void AiSystemEval::Save(ostream* out)
   m_flags28.Write(out);
   m_flags30.Write(out);
   m_flags2c.Write(out);
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     WriteValue32(out, &value);
+  }
 }
 
 void AiSystemEval::NoteTouched()
@@ -127,8 +135,9 @@ void AiSystemEval::NoteTouched()
 
 int AiSystemEval::DaysSinceTouched()
 {
-  if (m_flags30.m_value & 1)
+  if (m_flags30.m_value & 1) {
     return 0;
+  }
   return GameHookDay() - m_touchedDay;
 }
 
@@ -151,8 +160,9 @@ void AiSystemEval::MarkChanged()
 
 void AiSystemEval::Refresh()
 {
-  if (m_dirty == 0)
+  if (m_dirty == 0) {
     return;
+  }
   m_dirty = 0;
   auto& f28 = reinterpret_cast<uint32_t&>(m_flags28.m_value);
   auto& f2c = reinterpret_cast<uint32_t&>(m_flags2c.m_value);
@@ -161,41 +171,37 @@ void AiSystemEval::Refresh()
   ObjectKey ownKey;
   GetKey(&ownKey);
   auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &ownKey));
-  for (int& value : m_stat)
+  for (int& value : m_stat) {
     value = 0;
+  }
   f28 &= 0x3e00000;
   f30 &= 0x35ff0000;
   f2c &= 0x60000000;
   uint32_t viewSide = 0;
-  if (m_view == 1)
+  if (m_view == 1) {
     viewSide = 1;
-  else if (m_view == 2)
+  } else if (m_view == 2) {
     viewSide = 2;
+  }
   const uint32_t otherSide = m_view == 1 ? 2 : 1;
   m_x20 = static_cast<int>(system->ControlSide());
-  if (system->m_stateFlags & 8)
-  {
+  if (system->m_stateFlags & 8) {
     f30 |= 0x10;
     f28 = 0;
   }
-  if (ai::KeyInFamilies(m_key, 0x92, 0x94))
+  if (ai::KeyInFamilies(m_key, 0x92, 0x94)) {
     f30 |= 0x40;
-  if (static_cast<uint32_t>(m_x20) == viewSide)
-  {
+  }
+  if (static_cast<uint32_t>(m_x20) == viewSide) {
     f30 |= 1;
     f30 |= 0x20;
-  }
-  else if (static_cast<uint32_t>(m_x20) == otherSide)
-  {
+  } else if (static_cast<uint32_t>(m_x20) == otherSide) {
     f30 |= 4;
     f30 |= 0x20;
-  }
-  else
-  {
+  } else {
     f30 |= 2;
   }
-  if ((system->m_flags & kSystemExplored) == 0)
-  {
+  if ((system->m_flags & kSystemExplored) == 0) {
     f2c |= 0x80;
     return;
   }
@@ -203,30 +209,29 @@ void AiSystemEval::Refresh()
   Stat(0x4c) = system->m_energy;
   Stat(0x84) = system->m_energy - system->m_energyAllocated;
   Stat(0x80) = system->m_rawMaterial - system->m_rawMaterialAllocated;
-  if ((system->m_flags & 0x20) != 0)
-  {
+  if ((system->m_flags & 0x20) != 0) {
     f28 |= 2;
-    if ((f30 & 6) != 0)
+    if ((f30 & 6) != 0) {
       m_touchedDay = GameHookDay();
+    }
   }
-  if ((m_key.m_value & 0xffffff) == 0x109)
-  {
+  if ((m_key.m_value & 0xffffff) == 0x109) {
     f28 |= 0x80000000;
     f30 |= 0x40000000;
   }
-  if ((m_key.m_value & 0xffffff) == 0x121)
+  if ((m_key.m_value & 0xffffff) == 0x121) {
     f30 |= 0x8000000;
-  if (CountAllFacilities(system, m_x20, 3) != 0)
-  {
+  }
+  if (CountAllFacilities(system, m_x20, 3) != 0) {
     f28 |= 0x80000000;
     f30 |= 0x80000000;
     f2c |= 0x2000000;
   }
-  if (f30 & 1)
+  if (f30 & 1) {
     Stat(0x48) = 100;
+  }
 
-  auto classOf = [this](GameObjNotifier* object) -> AiClassRecordBase*
-  {
+  auto classOf = [this](GameObjNotifier* object) -> AiClassRecordBase* {
     ObjectKey recordKey;
     GetObjectRecordKey(object, &recordKey);
     return m_classes->Find(&recordKey);
@@ -235,45 +240,41 @@ void AiSystemEval::Refresh()
   {
     TroopRegIterator troops(system, 3);
     troops.Begin();
-    while (troops.m_current)
-    {
+    while (troops.m_current) {
       auto* troopClass = static_cast<AiTroopClass*>(classOf(troops.m_current));
-      if (f30 & 1)
-      {
-        if ((f28 & 0x83e00000) == 0)
-        {
-          if ((troopClass->m_flags.m_value & 0x1000) != 0)
-          {
+      if (f30 & 1) {
+        if ((f28 & 0x83e00000) == 0) {
+          if ((troopClass->m_flags.m_value & 0x1000) != 0) {
             f30 |= 0x4000;
-            if ((troopClass->m_flags.m_value & 0x2000) != 0)
+            if ((troopClass->m_flags.m_value & 0x2000) != 0) {
               f30 |= 0x8000;
-          }
-          else
-          {
+            }
+          } else {
             ++Stat(0x8c);
             f28 |= 0x20000000;
           }
-        }
-        else if (troopClass->m_defenseStrength < m_classes->m_bestDefense)
-        {
-          if ((troopClass->m_flags.m_value & 0x1000) != 0)
+        } else if (troopClass->m_defenseStrength < m_classes->m_bestDefense) {
+          if ((troopClass->m_flags.m_value & 0x1000) != 0) {
             f30 |= 0x4000;
-          if ((troopClass->m_flags.m_value & 0x2000) != 0)
+          }
+          if ((troopClass->m_flags.m_value & 0x2000) != 0) {
             f30 |= 0x8000;
-        }
-        else
-        {
+          }
+        } else {
           ++Stat(0x8c);
-          if ((troopClass->m_flags.m_value & 0x1000) != 0)
+          if ((troopClass->m_flags.m_value & 0x1000) != 0) {
             f28 |= 0x10000000;
-          if ((troopClass->m_flags.m_value & 0x2000) != 0)
+          }
+          if ((troopClass->m_flags.m_value & 0x2000) != 0) {
             f28 |= 0x20000000;
+          }
         }
       }
       ++Stat(0x88);
       Stat(0xc0) += troopClass->m_valueB;
-      if (StateOf(troops.m_current) & 1)
+      if (StateOf(troops.m_current) & 1) {
         ++Stat(0x90);
+      }
       troops.Advance();
     }
   }
@@ -281,14 +282,11 @@ void AiSystemEval::Refresh()
   {
     FleetIterator fleets(system, 3);
     fleets.Begin();
-    while (fleets.m_current)
-    {
+    while (fleets.m_current) {
       AiFleetEval* fleet = owner->m_fleets.FindEval(KeyOfObject(fleets.m_current));
-      if (fleet)
-      {
+      if (fleet) {
         const uint32_t fleetFlags = fleet->m_flags.m_value;
-        if ((fleetFlags & 1) == 0 && (fleet->m_flags.m_value & 0x4000) != 0)
-        {
+        if ((fleetFlags & 1) == 0 && (fleet->m_flags.m_value & 0x4000) != 0) {
           Stat(0xe4) += fleet->Stat(0xb4);
           Stat(0xe8) += fleet->Stat(0xb8);
           Stat(0xec) += fleet->Stat(0x60);
@@ -296,21 +294,25 @@ void AiSystemEval::Refresh()
           Stat(0xbc) += fleet->Stat(0xa4);
           f30 |= 0x200;
           f2c |= 0x800000;
-          if ((fleetFlags & 0x10) != 0)
-          {
+          if ((fleetFlags & 0x10) != 0) {
             f30 |= 0x400;
-            if (m_view == 1)
+            if (m_view == 1) {
               f2c |= 0x1000000;
+            }
           }
         }
-        if (fleetFlags & 0x200000)
+        if (fleetFlags & 0x200000) {
           f2c |= 0x2800;
-        if (fleetFlags & 0x400000)
+        }
+        if (fleetFlags & 0x400000) {
           f2c |= 0x800;
-        if (fleetFlags & 0x2000000)
+        }
+        if (fleetFlags & 0x2000000) {
           f30 |= 0x1000;
-        if (fleetFlags & 0x1000000)
+        }
+        if (fleetFlags & 0x1000000) {
           f2c |= 0x8000;
+        }
       }
       fleets.Advance();
     }
@@ -319,58 +321,43 @@ void AiSystemEval::Refresh()
   {
     RoleIterator roles(system, 3);
     roles.Begin();
-    while (roles.m_current)
-    {
+    while (roles.m_current) {
       ObjectKey roleKey = KeyOfObject(roles.m_current);
       auto* record = static_cast<AiCharacterRecord*>(owner->m_characters.Find(&roleKey));
-      if (record)
-      {
+      if (record) {
         const uint32_t cf = record->m_flags.m_value;
-        if ((cf & 4) == 0)
-        {
-          if ((cf & 0x20000000) != 0)
-          {
-            if ((cf & 0x40) != 0)
-            {
+        if ((cf & 4) == 0) {
+          if ((cf & 0x20000000) != 0) {
+            if ((cf & 0x40) != 0) {
               f2c |= 0x4000;
               ++Stat(0x100);
-            }
-            else if ((cf & 8) == 0)
-            {
+            } else if ((cf & 8) == 0) {
               ++Stat(0xfc);
-            }
-            else
-            {
+            } else {
               ++Stat(0xf8);
             }
           }
-        }
-        else if ((cf & 0x20000000) != 0)
-        {
-          if ((cf & 0x40) == 0)
-          {
-            if ((cf & 0x20) == 0)
+        } else if ((cf & 0x20000000) != 0) {
+          if ((cf & 0x40) == 0) {
+            if ((cf & 0x20) == 0) {
               f2c |= 0x400;
-            if ((cf & 0x7000000) != 0)
-            {
+            }
+            if ((cf & 0x7000000) != 0) {
               f30 |= 0x1000;
-              if ((cf & 0x2000000) != 0)
+              if ((cf & 0x2000000) != 0) {
                 f30 |= 0x2000;
+              }
             }
-            if ((cf & 8) == 0)
-            {
+            if ((cf & 8) == 0) {
               ++Stat(0x108);
-            }
-            else
-            {
+            } else {
               f2c |= 0x1000;
               ++Stat(0x104);
-              if ((cf & 0x40000000) != 0)
+              if ((cf & 0x40000000) != 0) {
                 ++Stat(0x110);
+              }
             }
-          }
-          else
-          {
+          } else {
             f2c |= 0x4000000;
             ++Stat(0x100);
           }
@@ -380,11 +367,11 @@ void AiSystemEval::Refresh()
     }
   }
 
-  if ((f30 & 1) != 0 && 0 < Stat(0x84))
-  {
+  if ((f30 & 1) != 0 && 0 < Stat(0x84)) {
     f28 |= 0x20;
-    if (0 < Stat(0x80))
+    if (0 < Stat(0x80)) {
       f28 |= 0x40;
+    }
   }
   Stat(0x50) = CountProductionFacilityType2C(system, m_x20, 3);
   Stat(0x54) = CountProductionFacilityType2D(system, m_x20, 3);
@@ -393,8 +380,7 @@ void AiSystemEval::Refresh()
   {
     ManufacturingFacility28Iterator facilities(system, 3);
     facilities.Begin();
-    while (facilities.m_current)
-    {
+    while (facilities.m_current) {
       AiClassRecordBase* facilityClass = classOf(facilities.m_current);
       usable28 |= StateOf(facilities.m_current) & 1;
       ++Stat(0x58);
@@ -403,14 +389,13 @@ void AiSystemEval::Refresh()
       facilities.Advance();
     }
   }
-  if (usable28 != 0)
-  {
+  if (usable28 != 0) {
     f28 |= 0x1000;
-    if (0 < Stat(0x58) && (f28 & 3) == 0)
-    {
+    if (0 < Stat(0x58) && (f28 & 3) == 0) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(0);
-      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
+      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
         f28 |= 0x200;
+      }
     }
   }
 
@@ -418,8 +403,7 @@ void AiSystemEval::Refresh()
   {
     ManufacturingFacility29Iterator facilities(system, 3);
     facilities.Begin();
-    while (facilities.m_current)
-    {
+    while (facilities.m_current) {
       AiClassRecordBase* facilityClass = classOf(facilities.m_current);
       usable29 |= StateOf(facilities.m_current) & 1;
       ++Stat(0x5c);
@@ -428,14 +412,13 @@ void AiSystemEval::Refresh()
       facilities.Advance();
     }
   }
-  if (usable29 != 0)
-  {
+  if (usable29 != 0) {
     f28 |= 0x1000;
-    if (0 < Stat(0x5c) && (f28 & 3) == 0)
-    {
+    if (0 < Stat(0x5c) && (f28 & 3) == 0) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(2);
-      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
+      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
         f28 |= 0x400;
+      }
     }
   }
 
@@ -443,8 +426,7 @@ void AiSystemEval::Refresh()
   {
     ManufacturingFacility2AIterator facilities(system, 3);
     facilities.Begin();
-    while (facilities.m_current)
-    {
+    while (facilities.m_current) {
       AiClassRecordBase* facilityClass = classOf(facilities.m_current);
       usable2a |= StateOf(facilities.m_current) & 1;
       ++Stat(0x60);
@@ -453,43 +435,43 @@ void AiSystemEval::Refresh()
       facilities.Advance();
     }
   }
-  if (usable2a != 0)
-  {
+  if (usable2a != 0) {
     f28 |= 0x1000;
-    if (0 < Stat(0x60) && (f28 & 3) == 0)
-    {
+    if (0 < Stat(0x60) && (f28 & 3) == 0) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(1);
-      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
+      if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
         f28 |= 0x800;
+      }
     }
   }
 
   {
     DefenseFacility24Iterator defenses(system, 3);
     defenses.Begin();
-    while (defenses.m_current)
-    {
+    while (defenses.m_current) {
       auto* defenseClass = static_cast<AiDefenseClass*>(classOf(defenses.m_current));
       ++Stat(0x64);
       Stat(0xc4) += defenseClass->m_valueB;
-      if (StateOf(defenses.m_current) & 1)
+      if (StateOf(defenses.m_current) & 1) {
         Stat(0x68) += defenseClass->m_shieldStrength;
+      }
       defenses.Advance();
     }
   }
-  if (1 < Stat(0x64))
+  if (1 < Stat(0x64)) {
     f30 |= 0x100;
+  }
 
   {
     DefenseFacility25Iterator defenses(system, 3);
     defenses.Begin();
-    while (defenses.m_current)
-    {
+    while (defenses.m_current) {
       AiClassRecordBase* defenseClass = classOf(defenses.m_current);
       ++Stat(0x70);
       Stat(0xc4) += defenseClass->m_valueB;
-      if (StateOf(defenses.m_current) & 1)
+      if (StateOf(defenses.m_current) & 1) {
         f30 |= 0x80;
+      }
       defenses.Advance();
     }
   }
@@ -497,13 +479,13 @@ void AiSystemEval::Refresh()
   {
     DefenseFacility23Iterator defenses(system, 3);
     defenses.Begin();
-    while (defenses.m_current)
-    {
+    while (defenses.m_current) {
       auto* defenseClass = static_cast<AiDefenseClass*>(classOf(defenses.m_current));
       ++Stat(0x74);
       Stat(0xc4) += defenseClass->m_valueB;
-      if (StateOf(defenses.m_current) & 1)
+      if (StateOf(defenses.m_current) & 1) {
         Stat(0x78) += defenseClass->m_attackStrength;
+      }
       defenses.Advance();
     }
   }
@@ -511,48 +493,45 @@ void AiSystemEval::Refresh()
   {
     DefenseFacility22Iterator defenses(system, 3);
     defenses.Begin();
-    while (defenses.m_current)
-    {
+    while (defenses.m_current) {
       auto* defenseClass = static_cast<AiDefenseClass*>(classOf(defenses.m_current));
       ++Stat(0x74);
       Stat(0xc4) += defenseClass->m_valueB;
-      if (StateOf(defenses.m_current) & 1)
+      if (StateOf(defenses.m_current) & 1) {
         Stat(0x78) += defenseClass->m_attackStrength;
+      }
       defenses.Advance();
     }
   }
-  if ((system->m_flags & kSystemPopulated) == 0)
-  {
-    if ((f28 & 0x20) != 0)
-    {
+  if ((system->m_flags & kSystemPopulated) == 0) {
+    if ((f28 & 0x20) != 0) {
       f28 |= 0x100;
-      if ((f28 & 0x40) != 0)
+      if ((f28 & 0x40) != 0) {
         f28 |= 0x80;
+      }
     }
-  }
-  else
-  {
-    if (system->m_flags & kSystemUprising)
+  } else {
+    if (system->m_flags & kSystemUprising) {
       f28 |= 1;
+    }
     f30 |= 8;
     f30 |= 0x20;
     Stat(0x48) = system->GetLoyaltyFor(m_view);
-    if (Stat(0x48) < 0x46)
+    if (Stat(0x48) < 0x46) {
       f2c |= 0x10000000;
+    }
     FightSquadIterator squads(system, 3);
     squads.Begin();
-    while (squads.m_current)
-    {
+    while (squads.m_current) {
       auto* squadClass = static_cast<AiFighterClass*>(classOf(squads.m_current));
       auto* squad = static_cast<FightSquad*>(squads.m_current);
       ++Stat(0xa4);
       Stat(0xc8) += squadClass->m_valueB;
-      if ((f30 & 1) != 0 && ((f28 & 0x83e00000) == 0 || m_classes->m_x28 <= squadClass->m_x34))
+      if ((f30 & 1) != 0 && ((f28 & 0x83e00000) == 0 || m_classes->m_x28 <= squadClass->m_x34)) {
         ++Stat(0xa8);
-      if (StateOf(squads.m_current) & 1)
-      {
-        auto liveSize = [squad]
-        {
+      }
+      if (StateOf(squads.m_current) & 1) {
+        auto liveSize = [squad] {
           const int damage = squad->GetSquadSizeDamage();
           return static_cast<int>(squad->GetSquadSize()) - damage;
         };
@@ -560,272 +539,256 @@ void AiSystemEval::Refresh()
         Stat(0xb4) += squadClass->ScaleX34(liveSize());
         Stat(0xb8) += squadClass->ScaleX38(liveSize());
         ++Stat(0xac);
-        if (f30 & 1)
+        if (f30 & 1) {
           f28 |= 0x80000;
+        }
       }
       squads.Advance();
     }
-    if ((f30 & 1) != 0 && (f28 & 3) == 0 && (f28 & 0x3e00000) == 0)
-    {
+    if ((f30 & 1) != 0 && (f28 & 3) == 0 && (f28 & 0x3e00000) == 0) {
       f28 |= 0x4000000;
       int built = Stat(0x74) + Stat(0x70) + Stat(0x54) + Stat(0x50) + Stat(0x64);
-      if (f30 & 0x80000000)
+      if (f30 & 0x80000000) {
         ++built;
-      if (built < Stat(0x4c))
-      {
+      }
+      if (built < Stat(0x4c)) {
         const uint32_t before = f28;
         f28 = before | 0x100;
-        if (0 < Stat(0x80))
+        if (0 < Stat(0x80)) {
           f28 = before | 0x180;
+        }
       }
     }
     const uint32_t control = f30;
-    if ((control & 1) == 0)
-    {
-      if ((control & 4) == 0)
-      {
-        if ((control & 2) != 0)
-        {
+    if ((control & 1) == 0) {
+      if ((control & 4) == 0) {
+        if ((control & 2) != 0) {
           const int unrest = 0x5a - Stat(0x48);
-          if (0 < unrest)
-          {
+          if (0 < unrest) {
             Stat(0x98) += (99 - Stat(0x48)) / 10;
-            if (6 < Stat(0x98))
+            if (6 < Stat(0x98)) {
               Stat(0x98) = 6;
+            }
           }
           Stat(0x118) = Stat(0x74) + Stat(0x98);
-          if ((control & 0x200) == 0)
+          if ((control & 0x200) == 0) {
             f2c |= 0x40;
-          if (f28 & 0x80000000)
+          }
+          if (f28 & 0x80000000) {
             ++Stat(0x110);
+          }
         }
-      }
-      else
-      {
+      } else {
         const int unrest = -Stat(0x48);
-        if (0 < unrest + 0x50)
-        {
+        if (0 < unrest + 0x50) {
           Stat(0x98) += (unrest + 0x59) / 10;
-          if (6 < Stat(0x98))
+          if (6 < Stat(0x98)) {
             Stat(0x98) = 6;
+          }
         }
         Stat(0x118) = Stat(0x88) + Stat(0x98) + Stat(0x74);
-        if (0x32 < Stat(0x48))
+        if (0x32 < Stat(0x48)) {
           f2c |= 0x100;
+        }
         Stat(0xbc) = Stat(0xbc) + Stat(0x90) + Stat(0xac);
-        if (f28 & 0x80000000)
+        if (f28 & 0x80000000) {
           ++Stat(0x110);
-        if (0 < Stat(0x68))
+        }
+        if (0 < Stat(0x68)) {
           f2c |= 0x40000;
-        if (f30 & 0x80)
+        }
+        if (f30 & 0x80) {
           f2c |= 0x80000;
-        if (0 < Stat(0x78))
+        }
+        if (0 < Stat(0x78)) {
           f2c |= 0x100000;
-        if (0 < Stat(0x90))
+        }
+        if (0 < Stat(0x90)) {
           f2c |= 0x200000;
-        if (0 < Stat(0xac))
+        }
+        if (0 < Stat(0xac)) {
           f2c |= 0x400000;
-        const bool hasBuildings = 0 < Stat(0x50) || 0 < Stat(0x54) || 0 < Stat(0x58) || 0 < Stat(0x5c) ||
-                                  0 < Stat(0x60) || 0 < Stat(0x70) || 0 < Stat(0x64);
-        if (hasBuildings && Stat(0x74) == 0)
+        }
+        const bool hasBuildings = 0 < Stat(0x50) || 0 < Stat(0x54) || 0 < Stat(0x58) || 0 < Stat(0x5c) || 0 < Stat(0x60)
+                                  || 0 < Stat(0x70) || 0 < Stat(0x64);
+        if (hasBuildings && Stat(0x74) == 0) {
           f30 |= 0x800;
-        if (0 < Stat(0x58) || 0 < Stat(0x5c) || 0 < Stat(0x60))
+        }
+        if (0 < Stat(0x58) || 0 < Stat(0x5c) || 0 < Stat(0x60)) {
           f2c |= 0x20000;
-        if (0 < Stat(0x50) || 0 < Stat(0x54))
+        }
+        if (0 < Stat(0x50) || 0 < Stat(0x54)) {
           f2c |= 0x10000;
+        }
       }
-    }
-    else
-    {
+    } else {
       int primary = 0;
       int secondary = 0;
       int reserve = 0;
       const int* budget = owner->m_budget;
-      if (0 < 0x46 - Stat(0x48))
-      {
+      if (0 < 0x46 - Stat(0x48)) {
         Stat(0x98) += (0x4f - Stat(0x48)) / 10;
-        if (6 < Stat(0x98))
+        if (6 < Stat(0x98)) {
           Stat(0x98) = 6;
+        }
       }
-      if ((control & 0x40000000) == 0)
-      {
-        if ((f28 & 0x3e00000) == 0)
-        {
-          if (0 < Stat(0x98))
-          {
+      if ((control & 0x40000000) == 0) {
+        if ((f28 & 0x3e00000) == 0) {
+          if (0 < Stat(0x98)) {
             reserve = budget[5];
-            if (reserve + budget[4] < Stat(0x4c))
-            {
+            if (reserve + budget[4] < Stat(0x4c)) {
               primary = budget[4];
               secondary = reserve;
             }
           }
-        }
-        else
-        {
+        } else {
           reserve = budget[3];
-          if (reserve + budget[2] < Stat(0x4c))
-          {
+          if (reserve + budget[2] < Stat(0x4c)) {
             primary = budget[2];
             secondary = reserve;
-          }
-          else if (budget[4] < Stat(0x4c))
-          {
+          } else if (budget[4] < Stat(0x4c)) {
             primary = budget[4];
           }
         }
-      }
-      else
-      {
-        if (m_view == 2)
-        {
+      } else {
+        if (m_view == 2) {
           reserve = 1;
-          if ((owner->m_flags.Get() & 0x1000000) != 0 && (owner->m_flags.Get() & 4) != 0 && Stat(0x70) == 0)
+          if ((owner->m_flags.Get() & 0x1000000) != 0 && (owner->m_flags.Get() & 4) != 0 && Stat(0x70) == 0) {
             f28 |= 0x40000000;
+          }
         }
         const int energy = Stat(0x4c);
-        if (energy < reserve + 2)
-        {
+        if (energy < reserve + 2) {
           primary = energy - reserve;
           secondary = 0;
-        }
-        else
-        {
+        } else {
           primary = budget[1];
           secondary = budget[0];
-          if (energy < reserve + budget[0] + primary)
+          if (energy < reserve + budget[0] + primary) {
             secondary = (energy - primary) - reserve;
+          }
         }
       }
       Stat(0x6c) = primary;
       const int defenseGap = Stat(0x64) - primary;
       const int shieldGap = Stat(0x74) - secondary;
       Stat(0x7c) = secondary;
-      if (defenseGap < 1)
-      {
-        if (defenseGap < 0)
+      if (defenseGap < 1) {
+        if (defenseGap < 0) {
           f28 |= 0x8000;
-        if (shieldGap < 1)
-        {
-          Stat(0xdc) = defenseGap + shieldGap;
-          if (defenseGap + shieldGap < 0)
-            f28 |= 0x4000;
         }
-        else
-        {
+        if (shieldGap < 1) {
+          Stat(0xdc) = defenseGap + shieldGap;
+          if (defenseGap + shieldGap < 0) {
+            f28 |= 0x4000;
+          }
+        } else {
           Stat(0xdc) = shieldGap;
         }
-      }
-      else if (shieldGap < 1)
-      {
+      } else if (shieldGap < 1) {
         Stat(0xdc) = defenseGap;
-      }
-      else
-      {
+      } else {
         Stat(0xdc) = shieldGap + defenseGap;
       }
       const uint32_t before = f28;
-      if (before & 1)
+      if (before & 1) {
         Stat(0x98) <<= 1;
-      if ((before & 0x80000000) == 0)
+      }
+      if ((before & 0x80000000) == 0) {
         Stat(0xa0) = (before & 0x3e00000) == 0 ? budget[6] : budget[7];
-      else
+      } else {
         Stat(0xa0) = budget[8];
-      if (Stat(0xa0) < Stat(0x98))
+      }
+      if (Stat(0xa0) < Stat(0x98)) {
         Stat(0xa0) = Stat(0x98);
-      if ((before & 2) == 0 || (f30 & 0x30000) == 0)
-      {
+      }
+      if ((before & 2) == 0 || (f30 & 0x30000) == 0) {
         const int wanted = Stat(0xa0);
         bool short_ = false;
-        if (Stat(0x90) != wanted)
-        {
-          if (Stat(0x90) <= wanted)
-          {
+        if (Stat(0x90) != wanted) {
+          if (Stat(0x90) <= wanted) {
             f28 |= 0x2000;
             Stat(0x9c) = Stat(0xa0) - Stat(0x90);
             short_ = true;
-          }
-          else
-          {
+          } else {
             f28 |= 0x10000;
             Stat(0x94) = Stat(0x90) - Stat(0xa0);
           }
         }
-        if (!short_ && Stat(0x8c) < wanted)
-        {
+        if (!short_ && Stat(0x8c) < wanted) {
           f28 |= 0x20000;
           Stat(0x9c) = Stat(0xa0) - Stat(0x8c);
         }
       }
-      if ((f28 & 0x80000000) == 0)
-      {
-        if ((f28 & 0x3e00000) == 0)
-        {
-          if (Stat(0x8c) < 1)
-          {
+      if ((f28 & 0x80000000) == 0) {
+        if ((f28 & 0x3e00000) == 0) {
+          if (Stat(0x8c) < 1) {
             Stat(0xe0) = Stat(0xa4);
             Stat(0x11c) = Stat(0xa4);
-          }
-          else
-          {
+          } else {
             Stat(0xe0) = Stat(0xa8) - budget[9];
             Stat(0x11c) = Stat(0xac) - budget[9];
           }
-        }
-        else
-        {
+        } else {
           Stat(0xe0) = Stat(0xa8) - budget[10];
           Stat(0x11c) = Stat(0xac) - budget[10];
         }
-      }
-      else
-      {
+      } else {
         Stat(0xe0) = Stat(0xa8) - budget[11];
         Stat(0x11c) = Stat(0xac) - budget[11];
       }
-      if (Stat(0xe0) < 0)
+      if (Stat(0xe0) < 0) {
         f28 |= 0x40000;
-      if (Stat(0x11c) < 0)
+      }
+      if (Stat(0x11c) < 0) {
         f28 |= 0x100000;
+      }
       const uint32_t snapshot = f28;
       int facilities = 0;
-      if (snapshot & 0x3800000)
+      if (snapshot & 0x3800000) {
         facilities = Stat(0x60);
-      if (snapshot & 0x200000)
+      }
+      if (snapshot & 0x200000) {
         facilities += Stat(0x58);
-      if (snapshot & 0x400000)
+      }
+      if (snapshot & 0x400000) {
         facilities += Stat(0x5c);
+      }
       const int defenses = std::max(Stat(0x64), Stat(0x6c));
       const int shields = std::max(Stat(0x74), Stat(0x7c));
       int committed = facilities + defenses + shields;
-      if (f30 & 0x80000000)
+      if (f30 & 0x80000000) {
         ++committed;
-      Stat(0x114) = Stat(0x4c) - committed;
-      if ((snapshot & 3) == 0)
-      {
-        if (0 < owner->m_characters.m_usableCount && (f30 & 0x8000000) == 0)
-          f2c |= 2;
-        if ((f28 & 0x200000) != 0 && (owner->m_flags.Get() & 0x2000000) == 0 && usable28 != 0 && 0 < Stat(0x90))
-          f2c |= 4;
-        if ((f28 & 0x400000) != 0 && (owner->m_flags.Get() & 0x4000000) == 0 && usable29 != 0 && 0 < Stat(0x90))
-          f2c |= 8;
-        if ((f28 & 0x3800000) != 0 && (owner->m_flags.Get() & 0x8000000) == 0 && usable2a != 0 && 0 < Stat(0x90))
-          f2c |= 0x10;
       }
-      if ((m_flags28.m_value & 1) != 0 && (f30 & 0x200) == 0)
+      Stat(0x114) = Stat(0x4c) - committed;
+      if ((snapshot & 3) == 0) {
+        if (0 < owner->m_characters.m_usableCount && (f30 & 0x8000000) == 0) {
+          f2c |= 2;
+        }
+        if ((f28 & 0x200000) != 0 && (owner->m_flags.Get() & 0x2000000) == 0 && usable28 != 0 && 0 < Stat(0x90)) {
+          f2c |= 4;
+        }
+        if ((f28 & 0x400000) != 0 && (owner->m_flags.Get() & 0x4000000) == 0 && usable29 != 0 && 0 < Stat(0x90)) {
+          f2c |= 8;
+        }
+        if ((f28 & 0x3800000) != 0 && (owner->m_flags.Get() & 0x8000000) == 0 && usable2a != 0 && 0 < Stat(0x90)) {
+          f2c |= 0x10;
+        }
+      }
+      if ((m_flags28.m_value & 1) != 0 && (f30 & 0x200) == 0) {
         f2c |= 0x20;
-      if ((f2c & 0x10000000) != 0 && (f30 & 0x200) == 0 && (f28 & 1) == 0)
+      }
+      if ((f2c & 0x10000000) != 0 && (f30 & 0x200) == 0 && (f28 & 1) == 0) {
         f2c |= 0x40;
+      }
     }
   }
-  if ((f30 & 1) == 0)
-  {
+  if ((f30 & 1) == 0) {
     f2c |= 0x80;
-    if ((f30 & 4) == 0)
+    if ((f30 & 4) == 0) {
       return;
-  }
-  else
-  {
+    }
+  } else {
     f2c |= 1;
   }
   f2c |= 0x200;

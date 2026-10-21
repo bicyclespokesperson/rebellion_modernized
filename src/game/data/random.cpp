@@ -11,10 +11,12 @@ void SetGameRandom(RandomGenerator* generator)
 
 int GameRandom(int max)
 {
-  if (!g_gameRandom)
+  if (!g_gameRandom) {
     return 0;
-  if (max >= 0)
+  }
+  if (max >= 0) {
     return g_gameRandom->Between(0, max);
+  }
   return g_gameRandom->Between(max, 0);
 }
 

@@ -13,23 +13,17 @@ class UiNotice;
 
 class NotifPayload
 {
-public:
+  public:
   NotifPayload();
   virtual ~NotifPayload();
-  virtual void Read(istream*)
-  {
-  }
-  virtual void Write(ostream*)
-  {
-  }
+  virtual void Read(istream*) {}
+  virtual void Write(ostream*) {}
   virtual int GetKind() = 0;
   virtual int GetDeliveryMode()
   {
     return 1;
   } // the delivery mode of the notification (1 unless a handler overrides it)
-  virtual void PrepareForDispatch()
-  {
-  }
+  virtual void PrepareForDispatch() {}
   virtual void Dispatch(PlayerController* controller) = 0; // the UI handlers (events/ui_notifs.h) tell a controller
   virtual void DispatchToSink(UiNotice* sink) = 0; // tells a notice (strategy_ui/advisor_notices.h) with slots 5-9
 
@@ -48,11 +42,11 @@ public:
 // classes (events/notif_event_payloads.h) call ReadKeyed/WriteKeyed from their own Read/Write.
 class KeyedNotifPayload : public NotifPayload
 {
-public:
-  KeyedNotifPayload(); // 0x583fe0
+  public:
+  KeyedNotifPayload();           // 0x583fe0
   ~KeyedNotifPayload() override; // 0x584030 (deleting), 0x584050
 
-  int ReadKeyed(istream* in); // 0x5840a0
+  int ReadKeyed(istream* in);   // 0x5840a0
   int WriteKeyed(ostream* out); // 0x5840d0
 
   ObjectKey m_key; // +0x20

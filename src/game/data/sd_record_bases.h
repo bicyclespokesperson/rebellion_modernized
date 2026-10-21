@@ -10,7 +10,7 @@
 // SdRecord plus two numbers.
 class SdRecordExt2 : public SdRecord
 {
-public:
+  public:
   SdRecordExt2();
   ~SdRecordExt2() override;
   int Write(ostream* out) override = 0;
@@ -26,7 +26,7 @@ public:
 // (m_total) of the grid.
 class SdRecordGrid : public SdRecordExt2
 {
-public:
+  public:
   static constexpr int kGridRows = 4;
   static constexpr int kGridColumns = 3;
 
@@ -42,21 +42,21 @@ public:
   uint32_t GetFieldA4(int index) const;
   uint32_t GetColumnTotal(int index) const;
 
-  uint32_t m_field60; // +0x60
-  uint32_t m_field64; // +0x64
-  uint32_t m_field68; // +0x68
-  uint32_t m_field6c; // +0x6c
-  uint32_t m_field70; // +0x70
+  uint32_t m_field60;                       // +0x60
+  uint32_t m_field64;                       // +0x64
+  uint32_t m_field68;                       // +0x68
+  uint32_t m_field6c;                       // +0x6c
+  uint32_t m_field70;                       // +0x70
   uint32_t m_grid[kGridRows][kGridColumns]; // +0x74
-  uint32_t m_fieldA4[kGridColumns]; // +0xa4
-  uint32_t m_columnTotals[kGridColumns]; // +0xb0, accumulated (not reset) by ParseFields
-  uint32_t m_total; // +0xbc, accumulated by ParseFields
+  uint32_t m_fieldA4[kGridColumns];         // +0xa4
+  uint32_t m_columnTotals[kGridColumns];    // +0xb0, accumulated (not reset) by ParseFields
+  uint32_t m_total;                         // +0xbc, accumulated by ParseFields
 };
 
 // SdRecord plus sixteen numbers. Fields 0x68..0x7c form three (first, second) pairs.
 class SdRecordExt16 : public SdRecord
 {
-public:
+  public:
   SdRecordExt16();
   ~SdRecordExt16() override;
   int Write(ostream* out) override = 0;
@@ -75,7 +75,7 @@ public:
 // SdRecordExt16 plus nine numbers.
 class SdRecordExt25 : public SdRecordExt16
 {
-public:
+  public:
   SdRecordExt25();
   ~SdRecordExt25() override;
   int Write(ostream* out) override = 0;
@@ -89,7 +89,7 @@ public:
 // SdRecord plus one number.
 class SdRecordExt1 : public SdRecord
 {
-public:
+  public:
   SdRecordExt1();
   ~SdRecordExt1() override;
   int Write(ostream* out) override = 0;

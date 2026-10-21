@@ -1,20 +1,24 @@
-// The audio backend of the software DirectSound: pulls interleaved s16 stereo from mwds::Mixer::Global().Render() and plays it
-// through an SDL3 audio stream. Started by the first DirectSoundCreate.
+// The audio backend of the software DirectSound: pulls interleaved s16 stereo from mwds::Mixer::Global().Render() and
+// plays it through an SDL3 audio stream. Started by the first DirectSoundCreate.
 //
-// When no output device can be opened (a headless machine, the Wine test container) a pacing thread renders at real-time speed
-// into nothing, so that play cursors, notifications and the game's refill threads behave as they do with a device.
-//   REB_AUDIO_CAPTURE=<file>  additionally (and instead of the device) write everything rendered, raw s16le stereo at the mixer's rate,
+// When no output device can be opened (a headless machine, the Wine test container) a pacing thread renders at
+// real-time speed into nothing, so that play cursors, notifications and the game's refill threads behave as they do
+// with a device.
+//   REB_AUDIO_CAPTURE=<file>  additionally (and instead of the device) write everything rendered, raw s16le stereo at
+//   the mixer's rate,
 //                             to <file>; the mixer is rendered at real-time pace by the pacing thread.
 #include <SDL3/SDL.h>
 
 #include <cstdio>
 #include <cstdlib>
+#include <atomic>
 
 #include <exception>
 #include <vector>
 
 #include "port/minwin_impl/config/config.h"
 #include "port/minwin_impl/dsound/mixer.h"
+#include "port/minwin_impl/audio/sdl_audio.h"
 
 namespace
 {
@@ -26,19 +30,17 @@ SDL_AudioStream* g_stream = nullptr;
 SDL_Thread* g_thread = nullptr;
 FILE* g_capture = nullptr;
 bool g_started = false;
+std::atomic<bool> g_stopPacing = false;
+std::atomic<Uint64> g_lastCallback = 0;
+Uint64 g_lastDeviceCheck = 0;
 
 [[noreturn]] void AbortCallbackException(const char* callback)
 {
-  try
-  {
+  try {
     throw;
-  }
-  catch (const std::exception& error)
-  {
+  } catch (const std::exception& error) {
     fprintf(stderr, "minwin: exception escaped %s: %s\n", callback, error.what());
-  }
-  catch (...)
-  {
+  } catch (...) {
     fprintf(stderr, "minwin: unknown exception escaped %s\n", callback);
   }
   abort();
@@ -48,63 +50,64 @@ void RenderBlock(int frames, std::vector<int16_t>* block)
 {
   block->assign(static_cast<size_t>(frames) * 2, 0);
   mwds::Mixer::Global().Render(block->data(), frames);
-  if (g_capture)
+  if (g_capture) {
     fwrite(block->data(), sizeof(int16_t) * 2, static_cast<size_t>(frames), g_capture);
+  }
 }
 
 void SDLCALL StreamCallback(void*, SDL_AudioStream* stream, int additionalBytes, int)
 {
-  try
-  {
+  try {
+    g_lastCallback.store(SDL_GetTicksNS(), std::memory_order_relaxed);
     static std::vector<int16_t> block;
     const int bytesPerFrame = static_cast<int>(sizeof(int16_t)) * 2;
-    while (additionalBytes > 0)
-    {
-      const int frames =
-        additionalBytes / bytesPerFrame < kBlockFrames ? additionalBytes / bytesPerFrame : kBlockFrames;
-      if (frames <= 0)
+    while (additionalBytes > 0) {
+      const int frames
+          = additionalBytes / bytesPerFrame < kBlockFrames ? additionalBytes / bytesPerFrame : kBlockFrames;
+      if (frames <= 0) {
         break;
+      }
       RenderBlock(frames, &block);
       SDL_PutAudioStreamData(stream, block.data(), frames * bytesPerFrame);
       additionalBytes -= frames * bytesPerFrame;
     }
-  }
-  catch (...)
-  {
+  } catch (...) {
     AbortCallbackException("SDL audio stream callback");
   }
 }
 
 int SDLCALL PacingThread(void*)
 {
-  try
-  {
+  try {
     std::vector<int16_t> block;
-    const Uint64 start = SDL_GetTicksNS();
+    Uint64 start = SDL_GetTicksNS();
     Uint64 rendered = 0;
-    for (;;)
-    {
+    while (!g_stopPacing.load(std::memory_order_relaxed)) {
       const Uint64 due = rendered * 1000000000ull / kOutputRate;
       const Uint64 now = SDL_GetTicksNS() - start;
-      if (now < due)
-      {
+      if (now < due) {
         SDL_DelayNS(due - now);
         continue;
       }
+      if (now - due > 1000000000ull) {
+        start = SDL_GetTicksNS();
+        rendered = 0;
+      }
       RenderBlock(kBlockFrames, &block);
       rendered += kBlockFrames;
-      if (g_capture)
+      if (g_capture) {
         fflush(g_capture);
+      }
     }
-  }
-  catch (...)
-  {
+    return 0;
+  } catch (...) {
     AbortCallbackException("SDL audio pacing thread");
   }
 }
 
-// Device buffer in sample frames (the mixer renders in the audio callback, so this is also the longest the callback may take). 1024
-// at 44.1 kHz is 23 ms: comfortably above the scheduling jitter of a desktop and below what a player notices for sound effects.
+// Device buffer in sample frames (the mixer renders in the audio callback, so this is also the longest the callback may
+// take). 1024 at 44.1 kHz is 23 ms: comfortably above the scheduling jitter of a desktop and below what a player
+// notices for sound effects.
 int DeviceBufferFrames()
 {
   const int configured = atoi(mw::config::Global().Get("audio_buffer", "1024").c_str());
@@ -116,8 +119,7 @@ bool OpenDeviceStream()
   char frames[16];
   snprintf(frames, sizeof frames, "%d", DeviceBufferFrames());
   SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, frames);
-  if (!SDL_InitSubSystem(SDL_INIT_AUDIO))
-  {
+  if (!SDL_WasInit(SDL_INIT_AUDIO) && !SDL_InitSubSystem(SDL_INIT_AUDIO)) {
     fprintf(stderr, "minwin: audio unavailable (%s); the game runs silent\n", SDL_GetError());
     return false;
   }
@@ -126,28 +128,36 @@ bool OpenDeviceStream()
   spec.channels = 2;
   spec.freq = kOutputRate;
   g_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, StreamCallback, nullptr);
-  if (!g_stream)
-  {
+  if (!g_stream) {
     fprintf(stderr, "minwin: no audio output device (%s); the game runs silent\n", SDL_GetError());
     return false;
   }
-  SDL_ResumeAudioStreamDevice(g_stream);
-  if (getenv("REB_MINWIN_TRACE"))
+  g_lastCallback.store(SDL_GetTicksNS(), std::memory_order_relaxed);
+  if (!SDL_ResumeAudioStreamDevice(g_stream)) {
+    SDL_DestroyAudioStream(g_stream);
+    g_stream = nullptr;
+    return false;
+  }
+  if (getenv("REB_MINWIN_TRACE")) {
     fprintf(stderr, "minwin: audio driver %s, buffer %d frames\n", SDL_GetCurrentAudioDriver(), DeviceBufferFrames());
+  }
   return true;
 }
 
 void StartBackend()
 {
-  if (g_started)
+  if (g_started) {
     return;
+  }
   g_started = true;
   mwds::Mixer::Global().SetOutputRate(kOutputRate);
   const char* capture = getenv("REB_AUDIO_CAPTURE");
-  if (capture && *capture)
+  if (capture && *capture) {
     g_capture = fopen(capture, "wb");
-  if (!g_capture && OpenDeviceStream())
+  }
+  if (!g_capture && OpenDeviceStream()) {
     return;
+  }
   g_thread = SDL_CreateThread(PacingThread, "audio-pacing", nullptr);
 }
 
@@ -159,6 +169,38 @@ namespace minwin_audio
 void Install()
 {
   mwds::SetDeviceOpener(StartBackend);
+}
+
+void ServiceDevice()
+{
+  if (!g_started || g_capture) {
+    return;
+  }
+  const Uint64 now = SDL_GetTicksNS();
+  constexpr Uint64 retryDelay = 3000000000ull;
+  if (now - g_lastDeviceCheck < retryDelay) {
+    return;
+  }
+  g_lastDeviceCheck = now;
+  const Uint64 lastCallback = g_lastCallback.load(std::memory_order_relaxed);
+  if (g_stream && (lastCallback >= now || now - lastCallback < retryDelay)) {
+    return;
+  }
+  if (g_stream) {
+    SDL_DestroyAudioStream(g_stream);
+    g_stream = nullptr;
+  }
+  if (g_thread) {
+    g_stopPacing.store(true, std::memory_order_relaxed);
+    SDL_WaitThread(g_thread, nullptr);
+    g_thread = nullptr;
+  }
+  if (OpenDeviceStream()) {
+    fprintf(stderr, "minwin: audio output recovered\n");
+    return;
+  }
+  g_stopPacing.store(false, std::memory_order_relaxed);
+  g_thread = SDL_CreateThread(PacingThread, "audio-pacing", nullptr);
 }
 
 } // namespace minwin_audio

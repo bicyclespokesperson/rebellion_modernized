@@ -1,6 +1,5 @@
 // minwin: WINMM -- multimedia timers, the MCI command interface (CD audio) and WAVEFORMATEX.
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/base.h"
 
@@ -9,13 +8,11 @@ using MMRESULT = UINT;
 using HDRVR = struct HDRVR__*;
 using MCIERROR = DWORD;
 using MCIDEVICEID = UINT;
-struct tagMCI_GENERIC_PARMS
-{
+struct tagMCI_GENERIC_PARMS {
   DWORD_PTR dwCallback;
 };
 using MCI_GENERIC_PARMS = struct tagMCI_GENERIC_PARMS;
-struct tagMCI_OPEN_PARMSA
-{
+struct tagMCI_OPEN_PARMSA {
   DWORD_PTR dwCallback;
   MCIDEVICEID wDeviceID;
   LPCSTR lpstrDeviceType;
@@ -24,33 +21,29 @@ struct tagMCI_OPEN_PARMSA
 };
 using MCI_OPEN_PARMSA = struct tagMCI_OPEN_PARMSA;
 using MCI_OPEN_PARMS = MCI_OPEN_PARMSA;
-struct tagMCI_PLAY_PARMS
-{
+struct tagMCI_PLAY_PARMS {
   DWORD_PTR dwCallback;
   DWORD dwFrom;
   DWORD dwTo;
 };
 using MCI_PLAY_PARMS = struct tagMCI_PLAY_PARMS;
-struct tagMCI_STATUS_PARMS
-{
+struct tagMCI_STATUS_PARMS {
   DWORD_PTR dwCallback;
   DWORD_PTR dwReturn;
   DWORD dwItem;
   DWORD dwTrack;
 };
 using MCI_STATUS_PARMS = struct tagMCI_STATUS_PARMS;
-struct tagMCI_SET_PARMS
-{
+struct tagMCI_SET_PARMS {
   DWORD_PTR dwCallback;
   DWORD dwTimeFormat;
   DWORD dwAudio;
 };
 using MCI_SET_PARMS = struct tagMCI_SET_PARMS;
-using TIMECALLBACK = void REB_STDCALL (UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR);
+using TIMECALLBACK = void REB_STDCALL(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR);
 using LPTIMECALLBACK = TIMECALLBACK*;
 #pragma pack(push, 1)
-struct tWAVEFORMATEX
-{
+struct tWAVEFORMATEX {
   WORD wFormatTag;
   WORD nChannels;
   DWORD nSamplesPerSec;
@@ -63,28 +56,26 @@ struct tWAVEFORMATEX
 using WAVEFORMATEX = struct tWAVEFORMATEX;
 using LPWAVEFORMATEX = struct tWAVEFORMATEX*;
 using LPCWAVEFORMATEX = const WAVEFORMATEX*;
-struct timecaps_tag
-{
+struct timecaps_tag {
   UINT wPeriodMin;
   UINT wPeriodMax;
 };
 using TIMECAPS = struct timecaps_tag;
 using LPTIMECAPS = struct timecaps_tag*;
 
-extern "C" {
-MINWIN_IMPORT MCIERROR REB_STDCALL mciSendCommandA(MCIDEVICEID mciId,
-                                                   UINT uMsg,
-                                                   DWORD_PTR dwParam1,
+namespace reb::compat
+{
+MCIERROR REB_STDCALL mciSendCommandA(MCIDEVICEID mciId, UINT uMsg, DWORD_PTR dwParam1,
                                                    DWORD_PTR dwParam2);
-MINWIN_IMPORT MCIDEVICEID REB_STDCALL mciGetDeviceIDA(LPCSTR pszDevice);
-MINWIN_IMPORT HDRVR REB_STDCALL OpenDriver(LPCWSTR szDriverName, LPCWSTR szSectionName, LPARAM lParam2);
-MINWIN_IMPORT MMRESULT REB_STDCALL
-timeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK fptc, DWORD_PTR dwUser, UINT fuEvent);
-MINWIN_IMPORT MMRESULT REB_STDCALL timeKillEvent(UINT uTimerID);
-MINWIN_IMPORT DWORD REB_STDCALL timeGetTime(void);
-MINWIN_IMPORT MMRESULT REB_STDCALL timeGetDevCaps(LPTIMECAPS ptc, UINT cbtc);
-MINWIN_IMPORT MMRESULT REB_STDCALL timeBeginPeriod(UINT uPeriod);
-MINWIN_IMPORT MMRESULT REB_STDCALL timeEndPeriod(UINT uPeriod);
+MCIDEVICEID REB_STDCALL mciGetDeviceIDA(LPCSTR pszDevice);
+HDRVR REB_STDCALL OpenDriver(LPCWSTR szDriverName, LPCWSTR szSectionName, LPARAM lParam2);
+MMRESULT REB_STDCALL timeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK fptc, DWORD_PTR dwUser,
+                                                UINT fuEvent);
+MMRESULT REB_STDCALL timeKillEvent(UINT uTimerID);
+DWORD REB_STDCALL timeGetTime(void);
+MMRESULT REB_STDCALL timeGetDevCaps(LPTIMECAPS ptc, UINT cbtc);
+MMRESULT REB_STDCALL timeBeginPeriod(UINT uPeriod);
+MMRESULT REB_STDCALL timeEndPeriod(UINT uPeriod);
 }
 
 #define MM_MCINOTIFY 0x3b9

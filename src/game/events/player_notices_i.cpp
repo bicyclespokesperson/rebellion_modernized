@@ -18,8 +18,7 @@ namespace
 
 void notifyKeys(int owner, ObjectKeySet& set)
 {
-  for (const auto& entry : set.Entries())
-  {
+  for (const auto& entry : set.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key(node->m_key);
     UiSendNotificationToSide(owner, asArg(&key));
@@ -30,7 +29,8 @@ void notifyKeys(int owner, ObjectKeySet& set)
 
 // ---- Notice23 (kind 23) ----
 
-Notice23::Notice23() : UiTextNotice()
+Notice23::Notice23()
+    : UiTextNotice()
 {
   m_f64 = 0;
   m_kind = 0x17;
@@ -40,7 +40,8 @@ Notice23::Notice23() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice23::Notice23(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice23::Notice23(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_kind = 0x17;
@@ -73,8 +74,9 @@ UiNotice* Notice23::CreateEmptyNotice()
 
 void Notice23::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x302)
+  if (kind != 0x302) {
     return;
+  }
   auto* node = NewOrNull<ObjectKeyNode>(*reinterpret_cast<const ObjectKey*>(a));
   m_keys.Add(node);
 }
@@ -82,10 +84,12 @@ void Notice23::OnMessage(int kind, intptr_t a, intptr_t b)
 int Notice23::DispatchPayloads(const AiNoticeGroup* payloads)
 {
   m_unk28 = 0x14;
-  if (!payloads)
+  if (!payloads) {
     return 0;
-  for (const auto& node : payloads->Entries())
+  }
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(this);
+  }
   return 1;
 }
 
@@ -113,7 +117,8 @@ void Notice23::Write(ostream* out)
 
 // ---- Notice22 (kind 22) ----
 
-Notice22::Notice22() : UiTextNotice()
+Notice22::Notice22()
+    : UiTextNotice()
 {
   m_f64 = 0;
   m_kind = 0x16;
@@ -125,7 +130,8 @@ Notice22::Notice22() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice22::Notice22(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice22::Notice22(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_kind = 0x16;
@@ -151,16 +157,16 @@ UiNotice* Notice22::CreateEmptyNotice()
 
 void Notice22::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x302)
+  if (kind != 0x302) {
     return;
+  }
   auto* node = NewOrNull<ObjectKeyNode>(*reinterpret_cast<const ObjectKey*>(a));
   m_keys.Add(node);
 }
 
 void Notice22::OnAccept()
 {
-  if (m_order)
-  {
+  if (m_order) {
     delete m_order;
     m_order = nullptr;
   }
@@ -168,11 +174,11 @@ void Notice22::OnAccept()
 
 void Notice22::OnDecline()
 {
-  if (!m_order)
+  if (!m_order) {
     return;
+  }
   GameObjNotifier* mission = GetObjectInFamilies_40_80(m_owner, &m_key78);
-  if (mission)
-  {
+  if (mission) {
     UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_order), 1);
     m_order = nullptr;
     return;
@@ -185,31 +191,34 @@ int Notice22::DispatchPayloads(const AiNoticeGroup* payloads)
 {
   m_unk28 = 0x14;
   m_payloads = payloads;
-  if (!payloads)
+  if (!payloads) {
     return 0;
-  for (const auto& node : payloads->Entries())
+  }
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(this);
+  }
   m_payloads = nullptr;
   return 1;
 }
 
 void Notice22::ListSecondKeys()
 {
-  if (!m_payloads)
+  if (!m_payloads) {
     return;
+  }
   bool first = true;
-  for (const auto& node : m_payloads->Entries())
-  {
+  for (const auto& node : m_payloads->Entries()) {
     NotifPayload* payload = node.get();
-    if (payload->GetKind() != 0x370)
+    if (payload->GetKind() != 0x370) {
       continue;
+    }
     ObjectKey scratch;
-    GameObjNotifier* object =
-      GetObjectInFamilies_90_98(m_owner, copySecondKeyOf(static_cast<KeyPairPayload*>(payload), &scratch));
-    if (!object)
+    GameObjNotifier* object
+        = GetObjectInFamilies_90_98(m_owner, copySecondKeyOf(static_cast<KeyPairPayload*>(payload), &scratch));
+    if (!object) {
       continue;
-    if (first)
-    {
+    }
+    if (first) {
       ExpandMessageTemplate(&m_text1, 0x710e, nullptr, nullptr, nullptr, nullptr);
       first = false;
     }
@@ -228,12 +237,10 @@ void Notice22::Read(istream* in)
   m_key74.Read(in);
   unsigned hasOrder;
   ReadValue32(in, &hasOrder);
-  if (hasOrder != 0)
-  {
+  if (hasOrder != 0) {
     auto* order = static_cast<OrderBase*>(CreateMessageByKind(0x250));
     m_order = order;
-    if (order)
-    {
+    if (order) {
       order->m_side = m_owner;
       ObjectKeyValueSet team;
       team.AddKeyValue(&m_key78, 0);

@@ -41,8 +41,7 @@ void WriteValue32(ostream* out, const void* value)
 }
 bool WriteCount32(ostream* out, size_t count)
 {
-  if (count > std::numeric_limits<uint32_t>::max())
-  {
+  if (count > std::numeric_limits<uint32_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
     return false;
   }
@@ -89,8 +88,9 @@ int CheckPositionMarker(istream* in)
   int32_t stored = 0;
   StreamRead32(in, &stored);
   const bool valid = iostream_access::State(in) == 0 && position == stored;
-  if (!valid)
+  if (!valid) {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+  }
   return valid;
 }
 

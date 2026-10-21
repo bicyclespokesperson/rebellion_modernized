@@ -37,8 +37,7 @@ int RollBelowRange0602(int value, unsigned* out)
 
 void SplitDifference(int a, int b, int* positive, int* negative)
 {
-  if (b < a)
-  {
+  if (b < a) {
     *positive = a - b;
     *negative = 0;
     return;
@@ -75,8 +74,9 @@ int ComputeCompareFlags0200(int a, int b, int c, int d, unsigned* low, unsigned*
 int CountSuccesses0205(int attempts, int* count)
 {
   *count = 0;
-  for (; attempts > 0; --attempts)
+  for (; attempts > 0; --attempts) {
     *count += PercentChance(g_gnprtb0205) != 0;
+  }
   return 1;
 }
 
@@ -88,30 +88,23 @@ int RollIdentifyOutcome(int a, int b, int c, int d, int* r1, int* r2, int* r3, i
   a = a - b;
   *r4 = 0;
   const int span = (d != 0) + a + (c != 0);
-  if (span != 0)
-  {
+  if (span != 0) {
     const int roll = GameRandom(span - 1);
-    if (roll < a)
-    {
+    if (roll < a) {
       *r1 = 1;
       *r2 = roll;
       return 1;
     }
-    if (roll == a)
-    {
-      if (c != 0)
-      {
+    if (roll == a) {
+      if (c != 0) {
         *r3 = 1;
         return 1;
       }
-      if (d != 0)
-      {
+      if (d != 0) {
         *r4 = 1;
         return 1;
       }
-    }
-    else if (d != 0)
-    {
+    } else if (d != 0) {
       *r4 = 1;
     }
   }

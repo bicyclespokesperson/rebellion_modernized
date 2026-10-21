@@ -13,8 +13,7 @@ using namespace system_rules;
 int System::Read(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_loyalty);
     ReadValue32(in, &m_energy);
     ReadValue32(in, &m_energyAllocated);
@@ -35,8 +34,7 @@ int System::Read(istream* in)
 int System::Write(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_loyalty);
     WriteValue32(out, &m_energy);
     WriteValue32(out, &m_energyAllocated);
@@ -57,8 +55,7 @@ int System::Write(ostream* out)
 int System::Checksum(Crc32* crc)
 {
   const int result = GameObj::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_loyalty);
     crc->AddInt(m_energy);
     crc->AddInt(m_energyAllocated);
@@ -82,11 +79,9 @@ int System::Checksum(Crc32* crc)
 int System::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
-  {
+  if (isSideView) {
     GameObj::ApplyAll(ctx);
-    if (ctx->m_flag04 == 1)
-    {
+    if (ctx->m_flag04 == 1) {
       ApplyLoyalty(ctx);
       ApplyEnergy(ctx);
       ApplyEnergyAllocated(ctx);
@@ -122,9 +117,7 @@ int System::ApplyAll(NotifyContext* ctx)
       ApplyDisasterIncident(ctx);
       ApplyResourceIncident(ctx);
       ApplyBlockadeAndBattlePendingManagementRequired(ctx);
-    }
-    else if (ctx->m_flag04 == 2)
-    {
+    } else if (ctx->m_flag04 == 2) {
       ApplyParent(ctx);
       ApplyUsable(ctx);
       ApplyCreated(ctx);
@@ -150,14 +143,18 @@ int createStartingChild(System* system, uint32_t keyValue, NotifyContext* ctx)
 int System::CreateViews(int controlKind, NotifyContext* ctx)
 {
   const int created = GameObj::CreateViews(controlKind, ctx);
-  if (!created)
+  if (!created) {
     return 0;
-  if (!createStartingChild(this, 0xa2000006, ctx))
+  }
+  if (!createStartingChild(this, 0xa2000006, ctx)) {
     return 0;
-  if (!createStartingChild(this, 0xa4000007, ctx))
+  }
+  if (!createStartingChild(this, 0xa4000007, ctx)) {
     return 0;
-  if (!createStartingChild(this, 0xa0000005, ctx))
+  }
+  if (!createStartingChild(this, 0xa0000005, ctx)) {
     return 0;
+  }
 
   auto* data = static_cast<SystemData*>(m_data);
   data->m_stats[0].SetLevel(g_gnprtb1E13);

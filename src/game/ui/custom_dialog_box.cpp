@@ -1,11 +1,14 @@
 #include "ui/custom_dialog_box.h"
+#include "orders/mission_orders.h"
 #include "orders/order_base.h"
 #include <string>
 
+#include "app/enhancements.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "core/checked_new.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/object_family.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/status_code.h"
 #include "gfx/dib_bitmap.h"
@@ -21,11 +24,11 @@ extern const char* g_customDialogBoxClassName; // 0x6a8828 "CustomDialogBox"
 namespace
 {
 
-constexpr UINT kCommitRenameMessage = 0x407; // CoolStringField: Return pressed
+constexpr UINT kCommitRenameMessage = 0x407;  // CoolStringField: Return pressed
 constexpr UINT kDialogClickedMessage = 0x467; // to the parent: wParam = this window's HWND
 constexpr uint32_t kDialogStyle = 0x52000000; // WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
-constexpr uint32_t kChildStyle = 0x56000000; // ... | WS_VISIBLE
-constexpr UINT kTitleDrawFlags = 0x25; // DT_CENTER | DT_VCENTER | DT_SINGLELINE
+constexpr uint32_t kChildStyle = 0x56000000;  // ... | WS_VISIBLE
+constexpr UINT kTitleDrawFlags = 0x25;        // DT_CENTER | DT_VCENTER | DT_SINGLELINE
 constexpr uint32_t kTitleLayout = 3;
 constexpr uint32_t kMenuKind = 7;
 constexpr uint32_t kMenuBaseColor = 0x20000ff;
@@ -50,16 +53,18 @@ ObjectKeyIdNode::ObjectKeyIdNode() = default;
 ObjectKeyIdNode::ObjectKeyIdNode(const ObjectKey* key, uint32_t id)
 {
   m_key = *key;
-  if (id)
+  if (id) {
     AddId(id);
+  }
 }
 
 ObjectKeyIdNode::~ObjectKeyIdNode() = default;
 
 void ObjectKeyIdNode::AddId(uint32_t id)
 {
-  if (id)
+  if (id) {
     m_ids.insert(id);
+  }
 }
 
 ObjectKeyIdSet::ObjectKeyIdSet() = default;
@@ -68,28 +73,31 @@ ObjectKeyIdSet::~ObjectKeyIdSet() = default;
 
 void ObjectKeyIdSet::Add(ObjectKeyIdNode* node, uint32_t id)
 {
-  if (!node)
+  if (!node) {
     return;
+  }
   ObjectKey scratch;
   ObjectKey key = *node->GetKey(&scratch);
-  if (key.Id() == 0 || key.Family() == 0)
+  if (key.Id() == 0 || key.Family() == 0) {
     return;
+  }
   auto* existing = static_cast<ObjectKeyIdNode*>(Find(node->GetKey(&scratch)));
-  if (existing && id)
-  {
+  if (existing && id) {
     existing->AddId(id);
     delete node;
     return;
   }
   ObjectKeySet::Add(node);
-  if (id)
+  if (id) {
     node->AddId(id);
+  }
 }
 
 void ObjectKeyIdSet::Remove(ObjectKeyIdNode* node)
 {
-  if (!node)
+  if (!node) {
     return;
+  }
   ObjectKey scratch;
   Detach(node->GetKey(&scratch));
   delete node;
@@ -97,27 +105,20 @@ void ObjectKeyIdSet::Remove(ObjectKeyIdNode* node)
 
 // ---- CustomDialogBox -----------------------------------------------------------------------------------------
 
-CustomDialogBox::CustomDialogBox(HINSTANCE instance,
-                                 int x,
-                                 int y,
-                                 int width,
-                                 int height,
-                                 CoolWindow* parent,
-                                 uint32_t childId,
-                                 DibBitmap* backgroundSource)
-: CoolGameWindow(instance, x, y, width, height, parent, 0, 0, 0, childId, kDialogStyle, 0, 0, 0)
+CustomDialogBox::CustomDialogBox(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                                 uint32_t childId, DibBitmap* backgroundSource)
+    : CoolGameWindow(instance, x, y, width, height, parent, 0, 0, 0, childId, kDialogStyle, 0, 0, 0)
 {
   SetClassName(g_customDialogBoxClassName);
   m_style = kChildStyle;
-  CoolWindow::m_background = static_cast<HBRUSH>(GetStockObject(NULL_BRUSH));
+  CoolWindow::m_background = static_cast<HBRUSH>(reb::compat::GetStockObject(NULL_BRUSH));
   m_titleLabel = NewOrNull<CoolLabel>(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
   m_titleLabel->MoveTo(2, 2);
   m_titleLabel->m_width = width;
   m_titleLabel->m_layoutFlags = kTitleLayout;
   m_titleLabel->m_drawFlags = kTitleDrawFlags;
-  SetRect(&m_titleRect, 2, 2, m_clientWidth - 3, 0x10);
-  if (backgroundSource)
-  {
+  reb::compat::SetRect(&m_titleRect, 2, 2, m_clientWidth - 3, 0x10);
+  if (backgroundSource) {
     auto* background = NewOrNull<DibBitmap>(width, height, backgroundSource);
     backgroundSource->Blit(background, 0, 0, x, y, 0, 0);
     SetPaintBackground(background, 0);
@@ -128,23 +129,24 @@ CustomDialogBox::CustomDialogBox(HINSTANCE instance,
 
 CustomDialogBox::~CustomDialogBox()
 {
-  if (m_renameField)
+  if (m_renameField) {
     delete m_renameField;
-  if (m_renameTarget)
+  }
+  if (m_renameTarget) {
     delete m_renameTarget;
-  if (m_titleLabel)
+  }
+  if (m_titleLabel) {
     delete m_titleLabel;
+  }
 }
 
 LRESULT CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  switch (message)
-  {
+  switch (message) {
     case WM_PAINT:
       return CoolGameWindow::WindowProc(message, wParam, lParam);
     case WM_KEYDOWN:
-      if (wParam == VK_ESCAPE)
-      {
+      if (wParam == VK_ESCAPE) {
         PostCloseRequest();
         return 0;
       }
@@ -154,12 +156,13 @@ LRESULT CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       CommitRename();
       return 0;
     case kButtonMessage:
-      PostMessageA(m_parent->m_hwnd, kDialogClickedMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
+      reb::compat::PostMessageA(m_parent->m_hwnd, kDialogClickedMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);
       [[fallthrough]];
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-      if (m_renameField)
+      if (m_renameField) {
         CancelRename();
+      }
       return CoolGameWindow::WindowProc(message, wParam, lParam);
     default:
       return CoolGameWindow::WindowProc(message, wParam, lParam);
@@ -168,22 +171,51 @@ LRESULT CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender)
 {
-  if (!g_app || !sender || GetCapture())
+  if (!g_app || !sender || reb::compat::GetCapture()) {
     return 0;
+  }
   CoolWindow* mainWindow = AppMainWindow();
   uint32_t color = kMenuBaseColor + (AppGetSide() != kAlliancePlayer ? kMenuAlternateColorBits : 0);
   m_selection.Clear();
   GetSelection(&m_selection, sender);
+  POINT localPoint = {x, y};
+  reb::compat::MapWindowPoints(sender->m_hwnd, m_hwnd, &localPoint, 1);
+  m_contextCharacter = GetKeyAt(localPoint.x, localPoint.y);
   POINT point = {x, y};
-  if (mainWindow)
-    MapWindowPoints(sender->m_hwnd, mainWindow->m_hwnd, &point, 1);
+  if (mainWindow) {
+    reb::compat::MapWindowPoints(sender->m_hwnd, mainWindow->m_hwnd, &point, 1);
+  }
   EventKindSet commands;
   UiBuildAvailableOrders(AppGetSide(), &m_selection, &commands);
-  for (const auto& [kind, command] : commands.Entries())
-  {
+  for (const auto& [kind, command] : commands.Entries()) {
     uint32_t flags = (command.m_value == 0 ? kMenuEntryDisabled : 0) | (command.m_unknown != 0 ? kMenuEntryChecked : 0);
     AddMenuEntry(command.m_key, kMenuKind, flags, point.x, point.y, mainWindow, color, kMenuShadowColor,
                  kMenuDisabledColor);
+  }
+  if (mainWindow && EnhancementsEnabled() && m_contextCharacter.Family() >= family::kCharacters.m_first
+      && m_contextCharacter.Family() < family::kCharacters.m_second) {
+    ObjectKeyValueSet agent;
+    agent.AddKeyValue(&m_contextCharacter, 0);
+    MissionOrder240 mission;
+    mission.m_side = AppGetSide();
+    mission.SetTeam(&agent);
+    EventKindSet agentCommands;
+    UiBuildAvailableOrders(AppGetSide(), &agent, &agentCommands);
+    const auto* missionCommand = agentCommands.Find(0x240);
+    const bool enabled = missionCommand && missionCommand->m_value != 0 && mission.PopulateCharacterDecoys();
+    MenuRecord missionRecord = {};
+    if (ReadMenuRecord(0x240, kMenuKind, &missionRecord) == 0) {
+      auto* item = new MenuItem(kMissionWithDecoysCommand, enabled ? 0 : kMenuEntryDisabled, nullptr, nullptr, 0, 0, 0,
+                                0, 0, 0, 0, 0, missionRecord.m_words[2] + 1, mainWindow, enabled, 0);
+      item->m_label->SetText("Msn w/ decoys");
+      HDC dc = reb::compat::GetDC(mainWindow->m_hwnd);
+      item->m_label->Measure(dc);
+      reb::compat::ReleaseDC(mainWindow->m_hwnd, dc);
+      item->SetColors(color, kMenuShadowColor, kMenuDisabledColor);
+      if (!g_menuRoot.AddWithId(item)) {
+        delete item;
+      }
+    }
   }
   ShowMenu(point.x, point.y, CoolAppGetResourceModule(kMenuKind), mainWindow, this, nullptr);
   return 0;
@@ -192,24 +224,22 @@ int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender)
 void CustomDialogBox::OnMenuCommand(int a, int, int)
 {
   ObjectKey none;
+  if (a == kMissionWithDecoysCommand) {
+    ObjectKeyValueSet agent;
+    agent.AddKeyValue(&m_contextCharacter, 0);
+    UiHumanCommand(a, &agent, &none, nullptr);
+    return;
+  }
   UiHumanCommand(a, &m_selection, &none, nullptr);
 }
 
-void CustomDialogBox::GetSelection(ObjectKeyValueSet*, CoolWindow*)
-{
-}
+void CustomDialogBox::GetSelection(ObjectKeyValueSet*, CoolWindow*) {}
 
-void CustomDialogBox::OnChildAdded(const ObjectKey*, GameObjNotifier*)
-{
-}
+void CustomDialogBox::OnChildAdded(const ObjectKey*, GameObjNotifier*) {}
 
-void CustomDialogBox::OnChildMoved(const ObjectKey*, GameObjNotifier*, const ObjectKey*, GameObjNotifier*)
-{
-}
+void CustomDialogBox::OnChildMoved(const ObjectKey*, GameObjNotifier*, const ObjectKey*, GameObjNotifier*) {}
 
-void CustomDialogBox::OnObjectUpdated(const ObjectKey*, GameObjNotifier*)
-{
-}
+void CustomDialogBox::OnObjectUpdated(const ObjectKey*, GameObjNotifier*) {}
 
 ObjectKey CustomDialogBox::GetKeyAt(int, int)
 {
@@ -217,9 +247,7 @@ ObjectKey CustomDialogBox::GetKeyAt(int, int)
   return none;
 }
 
-void CustomDialogBox::ShowObjectPage(const ObjectKey*)
-{
-}
+void CustomDialogBox::ShowObjectPage(const ObjectKey*) {}
 
 ObjectKey CustomDialogBox::GetDropKeyAt(int x, int y)
 {
@@ -234,21 +262,25 @@ int CustomDialogBox::GetMinimizedIconBitmapId()
 void CustomDialogBox::BeginRename(TextMessage* target)
 {
   GalaxyWindow* galaxy = GetGalaxyWindow();
+  if (!galaxy) {
+    return;
+  }
   auto* firstKey = static_cast<ObjectKeyNode*>(target->GetTeam()->First());
   ObjectKey key;
   firstKey->GetKey(&key);
-  int view = galaxy ? galaxy->m_side : static_cast<int>(reinterpret_cast<intptr_t>(target));
-  auto* object = static_cast<GameObj*>(GetObjectInFamilies_01_ff(view, &key));
-  if (!object)
+  auto* object = static_cast<GameObj*>(GetObjectInFamilies_01_ff(galaxy->m_side, &key));
+  if (!object) {
     return;
+  }
   m_renameTarget = target;
   CancelRename();
   RECT rect;
   GetRenameRect(&rect);
   m_renameField = NewOrNull<CoolStringField>(m_instance, rect.left, rect.top, rect.right - rect.left,
                                              rect.bottom - rect.top, this, GetPaintBackgroundIfOwned(), 0u);
-  if (!m_renameField)
+  if (!m_renameField) {
     return;
+  }
   m_renameField->SetFont(kRenameFieldFontSlot);
   {
     std::string name;
@@ -257,37 +289,42 @@ void CustomDialogBox::BeginRename(TextMessage* target)
   }
   m_renameField->Create(0);
   m_renameField->SetSelection(0, -1);
-  SetWindowPos(m_renameField->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-  SetFocus(m_renameField->m_hwnd);
+  reb::compat::SetWindowPos(m_renameField->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+  reb::compat::SetFocus(m_renameField->m_hwnd);
 }
 
 void CustomDialogBox::CommitRename()
 {
-  SetFocus(m_hwnd);
-  if (!m_renameField || !m_renameTarget)
+  reb::compat::SetFocus(m_hwnd);
+  if (!m_renameField || !m_renameTarget) {
     return;
-  if (m_renameField->m_text.size() == 0)
+  }
+  if (m_renameField->m_text.size() == 0) {
     return;
+  }
   {
     std::string name(m_renameField->m_text.c_str());
     m_renameTarget->m_text = name;
   }
-  UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_renameTarget), 0);
+  UiHumanReceiveMessage(static_cast<PlayerMessage*>(m_renameTarget), 0);
   m_renameTarget = nullptr;
   m_renameField->DestroyNativeWindow();
-  if (m_renameField)
+  if (m_renameField) {
     delete m_renameField;
+  }
   m_renameField = nullptr;
 }
 
 void CustomDialogBox::CancelRename()
 {
-  SetFocus(m_hwnd);
-  if (!m_renameField)
+  reb::compat::SetFocus(m_hwnd);
+  if (!m_renameField) {
     return;
-  DestroyWindow(m_renameField->m_hwnd);
-  if (m_renameField)
+  }
+  reb::compat::DestroyWindow(m_renameField->m_hwnd);
+  if (m_renameField) {
     delete m_renameField;
+  }
   m_renameField = nullptr;
 }
 
@@ -296,8 +333,7 @@ int CustomDialogBox::GetFirstSelectedKey(ObjectKey* out)
   ObjectKeyValueSet selection;
   GetSelection(&selection, nullptr);
   ObjectKeyNode* first = selection.First();
-  if (first)
-  {
+  if (first) {
     ObjectKey scratch;
     *out = *first->GetKey(&scratch);
   }
@@ -313,8 +349,6 @@ RECT* CustomDialogBox::GetRenameRect(RECT* out)
   return out;
 }
 
-void CustomDialogBox::RefreshIfNeeded()
-{
-}
+void CustomDialogBox::RefreshIfNeeded() {}
 
 const char* g_customDialogBoxClassName = nullptr;

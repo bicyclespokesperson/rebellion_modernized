@@ -95,8 +95,9 @@ int totalFacilityCount(GameObjNotifier* system)
 {
   int total = 0;
   ChildIterator facilities(system, controlSideOf(system), &kFacilityFamilies, 3);
-  for (facilities.Begin(); facilities.Current() != nullptr; facilities.Advance())
+  for (facilities.Begin(); facilities.Current() != nullptr; facilities.Advance()) {
     total += ReturnOne();
+  }
   return total;
 }
 
@@ -104,29 +105,27 @@ int totalMineOutput(GameObjNotifier* system)
 {
   int total = 0;
   ChildIterator mines(system, controlSideOf(system), &kMineFamilies, 3);
-  for (mines.Begin(); mines.Current() != nullptr; mines.Advance())
+  for (mines.Begin(); mines.Current() != nullptr; mines.Advance()) {
     total += static_cast<Facility*>(mines.Current())->GetRawMaterialOutput();
+  }
   return total;
 }
 
 // Seeds the headquarters system from its table rows and raises its energy and raw material to what its facilities
 // and mines produce.
-int seedHeadquarters(GameRoot* root,
-                     GameObjNotifier* headquarters,
-                     int tableType,
-                     int first,
-                     int last,
-                     NotifyContext* ctx,
-                     int ok)
+int seedHeadquarters(GameRoot* root, GameObjNotifier* headquarters, int tableType, int first, int last,
+                     NotifyContext* ctx, int ok)
 {
   ok = bothTrue(root->SeedFromTableRows(headquarters, tableType, first, last, ctx), ok);
   System* system = asSystem(headquarters);
   const int energy = totalFacilityCount(system);
-  if (system->m_energy < energy)
+  if (system->m_energy < energy) {
     ok = bothTrue(system->SetEnergy(energy, ctx), ok);
+  }
   const int rawMaterial = totalMineOutput(system);
-  if (system->m_rawMaterial < rawMaterial)
+  if (system->m_rawMaterial < rawMaterial) {
     ok = bothTrue(system->SetRawMaterial(rawMaterial, ctx), ok);
+  }
   return ok;
 }
 
@@ -139,8 +138,7 @@ int GameRoot::SetupRootObject(NotifyContext* ctx)
   const ObjectKey rootKey = ObjectKey::Make(family::kGameRoot, 1);
   DatRecord* record = FindDataRecord(AsLookupKey(&rootKey));
   int ok = record != nullptr;
-  if (record != nullptr)
-  {
+  if (record != nullptr) {
     ok = bothTrue(SetRecord(record), ok);
     ok = bothTrue(DestroyRandomGenerator(), ok);
     ok = bothTrue(CreateRandomGenerator(), ok);
@@ -166,11 +164,10 @@ int GameRoot::CreateRootChildren(NotifyContext* ctx)
   m_master_98000442 = createChild(this, 0x98, 0x442, 3, ctx);
   m_master_98000480 = createChild(this, 0x98, 0x480, 2, ctx);
   m_master_98000481 = createChild(this, 0x98, 0x481, 2, ctx);
-  const int allCreated = m_master_f2000003 && m_master_f8000006 && m_master_f9000007 && m_master_fa000008 &&
-                         m_master_f300000f && m_master_f3000010 && m_master_98000440 && m_master_98000441 &&
-                         m_master_98000442 && m_master_98000480 && m_master_98000481;
-  if (allCreated)
-  {
+  const int allCreated = m_master_f2000003 && m_master_f8000006 && m_master_f9000007 && m_master_fa000008
+                         && m_master_f300000f && m_master_f3000010 && m_master_98000440 && m_master_98000441
+                         && m_master_98000442 && m_master_98000480 && m_master_98000481;
+  if (allCreated) {
     static_cast<CharacterMgr*>(m_master_fa000008)->m_galaxySize = m_settings.m_field04;
   }
   return allCreated;
@@ -184,10 +181,8 @@ int GameRoot::CreateSectors(int galaxySize, NotifyContext* ctx)
   NotifyContext sectorContext(*ctx);
   sectorContext.m_flag04 = 1;
   sectorContext.m_flag08 = 2;
-  for (DatRecord* record : GetRecordsOfType(0x80))
-  {
-    if (static_cast<SectorSD*>(record)->m_galaxySize <= galaxySize)
-    {
+  for (DatRecord* record : GetRecordsOfType(0x80)) {
+    if (static_cast<SectorSD*>(record)->m_galaxySize <= galaxySize) {
       const ObjectKey key = keyOfRecord(record);
       ok = bothTrue(CreateChild(&key, 3, &sectorContext, 1, 1) != nullptr, ok);
     }
@@ -204,37 +199,35 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   uint32_t coruscantId = 0;
   int systemsPlaced = 0;
   int result = CheckObjectDatabase();
-  if (result == 0)
+  if (result == 0) {
     return 0;
+  }
 
   ObjectKeyValueSet sectorKeys;
   for (GameObjNotifier* sector = GetFirstMasterInFamilies_80_90(); sector != nullptr;
-       sector = asGameObj(sector)->FindNextSibling(&kSectorFamilies, 1))
-  {
+       sector = asGameObj(sector)->FindNextSibling(&kSectorFamilies, 1)) {
     ObjectKey key;
     sector->GetKey(&key);
     sectorKeys.AddKeyValue(&key, 0);
   }
 
   ObjectRefList core;
-  for (DatRecord* record : GetRecordsOfType(0x90))
-  {
+  for (DatRecord* record : GetRecordsOfType(0x90)) {
     const ObjectKey sectorKey = ObjectKey::Make(family::kSector, static_cast<SystemSD*>(record)->m_sectorId);
     GameObjNotifier* sector = nullptr;
-    if (sectorKeys.Find(&sectorKey) != nullptr)
+    if (sectorKeys.Find(&sectorKey) != nullptr) {
       sector = GetMasterInFamilies_80_90(&sectorKey);
-    if (sector == nullptr)
+    }
+    if (sector == nullptr) {
       continue;
+    }
     ++systemsPlaced;
     ObjectRefList& pool = static_cast<Sector*>(sector)->Sector::GetGroup() == 1 ? core : m_refLists[5];
     const ObjectKey systemKey = keyOfRecord(record);
     ObjectRefNode* node = pool.AddKey(systemKey);
-    if (systemKey.m_value == kYavinKey)
-    {
+    if (systemKey.m_value == kYavinKey) {
       yavinId = node->m_id;
-    }
-    else if (systemKey.m_value == kCoruscantKey)
-    {
+    } else if (systemKey.m_value == kCoruscantKey) {
       coruscantId = node->m_id;
     }
   }
@@ -264,15 +257,14 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
 
   int pick = GameRandom(farCount - 2);
   auto cursorPosition = m_refLists[5].Entries().begin();
-  for (; pick != 0; --pick)
-  {
-    if (cursorPosition == m_refLists[5].Entries().end())
+  for (; pick != 0; --pick) {
+    if (cursorPosition == m_refLists[5].Entries().end()) {
       break;
+    }
     ++cursorPosition;
   }
   uint32_t chosenId = farCount;
-  if (pick == 0 && cursorPosition != m_refLists[5].Entries().end())
-  {
+  if (pick == 0 && cursorPosition != m_refLists[5].Entries().end()) {
     auto* cursor = (*cursorPosition).get();
     chosenId = static_cast<ObjectRefNode*>(cursor)->m_id;
     ObjectKey chosenKey;
@@ -283,47 +275,36 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   node->SetId(0);
   m_refLists[6].Add(static_cast<ObjectRefNode*>(node));
 
-  while (remaining != 0)
-  {
+  while (remaining != 0) {
     --remaining;
     int skip = GameRandom(remaining);
     auto entryPosition = core.Entries().begin();
     bool found = true;
-    for (; skip != 0; --skip)
-    {
-      if (entryPosition == core.Entries().end())
-      {
+    for (; skip != 0; --skip) {
+      if (entryPosition == core.Entries().end()) {
         found = false;
         break;
       }
       ++entryPosition;
     }
-    if (!found || entryPosition == core.Entries().end())
+    if (!found || entryPosition == core.Entries().end()) {
       continue;
+    }
     auto* entry = static_cast<ObjectRefNode*>((*entryPosition).get());
     auto* refNode = static_cast<ObjectRefNode*>(core.DetachById(entry->m_id));
-    if (toPool0x100 != 0)
-    {
+    if (toPool0x100 != 0) {
       m_refLists[2].Add(refNode);
       --toPool0x100;
-    }
-    else if (toPool0x110 != 0)
-    {
+    } else if (toPool0x110 != 0) {
       m_refLists[3].Add(refNode);
       --toPool0x110;
-    }
-    else if (toPool0xe0 != 0)
-    {
+    } else if (toPool0xe0 != 0) {
       m_refLists[0].Add(refNode);
       --toPool0xe0;
-    }
-    else if (toPool0xf0 != 0)
-    {
+    } else if (toPool0xf0 != 0) {
       m_refLists[1].Add(refNode);
       --toPool0xf0;
-    }
-    else
-    {
+    } else {
       m_refLists[4].Add(refNode);
       --toPool0x120;
     }
@@ -337,8 +318,9 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   pooled += m_refLists[5].Size();
   pooled += m_refLists[6].Size();
   result = 0;
-  if (toPool0x100 == 0 && toPool0x110 == 0 && toPool0xe0 == 0 && toPool0xf0 == 0 && toPool0x120 == 0)
+  if (toPool0x100 == 0 && toPool0x110 == 0 && toPool0xe0 == 0 && toPool0xf0 == 0 && toPool0x120 == 0) {
     result = pooled == systemsPlaced ? 1 : 0;
+  }
   result = bothTrue(static_cast<Side*>(m_master_f300000f)->Side::SetRdScalePercent(systemsPlaced), result);
   result = bothTrue(static_cast<Side*>(m_master_f3000010)->Side::SetRdScalePercent(systemsPlaced), result);
   return result;
@@ -351,75 +333,58 @@ int GameRoot::PlaceNextPooledSystem(int* done, NotifyContext* ctx)
   int result = 1;
   *done = 0;
   int rounds = 0;
-  do
-  {
-    if (*done != 0)
+  do {
+    if (*done != 0) {
       return result;
+    }
     AvlNode* node = nullptr;
     ObjectRefList* pool = nullptr;
     int unitsA = 0;
     int unitsB = 0;
     int unitsC = 0;
-    if (m_refLists[2].First() != nullptr)
-    {
+    if (m_refLists[2].First() != nullptr) {
       pool = &m_refLists[2];
       unitsA = 1;
       unitsB = 1;
       unitsC = 0;
-    }
-    else if (m_refLists[3].First() != nullptr)
-    {
+    } else if (m_refLists[3].First() != nullptr) {
       pool = &m_refLists[3];
       unitsA = 1;
       unitsB = 1;
       unitsC = 1;
-    }
-    else if (m_refLists[0].First() != nullptr)
-    {
+    } else if (m_refLists[0].First() != nullptr) {
       pool = &m_refLists[0];
       unitsA = 1;
       unitsB = 2;
       unitsC = 0;
-    }
-    else if (m_refLists[1].First() != nullptr)
-    {
+    } else if (m_refLists[1].First() != nullptr) {
       pool = &m_refLists[1];
       unitsA = 1;
       unitsB = 2;
       unitsC = 1;
-    }
-    else if (m_refLists[4].First() != nullptr)
-    {
+    } else if (m_refLists[4].First() != nullptr) {
       pool = &m_refLists[4];
       unitsA = 1;
       unitsB = 3;
       unitsC = 0;
-    }
-    else if (m_refLists[5].First() != nullptr)
-    {
+    } else if (m_refLists[5].First() != nullptr) {
       pool = &m_refLists[5];
       unitsA = 0;
       unitsB = 3;
       unitsC = 0;
-    }
-    else if (m_refLists[6].First() != nullptr)
-    {
+    } else if (m_refLists[6].First() != nullptr) {
       pool = &m_refLists[6];
       const uint32_t firstKey = static_cast<ObjectRefNode*>(m_refLists[6].First())->m_key.m_value;
       unitsC = 0;
-      if (firstKey != kYavinKey && firstKey == kCoruscantKey)
-      {
+      if (firstKey != kYavinKey && firstKey == kCoruscantKey) {
         unitsA = 1;
         unitsB = 2;
-      }
-      else
-      {
+      } else {
         unitsA = 0;
         unitsB = 1;
       }
     }
-    if (pool != nullptr)
-    {
+    if (pool != nullptr) {
       node = pool->First();
       ObjectKey key(static_cast<ObjectRefNode*>(node)->m_key);
       result = bothTrue(PlaceSystem(&key, unitsA, unitsB, unitsC, ctx), result);
@@ -449,8 +414,7 @@ int GameRoot::InitializeNextSystem(int* done, NotifyContext* ctx)
 {
   int ok = 1;
   *done = m_nextSystem == nullptr;
-  if (*done == 0)
-  {
+  if (*done == 0) {
     ok = static_cast<System*>(m_nextSystem)->CreateStartingUnits(ctx) != 0;
     m_nextSystem = nextSystem(m_nextSystem);
   }
@@ -473,8 +437,7 @@ int GameRoot::PlaceCoreSystem(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int ok = bothTrue(GetCoreSystemRows(&tableType, &first, &last), headquarters != nullptr);
-  if (headquarters != nullptr)
-  {
+  if (headquarters != nullptr) {
     ok = seedHeadquarters(this, headquarters, tableType, first, last, ctx, ok);
     const ObjectKey managerKey = ObjectKey::Make(0x20, 5);
     m_master_20000005 = GetMasterObject(&managerKey);
@@ -486,8 +449,7 @@ int GameRoot::PlaceCoruscantSystem(NotifyContext* ctx)
 {
   GameObjNotifier* headquarters = masterSystem(kCoruscantKey);
   int ok = headquarters != nullptr;
-  if (headquarters != nullptr)
-  {
+  if (headquarters != nullptr) {
     int tableType = 0;
     int first = 0;
     int last = 0;
@@ -515,29 +477,28 @@ int GameRoot::SeedSystemTroops(NotifyContext* ctx)
 {
   int ok = 1;
   for (GameObjNotifier* object = GetFirstMasterInFamilies_90_92(); object != nullptr;
-       object = asGameObj(object)->FindNextSibling(&kSystemFamily90, 1))
-  {
+       object = asGameObj(object)->FindNextSibling(&kSystemFamily90, 1)) {
     System* system = asSystem(object);
-    if (system->System::GetDataFlagBit0() == 0)
+    if (system->System::GetDataFlagBit0() == 0) {
       continue;
+    }
     const uint32_t side = controlSideOf(system);
     const int owned = side == 1 || side == 2;
     ok = bothTrue(owned, ok);
-    if (!owned)
+    if (!owned) {
       continue;
-    ObjectKey troopKey;
-    if (side == 1)
-    {
-      troopKey = ObjectKey::Make(family::kTroopRegiment, 2);
     }
-    else if (side == 2)
-    {
+    ObjectKey troopKey;
+    if (side == 1) {
+      troopKey = ObjectKey::Make(family::kTroopRegiment, 2);
+    } else if (side == 2) {
       troopKey = ObjectKey::Make(family::kTroopRegiment, 8);
     }
     const int unitSide = side == 1 ? 1 : side == 2 ? 2 : 0;
     const int count = ComputeShortfallUnits(system->System::GetLoyaltyFor(unitSide));
-    if (count != 0)
+    if (count != 0) {
       ok = bothTrue(system->CreateChildren(count, &troopKey, side, ctx, 1, 1), ok);
+    }
   }
   return ok;
 }
@@ -549,8 +510,9 @@ int GameRoot::SeedYavinForces(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int ok = bothTrue(GetYavinForceRows(&tableType, &first, &last), system != nullptr);
-  if (system != nullptr)
+  if (system != nullptr) {
     ok = bothTrue(SeedFromTableRows(system, tableType, first, last, ctx), ok);
+  }
   return ok;
 }
 
@@ -561,8 +523,7 @@ int GameRoot::SeedKey154Forces(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int ok = GetKey154ForceRows(&tableType, &first, &last);
-  if (system != nullptr)
-  {
+  if (system != nullptr) {
     const int placed = SeedFromTableRows(system, tableType, first, last, ctx);
     return placed != 0 && ok != 0 ? 1 : 0;
   }
@@ -576,8 +537,9 @@ int GameRoot::SeedCoruscantForces(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int ok = bothTrue(GetCoruscantForceRows(&tableType, &first, &last), system != nullptr);
-  if (system != nullptr)
+  if (system != nullptr) {
     ok = bothTrue(SeedFromTableRows(system, tableType, first, last, ctx), ok);
+  }
   return ok;
 }
 
@@ -588,8 +550,7 @@ int GameRoot::SeedStartingFleet(NotifyContext* ctx)
   GameObjNotifier* system = atYavin == 0 ? GetMasterInFamilies_90_98(&m_key154) : masterSystem(kYavinKey);
   int ok = bothTrue(rolled, system != nullptr);
   GameObj* fleet = nullptr;
-  if (system != nullptr)
-  {
+  if (system != nullptr) {
     fleet = createChild(asGameObj(system), family::kFleet, 4, controlSideOf(system), ctx);
     ok = bothTrue(fleet != nullptr, ok);
   }
@@ -597,8 +558,9 @@ int GameRoot::SeedStartingFleet(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int tablesOk = bothTrue(GetStartingFleetRows(&tableType, &first, &last), ok);
-  if (fleet != nullptr)
+  if (fleet != nullptr) {
     tablesOk = bothTrue(SeedFromTableRows(fleet, tableType, first, last, ctx), tablesOk);
+  }
   return tablesOk;
 }
 
@@ -607,8 +569,7 @@ int GameRoot::SeedCoruscantFleet(NotifyContext* ctx)
   GameObjNotifier* system = masterSystem(kCoruscantKey);
   GameObj* fleet = nullptr;
   int ok = system != nullptr;
-  if (system != nullptr)
-  {
+  if (system != nullptr) {
     fleet = createChild(asGameObj(system), family::kFleet, 4, controlSideOf(system), ctx);
     ok = bothTrue(fleet != nullptr, ok);
   }
@@ -616,8 +577,9 @@ int GameRoot::SeedCoruscantFleet(NotifyContext* ctx)
   int first = 0;
   int last = 0;
   int result = bothTrue(GetCoruscantFleetRows(&tableType, &first, &last), ok);
-  if (system != nullptr)
+  if (system != nullptr) {
     result = bothTrue(SeedFromTableRows(fleet, tableType, first, last, ctx), result);
+  }
   return result;
 }
 
@@ -640,24 +602,19 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx)
   GameObjNotifier* sideObject = GetGameRootSideMemberThunk(side);
   int budget = 0;
   int result = sideObject != nullptr;
-  if (sideObject != nullptr)
-  {
+  if (sideObject != nullptr) {
     const Side* sideState = static_cast<Side*>(sideObject);
     const int available = sideState->m_maintState.m_first - sideState->m_maintState.m_second;
-    result = side == 2 ? ScaleEmpireReserveBudget(available, m_settings.m_field04, &budget) :
-                         ScaleAllianceReserveBudget(available, m_settings.m_field04, &budget);
+    result = side == 2 ? ScaleEmpireReserveBudget(available, m_settings.m_field04, &budget)
+                       : ScaleAllianceReserveBudget(available, m_settings.m_field04, &budget);
   }
-  for (;;)
-  {
+  for (;;) {
     int count = 0;
     ObjectRefList units;
     int ok;
-    if (side == 2)
-    {
+    if (side == 2) {
       ok = bothTrue(PickEmpireReserveUnits(&count, &units), result);
-    }
-    else
-    {
+    } else {
       ok = bothTrue(PickAllianceReserveUnits(&count, &units), result);
     }
     int unitsTotal = 0;
@@ -665,67 +622,65 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx)
     const int previous = result;
     budget -= unitsTotal;
     const int affordable = budget >= 0;
-    if (affordable)
-    {
+    if (affordable) {
       int systemsOfSide = 0;
-      for (GameObjNotifier* system = GetFirstMasterInFamilies_90_98(); system != nullptr; system = nextSystem(system))
+      for (GameObjNotifier* system = GetFirstMasterInFamilies_90_98(); system != nullptr; system = nextSystem(system)) {
         systemsOfSide += controlSideOf(system) == viewSide;
+      }
       const int skip = GameRandom(systemsOfSide - 1);
       GameObjNotifier* target = GetFirstMasterInFamilies_90_98();
-      while (target != nullptr && controlSideOf(target) != viewSide)
+      while (target != nullptr && controlSideOf(target) != viewSide) {
         target = nextSystem(target);
-      int step = 0;
-      if (target == nullptr)
-      {
-        result = 0;
       }
-      else
-      {
-        do
-        {
-          if (step >= skip)
+      int step = 0;
+      if (target == nullptr) {
+        result = 0;
+      } else {
+        do {
+          if (step >= skip) {
             break;
+          }
           target = nextSystem(target);
-          while (target != nullptr && controlSideOf(target) != viewSide)
+          while (target != nullptr && controlSideOf(target) != viewSide) {
             target = nextSystem(target);
+          }
           ++step;
         } while (target != nullptr);
         result = target != nullptr && previous != 0 ? 1 : 0;
       }
-      if (target != nullptr)
-      {
+      if (target != nullptr) {
         const int beforePlacement = result;
         auto* first = static_cast<ObjectRefNode*>(units.First());
         bool placed = false;
-        if (first != nullptr && first->m_key.Family() >= 0x14 && first->m_key.Family() < 0x1c)
-        {
+        if (first != nullptr && first->m_key.Family() >= 0x14 && first->m_key.Family() < 0x1c) {
           GameObjNotifier* fleet = nullptr;
           ChildIterator fleets(target, viewSide, &kFleetFamilies, 4);
-          for (fleets.Begin(); fleets.Current() != nullptr; fleets.Advance())
-          {
-            if (fleet != nullptr)
+          for (fleets.Begin(); fleets.Current() != nullptr; fleets.Advance()) {
+            if (fleet != nullptr) {
               break;
+            }
             ChildIterator ships(fleets.Current(), &kCapitalShipFamilies, 1);
-            if (ships.HasCurrent())
+            if (ships.HasCurrent()) {
               fleet = fleets.Current();
+            }
           }
-          if (fleet == nullptr)
-          {
+          if (fleet == nullptr) {
             fleet = createChild(asGameObj(target), family::kFleet, 4, viewSide, ctx);
             result = bothTrue(fleet != nullptr, result);
           }
-          if (fleet != nullptr)
-          {
+          if (fleet != nullptr) {
             result = bothTrue(CreateChildrenFromList(fleet, count, &units, ctx), result);
           }
           placed = true;
         }
-        if (!placed)
+        if (!placed) {
           result = bothTrue(CreateChildrenFromList(target, count, &units, ctx), beforePlacement);
+        }
       }
     }
-    if (!affordable)
+    if (!affordable) {
       return result;
+    }
   }
 }
 
@@ -735,13 +690,14 @@ int GameRoot::SetupSideObjects(NotifyContext* ctx)
 {
   GameObjNotifier* side = nullptr;
   int ok = GetSideObjectForIndex(1, &side) != 0;
-  if (side != nullptr)
+  if (side != nullptr) {
     ok = bothTrue(static_cast<Side*>(side)->Side::RecomputeMaintenance(ctx), ok);
+  }
   ok = bothTrue(GetSideObjectForIndex(2, &side), ok);
-  if (side != nullptr)
-  {
-    if (static_cast<Side*>(side)->Side::RecomputeMaintenance(ctx) == 0 || ok == 0)
+  if (side != nullptr) {
+    if (static_cast<Side*>(side)->Side::RecomputeMaintenance(ctx) == 0 || ok == 0) {
       return 0;
+    }
     return 1;
   }
   return ok;
@@ -751,10 +707,10 @@ int GameRoot::SetupCharacterManagerA(NotifyContext* ctx)
 {
   CharacterMgr* manager = GetCharacterManager();
   int ok = manager != nullptr;
-  if (manager != nullptr)
-  {
-    if (manager->CreateRecordCharacters(ctx) == 0 || !ok)
+  if (manager != nullptr) {
+    if (manager->CreateRecordCharacters(ctx) == 0 || !ok) {
       return 0;
+    }
     return 1;
   }
   return ok;
@@ -764,10 +720,10 @@ int GameRoot::SetupCharacterManagerB(NotifyContext* ctx)
 {
   CharacterMgr* manager = GetCharacterManager();
   int ok = manager != nullptr;
-  if (manager != nullptr)
-  {
-    if (manager->PlaceStartingCharacters(ctx) == 0 || !ok)
+  if (manager != nullptr) {
+    if (manager->PlaceStartingCharacters(ctx) == 0 || !ok) {
       return 0;
+    }
     return 1;
   }
   return ok;
@@ -777,13 +733,11 @@ int GameRoot::InitializeAllObjects(NotifyContext* ctx)
 {
   int ok = 1;
   for (GameObjNotifier* object = GetFirstMasterInFamilies_01_ff(); object != nullptr;
-       object = asGameObj(object)->FindNextSibling(&kAllFamilies, 1))
-  {
+       object = asGameObj(object)->FindNextSibling(&kAllFamilies, 1)) {
     ok = bothTrue(NumberUnitName(static_cast<GameObj*>(object), ctx), ok);
     ok = bothTrue(static_cast<GameObj*>(object)->InitializeAfterSetup(reinterpret_cast<intptr_t>(ctx)), ok);
     const uint32_t objectFamily = object->GetFamily();
-    if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second)
-    {
+    if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second) {
       const int level = static_cast<int>(static_cast<Facility*>(object)->GetRecordField58());
       ObjectKey key;
       object->GetKey(&key);
@@ -812,21 +766,23 @@ int GameRoot::FinishSideView(NotifyContext* ctx)
   updateContext.m_flag08 = 2;
   int ok = UpdateAllChildren(this, &updateContext) != 0;
   ChildIterator sectors(this, &kSectorFamilies, 4);
-  for (sectors.Begin(); sectors.Current() != nullptr; sectors.Advance())
-  {
+  for (sectors.Begin(); sectors.Current() != nullptr; sectors.Advance()) {
     ok = bothTrue(UpdateSystemFamilyChildren(static_cast<GameObj*>(sectors.Current()), &sideContext), ok);
     ChildIterator systems(sectors.Current(), &kSystemFamilies, 4);
-    for (systems.Begin(); systems.Current() != nullptr; systems.Advance())
+    for (systems.Begin(); systems.Current() != nullptr; systems.Advance()) {
       ok = bothTrue(UpdateManuMgrChildren(static_cast<GameObj*>(systems.Current()), &sideContext), ok);
+    }
     ok = bothTrue(UpdateSystemType90Children(static_cast<GameObj*>(sectors.Current()), &updateContext), ok);
     ChildIterator firstSystems(sectors.Current(), &kSystemFamily90, 4);
-    for (firstSystems.Begin(); firstSystems.Current() != nullptr; firstSystems.Advance())
+    for (firstSystems.Begin(); firstSystems.Current() != nullptr; firstSystems.Advance()) {
       ok = bothTrue(UpdateFacilityChildren(static_cast<GameObj*>(firstSystems.Current()), &updateContext), ok);
+    }
   }
   GameObjNotifier* yavin = masterSystem(kYavinKey);
   int result = bothTrue(yavin != nullptr, ok);
-  if (yavin != nullptr)
+  if (yavin != nullptr) {
     result = bothTrue(static_cast<System*>(yavin)->System::SyncViewForEvent(10, 2, ctx), result);
+  }
   return result;
 }
 

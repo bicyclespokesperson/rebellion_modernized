@@ -1,5 +1,5 @@
 # Load "RebelsFastStart" and let game time run ~8 minutes at Fast, so missions resolve and persons move/are captured.
-# See docs/ui_navigation.md. Runtime ~9 min. Loaded games start PAUSED (no agent-droid intro).
+# Runtime ~9 min. Loaded games start PAUSED (no agent-droid intro).
 12 key Escape
 16 key Escape
 20 key Escape

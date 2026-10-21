@@ -1,6 +1,5 @@
 // minwin: DDRAW -- DirectDraw as used for the 640x480x8 mode switch; the surface interfaces are only named.
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/base.h"
 #include "port/minwin/gdi32.h"
@@ -9,29 +8,29 @@ struct _DDCAPS_DX7;
 struct IDirectDrawPalette;
 struct IDirectDrawClipper;
 struct IDirectDrawSurface;
-extern "C" const GUID IID_IDirectDraw2;
+namespace reb::compat
+{
+extern const GUID IID_IDirectDraw2;
+}
 using LPDIRECTDRAW = struct IDirectDraw*;
 using LPDIRECTDRAWSURFACE = struct IDirectDrawSurface*;
 using LPDIRECTDRAWPALETTE = struct IDirectDrawPalette*;
 using LPDIRECTDRAWCLIPPER = struct IDirectDrawClipper*;
 using LPDDSURFACEDESC = struct _DDSURFACEDESC*;
-using LPDDENUMCALLBACKA = BOOL(REB_STDCALL* )(GUID*, LPSTR, LPSTR, LPVOID);
-using LPDDENUMMODESCALLBACK = HRESULT(REB_STDCALL* )(LPDDSURFACEDESC, LPVOID);
-using LPDDENUMSURFACESCALLBACK = HRESULT(REB_STDCALL* )(LPDIRECTDRAWSURFACE, LPDDSURFACEDESC, LPVOID);
-struct _DDCOLORKEY
-{
+using LPDDENUMCALLBACKA = BOOL(REB_STDCALL*)(GUID*, LPSTR, LPSTR, LPVOID);
+using LPDDENUMMODESCALLBACK = HRESULT(REB_STDCALL*)(LPDDSURFACEDESC, LPVOID);
+using LPDDENUMSURFACESCALLBACK = HRESULT(REB_STDCALL*)(LPDIRECTDRAWSURFACE, LPDDSURFACEDESC, LPVOID);
+struct _DDCOLORKEY {
   DWORD dwColorSpaceLowValue;
   DWORD dwColorSpaceHighValue;
 };
 using DDCOLORKEY = struct _DDCOLORKEY;
-struct _DDSCAPS
-{
+struct _DDSCAPS {
   DWORD dwCaps;
 };
 using DDSCAPS = struct _DDSCAPS;
 using LPDDSCAPS = DDSCAPS*;
-struct _DDCAPS_DX5
-{
+struct _DDCAPS_DX5 {
   DWORD dwSize;
   DWORD dwCaps;
   DWORD dwCaps2;
@@ -93,13 +92,11 @@ using DDCAPS_DX5 = struct _DDCAPS_DX5;
 using DDCAPS_DX7 = struct _DDCAPS_DX7;
 using DDCAPS = DDCAPS_DX7;
 using LPDDCAPS = DDCAPS*;
-struct _DDPIXELFORMAT
-{
+struct _DDPIXELFORMAT {
   DWORD dwSize;
   DWORD dwFlags;
   DWORD dwFourCC;
-  union
-  {
+  union {
     DWORD dwRGBBitCount;
     DWORD dwYUVBitCount;
     DWORD dwZBufferBitDepth;
@@ -108,8 +105,7 @@ struct _DDPIXELFORMAT
     DWORD dwBumpBitCount;
     DWORD dwPrivateFormatBitCount;
   };
-  union
-  {
+  union {
     DWORD dwRBitMask;
     DWORD dwYBitMask;
     DWORD dwStencilBitDepth;
@@ -117,27 +113,23 @@ struct _DDPIXELFORMAT
     DWORD dwBumpDuBitMask;
     DWORD dwOperations;
   };
-  union
-  {
+  union {
     DWORD dwGBitMask;
     DWORD dwUBitMask;
     DWORD dwZBitMask;
     DWORD dwBumpDvBitMask;
-    struct
-    {
+    struct {
       WORD wFlipMSTypes;
       WORD wBltMSTypes;
     } MultiSampleCaps;
   };
-  union
-  {
+  union {
     DWORD dwBBitMask;
     DWORD dwVBitMask;
     DWORD dwStencilBitMask;
     DWORD dwBumpLuminanceBitMask;
   };
-  union
-  {
+  union {
     DWORD dwRGBAlphaBitMask;
     DWORD dwYUVAlphaBitMask;
     DWORD dwLuminanceAlphaBitMask;
@@ -157,8 +149,7 @@ using DDBLTBATCH = struct _DDBLTBATCH;
 using LPDDBLTBATCH = DDBLTBATCH*;
 using LPDDCOLORKEY = DDCOLORKEY*;
 using LPDDPIXELFORMAT = DDPIXELFORMAT*;
-struct IDirectDrawSurface : public IUnknown
-{
+struct IDirectDrawSurface : public IUnknown {
   HRESULT REB_STDCALL QueryInterface(const IID& riid, LPVOID* ppvObj) override = 0;
   ULONG REB_STDCALL AddRef() override = 0;
   ULONG REB_STDCALL Release() override = 0;
@@ -196,8 +187,7 @@ struct IDirectDrawSurface : public IUnknown
   virtual HRESULT REB_STDCALL UpdateOverlayDisplay(DWORD) = 0;
   virtual HRESULT REB_STDCALL UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) = 0;
 };
-struct IDirectDraw : public IUnknown
-{
+struct IDirectDraw : public IUnknown {
   HRESULT REB_STDCALL QueryInterface(const IID& riid, LPVOID* ppvObj) override = 0;
   ULONG REB_STDCALL AddRef() override = 0;
   ULONG REB_STDCALL Release() override = 0;
@@ -222,8 +212,7 @@ struct IDirectDraw : public IUnknown
   virtual HRESULT REB_STDCALL SetDisplayMode(DWORD, DWORD, DWORD) = 0;
   virtual HRESULT REB_STDCALL WaitForVerticalBlank(DWORD, HANDLE) = 0;
 };
-struct IDirectDraw2 : public IUnknown
-{
+struct IDirectDraw2 : public IUnknown {
   HRESULT REB_STDCALL QueryInterface(const IID& riid, LPVOID* ppvObj) override = 0;
   ULONG REB_STDCALL AddRef() override = 0;
   ULONG REB_STDCALL Release() override = 0;
@@ -249,20 +238,17 @@ struct IDirectDraw2 : public IUnknown
   virtual HRESULT REB_STDCALL WaitForVerticalBlank(DWORD, HANDLE) = 0;
   virtual HRESULT REB_STDCALL GetAvailableVidMem(LPDDSCAPS, LPDWORD, LPDWORD) = 0;
 };
-struct _DDSURFACEDESC
-{
+struct _DDSURFACEDESC {
   DWORD dwSize;
   DWORD dwFlags;
   DWORD dwHeight;
   DWORD dwWidth;
-  union
-  {
+  union {
     LONG lPitch;
     DWORD dwLinearSize;
   };
   DWORD dwBackBufferCount;
-  union
-  {
+  union {
     DWORD dwMipMapCount;
     DWORD dwZBufferBitDepth;
     DWORD dwRefreshRate;
@@ -279,9 +265,10 @@ struct _DDSURFACEDESC
 };
 using DDSURFACEDESC = struct _DDSURFACEDESC;
 
-extern "C" {
-MINWIN_IMPORT HRESULT REB_STDCALL DirectDrawEnumerateA(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext);
-MINWIN_IMPORT HRESULT REB_STDCALL DirectDrawCreate(GUID* lpGUID, LPDIRECTDRAW* lplpDD, IUnknown* pUnkOuter);
+namespace reb::compat
+{
+HRESULT REB_STDCALL DirectDrawEnumerateA(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext);
+HRESULT REB_STDCALL DirectDrawCreate(GUID* lpGUID, LPDIRECTDRAW* lplpDD, IUnknown* pUnkOuter);
 }
 
 #define DDCAPS_3D ((LONG)1)

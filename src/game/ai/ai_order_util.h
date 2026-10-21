@@ -7,8 +7,8 @@
 #include "gameobj/object_key.h"
 #include "orders/order_base.h"
 
-// Small helpers shared by the AI's postures, planners and agents (src/game/ai): building the orders they hand back and walking
-// the key sets.
+// Small helpers shared by the AI's postures, planners and agents (src/game/ai): building the orders they hand back and
+// walking the key sets.
 
 namespace ai
 {
@@ -58,16 +58,18 @@ inline ObjectKey KeyOfObject(GameObjNotifier* object)
 inline void AddToTeam(ObjectKeyValueSet* team, const ObjectKey& key)
 {
   auto* node = NewOrNull<ObjectKeyValueNode>(key, 0);
-  if (node)
+  if (node) {
     team->Add(node);
+  }
 }
 
 // The order of `kind` for `side` with the given team and target; null if the order cannot be created.
 inline OrderBase* NewOrder(int kind, int side, ObjectKeyValueSet* team, const ObjectKey* target)
 {
   auto* order = static_cast<OrderBase*>(CreateMessageByKind(kind));
-  if (!order)
+  if (!order) {
     return nullptr;
+  }
   order->m_side = side;
   order->SetTeam(team);
   order->SetTarget(target);

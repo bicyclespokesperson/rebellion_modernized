@@ -82,8 +82,7 @@ DibBitmap* NewPage(DibBitmap* frame, HDC dc)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (bitmap)
-  {
+  if (bitmap) {
     bitmap->~DibBitmap();
     operator delete(bitmap);
   }
@@ -97,8 +96,9 @@ bool InFamilies(const ObjectKey& key, uint32_t first, uint32_t last)
 ObjectKeyNode* NewKeyNode(GameObjNotifier* object)
 {
   void* memory = ::operator new(sizeof(ObjectKeyNode));
-  if (!memory)
+  if (!memory) {
     return nullptr;
+  }
   ObjectKey key;
   return new (memory) ObjectKeyNode(*object->GetKey(&key));
 }
@@ -114,25 +114,14 @@ uint32_t StateFlags(GameObjNotifier* object)
   return static_cast<GameObj*>(object)->m_stateFlags;
 }
 
-CoolStrobeButton* NewButton(HMODULE art,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t id,
-                            uint32_t normal,
-                            uint32_t pressed,
-                            DibBitmap* backdrop,
-                            int repeatRate,
-                            int pixelHit)
+CoolStrobeButton* NewButton(HMODULE art, int x, int y, int width, int height, CoolWindow* parent, uint32_t id,
+                            uint32_t normal, uint32_t pressed, DibBitmap* backdrop, int repeatRate, int pixelHit)
 {
   return NewOrNull<CoolStrobeButton>(art, x, y, width, height, parent, id, normal, pressed, backdrop, repeatRate,
                                      pixelHit);
 }
 
-struct PageButton
-{
+struct PageButton {
   int y;
   uint32_t id;
   uint32_t allianceNormal;
@@ -143,26 +132,17 @@ struct PageButton
 };
 
 // A button of a tab control; the first one is selected when it is added.
-void AddTabButton(BattleWindow* window,
-                  CoolTabControl* tabs,
-                  HMODULE art,
-                  int x,
-                  int y,
-                  int width,
-                  int height,
-                  uint32_t id,
-                  uint32_t normal,
-                  uint32_t pressed,
-                  uint16_t tooltip,
-                  bool first,
-                  bool clickSound)
+void AddTabButton(BattleWindow* window, CoolTabControl* tabs, HMODULE art, int x, int y, int width, int height,
+                  uint32_t id, uint32_t normal, uint32_t pressed, uint16_t tooltip, bool first, bool clickSound)
 {
   CoolStrobeButton* button = NewButton(art, x, y, width, height, tabs, id, normal, pressed, tabs->m_background, 0, 0);
-  if (!button)
+  if (!button) {
     return;
+  }
   button->Create(0);
-  if (clickSound)
+  if (clickSound) {
     button->SetClickSound(kClickSound);
+  }
   const ResourceStringId tip = StringId(tooltip);
   window->AddToolFromString(button, &tip);
   tabs->AddTab(button, first ? 1 : 0, 0);
@@ -186,34 +166,36 @@ void PrepareFlatButton(CoolStrobeButton* button)
 
 uint32_t BattleSummaryBitmapId(int viewSide, int winningSide, int retreatSide)
 {
-  if (winningSide == 0 && retreatSide == 0)
+  if (winningSide == 0 && retreatSide == 0) {
     return 0x2d63;
-  if (winningSide == viewSide)
-  {
-    if (viewSide == kAlliance)
+  }
+  if (winningSide == viewSide) {
+    if (viewSide == kAlliance) {
       return (retreatSide != kEmpire ? 1u : 0u) + 0x2a06;
-    if (viewSide == kEmpire)
+    }
+    if (viewSide == kEmpire) {
       return (retreatSide != kAlliance ? 3u : 0u) + 0x2a05;
-  }
-  else if (retreatSide == viewSide)
-  {
-    if (viewSide == kAlliance)
+    }
+  } else if (retreatSide == viewSide) {
+    if (viewSide == kAlliance) {
       return 0x2a05;
-    if (viewSide == kEmpire)
+    }
+    if (viewSide == kEmpire) {
       return 0x2a06;
-  }
-  else if (viewSide == kAlliance)
+    }
+  } else if (viewSide == kAlliance) {
     return 0x2a08;
-  else if (viewSide == kEmpire)
+  } else if (viewSide == kEmpire) {
     return 0x2a07;
+  }
   return 0;
 }
 
 // ---- Construction ---------------------------------------------------------------------------------------------
 
 BattleWindow::BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, Notice1* notice)
-: CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0),
-  m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
+    : CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
+    , m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   m_style = 0x46000000;
   m_galaxy = static_cast<GalaxyWindow*>(parent);
@@ -229,35 +211,41 @@ BattleWindow::BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t chil
   m_nextItemId = 0;
   m_kind = kKindShips;
   m_gokres = FindResourceModule(kGokresSlot);
-  if (!m_gokres)
-  {
+  if (!m_gokres) {
     char* dllLocation = GetDllLocation();
     m_gokres = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
 }
 
 BattleWindow::~BattleWindow()
 {
-  if (m_list)
+  if (m_list) {
     delete m_list;
-  if (m_items)
-  {
-    m_items->Clear();
-    if (m_items)
-      delete m_items;
   }
-  if (m_pageTabs)
+  if (m_items) {
+    m_items->Clear();
+    if (m_items) {
+      delete m_items;
+    }
+  }
+  if (m_pageTabs) {
     delete m_pageTabs;
-  if (m_kindTabs)
+  }
+  if (m_kindTabs) {
     delete m_kindTabs;
-  if (m_fleetButton)
+  }
+  if (m_fleetButton) {
     delete m_fleetButton;
-  if (m_systemButton)
+  }
+  if (m_systemButton) {
     delete m_systemButton;
-  if (m_closeButton)
+  }
+  if (m_closeButton) {
     delete m_closeButton;
+  }
 }
 
 // ---- OnCreate1 ------------------------------------------------------------------------------------------------
@@ -273,29 +261,27 @@ void BattleWindow::OnCreate1()
   const int winningSide = m_notice->m_f50;
   const int retreatSide = m_notice->m_f54;
   const uint32_t bannerId = BattleSummaryBitmapId(viewSide, winningSide, retreatSide);
-  if (viewSide == kAlliance)
+  if (viewSide == kAlliance) {
     m_adviceId = winningSide == viewSide ? 0xc : 0xd;
-  else
+  } else {
     m_adviceId = winningSide == viewSide ? 0xe : 0xf;
+  }
   DibBitmap* banner = LoadBitmap(art, bannerId);
   DibBitmap* frame;
   DibBitmap* rightEdge;
-  if (m_galaxy->m_side == kAlliance)
-  {
+  if (m_galaxy->m_side == kAlliance) {
     frame = LoadBitmap(art, 0x285f);
     rightEdge = LoadBitmap(art, 0x2a44);
-  }
-  else
-  {
+  } else {
     frame = LoadBitmap(art, 0x2860);
     rightEdge = LoadBitmap(art, 0x2a45);
   }
   DibBitmap* summaryBanner = LoadBitmap(art, 0x2a09);
   DibBitmap* forcesBanner = LoadBitmap(art, 0x2a0a);
   DibBitmap* goToBanner = LoadBitmap(art, 0x2a0b);
-  HDC windowDc = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(windowDc);
-  ReleaseDC(m_hwnd, windowDc);
+  HDC windowDc = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+  reb::compat::ReleaseDC(m_hwnd, windowDc);
   const COLORREF color = m_galaxy->m_side == kEmpire ? 0xff00 : 0xff;
   title.SetText(m_notice->m_text88.c_str());
   title.SetFont(0xb);
@@ -313,7 +299,7 @@ void BattleWindow::OnCreate1()
   banner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(page, 0, 0);
   rightEdge->DrawKeyed(page, 0x19c, 0);
-  HGDIOBJ saved = SelectObject(dc, page->DibSectionHandle());
+  HGDIOBJ saved = reb::compat::SelectObject(dc, page->DibSectionHandle());
   title.Draw(dc);
   m_label.MoveTo(0xc, 0xe1);
   m_label.m_width = 400;
@@ -338,7 +324,7 @@ void BattleWindow::OnCreate1()
   goToBanner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(page, 0, 0);
   rightEdge->DrawKeyed(page, 0x19c, 0);
-  SelectObject(dc, page->DibSectionHandle());
+  reb::compat::SelectObject(dc, page->DibSectionHandle());
   title.Draw(dc);
   m_label.SetFont(6);
   m_label.m_drawFlags = 0x110;
@@ -368,7 +354,7 @@ void BattleWindow::OnCreate1()
   summaryBanner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(page, 0, 0);
   rightEdge->DrawKeyed(page, 0x19c, 0);
-  SelectObject(dc, page->DibSectionHandle());
+  reb::compat::SelectObject(dc, page->DibSectionHandle());
   title.Draw(dc);
   m_label.SetColor(0xffffff, nullptr);
   m_label.m_width = 0xa5;
@@ -387,13 +373,13 @@ void BattleWindow::OnCreate1()
   m_label.Draw(dc);
   AddOverlay(page, kBackgroundShips);
   m_label.m_drawFlags = 1;
-  SelectObject(dc, saved);
+  reb::compat::SelectObject(dc, saved);
 
   page = NewPage(frame, dc);
   forcesBanner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
   frame->DrawKeyed(page, 0, 0);
   rightEdge->DrawKeyed(page, 0x19c, 0);
-  saved = SelectObject(dc, page->DibSectionHandle());
+  saved = reb::compat::SelectObject(dc, page->DibSectionHandle());
   title.Draw(dc);
   m_label.m_width = 0x6e;
   const ResourceStringId shipsHeading = StringId(0x1934);
@@ -414,7 +400,7 @@ void BattleWindow::OnCreate1()
   m_label.SetTextFromResource(&versusText);
   m_label.Draw(dc);
   AddOverlay(page, kBackgroundPersonnel);
-  SelectObject(dc, saved);
+  reb::compat::SelectObject(dc, saved);
   DeleteBitmap(frame);
   DeleteBitmap(banner);
   DeleteBitmap(summaryBanner);
@@ -429,8 +415,7 @@ void BattleWindow::OnCreate1()
   const int tabsHeight = alliance ? 0xcb : 0xda;
   m_pageTabs = NewOrNull<CoolTabControl>(instance, tabsX, tabsY, tabWidth, tabsHeight, kPagesId, this,
                                          GetPaintBackgroundIfOwned());
-  if (m_pageTabs)
-  {
+  if (m_pageTabs) {
     m_pageTabs->Create(0);
     AddTabButton(this, m_pageTabs, art, 0, 0, tabWidth, 0x29, kPageSummary, alliance ? 0x29e8 : 0x29f2,
                  alliance ? 0x29e9 : 0x29f3, 0x1922, true, true);
@@ -447,8 +432,7 @@ void BattleWindow::OnCreate1()
   m_items = NewOrNull<CoolListItemList>(4);
   m_list = NewOrNull<CoolDragList>(instance, 0x25, 0x88, 0x15b, 0xa6, this, GetPaintBackgroundIfOwned(), kListId, 0xa5,
                                    0x46, 0, 0, 0, 0, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_options.m_value = 0xb0000;
     m_list->m_style &= ~kHiddenStyle;
     m_list->Create(0);
@@ -459,10 +443,9 @@ void BattleWindow::OnCreate1()
     m_list->SetTextColor(0xffffff);
   }
 
-  m_kindTabs =
-    NewOrNull<CoolTabControl>(instance, 0x82, 0x3b, 0xc4, 0x2a, kKindsId, this, FindOverlayBitmap(kBackgroundShips));
-  if (m_kindTabs)
-  {
+  m_kindTabs = NewOrNull<CoolTabControl>(instance, 0x82, 0x3b, 0xc4, 0x2a, kKindsId, this,
+                                         FindOverlayBitmap(kBackgroundShips));
+  if (m_kindTabs) {
     m_kindTabs->m_style &= ~kHiddenStyle;
     m_kindTabs->Create(0);
     const int kindWidth = alliance ? 0x31 : 0x2c;
@@ -487,21 +470,18 @@ void BattleWindow::OnCreate1()
   bool hasFleet = false;
   ObjectKey fleetKey;
   fleetKey = m_notice->m_keyC;
-  if (fleetKey.IsSet() != 0)
-  {
+  if (fleetKey.IsSet() != 0) {
     GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &fleetKey);
-    if (fleet)
-    {
+    if (fleet) {
       hasFleet = true;
       m_fleetSystem = fleet->m_parent;
     }
   }
-  if (hasFleet)
-  {
+  if (hasFleet) {
     m_fleetButton = NewButton(art, 0xe5, 0xb6, 0xa9, 0x60, this, kFleetId, alliance ? 0x2a0d : 0x2a0e,
                               alliance ? 0x2a0f : 0x2a10, FindOverlayBitmap(kBackgroundGoTo), 0, 1);
     PrepareFlatButton(m_fleetButton);
-    HGDIOBJ previous = SelectObject(dc, FindOverlayBitmap(kBackgroundGoTo)->DibSectionHandle());
+    HGDIOBJ previous = reb::compat::SelectObject(dc, FindOverlayBitmap(kBackgroundGoTo)->DibSectionHandle());
     const ResourceStringId fleetText = StringId(0x1942);
     m_label.SetTextFromResource(&fleetText);
     m_label.SetFont(4);
@@ -511,16 +491,16 @@ void BattleWindow::OnCreate1()
     m_label.m_width = 0xa9;
     m_label.MoveTo(0xe5, 0x116);
     m_label.Draw(dc);
-    SelectObject(dc, previous);
+    reb::compat::SelectObject(dc, previous);
   }
   m_systemButton = NewButton(art, 0x1d, 0xb6, 0xa9, 0x60, this, kSystemId, 0x2a0c,
                              (m_galaxy->m_side != 1 ? 1 : 0) + 0x2a0f, FindOverlayBitmap(kBackgroundGoTo), 0, 1);
-  if (m_systemButton)
-  {
+  if (m_systemButton) {
     PrepareFlatButton(m_systemButton);
-    HGDIOBJ previous = SelectObject(dc, FindOverlayBitmap(kBackgroundGoTo)->DibSectionHandle());
-    if (m_system)
+    HGDIOBJ previous = reb::compat::SelectObject(dc, FindOverlayBitmap(kBackgroundGoTo)->DibSectionHandle());
+    if (m_system) {
       m_label.SetText(static_cast<GameObj*>(m_system)->GetName()->c_str());
+    }
     m_label.SetFont(4);
     m_label.SetColor(0xffffff, nullptr);
     m_label.m_drawFlags = 0x101;
@@ -528,9 +508,9 @@ void BattleWindow::OnCreate1()
     m_label.m_width = 0xa9;
     m_label.MoveTo(0x1d, 0x116);
     m_label.Draw(dc);
-    SelectObject(dc, previous);
+    reb::compat::SelectObject(dc, previous);
   }
-  DeleteDC(dc);
+  reb::compat::DeleteDC(dc);
   CenterIn(m_galaxy->m_panelArea.left, m_galaxy->m_panelArea.top, m_galaxy->m_panelArea.right,
            m_galaxy->m_panelArea.bottom);
   SelectPage(kPageSummary);
@@ -540,8 +520,7 @@ void BattleWindow::OnCreate1()
 
 void BattleWindow::StopAdvice()
 {
-  if (m_advicePlaying != 0)
-  {
+  if (m_advicePlaying != 0) {
     PlayAdviceMusic(m_adviceId);
     m_advicePlaying = 0;
   }
@@ -556,10 +535,12 @@ void BattleWindow::PostCloseRequest()
 
 void BattleWindow::DrawOverlay(HDC dc)
 {
-  if (m_advicePlaying != 0)
+  if (m_advicePlaying != 0) {
     StopAdvice();
-  if (static_cast<unsigned>(m_page) <= 0x6f || static_cast<unsigned>(m_page) >= 0x72)
+  }
+  if (static_cast<unsigned>(m_page) <= 0x6f || static_cast<unsigned>(m_page) >= 0x72) {
     return;
+  }
   const uint32_t kindId = m_kindTabs->m_selected ? m_kindTabs->m_selected->m_childId : 0;
   auto* kindTab = static_cast<CoolStrobeButton*>(m_kindTabs->m_children.FindById(kindId));
   m_label.m_layoutFlags = 1;
@@ -578,12 +559,9 @@ void BattleWindow::DrawOverlay(HDC dc)
   m_label.SetFont(6);
   const uint32_t id = pageTab->GetChildId();
   COLORREF color = 0xffffff;
-  if (id == 0x70)
-  {
+  if (id == 0x70) {
     color = 0xff;
-  }
-  else if (id == 0x71)
-  {
+  } else if (id == 0x71) {
     color = 0xff00;
   }
   m_label.SetColor(color, nullptr);
@@ -593,54 +571,51 @@ void BattleWindow::DrawOverlay(HDC dc)
 
 void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  if (key == VK_ESCAPE)
-  {
+  if (key == VK_ESCAPE) {
     PostCloseRequest();
     UiHumanConfirmVote(m_notice);
     AppEnableSpeedAfterDialog();
     return;
   }
-  if (key != VK_LEFT && key != VK_RIGHT)
-  {
+  if (key != VK_LEFT && key != VK_RIGHT) {
     m_parent->WindowProc(WM_KEYDOWN, key, lParam);
     return;
   }
   const uint32_t selectedId = m_kindTabs->m_selected ? m_kindTabs->m_selected->m_childId : 0;
   auto* tab = m_kindTabs->m_children.FindById(selectedId);
   auto position = m_kindTabs->m_children.PositionOf(tab);
-  if (position != m_kindTabs->m_children.Entries().end())
-  {
-    if (key == VK_LEFT)
-      position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end() :
-                                                                        std::prev(position);
-    else
+  if (position != m_kindTabs->m_children.Entries().end()) {
+    if (key == VK_LEFT) {
+      position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end()
+                                                                      : std::prev(position);
+    } else {
       position = std::next(position);
-    while (position != m_kindTabs->m_children.Entries().end())
-    {
+    }
+    while (position != m_kindTabs->m_children.Entries().end()) {
       tab = (*position).get();
       auto* window = static_cast<CoolWindow*>(tab);
-      if (IsWindowVisible(window->m_hwnd) != 0)
-      {
+      if (reb::compat::IsWindowVisible(window->m_hwnd) != 0) {
         m_kindTabs->SelectTab(window->m_childId, 1);
         return;
       }
-      if (key == VK_LEFT)
-        position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end() :
-                                                                          std::prev(position);
-      else
+      if (key == VK_LEFT) {
+        position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end()
+                                                                        : std::prev(position);
+      } else {
         position = std::next(position);
+      }
     }
     return;
   }
   auto* first = m_kindTabs->m_children.First();
-  if (first)
+  if (first) {
     m_kindTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
+  }
 }
 
 void BattleWindow::OnCommand(int a, int b, int c)
 {
-  switch (static_cast<uint32_t>(a) & 0xffff)
-  {
+  switch (static_cast<uint32_t>(a) & 0xffff) {
     case 100:
       FillList(static_cast<int>(static_cast<uint32_t>(b) >> 16), 0);
       return;
@@ -652,33 +627,35 @@ void BattleWindow::OnCommand(int a, int b, int c)
     case 0xc9:
       break;
     case 0xca:
-    {
-      if (!m_fleetSystem)
-        return;
-      if (!m_notice)
-        return;
-      ObjectKey sectorKey;
-      m_fleetSystem->m_parent->GetKey(&sectorKey);
-      auto* sector = static_cast<SectorWindow*>(m_galaxy->OpenSectorWindow(&sectorKey));
-      ObjectKey systemKey;
-      m_fleetSystem->GetKey(&systemKey);
-      sector->OpenWindowOfType(&systemKey, 4);
-      break;
-    }
-    case 0xcb:
-    {
-      if (!m_notice)
-        return;
-      ObjectKey systemKey = m_notice->m_systemKey;
-      GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
-      if (system)
       {
+        if (!m_fleetSystem) {
+          return;
+        }
+        if (!m_notice) {
+          return;
+        }
         ObjectKey sectorKey;
-        system->m_parent->GetKey(&sectorKey);
-        m_galaxy->OpenSectorWindow(&sectorKey);
+        m_fleetSystem->m_parent->GetKey(&sectorKey);
+        auto* sector = static_cast<SectorWindow*>(m_galaxy->OpenSectorWindow(&sectorKey));
+        ObjectKey systemKey;
+        m_fleetSystem->GetKey(&systemKey);
+        sector->OpenWindowOfType(&systemKey, 4);
+        break;
       }
-      break;
-    }
+    case 0xcb:
+      {
+        if (!m_notice) {
+          return;
+        }
+        ObjectKey systemKey = m_notice->m_systemKey;
+        GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
+        if (system) {
+          ObjectKey sectorKey;
+          system->m_parent->GetKey(&sectorKey);
+          m_galaxy->OpenSectorWindow(&sectorKey);
+        }
+        break;
+      }
   }
   PostCloseRequest();
   UiHumanConfirmVote(m_notice);
@@ -687,14 +664,15 @@ void BattleWindow::OnCommand(int a, int b, int c)
 
 void BattleWindow::SelectPage(int page)
 {
-  if (m_page == page)
+  if (m_page == page) {
     return;
-  switch (page)
-  {
+  }
+  switch (page) {
     case kPageSummary:
-      SetFocus(m_hwnd);
-      if (m_fleetButton)
+      reb::compat::SetFocus(m_hwnd);
+      if (m_fleetButton) {
         m_fleetButton->Hide();
+      }
       m_systemButton->Hide();
       m_list->Hide();
       m_kindTabs->Hide();
@@ -703,22 +681,24 @@ void BattleWindow::SelectPage(int page)
       return;
     case kPageAlliance:
     case kPageEmpire:
-      if (m_fleetButton)
+      if (m_fleetButton) {
         m_fleetButton->Hide();
+      }
       m_systemButton->Hide();
       FillList(m_kind, 1);
       m_list->Show(kShow);
-      SetFocus(m_list->m_hwnd);
+      reb::compat::SetFocus(m_list->m_hwnd);
       m_kindTabs->Show(kShow);
       m_page = page;
       return;
     case kPageGoTo:
-      SetFocus(m_hwnd);
+      reb::compat::SetFocus(m_hwnd);
       m_list->Hide();
       m_kindTabs->Hide();
       SetPaintBackgroundById(kBackgroundGoTo);
-      if (m_fleetButton)
+      if (m_fleetButton) {
         m_fleetButton->Show(kShow);
+      }
       m_systemButton->Show(kShow);
   }
   m_page = page;
@@ -728,11 +708,11 @@ void BattleWindow::SelectPage(int page)
 
 void BattleWindow::ClearRows()
 {
-  if (!m_items)
+  if (!m_items) {
     return;
+  }
   auto position = m_items->Entries().begin();
-  while (position != m_items->Entries().end())
-  {
+  while (position != m_items->Entries().end()) {
     auto current = position++;
     auto* item = static_cast<CoolListItem*>((*current).get());
     m_items->Remove(item);
@@ -744,16 +724,13 @@ void BattleWindow::AddRow(GameObj* object, int normal, const std::string* headin
 {
   const int itemHeight = m_list->m_itemHeight;
   const int itemWidth = m_list->m_itemWidth;
-  if (!object)
-  {
+  if (!object) {
     ObjectKey unset;
     ObjectListItem* item = nullptr;
-    if (void* memory = ::operator new(sizeof(ObjectListItem)))
-    {
+    if (void* memory = ::operator new(sizeof(ObjectListItem))) {
       item = new (memory) ObjectListItem(++m_nextItemId, &unset);
     }
-    if (heading != nullptr)
-    {
+    if (heading != nullptr) {
       item->m_text = heading->c_str();
       item->m_fontSlot = 6;
       item->m_textOffsetY = 10;
@@ -771,8 +748,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, const std::string* headin
   const int top = (itemHeight - picture->Height()) / 2;
   picture->DrawKeyed(image, left, top);
   ObjectListItem* item = nullptr;
-  if (void* memory = ::operator new(sizeof(ObjectListItem)))
-  {
+  if (void* memory = ::operator new(sizeof(ObjectListItem))) {
     ObjectKey itemKey;
     object->GetKey(&itemKey);
     item = new (memory) ObjectListItem(++m_nextItemId, &itemKey);
@@ -790,60 +766,60 @@ void BattleWindow::AddRow(GameObj* object, int normal, const std::string* headin
 void CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind)
 {
   CapShipIterator ships(fleet, 3);
-  for (ships.Begin(); ships.Current(); ships.Advance())
-  {
+  for (ships.Begin(); ships.Current(); ships.Advance()) {
     GameObjNotifier* ship = ships.Current();
     const uint32_t flags = StateFlags(ship);
-    if ((flags & 4) == 0 || (flags & 0x20) != 0)
+    if ((flags & 4) == 0 || (flags & 0x20) != 0) {
       continue;
-    switch (kind)
-    {
+    }
+    switch (kind) {
       case kKindShips:
         shown->Add(NewKeyNode(ship));
         break;
       case kKindFighters:
-      {
-        FightSquadIterator squadrons(ship, 3);
-        for (squadrons.Begin(); squadrons.Current(); squadrons.Advance())
         {
-          if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0)
-            shown->Add(NewKeyNode(squadrons.Current()));
+          FightSquadIterator squadrons(ship, 3);
+          for (squadrons.Begin(); squadrons.Current(); squadrons.Advance()) {
+            if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0) {
+              shown->Add(NewKeyNode(squadrons.Current()));
+            }
+          }
+          break;
         }
-        break;
-      }
       case kKindTroops:
-      {
-        TroopRegIterator regiments(ship, 3);
-        for (regiments.Begin(); regiments.Current(); regiments.Advance())
         {
-          if ((StateFlags(regiments.Current()) >> 2 & 1) != 0)
-            shown->Add(NewKeyNode(regiments.Current()));
+          TroopRegIterator regiments(ship, 3);
+          for (regiments.Begin(); regiments.Current(); regiments.Advance()) {
+            if ((StateFlags(regiments.Current()) >> 2 & 1) != 0) {
+              shown->Add(NewKeyNode(regiments.Current()));
+            }
+          }
+          break;
         }
-        break;
-      }
       case kKindPersonnel:
-      {
-        RoleIterator roles(ship, 3);
-        for (roles.Begin(); roles.Current(); roles.Advance())
         {
-          GameObjNotifier* role = roles.Current();
-          ObjectKey roleKey;
-          role->GetKey(&roleKey);
-          ObjectKeyNode* node = NewKeyNode(roleKey);
-          ObjectKeySet* target = shown;
-          if (InFamilies(roleKey, 0x30, 0x3c) && (static_cast<Character*>(role)->m_flagsAc & 1) != 0)
-            target = held;
-          target->Add(node);
+          RoleIterator roles(ship, 3);
+          for (roles.Begin(); roles.Current(); roles.Advance()) {
+            GameObjNotifier* role = roles.Current();
+            ObjectKey roleKey;
+            role->GetKey(&roleKey);
+            ObjectKeyNode* node = NewKeyNode(roleKey);
+            ObjectKeySet* target = shown;
+            if (InFamilies(roleKey, 0x30, 0x3c) && (static_cast<Character*>(role)->m_flagsAc & 1) != 0) {
+              target = held;
+            }
+            target->Add(node);
+          }
         }
-      }
     }
   }
 }
 
 void BattleWindow::FillList(int kind, int force)
 {
-  if (m_kind == kind && force == 0)
+  if (m_kind == kind && force == 0) {
     return;
+  }
   IntPair familyRange;
   int normalFlag = 0;
   ObjectKeySet shown;
@@ -852,26 +828,20 @@ void BattleWindow::FillList(int kind, int force)
   ObjectKeySet participants;
   const uint32_t selectedPage = m_pageTabs->m_selected ? m_pageTabs->m_selected->m_childId : 0;
   uint32_t side;
-  if (selectedPage == static_cast<uint32_t>(kPageAlliance))
-  {
+  if (selectedPage == static_cast<uint32_t>(kPageAlliance)) {
     participants = m_notice->m_set78;
     side = 1;
-  }
-  else if (selectedPage == static_cast<uint32_t>(kPageEmpire))
-  {
+  } else if (selectedPage == static_cast<uint32_t>(kPageEmpire)) {
     participants = m_notice->m_set80;
     side = 2;
-  }
-  else
-  {
+  } else {
     return;
   }
   ClearRows();
   uint32_t backgroundId = 0;
   int itemWidth = 0;
   int itemHeight = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case kKindShips:
       backgroundId = kBackgroundShips;
       itemWidth = 0xa5;
@@ -898,59 +868,54 @@ void BattleWindow::FillList(int kind, int force)
       normalFlag = 1;
       break;
   }
-  if (FindOverlayBitmap(backgroundId) != GetPaintBackgroundIfOwned())
-  {
+  if (FindOverlayBitmap(backgroundId) != GetPaintBackgroundIfOwned()) {
     DibBitmap* background = SetPaintBackgroundById(backgroundId);
     m_list->SetBackground(background, m_list->m_x, m_list->m_y);
     m_list->SetItemSize(itemWidth, itemHeight);
   }
   const int viewSide = side != 1 ? 2 : 1;
-  for (const auto& ownedNode : m_notice->m_set60.Entries())
-  {
+  for (const auto& ownedNode : m_notice->m_set60.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     GameObjNotifier* fleet = GetObjectInFamilies_08_10(viewSide, node->GetKey(&key));
-    if (fleet && fleet->ControlSide() == side)
+    if (fleet && fleet->ControlSide() == side) {
       CollectBattleParticipants(fleet, &shown, &held, kind);
+    }
   }
   FleetIterator fleets(m_system, 1, side);
-  for (fleets.Begin(); fleets.Current(); fleets.Advance())
+  for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
     CollectBattleParticipants(fleets.Current(), &shown, &held, kind);
-  if (kind == kKindFighters)
-  {
+  }
+  if (kind == kKindFighters) {
     FightSquadIterator squadrons(m_system, 1, side);
-    for (squadrons.Begin(); squadrons.Current(); squadrons.Advance())
-    {
-      if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0)
+    for (squadrons.Begin(); squadrons.Current(); squadrons.Advance()) {
+      if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0) {
         shown.Add(NewKeyNode(squadrons.Current()));
+      }
     }
-    for (const auto& ownedNode : m_notice->m_set68.Entries())
-    {
+    for (const auto& ownedNode : m_notice->m_set68.Entries()) {
       auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
       GameObjNotifier* squadron = GetObjectInFamilies_1c_20(viewSide, node->GetKey(&key));
-      if (squadron && squadron->ControlSide() == side)
+      if (squadron && squadron->ControlSide() == side) {
         shown.Add(NewKeyNode(squadron));
+      }
     }
-  }
-  else if (kind == kKindPersonnel && m_notice->m_set70.First())
-  {
-    for (const auto& ownedNode : m_notice->m_set70.Entries())
-    {
+  } else if (kind == kKindPersonnel && m_notice->m_set70.First()) {
+    for (const auto& ownedNode : m_notice->m_set70.Entries()) {
       auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
       GameObjNotifier* character = GetObjectInFamilies_30_3c(viewSide, node->GetKey(&key));
-      if (character && character->ControlSide() == side)
+      if (character && character->ControlSide() == side) {
         shown.Add(NewKeyNode(character));
+      }
     }
   }
-  for (const auto& ownedNode : participants.Entries())
-  {
+  for (const auto& ownedNode : participants.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     node->GetKey(&key);
-    if (InFamilies(key, familyRange.m_first, familyRange.m_second))
-    {
+    if (InFamilies(key, familyRange.m_first, familyRange.m_second)) {
       ObjectKey nodeKey;
       matching.Add(NewKeyNode(*node->GetKey(&nodeKey)));
     }
@@ -964,95 +929,82 @@ void BattleWindow::FillList(int kind, int force)
   bool matchingDone = false;
   bool heldDone = false;
   GalaxyWindow* galaxy = m_galaxy;
-  auto objectOf = [&](ObjectKeyNode* node, int view)
-  {
+  auto objectOf = [&](ObjectKeyNode* node, int view) {
     ObjectKey key;
     return GetObjectInFamilies_01_ff(view, node->GetKey(&key));
   };
-  for (;;)
-  {
-    if (shownPosition == shown.Entries().end())
-    {
+  for (;;) {
+    if (shownPosition == shown.Entries().end()) {
       std::string* text = nullptr;
-      if (!shownDone)
-      {
+      if (!shownDone) {
         shownDone = true;
-        const ResourceStringId id =
-          (matching.First() == nullptr && held.First() == nullptr) ? StringId(0x8526) : StringId(0x1940);
+        const ResourceStringId id
+            = (matching.First() == nullptr && held.First() == nullptr) ? StringId(0x8526) : StringId(0x1940);
         heading = LoadStringResource(&id);
         text = &heading;
       }
       AddRow(nullptr, 0, text);
-    }
-    else
-    {
+    } else {
       AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*shownPosition).get()), viewSide)), normalFlag,
              nullptr);
       ++shownPosition;
-      if (shownPosition == shown.Entries().end())
+      if (shownPosition == shown.Entries().end()) {
         shownDone = true;
+      }
     }
-    if (kind == kKindPersonnel)
-    {
-      if (heldPosition == held.Entries().end())
-      {
+    if (kind == kKindPersonnel) {
+      if (heldPosition == held.Entries().end()) {
         std::string* text = nullptr;
-        if (!heldDone)
-        {
+        if (!heldDone) {
           heldDone = true;
           const ResourceStringId id = StringId(0x8526);
           heading = LoadStringResource(&id);
           text = &heading;
         }
         AddRow(nullptr, 0, text);
-      }
-      else
-      {
+      } else {
         AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*heldPosition).get()), galaxy->m_side)),
                normalFlag, nullptr);
         ++heldPosition;
-        if (heldPosition == held.Entries().end())
+        if (heldPosition == held.Entries().end()) {
           heldDone = true;
+        }
       }
     }
-    if (matchingPosition == matching.Entries().end())
-    {
+    if (matchingPosition == matching.Entries().end()) {
       std::string* text = nullptr;
-      if (!matchingDone)
-      {
+      if (!matchingDone) {
         matchingDone = true;
         const ResourceStringId id = StringId(0x1941);
         heading = LoadStringResource(&id);
         text = &heading;
       }
       AddRow(nullptr, 0, text);
-    }
-    else
-    {
+    } else {
       AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*matchingPosition).get()), galaxy->m_side)),
              normalFlag, nullptr);
       ++matchingPosition;
-      if (matchingPosition != matching.Entries().end())
+      if (matchingPosition != matching.Entries().end()) {
         continue;
+      }
       matchingDone = true;
     }
-    if (shownPosition == shown.Entries().end())
+    if (shownPosition == shown.Entries().end()) {
       break;
+    }
   }
   shown.Clear();
   matching.Clear();
-  for (const auto& item : m_items->Entries())
-  {
-    if (item->m_image)
-    {
+  for (const auto& item : m_items->Entries()) {
+    if (item->m_image) {
       m_list->m_fillColor = item->m_image->m_colorKey;
       break;
     }
   }
   m_list->Refresh();
   RECT area;
-  SetRect(&area, 0xc, 0x28, 0x167, 0x88);
-  InvalidateRect(m_hwnd, &area, 0);
+  reb::compat::SetRect(&area, 0xc, 0x28, 0x167, 0x88);
+  reb::compat::InvalidateRect(m_hwnd, &area, 0);
   m_kind = kind;
 }
 

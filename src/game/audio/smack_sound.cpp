@@ -13,15 +13,14 @@ void SmackClose(void* smack);
 }
 
 SmackSound::SmackSound()
-: m_smackParameter(0),
-  m_smack(nullptr),
-  m_smackBuffer(nullptr),
-  m_window(nullptr),
-  m_thread(nullptr),
-  m_unk14(0),
-  m_unk18(0),
-  m_unk1c(0),
-  m_unk20(0)
+    : m_smackParameter(0)
+    , m_smack(nullptr)
+    , m_smackBuffer(nullptr)
+    , m_window(nullptr)
+    , m_unk14(0)
+    , m_unk18(0)
+    , m_unk1c(0)
+    , m_unk20(0)
 {
 }
 
@@ -32,13 +31,11 @@ SmackSound::~SmackSound()
 
 void SmackSound::Close()
 {
-  if (m_smackBuffer)
-  {
+  if (m_smackBuffer) {
     SmackBufferClose(m_smackBuffer);
     m_smackBuffer = nullptr;
   }
-  if (m_smack)
-  {
+  if (m_smack) {
     SmackClose(m_smack);
     m_smack = nullptr;
   }
@@ -53,13 +50,8 @@ void SmackSound::Share(HWND window, int smackParameter, void* directSound)
 
 void SmackSound::Stop(int closeHandles)
 {
-  if (m_thread)
-  {
-    TerminateThread(m_thread, 0);
-    m_thread = nullptr;
-    m_unk14 = 0;
-  }
-  if (closeHandles == 1 && m_smack)
+  if (closeHandles == 1 && m_smack) {
     Close();
+  }
   m_unk18 = 0;
 }

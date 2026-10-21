@@ -9,8 +9,9 @@ namespace reb::native
 
 AudioContext* CurrentAudioContext() noexcept
 {
-  if (!g_app)
+  if (!g_app) {
     return nullptr;
+  }
   return &static_cast<RebellionApplication*>(g_app)->m_context.GetAudioContext();
 }
 
@@ -21,8 +22,9 @@ AudioContext::~AudioContext()
 
 void AudioContext::Shutdown() noexcept
 {
-  if (CurrentAudioContext() != this)
+  if (CurrentAudioContext() != this) {
     return;
+  }
 
   SoundManager::StopEventThread();
   SoundManager::SetEventCallback(nullptr);

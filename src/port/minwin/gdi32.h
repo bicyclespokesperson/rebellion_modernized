@@ -1,12 +1,10 @@
 // minwin: GDI32 -- device contexts, bitmaps and DIB sections, palettes, pens, brushes, fonts and text output.
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/base.h"
 
 struct _devicemodeA;
-struct tagBITMAP
-{
+struct tagBITMAP {
   LONG bmType;
   LONG bmWidth;
   LONG bmHeight;
@@ -16,16 +14,14 @@ struct tagBITMAP
   LPVOID bmBits;
 };
 using BITMAP = struct tagBITMAP;
-struct tagRGBQUAD
-{
+struct tagRGBQUAD {
   BYTE rgbBlue;
   BYTE rgbGreen;
   BYTE rgbRed;
   BYTE rgbReserved;
 };
 using RGBQUAD = struct tagRGBQUAD;
-struct tagBITMAPINFOHEADER
-{
+struct tagBITMAPINFOHEADER {
   DWORD biSize;
   LONG biWidth;
   LONG biHeight;
@@ -39,14 +35,12 @@ struct tagBITMAPINFOHEADER
   DWORD biClrImportant;
 };
 using BITMAPINFOHEADER = struct tagBITMAPINFOHEADER;
-struct tagBITMAPINFO
-{
+struct tagBITMAPINFO {
   BITMAPINFOHEADER bmiHeader;
   RGBQUAD bmiColors[1];
 };
 using BITMAPINFO = struct tagBITMAPINFO;
-struct tagTEXTMETRICA
-{
+struct tagTEXTMETRICA {
   LONG tmHeight;
   LONG tmAscent;
   LONG tmDescent;
@@ -70,15 +64,13 @@ struct tagTEXTMETRICA
 };
 using TEXTMETRICA = struct tagTEXTMETRICA;
 using LPTEXTMETRICA = struct tagTEXTMETRICA*;
-struct tagLOGBRUSH
-{
+struct tagLOGBRUSH {
   UINT lbStyle;
   COLORREF lbColor;
   ULONG_PTR lbHatch;
 };
 using LOGBRUSH = struct tagLOGBRUSH;
-struct tagPALETTEENTRY
-{
+struct tagPALETTEENTRY {
   BYTE peRed;
   BYTE peGreen;
   BYTE peBlue;
@@ -86,15 +78,13 @@ struct tagPALETTEENTRY
 };
 using PALETTEENTRY = struct tagPALETTEENTRY;
 using LPPALETTEENTRY = struct tagPALETTEENTRY*;
-struct tagLOGPALETTE
-{
+struct tagLOGPALETTE {
   WORD palVersion;
   WORD palNumEntries;
   PALETTEENTRY palPalEntry[1];
 };
 using LOGPALETTE = struct tagLOGPALETTE;
-struct tagLOGFONTA
-{
+struct tagLOGFONTA {
   LONG lfHeight;
   LONG lfWidth;
   LONG lfEscapement;
@@ -113,67 +103,53 @@ struct tagLOGFONTA
 using LOGFONTA = struct tagLOGFONTA;
 using DEVMODEA = struct _devicemodeA;
 
-extern "C" {
-MINWIN_IMPORT BOOL REB_STDCALL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, int y1, DWORD rop);
-MINWIN_IMPORT HBRUSH REB_STDCALL CreateBrushIndirect(const LOGBRUSH* plbrush);
-MINWIN_IMPORT HBITMAP REB_STDCALL CreateCompatibleBitmap(HDC hdc, int cx, int cy);
-MINWIN_IMPORT HDC REB_STDCALL CreateCompatibleDC(HDC hdc);
-MINWIN_IMPORT HBITMAP REB_STDCALL CreateDIBitmap(HDC hdc,
-                                                 const BITMAPINFOHEADER* pbmih,
-                                                 DWORD flInit,
-                                                 const void* pjBits,
-                                                 const BITMAPINFO* pbmi,
-                                                 UINT iUsage);
-MINWIN_IMPORT HFONT REB_STDCALL CreateFontIndirectA(const LOGFONTA* lplf);
-MINWIN_IMPORT HDC REB_STDCALL CreateICA(LPCSTR pszDriver, LPCSTR pszDevice, LPCSTR pszPort, const DEVMODEA* pdm);
-MINWIN_IMPORT HPALETTE REB_STDCALL CreatePalette(const LOGPALETTE* plpal);
-MINWIN_IMPORT HPEN REB_STDCALL CreatePen(int iStyle, int cWidth, COLORREF color);
-MINWIN_IMPORT HBRUSH REB_STDCALL CreateSolidBrush(COLORREF color);
-MINWIN_IMPORT BOOL REB_STDCALL DeleteDC(HDC hdc);
-MINWIN_IMPORT BOOL REB_STDCALL DeleteObject(HGDIOBJ ho);
-MINWIN_IMPORT int REB_STDCALL GetDeviceCaps(HDC hdc, int index);
-MINWIN_IMPORT UINT REB_STDCALL GetPaletteEntries(HPALETTE hpal, UINT iStart, UINT cEntries, LPPALETTEENTRY pPalEntries);
-MINWIN_IMPORT HGDIOBJ REB_STDCALL GetStockObject(int i);
-MINWIN_IMPORT UINT REB_STDCALL GetSystemPaletteEntries(HDC hdc, UINT iStart, UINT cEntries, LPPALETTEENTRY pPalEntries);
-MINWIN_IMPORT BOOL REB_STDCALL GetTextExtentPoint32A(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
-MINWIN_IMPORT BOOL REB_STDCALL LineTo(HDC hdc, int x, int y);
-MINWIN_IMPORT BOOL REB_STDCALL PatBlt(HDC hdc, int x, int y, int w, int h, DWORD rop);
-MINWIN_IMPORT BOOL REB_STDCALL Rectangle(HDC hdc, int left, int top, int right, int bottom);
-MINWIN_IMPORT UINT REB_STDCALL RealizePalette(HDC hdc);
-MINWIN_IMPORT BOOL REB_STDCALL ResizePalette(HPALETTE hpal, UINT n);
-MINWIN_IMPORT HGDIOBJ REB_STDCALL SelectObject(HDC hdc, HGDIOBJ h);
-MINWIN_IMPORT HPALETTE REB_STDCALL SelectPalette(HDC hdc, HPALETTE hPal, BOOL bForceBkgd);
-MINWIN_IMPORT COLORREF REB_STDCALL SetBkColor(HDC hdc, COLORREF color);
-MINWIN_IMPORT int REB_STDCALL SetBkMode(HDC hdc, int mode);
-MINWIN_IMPORT int REB_STDCALL SetDIBitsToDevice(HDC hdc,
-                                                int xDest,
-                                                int yDest,
-                                                DWORD w,
-                                                DWORD h,
-                                                int xSrc,
-                                                int ySrc,
-                                                UINT StartScan,
-                                                UINT cLines,
-                                                const void* lpvBits,
-                                                const BITMAPINFO* lpbmi,
-                                                UINT ColorUse);
-MINWIN_IMPORT UINT REB_STDCALL SetPaletteEntries(HPALETTE hpal,
-                                                 UINT iStart,
-                                                 UINT cEntries,
+namespace reb::compat
+{
+BOOL REB_STDCALL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, int y1, DWORD rop);
+HBRUSH REB_STDCALL CreateBrushIndirect(const LOGBRUSH* plbrush);
+HBITMAP REB_STDCALL CreateCompatibleBitmap(HDC hdc, int cx, int cy);
+HDC REB_STDCALL CreateCompatibleDC(HDC hdc);
+HBITMAP REB_STDCALL CreateDIBitmap(HDC hdc, const BITMAPINFOHEADER* pbmih, DWORD flInit,
+                                                 const void* pjBits, const BITMAPINFO* pbmi, UINT iUsage);
+HFONT REB_STDCALL CreateFontIndirectA(const LOGFONTA* lplf);
+HDC REB_STDCALL CreateICA(LPCSTR pszDriver, LPCSTR pszDevice, LPCSTR pszPort, const DEVMODEA* pdm);
+HPALETTE REB_STDCALL CreatePalette(const LOGPALETTE* plpal);
+HPEN REB_STDCALL CreatePen(int iStyle, int cWidth, COLORREF color);
+HBRUSH REB_STDCALL CreateSolidBrush(COLORREF color);
+BOOL REB_STDCALL DeleteDC(HDC hdc);
+BOOL REB_STDCALL DeleteObject(HGDIOBJ ho);
+int REB_STDCALL GetDeviceCaps(HDC hdc, int index);
+UINT REB_STDCALL GetPaletteEntries(HPALETTE hpal, UINT iStart, UINT cEntries, LPPALETTEENTRY pPalEntries);
+HGDIOBJ REB_STDCALL GetStockObject(int i);
+UINT REB_STDCALL GetSystemPaletteEntries(HDC hdc, UINT iStart, UINT cEntries, LPPALETTEENTRY pPalEntries);
+BOOL REB_STDCALL GetTextExtentPoint32A(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
+BOOL REB_STDCALL LineTo(HDC hdc, int x, int y);
+BOOL REB_STDCALL PatBlt(HDC hdc, int x, int y, int w, int h, DWORD rop);
+BOOL REB_STDCALL Rectangle(HDC hdc, int left, int top, int right, int bottom);
+UINT REB_STDCALL RealizePalette(HDC hdc);
+BOOL REB_STDCALL ResizePalette(HPALETTE hpal, UINT n);
+HGDIOBJ REB_STDCALL SelectObject(HDC hdc, HGDIOBJ h);
+HPALETTE REB_STDCALL SelectPalette(HDC hdc, HPALETTE hPal, BOOL bForceBkgd);
+COLORREF REB_STDCALL SetBkColor(HDC hdc, COLORREF color);
+int REB_STDCALL SetBkMode(HDC hdc, int mode);
+int REB_STDCALL SetDIBitsToDevice(HDC hdc, int xDest, int yDest, DWORD w, DWORD h, int xSrc, int ySrc,
+                                                UINT StartScan, UINT cLines, const void* lpvBits,
+                                                const BITMAPINFO* lpbmi, UINT ColorUse);
+UINT REB_STDCALL SetPaletteEntries(HPALETTE hpal, UINT iStart, UINT cEntries,
                                                  const PALETTEENTRY* pPalEntries);
-MINWIN_IMPORT int REB_STDCALL SetROP2(HDC hdc, int rop2);
-MINWIN_IMPORT int REB_STDCALL SetStretchBltMode(HDC hdc, int mode);
-MINWIN_IMPORT UINT REB_STDCALL SetSystemPaletteUse(HDC hdc, UINT use);
-MINWIN_IMPORT COLORREF REB_STDCALL SetTextColor(HDC hdc, COLORREF color);
-MINWIN_IMPORT UINT REB_STDCALL SetTextAlign(HDC hdc, UINT align);
-MINWIN_IMPORT BOOL REB_STDCALL GetTextMetricsA(HDC hdc, LPTEXTMETRICA lptm);
-MINWIN_IMPORT HBITMAP REB_STDCALL
-CreateDIBSection(HDC hdc, const BITMAPINFO* pbmi, UINT usage, void** ppvBits, HANDLE hSection, DWORD offset);
-MINWIN_IMPORT int REB_STDCALL GetObjectA(HANDLE h, int c, LPVOID pv);
-MINWIN_IMPORT BOOL REB_STDCALL MoveToEx(HDC hdc, int x, int y, LPPOINT lppt);
-MINWIN_IMPORT BOOL REB_STDCALL TextOutA(HDC hdc, int x, int y, LPCSTR lpString, int c);
-MINWIN_IMPORT BOOL REB_STDCALL DPtoLP(HDC hdc, LPPOINT lppt, int c);
-MINWIN_IMPORT BOOL REB_STDCALL Polyline(HDC hdc, const POINT* apt, int cpt);
+int REB_STDCALL SetROP2(HDC hdc, int rop2);
+int REB_STDCALL SetStretchBltMode(HDC hdc, int mode);
+UINT REB_STDCALL SetSystemPaletteUse(HDC hdc, UINT use);
+COLORREF REB_STDCALL SetTextColor(HDC hdc, COLORREF color);
+UINT REB_STDCALL SetTextAlign(HDC hdc, UINT align);
+BOOL REB_STDCALL GetTextMetricsA(HDC hdc, LPTEXTMETRICA lptm);
+HBITMAP REB_STDCALL CreateDIBSection(HDC hdc, const BITMAPINFO* pbmi, UINT usage, void** ppvBits,
+                                                   HANDLE hSection, DWORD offset);
+int REB_STDCALL GetObjectA(HANDLE h, int c, LPVOID pv);
+BOOL REB_STDCALL MoveToEx(HDC hdc, int x, int y, LPPOINT lppt);
+BOOL REB_STDCALL TextOutA(HDC hdc, int x, int y, LPCSTR lpString, int c);
+BOOL REB_STDCALL DPtoLP(HDC hdc, LPPOINT lppt, int c);
+BOOL REB_STDCALL Polyline(HDC hdc, const POINT* apt, int cpt);
 }
 
 #define R2_XORPEN 7
@@ -212,4 +188,3 @@ MINWIN_IMPORT BOOL REB_STDCALL Polyline(HDC hdc, const POINT* apt, int cpt);
 #define SYSPAL_STATIC 1
 #define SYSPAL_NOSTATIC 2
 #define CBM_INIT ((LONG)4)
-#define GetObject GetObjectA

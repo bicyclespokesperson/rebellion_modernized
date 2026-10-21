@@ -13,7 +13,7 @@
 // Payload identity and polymorphic lifetime support only; standard containers live in their domain owners.
 class AvlNode
 {
-public:
+  public:
   AvlNode();
   AvlNode(const AvlNode&);
   AvlNode& operator=(const AvlNode&) = delete;
@@ -24,7 +24,7 @@ public:
 
 class IdNode : public AvlNode
 {
-public:
+  public:
   IdNode();
   explicit IdNode(uint32_t id);
   ~IdNode() override;
@@ -38,7 +38,7 @@ public:
 
 class LinkNode
 {
-public:
+  public:
   LinkNode();
   LinkNode(const LinkNode&);
   LinkNode& operator=(const LinkNode&) = delete;
@@ -51,7 +51,7 @@ public:
 
 class IdLinkNode : public LinkNode
 {
-public:
+  public:
   IdLinkNode();
   ~IdLinkNode() override;
   void Read(istream* in) override;

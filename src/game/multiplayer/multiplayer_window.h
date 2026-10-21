@@ -1,7 +1,7 @@
 #pragma once
 // MultiPlayerWindow (0x40d7a0-0x4119e0, VT 0x658788, 0x194 bytes): the multiplayer lobby, shown from the front end's
-// "Play Head to Head" console (application states 3, 0xe...) and, for games started from a DirectPlay lobby, directly on
-// its last page. It walks the player through four pages (m_page, the id of the page's overlay bitmap):
+// "Play Head to Head" console (application states 3, 0xe...) and, for games started from a DirectPlay lobby, directly
+// on its last page. It walks the player through four pages (m_page, the id of the page's overlay bitmap):
 //
 //   0x2774  provider    pick a DirectPlay service provider (CommMgr::EnumerateServiceProviders), then "Connect To
 //                       Game" (join) or "Setup Game" (host)
@@ -28,8 +28,7 @@ class TextScrollField;
 class SavedGameInfo;
 
 // Pages of the lobby (also the overlay bitmap ids and the string group of their texts).
-enum MultiPlayerPage : int
-{
+enum MultiPlayerPage : int {
   kLobbyPageProvider = 0x2774,
   kLobbyPageJoin = 0x2775,
   kLobbyPageHost = 0x2776,
@@ -37,8 +36,7 @@ enum MultiPlayerPage : int
 };
 
 // Child ids of the buttons.
-enum MultiPlayerButton : uint32_t
-{
+enum MultiPlayerButton : uint32_t {
   kLobbyButtonBack = 100,
   kLobbyButtonNext = 0x65,
   kLobbyButtonStart = 0x66,
@@ -56,40 +54,29 @@ enum MultiPlayerButton : uint32_t
 };
 
 // Child ids of the lists and fields.
-enum MultiPlayerChild : uint32_t
-{
+enum MultiPlayerChild : uint32_t {
   kLobbyChildProviderList = 0x12c,
   kLobbyChildSessionList = 0x12d,
 };
 
 // Custom messages: 0x407 is the "return pressed" message of a string field, 0x40c the CommMgr notification.
 constexpr uint32_t kLobbyTimerSessions = 0x191; // refreshes the session list of the join page
-constexpr uint32_t kLobbyTimerNetwork = 400; // drains the network on the setup page
+constexpr uint32_t kLobbyTimerNetwork = 400;    // drains the network on the setup page
 
 class MultiPlayerWindow : public CoolGameWindow
 {
-public:
-  MultiPlayerWindow(HINSTANCE instance,
-                    int x,
-                    int y,
-                    int width,
-                    int height,
-                    CoolWindow* parent,
-                    uint32_t stringSlot,
-                    uint32_t bitmapSlot,
-                    uint32_t backgroundId,
-                    uint32_t childId,
-                    uint32_t style,
-                    uint32_t flags,
+  public:
+  MultiPlayerWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
+                    uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
                     int side,
                     int galaxySize); // 0x40d7a0
-  ~MultiPlayerWindow() override; // 0x40d980 (scalar deleting destructor 0x40d960)
+  ~MultiPlayerWindow() override;     // 0x40d980 (scalar deleting destructor 0x40d960)
 
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override; // slot 5, 0x40ec60
   // Starts the DirectPlay layer for this window and chooses the first page.
-  void OnCreate1() override; // slot 14, 0x40db20
-  void OnCreate2() override; // slot 15, 0x40dc30: the texts of the four pages
-  void OnCreate3() override; // slot 16, 0x40dfd0: lists, fields, buttons
+  void OnCreate1() override;                    // slot 14, 0x40db20
+  void OnCreate2() override;                    // slot 15, 0x40dc30: the texts of the four pages
+  void OnCreate3() override;                    // slot 16, 0x40dfd0: lists, fields, buttons
   void OnCommand(int a, int b, int c) override; // slot 18, 0x40efb0 (a is the low word: the child id)
   int CanOpen() override
   {
@@ -104,11 +91,11 @@ public:
   int SessionListUpToDate(SessionList* sessions); // 0x40f5d0
   // Remember (as copies) the selected provider / session; the old copies are deleted.
   void RememberSelectedProvider(); // 0x40f6d0
-  void RememberSelectedSession(); // 0x40f790
+  void RememberSelectedSession();  // 0x40f790
   // The page changed: hide every control, then the page shows what it needs.
-  void HideControls(); // 0x40f850
-  void SetGameType(int type, int force, int apply); // 0x40f9f0 buttons 0x70 / 0x71
-  void SetSide(int side, int force, int apply); // 0x40fa70 buttons 0x6a / 0x6b
+  void HideControls();                                // 0x40f850
+  void SetGameType(int type, int force, int apply);   // 0x40f9f0 buttons 0x70 / 0x71
+  void SetSide(int side, int force, int apply);       // 0x40fa70 buttons 0x6a / 0x6b
   void SetGalaxySize(int size, int force, int apply); // 0x40faf0 buttons 0x6c / 0x6d / 0x6e
   // Shows or hides the host's choice buttons.
   void ShowSetupButtons(int show); // 0x40fbb0
@@ -128,49 +115,49 @@ public:
   void UpdateStartButtons(); // 0x4109e0
   // Back to the provider page after closing the session.
   void ReturnToProviderPage(); // 0x410b10
-  void ShowJoinPage(); // 0x410c70
-  void ShowHostPage(); // 0x410dd0
-  void ShowSetupPage(); // 0x410e90
+  void ShowJoinPage();         // 0x410c70
+  void ShowHostPage();         // 0x410dd0
+  void ShowSetupPage();        // 0x410e90
   // Default names: the account name and the computer name, preceded by the string resource of the page.
   std::string* GetDefaultPlayerName(std::string* out); // 0x411270
-  std::string* GetDefaultGameName(std::string* out); // 0x411340
+  std::string* GetDefaultGameName(std::string* out);   // 0x411340
   // Broadcasts the settings now and then so a late joiner picks them up.
   void PollSlotTable(); // 0x4115c0
   // Sends a message to the other player on category 1 and deletes it.
   void SendToPeer(MessageBase* message); // 0x4106f0
 
-  int m_ready; // +0x114 the controls exist
-  int m_closing; // +0x118 set when the window leaves; stops the timers' work
-  int m_isHost; // +0x11c the player creates the session
-  int m_side; // +0x120 1 or 2: the faction the host plays
-  int m_galaxySize; // +0x124 1, 2 or 3
-  int m_gameType; // +0x128 1 or 2
-  int m_page; // +0x12c MultiPlayerPage
-  uint32_t m_gameSeed; // +0x130 the seed the host chose for the galaxy
-  uint32_t m_lastPollTime; // +0x134 timeGetTime() of the last sign of the other player
-  uint32_t m_lastPlayerCount; // +0x138 CommMgr player count at the last ProcessNetwork
-  CoolStrobeButton* m_backButton; // +0x13c child 100
-  CoolStrobeButton* m_nextButton; // +0x140 child 0x65
-  CoolStrobeButton* m_startButton; // +0x144 child 0x66
-  CoolStrobeButton* m_joinModeButton; // +0x148 child 0x68
-  CoolStrobeButton* m_hostModeButton; // +0x14c child 0x69
-  CoolStrobeButton* m_sideButtonA; // +0x150 child 0x6a
-  CoolStrobeButton* m_sideButtonB; // +0x154 child 0x6b
-  CoolStrobeButton* m_sizeButton1; // +0x158 child 0x6c
-  CoolStrobeButton* m_sizeButton2; // +0x15c child 0x6d
-  CoolStrobeButton* m_sizeButton3; // +0x160 child 0x6e
-  CoolStrobeButton* m_loadButton; // +0x164 child 0x6f
-  CoolStrobeButton* m_typeButton1; // +0x168 child 0x70
-  CoolStrobeButton* m_typeButton2; // +0x16c child 0x71
-  CoolStringField* m_gameNameField; // +0x170 host page: name of the session
-  CoolStringField* m_hostNameField; // +0x174 host page: the player's name
-  CoolStringField* m_joinNameField; // +0x178 join page: the player's name
-  CoolStringField* m_chatInput; // +0x17c setup page
-  TextScrollField* m_chatLog; // +0x180 setup page
-  CoolDragList* m_providerList; // +0x184 items own a ServiceProviderInfo copy
-  CoolDragList* m_sessionList; // +0x188 items own a SessionInfo copy
+  int m_ready;                             // +0x114 the controls exist
+  int m_closing;                           // +0x118 set when the window leaves; stops the timers' work
+  int m_isHost;                            // +0x11c the player creates the session
+  int m_side;                              // +0x120 1 or 2: the faction the host plays
+  int m_galaxySize;                        // +0x124 1, 2 or 3
+  int m_gameType;                          // +0x128 1 or 2
+  int m_page;                              // +0x12c MultiPlayerPage
+  uint32_t m_gameSeed;                     // +0x130 the seed the host chose for the galaxy
+  uint32_t m_lastPollTime;                 // +0x134 timeGetTime() of the last sign of the other player
+  uint32_t m_lastPlayerCount;              // +0x138 CommMgr player count at the last ProcessNetwork
+  CoolStrobeButton* m_backButton;          // +0x13c child 100
+  CoolStrobeButton* m_nextButton;          // +0x140 child 0x65
+  CoolStrobeButton* m_startButton;         // +0x144 child 0x66
+  CoolStrobeButton* m_joinModeButton;      // +0x148 child 0x68
+  CoolStrobeButton* m_hostModeButton;      // +0x14c child 0x69
+  CoolStrobeButton* m_sideButtonA;         // +0x150 child 0x6a
+  CoolStrobeButton* m_sideButtonB;         // +0x154 child 0x6b
+  CoolStrobeButton* m_sizeButton1;         // +0x158 child 0x6c
+  CoolStrobeButton* m_sizeButton2;         // +0x15c child 0x6d
+  CoolStrobeButton* m_sizeButton3;         // +0x160 child 0x6e
+  CoolStrobeButton* m_loadButton;          // +0x164 child 0x6f
+  CoolStrobeButton* m_typeButton1;         // +0x168 child 0x70
+  CoolStrobeButton* m_typeButton2;         // +0x16c child 0x71
+  CoolStringField* m_gameNameField;        // +0x170 host page: name of the session
+  CoolStringField* m_hostNameField;        // +0x174 host page: the player's name
+  CoolStringField* m_joinNameField;        // +0x178 join page: the player's name
+  CoolStringField* m_chatInput;            // +0x17c setup page
+  TextScrollField* m_chatLog;              // +0x180 setup page
+  CoolDragList* m_providerList;            // +0x184 items own a ServiceProviderInfo copy
+  CoolDragList* m_sessionList;             // +0x188 items own a SessionInfo copy
   ServiceProviderInfo* m_selectedProvider; // +0x18c owned copy
-  SessionInfo* m_selectedSession; // +0x190 owned copy
+  SessionInfo* m_selectedSession;          // +0x190 owned copy
 };
 
 // Globals of the lobby.
@@ -178,17 +165,16 @@ public:
 extern const RECT g_rectSessionList; // 0x658778
 
 extern uint32_t g_lobbySlotTable[7]; // 0x6b1220, indexed 1..6: the saved game ids the players announced
-extern uint32_t g_lobbyFlags; // 0x6b123c bit 0: version message shown, bit 1: slot table received
+extern uint32_t g_lobbyFlags;        // 0x6b123c bit 0: version message shown, bit 1: slot table received
 extern uint32_t g_lobbySlotPollTime; // 0x6b1248 timeGetTime() of the last slot table broadcast (-1: send now)
 
 // Free helpers of the lobby, in this module's address range.
-int ParseLobbyText(const std::string* text,
-                   std::string* out,
-                   int stringGroup); // 0x40ffd0: expands the \x17 escape codes
-MessageBase* ReceiveLobbyMessage(); // 0x410790
+int ParseLobbyText(const std::string* text, std::string* out,
+                   int stringGroup);                                 // 0x40ffd0: expands the \x17 escape codes
+MessageBase* ReceiveLobbyMessage();                                  // 0x410790
 std::string* GetMessageText(TextMessage* message, std::string* out); // 0x411710: a copy of the text of a chat message
-int IsSlotAssigned(int slot); // 0x411410
-uint32_t GetSlotSaveId(int slot); // 0x411450
-void SetLobbyFlags(uint32_t flags); // 0x411490
-void SetSlotValue(int slot, uint32_t value); // 0x4114a0
-void BroadcastSlotTable(); // 0x4114c0
+int IsSlotAssigned(int slot);                                        // 0x411410
+uint32_t GetSlotSaveId(int slot);                                    // 0x411450
+void SetLobbyFlags(uint32_t flags);                                  // 0x411490
+void SetSlotValue(int slot, uint32_t value);                         // 0x4114a0
+void BroadcastSlotTable();                                           // 0x4114c0

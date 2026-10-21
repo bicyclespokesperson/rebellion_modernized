@@ -1,30 +1,29 @@
 // minwin_impl/config: the port's configuration file, which replaces the game's registry reads (advapi32 subset).
 //
-// File: INI-like text, one `key=value` per line, `#`/`;` comments. Keys before any section header are the port's own settings:
+// File: INI-like text, one `key=value` per line, `#`/`;` comments. Keys before any section header are the port's own
+// settings:
 //   install_dir    the game installation (REBEXE.EXE, the *.DLL resource libraries, GData, MDATA, EData, SaveGame)
-//   data_dir       where MDATA\ lives when it is not in install_dir (the CD, the "TooBig" location); defaults to install_dir
-//   font_path      full path of arial.ttf; when empty the text module searches the system and then falls back to Liberation Sans
-//   window_scale   integer scale of the 640x480 window, 1-8; 0 or absent: the largest that fits the display
-//   render_scale   GDI device-pixel scale, 1-4; 0 or absent: automatically fit the output
-//   upscale_filter sharp (default), nearest (fractional nearest), or integer (legacy integer scaling)
-//   fullscreen     1: start fullscreen; Alt+Enter toggles while playing (default 0)
-//   widescreen     1 (default): expand the gameplay map to fit the display; 0: classic 640x480
-//   hd_asset_dir   optional indexed HD pack directory, relative to this config file or absolute
-//   renderer       SDL render driver name ("software", "opengl", ...; default: SDL's choice, software when that fails)
-//   vsync          1: synchronise presentation with the display (default 0)
-//   audio_buffer   device buffer in sample frames (default 1024 at 44.1 kHz)
-//   alliance_ai    AI personality for Alliance games (default classic)
+//   data_dir       where MDATA\ lives when it is not in install_dir (the CD, the "TooBig" location); defaults to
+//   install_dir font_path      full path of arial.ttf; when empty the text module searches the system and then falls
+//   back to Liberation Sans window_scale   integer scale of the 640x480 window, 1-8; 0 or absent: the largest that fits
+//   the display render_scale   GDI device-pixel scale, 1-4; 0 or absent: automatically fit the output upscale_filter
+//   sharp (default), nearest (fractional nearest), or integer (legacy integer scaling) fullscreen     1: start
+//   fullscreen; Alt+Enter toggles while playing (default 0) widescreen     1 (default): expand the gameplay map to fit
+//   the display; 0: classic 640x480 hd_asset_dir   optional indexed HD pack directory, relative to this config file or
+//   absolute renderer       SDL render driver name ("software", "opengl", ...; default: SDL's choice, software when
+//   that fails) vsync          1: synchronise presentation with the display (default 0) audio_buffer   device buffer in
+//   sample frames (default 1024 at 44.1 kHz) alliance_ai    AI personality for Alliance games (default classic)
 //   empire_ai      AI personality for Empire games (default classic)
 // The `[registry]` section holds the values the game reads and writes under
 //   HKLM\SOFTWARE\LucasArts Entertainment Company LLC\Star Wars Rebellion
-// (DataLocation, DllLocation, InstalledLocation, TooBigLocation, EncyLocation, MismatchOpts, DisplayOpts, Volume, MusicVolume,
-// MusicSwitch). A DWORD is written `Name=dword:0000001f`, anything else is a string. The five *Location values default from
-// install_dir/data_dir when absent.
+// (DataLocation, DllLocation, InstalledLocation, TooBigLocation, EncyLocation, MismatchOpts, DisplayOpts, Volume,
+// MusicVolume, MusicSwitch). A DWORD is written `Name=dword:0000001f`, anything else is a string. The five *Location
+// values default from install_dir/data_dir when absent.
 //
 // Location of the file (first that applies): $REBELLION_CONFIG; then
-//   Linux    $XDG_CONFIG_HOME/rebellion/config.ini, else ~/.config/rebellion/config.ini  (src/port/native/platform_linux.cpp)
-//   macOS    ~/Library/Application Support/Rebellion/config.ini  (src/port/native/platform_macos.cpp)
-//   Windows  %APPDATA%\Rebellion\config.ini
+//   Linux    $XDG_CONFIG_HOME/rebellion/config.ini, else ~/.config/rebellion/config.ini
+//   (src/port/native/platform_linux.cpp) macOS    ~/Library/Application Support/Rebellion/config.ini
+//   (src/port/native/platform_macos.cpp) Windows  %APPDATA%\Rebellion\config.ini
 #pragma once
 #include <stdint.h>
 
@@ -36,15 +35,9 @@ namespace mw::config
 
 constexpr const char* kRegistrySubKey = "SOFTWARE\\LucasArts Entertainment Company LLC\\Star Wars Rebellion";
 
-enum class ValueType : uint32_t
-{
-  None = 0,
-  String = 1,
-  Dword = 4
-};
+enum class ValueType : uint32_t { None = 0, String = 1, Dword = 4 };
 
-struct RegistryValue
-{
+struct RegistryValue {
   ValueType type = ValueType::None;
   std::string text;
   uint32_t dword = 0;
@@ -52,7 +45,7 @@ struct RegistryValue
 
 class Config
 {
-public:
+  public:
   static std::string DefaultPath();
 
   bool Load(const std::string& path);
@@ -62,6 +55,7 @@ public:
 
   std::string Get(const std::string& key, const std::string& fallback = std::string()) const;
   void Set(const std::string& key, const std::string& value);
+  void Erase(const std::string& key);
 
   std::string InstallDir() const
   {
@@ -77,9 +71,8 @@ public:
   bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
   void SetRegistryValue(const std::string& name, const RegistryValue& value);
 
-private:
-  struct Entry
-  {
+  private:
+  struct Entry {
     std::string key;
     std::string value;
   };
@@ -87,7 +80,8 @@ private:
   std::vector<Entry> m_registry;
 };
 
-// The process-wide configuration, loaded from DefaultPath() on first use. SetGlobalPath() replaces it (tests, --config).
+// The process-wide configuration, loaded from DefaultPath() on first use. SetGlobalPath() replaces it (tests,
+// --config).
 Config& Global();
 void SetGlobalPath(const std::string& path);
 const std::string& GlobalPath();

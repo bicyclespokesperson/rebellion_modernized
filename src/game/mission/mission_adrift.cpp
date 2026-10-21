@@ -1,6 +1,6 @@
 #include "mission/mission_adrift.h"
 
-extern int g_missionAdriftEventKindsReady; // 0x6bbb18
+extern int g_missionAdriftEventKindsReady;     // 0x6bbb18
 extern EventKindSet g_missionAdriftEventKinds; // 0x6bbb10
 
 namespace
@@ -80,8 +80,7 @@ GameObjNotifier* MissionAdrift::Create()
 int MissionAdrift::BuildEventKinds()
 {
   int result = 1;
-  if (!g_missionAdriftEventKindsReady)
-  {
+  if (!g_missionAdriftEventKindsReady) {
     g_missionAdriftEventKindsReady = 1;
     result = MissionTypeBase::InitEventKinds(0, &g_missionAdriftEventKinds);
   }

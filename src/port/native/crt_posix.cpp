@@ -1,15 +1,15 @@
 // The MSVC CRT functions the game calls that POSIX does not have under that name, and the stand-ins for the original's
-// statically linked helpers (the counterpart of src/standalone/crt_shims.cpp). Windows-style path names are translated by the
-// resource library's ResolvePath (backslashes, drive letters, any case).
+// statically linked helpers. Windows-style path names are translated
+// by the resource library's ResolvePath (backslashes, drive letters, any case).
 //
-// There is no text mode here: the game opens everything in binary mode (src/game/core/file_util.cpp, sound_source.cpp), so
-// the CRLF translation of the MSVC CRT is never needed.
+// There is no text mode here: the game opens everything in binary mode (src/game/core/file_util.cpp, sound_source.cpp),
+// so the CRLF translation of the MSVC CRT is never needed.
 #include <cctype>
 #include <cerrno>
-#include <fcntl.h>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -33,14 +33,18 @@ constexpr int kAccessMask = 3;
 int PosixOpenFlags(int msvcFlags)
 {
   int flags = msvcFlags & kAccessMask;
-  if (msvcFlags & kMsvcAppend)
+  if (msvcFlags & kMsvcAppend) {
     flags |= O_APPEND;
-  if (msvcFlags & kMsvcCreate)
+  }
+  if (msvcFlags & kMsvcCreate) {
     flags |= O_CREAT;
-  if (msvcFlags & kMsvcTruncate)
+  }
+  if (msvcFlags & kMsvcTruncate) {
     flags |= O_TRUNC;
-  if (msvcFlags & kMsvcExclusive)
+  }
+  if (msvcFlags & kMsvcExclusive) {
     flags |= O_EXCL;
+  }
   return flags | O_CLOEXEC;
 }
 
@@ -85,19 +89,6 @@ int _mkdir(const char* path)
 int _chdrive(int)
 {
   return 0;
-}
-
-int _isprint(int c)
-{
-  return isprint(c);
-}
-int _isspace(int c)
-{
-  return isspace(c);
-}
-int _ispunct(int c)
-{
-  return ispunct(c);
 }
 
 } // extern "C"

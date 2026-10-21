@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <array>
+#include <clocale>
 #include <cstring>
 #include <limits>
-#include <clocale>
 
 #include "core/stream_io.h"
 #include "iostream/iostream.h"
@@ -18,11 +18,13 @@ StringLoader stringLoader = nullptr;
 
 std::string LoadResource(const ResourceStringId* resource)
 {
-  if (!resource)
+  if (!resource) {
     return {};
+  }
   std::array<char, 256> buffer{};
-  if (stringLoader && !stringLoader(resource, static_cast<int>(buffer.size()), buffer.data()))
+  if (stringLoader && !stringLoader(resource, static_cast<int>(buffer.size()), buffer.data())) {
     return {};
+  }
   buffer.back() = '\0';
   return buffer.data();
 }
@@ -59,8 +61,9 @@ void SetLocaleFromEnvironment()
 
 int AppendSpaces(std::string& text, int count)
 {
-  if (count > 0)
+  if (count > 0) {
     text.append(static_cast<size_t>(count), ' ');
+  }
   return 1;
 }
 
@@ -71,14 +74,16 @@ void InsertString(std::string& text, const std::string& other, int position)
 
 void InsertCharacter(std::string& text, char character, int position)
 {
-  if (character != '\0')
+  if (character != '\0') {
     text.insert(InsertPosition(position, text.size()), 1, character);
+  }
 }
 
 void RemoveStringRange(std::string& text, int start, int end)
 {
-  if (start < 0 || end <= start || static_cast<size_t>(end) > text.size())
+  if (start < 0 || end <= start || static_cast<size_t>(end) > text.size()) {
     return;
+  }
   text.erase(static_cast<size_t>(start), static_cast<size_t>(end - start));
 }
 
@@ -90,15 +95,17 @@ int CompareStrings(const std::string& first, const std::string& second)
 
 int CompareStringsN(const std::string& first, const std::string& second, size_t count, bool caseSensitive)
 {
-  if (caseSensitive)
+  if (caseSensitive) {
     return std::strncmp(first.c_str(), second.c_str(), count);
+  }
   return _strnicmp(first.c_str(), second.c_str(), count);
 }
 
 bool StartsWithNonVowel(const std::string& text)
 {
-  if (text.empty())
+  if (text.empty()) {
     return false;
+  }
   const char* vowels = g_vowelCharacters ? g_vowelCharacters : "aeiouAEIOU";
   return std::strchr(vowels, text.front()) == nullptr;
 }
@@ -107,14 +114,15 @@ bool ReadLegacyString(istream* in, std::string& text)
 {
   uint16_t length = 0;
   StreamRead16(in, &length);
-  if (in->m_gcount != sizeof(length) || iostream_access::IosOf(in)->m_state != 0)
+  if (in->m_gcount != sizeof(length) || iostream_access::IosOf(in)->m_state != 0) {
     return false;
+  }
   std::string replacement(length, '\0');
-  if (length != 0)
-  {
+  if (length != 0) {
     istream_read(in, replacement.data(), length);
-    if (in->m_gcount != length || iostream_access::IosOf(in)->m_state != 0)
+    if (in->m_gcount != length || iostream_access::IosOf(in)->m_state != 0) {
       return false;
+    }
   }
   text = std::move(replacement);
   return true;
@@ -122,15 +130,15 @@ bool ReadLegacyString(istream* in, std::string& text)
 
 bool WriteLegacyString(ostream* out, const std::string& text)
 {
-  if (text.size() > std::numeric_limits<uint16_t>::max())
-  {
+  if (text.size() > std::numeric_limits<uint16_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
     return false;
   }
   const auto length = static_cast<uint16_t>(text.size());
   StreamWrite16(out, &length);
-  if (length != 0)
+  if (length != 0) {
     ostream_write(out, text.data(), length);
+  }
   return iostream_access::IosOf(out)->m_state == 0;
 }
 
@@ -147,8 +155,9 @@ StringCursor& StringCursor::Attach(const std::string& text)
 
 StringCursor& StringCursor::operator++()
 {
-  if (m_current && *m_current)
+  if (m_current && *m_current) {
     ++m_current;
+  }
   return *this;
 }
 
@@ -162,8 +171,9 @@ StringCursor StringCursor::operator++(int)
 StringCursor StringCursor::operator--(int)
 {
   StringCursor previous(*this);
-  if (m_current && m_current > m_begin)
+  if (m_current && m_current > m_begin) {
     --m_current;
+  }
   return previous;
 }
 

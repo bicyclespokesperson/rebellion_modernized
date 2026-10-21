@@ -11,14 +11,6 @@ Apple SDK explicitly because the Apple Clang compilation database may omit its i
 
 Apply one modernization family at a time. For example, on macOS:
 
-The final formatting pass uses the same pinned LLVM version. `.clang-format` parses current C++ syntax and leaves
-qualifier order unchanged, keeping this pass limited to presentation. Format tracked C/C++ sources and headers in
-`src/game`, `src/port/native`, and the maintained `src/port/minwin_impl` implementation directories, plus the minwin
-interface headers, native tests, stream test support and compiled port trace/simulation files. Exclude third-party code,
-generated include data, `src/hybrid`, `src/standalone`, archival platform comparison tests and minwin layout checks.
-Record the formatting-only commit in `.git-blame-ignore-revs`; use `git config blame.ignoreRevsFile .git-blame-ignore-revs`
-locally to omit it from blame.
-
 ```bash
 LLVM_ROOT="/path/to/LLVM-22.1.4-macOS-ARM64"
 BUILD_DIR="build/native"
@@ -36,15 +28,24 @@ uv run --with pyyaml "$LLVM_ROOT/bin/run-clang-tidy" \
 On another host, use its native compilation database and SDK discovery. Review every replacement and any compiler
 errors, build, and run the short save/reload smoke before committing each family. Run fix collections sequentially
 because different translation units can propose edits to the same header. Do not pass `-format`; formatting stays
-separate until the rewrite is complete. The configuration also specifies `FormatStyle: none`.
+separate. The configuration also specifies `FormatStyle: none`.
 
-Bugprone/performance findings are triaged in [clang_tidy_findings.md](clang_tidy_findings.md). Diagnostics do not authorize
-bulk signature changes. Run a survey without `-fix`; enable or apply additional checks only after reviewing their
-assumptions and affected callers.
+Run bugprone and performance surveys without `-fix`; diagnostics do not authorize bulk signature changes. Two kinds
+of warning are known: `bugprone-virtual-near-miss` reports on hooks such as `CheckActivityStatus3` and
+`CheckRequestImpl2` are intentional, distinct recovered virtual slots, not missing overrides; and
+`performance-unnecessary-value-param` alone does not make borrowing by const reference safe (custom `String` values
+can carry ownership), so do not bulk-convert by-value parameters to const references. Change such a signature only
+while reviewing ownership across all its declarations and call sites. Enable or apply other checks only after
+reviewing their assumptions and affected callers.
 
-The A2 pass intentionally retains 13 first-declaration inline constructors in the tactical headers. Defaulting those
-can change value-initialization behavior. Their repeated `modernize-use-equals-default` diagnostics are reviewed
-exceptions; the other three modernization families have no outstanding diagnostics on the native host configuration.
+## Formatting
+
+Formatting uses the same pinned LLVM version. `.clang-format` parses current C++ syntax and leaves qualifier order
+unchanged, keeping a formatting pass limited to presentation. Format tracked C/C++ sources and headers in `src/game`,
+`src/port/native`, and the maintained `src/port/minwin_impl` implementation directories, plus the minwin interface
+headers, native tests, stream test support and compiled port trace/simulation files. Exclude third-party code and
+generated include data. Record formatting-only commits in `.git-blame-ignore-revs`; use
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` locally to omit them from blame.
 
 ## Additional automatic modernization checks
 
@@ -56,26 +57,7 @@ The configuration also enables 16 fixable checks: `modernize-concat-nested-names
 `modernize-use-transparent-functors`, and `modernize-use-using`.
 Loop conversion requires `MinConfidence: safe`; alias conversion skips `extern "C"` blocks.
 
-The 2026-10-13 pass surveyed 526 compiled first-party files and applied clang-tidy's exported replacements without
-formatting. Duplicate header diagnostics were consolidated before applying the replacements.
-
-| Check | Fixed sites |
-| --- | ---: |
-| `modernize-use-auto` | 1249 |
-| `modernize-use-using` | 184 |
-| `modernize-deprecated-headers` | 93 |
-| `modernize-return-braced-init-list` | 16 |
-| `modernize-loop-convert` | 12 |
-| `modernize-use-starts-ends-with` | 3 |
-| `modernize-use-bool-literals` | 2 |
-
-The other nine added checks found no eligible changes. Five braced-return diagnostics have no automatic fixes and
-remain unchanged: three in `app_save_load.cpp`, one in `rebapp_globals.cpp`, and one in `dib_hd_tests.cpp`.
-
-LLVM 22.1.4's alias fixes dropped pointee `const` from eight aliases in `minwin/base.h`, `minwin/dsound.h`, and
-`minwin/winmm.h`. Spot fixes restored the original qualifiers; review alias changes for this issue before accepting
-future fixes. The native build, all 18 CTest tests, and the two-process save/reload smoke passed after these repairs.
-
-Two header replacements initially lacked fixes because the same source had multiple compilation commands. A
-first-party compilation database retaining one native command per source let clang-tidy apply those replacements.
-The survey, exported fixes, and validation logs are retained locally under `work/tidy-modernize/`.
+LLVM 22.1.4's alias fixes can drop pointee `const` (they did for eight aliases in `minwin/base.h`, `minwin/dsound.h`
+and `minwin/winmm.h`); review alias changes for this before accepting them. Header replacements can lack fixes when
+the same source has several compilation commands; a first-party compilation database with one native command per
+source avoids that.

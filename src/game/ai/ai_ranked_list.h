@@ -16,29 +16,29 @@
 
 class AiRankedItem : public LinkNode
 {
-public:
-  AiRankedItem(); // 0x41c2e0
+  public:
+  AiRankedItem();                                // 0x41c2e0
   AiRankedItem(const ObjectKey& key, int score); // 0x41c360
-  explicit AiRankedItem(AiRankedItem* other); // 0x41c3d0
-  ~AiRankedItem() override; // 0: 0x41c340 (deleting), 0x41c460
-  void Read(istream* in) override; // 1: 0x41c510
-  void Write(ostream* out) override; // 2: 0x41c540
-  virtual AiRankedItem* Clone(); // 3: 0x41c4b0
+  explicit AiRankedItem(AiRankedItem* other);    // 0x41c3d0
+  ~AiRankedItem() override;                      // 0: 0x41c340 (deleting), 0x41c460
+  void Read(istream* in) override;               // 1: 0x41c510
+  void Write(ostream* out) override;             // 2: 0x41c540
+  virtual AiRankedItem* Clone();                 // 3: 0x41c4b0
 
   ObjectKey* GetKey(ObjectKey* out); // 0x41c2c0
 
   ObjectKey m_key; // +0x0c
-  int m_score; // +0x10
-  int m_rank; // +0x14
+  int m_score;     // +0x10
+  int m_rank;      // +0x14
 };
 
 class AiRankedList : public IdLinkNode
 {
-public:
-  AiRankedList(); // 0x41be00
+  public:
+  AiRankedList();                        // 0x41be00
   explicit AiRankedList(int descending); // 0x41be80
-  ~AiRankedList() override; // 0: 0x41be60 (deleting), 0x41bee0
-  void Clear(); // 0x41c220
+  ~AiRankedList() override;              // 0: 0x41be60 (deleting), 0x41bee0
+  void Clear();                          // 0x41c220
   int Insert(AiRankedItem* item);
   int Remove(AiRankedItem* item);
   size_t Count() const
@@ -55,28 +55,30 @@ public:
   }
   auto PositionOf(const AiRankedItem* item) const
   {
-    for (auto position = m_items.cbegin(); position != m_items.cend(); ++position)
-      if ((*position).get() == item)
+    for (auto position = m_items.cbegin(); position != m_items.cend(); ++position) {
+      if ((*position).get() == item) {
         return position;
+      }
+    }
     return m_items.cend();
   }
 
   // IdLinkNode vtable slots 1 and 2: the original functions take the IdLinkNode subobject.
-  void Read(istream* in) override; // 0x41bf50
+  void Read(istream* in) override;   // 0x41bf50
   void Write(ostream* out) override; // 0x41c010
 
-  uint32_t AddItem(AiRankedItem* item); // 0x41c070: key id part, or 0 if the key is incomplete
+  uint32_t AddItem(AiRankedItem* item);          // 0x41c070: key id part, or 0 if the key is incomplete
   AiRankedItem* RemoveKey(const ObjectKey* key); // 0x41c120
-  AiRankedItem* FindKey(const ObjectKey* key); // 0x41c150
-  AiRankedItem* First() const; // 0x41c210
-  void Number(); // 0x41c230
+  AiRankedItem* FindKey(const ObjectKey* key);   // 0x41c150
+  AiRankedItem* First() const;                   // 0x41c210
+  void Number();                                 // 0x41c230
 
   int m_descending; // +0x1c
 
-private:
+  private:
   using ItemList = std::list<std::unique_ptr<AiRankedItem>>;
   ItemList m_items;
 };
 
-void AiRankedListRead(IdLinkNode* base, istream* in); // 0x41bf50
+void AiRankedListRead(IdLinkNode* base, istream* in);   // 0x41bf50
 void AiRankedListWrite(IdLinkNode* base, ostream* out); // 0x41c010

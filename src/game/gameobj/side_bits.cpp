@@ -11,8 +11,7 @@ constexpr uint32_t kUnusedBits = 0xffffffc0;
 
 const char* sideName(uint32_t side)
 {
-  switch (side)
-  {
+  switch (side) {
     case 1:
       return "Alliance";
     case 2:
@@ -42,14 +41,16 @@ SideBits::SideBits(uint32_t value)
   Reset();
   const bool controllerSet = (value & 3) != 0;
   const bool loyaltySet = ((value >> 2) & 3) != 0;
-  if (controllerSet && loyaltySet && (value & kUnusedBits) == 0)
+  if (controllerSet && loyaltySet && (value & kUnusedBits) == 0) {
     m_value = value;
+  }
 }
 
 SideBits& SideBits::operator=(const SideBits& other)
 {
-  if (this != &other)
+  if (this != &other) {
     Assign(other);
+  }
   return *this;
 }
 

@@ -18,15 +18,19 @@ DibBitmap* DuplicateBitmap(DibBitmap* source)
 // Replaces `image` by RT_BITMAP `id` of `module` (none for id 0).
 void ReloadImage(DibBitmap*& image, uint16_t id, HMODULE module)
 {
-  if (image)
+  if (image) {
     delete image;
-  image =
-    id != 0 ? NewOrNull<DibBitmap>(module, static_cast<uint32_t>(id), static_cast<uint32_t>(kDibResource)) : nullptr;
+  }
+  image = id != 0 ? NewOrNull<DibBitmap>(module, static_cast<uint32_t>(id), static_cast<uint32_t>(kDibResource))
+                  : nullptr;
 }
 
 } // namespace
 
-CoolListItem::CoolListItem(uint32_t id) : LinkNode(), m_text(), m_state(0)
+CoolListItem::CoolListItem(uint32_t id)
+    : LinkNode()
+    , m_text()
+    , m_state(0)
 {
   m_id = id;
   m_image = nullptr;
@@ -47,7 +51,10 @@ CoolListItem::CoolListItem(uint32_t id) : LinkNode(), m_text(), m_state(0)
   m_hoverColor = kWhite;
 }
 
-CoolListItem::CoolListItem(const CoolListItem& other) : LinkNode(), m_text(), m_state(0)
+CoolListItem::CoolListItem(const CoolListItem& other)
+    : LinkNode()
+    , m_text()
+    , m_state(0)
 {
   m_id = other.m_id;
   m_imageId = other.m_imageId;
@@ -66,38 +73,41 @@ CoolListItem::CoolListItem(const CoolListItem& other) : LinkNode(), m_text(), m_
   m_hoverColor = other.m_hoverColor;
   m_image = nullptr;
   m_selectedImage = nullptr;
-  CopyRect(&m_rect, &other.m_rect);
+  reb::compat::CopyRect(&m_rect, &other.m_rect);
   m_text = other.m_text;
-  if (other.m_image)
+  if (other.m_image) {
     m_image = DuplicateBitmap(other.m_image);
-  if (other.m_selectedImage)
+  }
+  if (other.m_selectedImage) {
     m_selectedImage = DuplicateBitmap(other.m_selectedImage);
+  }
 }
 
 CoolListItem::~CoolListItem()
 {
-  if (m_image)
+  if (m_image) {
     delete m_image;
-  if (m_selectedImage)
+  }
+  if (m_selectedImage) {
     delete m_selectedImage;
+  }
 }
 
 DibBitmap* CoolListItem::CurrentImage()
 {
-  if ((m_state.m_value & kListItemDisabled) == 0 && (m_state.m_value & kListItemSelected) != 0)
+  if ((m_state.m_value & kListItemDisabled) == 0 && (m_state.m_value & kListItemSelected) != 0) {
     return m_selectedImage;
+  }
   return m_image;
 }
 
 void CoolListItem::SetImageIds(uint16_t imageId, uint16_t selectedImageId, HMODULE module)
 {
-  if (m_imageId != imageId)
-  {
+  if (m_imageId != imageId) {
     m_imageId = imageId;
     ReloadImage(m_image, m_imageId, module);
   }
-  if (m_selectedImageId != selectedImageId)
-  {
+  if (m_selectedImageId != selectedImageId) {
     m_selectedImageId = selectedImageId;
     ReloadImage(m_selectedImage, m_selectedImageId, module);
   }
@@ -105,16 +115,16 @@ void CoolListItem::SetImageIds(uint16_t imageId, uint16_t selectedImageId, HMODU
 
 void CoolListItem::SetImages(DibBitmap* image, DibBitmap* selectedImage)
 {
-  if (image)
-  {
-    if (m_image)
+  if (image) {
+    if (m_image) {
       delete m_image;
+    }
     m_image = image;
   }
-  if (selectedImage)
-  {
-    if (m_selectedImage)
+  if (selectedImage) {
+    if (m_selectedImage) {
       delete m_selectedImage;
+    }
     m_selectedImage = selectedImage;
   }
 }

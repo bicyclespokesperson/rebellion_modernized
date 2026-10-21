@@ -5,15 +5,9 @@
 namespace minwin
 {
 
-struct InputEvent
-{
-  enum Type
-  {
-    MouseMove,
-    MouseButton,
-    Key
-  } type;
-  int x, y; // screen coordinates (mouse)
+struct InputEvent {
+  enum Type { MouseMove, MouseButton, Key } type;
+  int x, y;   // screen coordinates (mouse)
   int button; // 1 left, 2 right, 3 middle
   bool down;
   int clicks;
@@ -29,8 +23,9 @@ struct InputEvent
   MSG msg; // the message to deliver, valid after FinalizeInput
 };
 
-// Turns a raw event into the message(s) Windows would produce at retrieval time: hit-testing (WM_NCHITTEST), WM_PARENTNOTIFY,
-// WM_MOUSEACTIVATE, window activation and WM_SETCURSOR happen here, in that order. False discards the event.
+// Turns a raw event into the message(s) Windows would produce at retrieval time: hit-testing (WM_NCHITTEST),
+// WM_PARENTNOTIFY, WM_MOUSEACTIVATE, window activation and WM_SETCURSOR happen here, in that order. False discards the
+// event.
 bool FinalizeInput(InputEvent* event);
 void QueueInputEvent(const InputEvent& event);
 void RecordKeyChar(WPARAM vk, LPARAM lParam, unsigned ch);

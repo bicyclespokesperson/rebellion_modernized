@@ -19,7 +19,11 @@ constexpr int kTaskCreationOrder[] = {0xd, 2, 1, 3, 6, 7, 4, 5, 8, 9, 10, 0xb, 0
 
 } // namespace
 
-AiPlayer::AiPlayer() : PlayerController(), m_notices(), m_tasks(), m_model()
+AiPlayer::AiPlayer()
+    : PlayerController()
+    , m_notices()
+    , m_tasks()
+    , m_model()
 {
   m_state = 0;
   m_currentTask = nullptr;
@@ -30,7 +34,11 @@ AiPlayer::AiPlayer() : PlayerController(), m_notices(), m_tasks(), m_model()
   m_ordersPerBudget = 0;
 }
 
-AiPlayer::AiPlayer(int side) : PlayerController(side), m_notices(), m_tasks(), m_model()
+AiPlayer::AiPlayer(int side)
+    : PlayerController(side)
+    , m_notices()
+    , m_tasks()
+    , m_model()
 {
   m_state = 1;
   m_currentTask = nullptr;
@@ -70,8 +78,9 @@ void AiPlayer::Write(ostream* out)
   m_notices.Save(out);
   m_tasks.Save(out);
   WriteValue32(out, &m_state);
-  if (m_currentTask)
+  if (m_currentTask) {
     currentId = m_currentTask->m_id;
+  }
   WriteValue32(out, &currentId);
   WriteValue32(out, &m_tasksOff);
   WriteValue32(out, &m_turnCount);
@@ -82,19 +91,19 @@ void AiPlayer::Write(ostream* out)
 
 int AiPlayer::StepInitialization()
 {
-  if (m_state == 1)
-  {
-    if (m_model.Step() != 0)
+  if (m_state == 1) {
+    if (m_model.Step() != 0) {
       m_state = 2;
+    }
     return 0;
   }
-  if (m_state != 2)
-  {
+  if (m_state != 2) {
     m_state = 1;
     return 0;
   }
-  for (const int type : kTaskCreationOrder)
+  for (const int type : kTaskCreationOrder) {
     m_tasks.CreateTask(type, &m_model);
+  }
   m_ordersPerBudget = 10;
   m_state = 4;
   return 1;
@@ -103,71 +112,67 @@ int AiPlayer::StepInitialization()
 int AiPlayer::StepPlayer()
 {
   int result = 0;
-  if (m_state == 3)
-  {
+  if (m_state == 3) {
     bool ranTask = false;
-    if (m_ordersSent < m_ordersPerBudget)
-    {
-      if (m_currentTask == nullptr)
-      {
+    if (m_ordersSent < m_ordersPerBudget) {
+      if (m_currentTask == nullptr) {
         m_currentTask = m_tasks.SelectNext();
-        if (m_currentTask != nullptr)
+        if (m_currentTask != nullptr) {
           return result;
-      }
-      else
-      {
+        }
+      } else {
         m_currentTask->m_priority = 0;
         OrderBase* order = m_currentTask->Step();
-        if (order)
-        {
+        if (order) {
           StatusCode status;
           ranTask = true;
-          if (!AcceptTaskOrder(order) || order->CheckValid(&status) == 0)
-          {
+          if (!AcceptTaskOrder(order) || order->CheckValid(&status) == 0) {
             m_currentTask->Refused(&result, order);
-          }
-          else
-          {
+          } else {
             Send(order);
-            if (order->GetKind() != kAdvisorOrderKind)
+            if (order->GetKind() != kAdvisorOrderKind) {
               ++m_ordersSent;
+            }
           }
         }
-        if (m_currentTask->m_finished == 0)
+        if (m_currentTask->m_finished == 0) {
           return result;
+        }
         m_currentTask->m_flags.m_value = 0;
         m_currentTask = nullptr;
-        if (!ranTask && (static_cast<uint32_t>(m_model.m_flags.m_value) & 0x80000000) == 0)
+        if (!ranTask && (static_cast<uint32_t>(m_model.m_flags.m_value) & 0x80000000) == 0) {
           return result;
+        }
       }
     }
     m_state = 4;
     return 1;
   }
-  if (m_state == 4)
-  {
-    if (m_model.Analyze() == 0)
+  if (m_state == 4) {
+    if (m_model.Analyze() == 0) {
       return result;
+    }
     m_state = 5;
     return result;
   }
-  if (m_state != 5)
-  {
+  if (m_state != 5) {
     m_state = 4;
     return 0;
   }
-  if (m_tasksOff == 0)
-  {
-    if (m_currentTask == nullptr)
+  if (m_tasksOff == 0) {
+    if (m_currentTask == nullptr) {
       m_currentTask = m_tasks.First();
+    }
     m_currentTask->Evaluate();
     auto position = m_tasks.PositionOf(m_currentTask);
-    if (position != m_tasks.Entries().end())
+    if (position != m_tasks.Entries().end()) {
       ++position;
+    }
     m_currentTask = position == m_tasks.Entries().end() ? nullptr : position->second.get();
   }
-  if (m_currentTask != nullptr)
+  if (m_currentTask != nullptr) {
     return result;
+  }
   m_state = 3;
   return result;
 }
@@ -175,18 +180,19 @@ int AiPlayer::StepPlayer()
 void AiPlayer::ProcessPlayerFrame()
 {
   AiNoticeGroup* group = m_notices.DetachFinished();
-  if (group)
+  if (group) {
     delete group;
+  }
 }
 
 void AiPlayer::BeginVote(int id, ObjectKey* key)
 {
   ClearGameTime(&m_voteTime);
-  if (m_tasksOff == 0)
-  {
+  if (m_tasksOff == 0) {
     auto* task = static_cast<AiTaskBase*>(m_tasks.FindById(kVoteTaskType));
-    if (task)
+    if (task) {
       static_cast<AiTask13*>(task)->ForwardVote(key, &m_voteTime);
+    }
   }
   m_voteId = id;
   m_voteKey = *key;
@@ -203,19 +209,20 @@ void AiPlayer::ResetVote(int id, ObjectKey* key)
 
 void AiPlayer::HandleNotification(NotifPayload* notice)
 {
-  if (!notice)
+  if (!notice) {
     return;
+  }
   notice->Dispatch(this);
-  if (notice->m_value0c != 0)
+  if (notice->m_value0c != 0) {
     notice->DispatchToSink(nullptr);
+  }
   m_notices.Add(std::unique_ptr<NotifPayload>(notice));
 }
 
 void AiPlayer::AdvanceOrderBudget()
 {
   ++m_turnCount;
-  if (m_turnsPerBudget <= m_turnCount)
-  {
+  if (m_turnsPerBudget <= m_turnCount) {
     m_turnCount = 0;
     m_ordersSent = 0;
   }
@@ -282,11 +289,11 @@ void AiPlayer::RequestSyncTarget(unsigned target)
 
 void AiPlayer::AcknowledgeSync(int side)
 {
-  if (m_side == side)
-  {
+  if (m_side == side) {
     m_syncTarget = 0;
     return;
   }
-  if (m_syncTarget != 0)
+  if (m_syncTarget != 0) {
     UiAckSync(m_side);
+  }
 }

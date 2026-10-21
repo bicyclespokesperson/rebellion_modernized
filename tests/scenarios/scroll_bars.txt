@@ -1,6 +1,6 @@
 # Scroll bar workout in a loaded game (RebelsFastStart, Alliance, paused): opens the Galactic Encyclopedia
 # (F7), whose list has a vertical CoolScrollBar at x~442 (up arrow y~190, down arrow y~342), and clicks the
-# arrows, the track below/above the thumb and the thumb itself. Runtime ~85 s. See docs/ui_navigation.md.
+# arrows, the track below/above the thumb and the thumb itself. Runtime ~85 s.
 12 key Escape
 16 key Escape
 20 key Escape

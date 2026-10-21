@@ -1,89 +1,55 @@
-# Architecture
+# How this was built
 
-Goal: a source-level reconstruction of *Star Wars: Rebellion* (1998, Coolhand Interactive / LucasArts) that
-runs natively on modern Linux and macOS. The game logic is decompiled faithfully from `REBEXE.EXE`; the
-platform layer (Win32 windowing, DirectDraw, DirectSound, Smacker video, DirectPlay) is replaced.
+This is a source-level reconstruction of *Star Wars: Rebellion* (1998, Coolhand Interactive / LucasArts) that runs
+natively on macOS, Linux and Windows. The strategic game logic was reconstructed from `REBEXE.EXE`; the Win32
+platform underneath it (windowing, DirectDraw, DirectSound, Smacker video, DirectPlay) was replaced.
 
-## The binary
+## The original binaries
 
 | | |
 |---|---|
 | Code | All game code is in `REBEXE.EXE` (MSVC 5.0, linker 5.10, `/GX`, no RTTI on game classes, identical-function folding on). Image base 0x400000, no relocations. |
-| Game functions | ~14,080 (2.0 MB) at 0x401000–0x615345, plus compiler-generated helpers at 0x628e10–0x62908f. ~3,560 of them (virtual methods reached only via vtables, static initializers) were not found by Ghidra's auto-analysis and were created from `symbols/missed_functions.csv` |
-| Library code | 0x6153b0–0x628e0f: old iostream library (LIBCI) then LIBCMT + EH runtime — see [library_code.md](library_code.md) |
-| Not code | ~11,350 `Unwind@` EH funclets (0x629090+) — compiler-generated, never decompiled |
-| Other DLLs | Resource-only (bitmaps, waves, strings, dialogs) except `SMACKW32.DLL` (RAD Smacker) and `d3drm.dll` (Microsoft Direct3D Retained Mode) |
+| Game functions | ~14,080 (2.0 MB) at 0x401000–0x615345, plus compiler-generated helpers at 0x628e10–0x62908f. ~3,560 of them (virtual methods reached only via vtables, static initializers) were not found by Ghidra's auto-analysis and were created from `symbols/missed_functions.csv`. |
+| Library code | 0x6153b0–0x628e0f: the old iostream library (LIBCI), then LIBCMT and the EH runtime. |
+| Not code | ~11,350 `Unwind@` EH funclets (0x629090+), compiler-generated and never decompiled. |
+| Other DLLs | Resource-only (bitmaps, waves, strings, dialogs) except `SMACKW32.DLL` (RAD Smacker) and `d3drm.dll` (Direct3D Retained Mode). |
 
-## Approach: hybrid first, then standalone
+## How the reconstruction worked
 
-**Phase 1 — Hybrid (current).** A proxy `SMACKW32.DLL` (REBEXE imports it statically) is loaded into the
-original game running under Wine. It forwards the Smacker exports to the real DLL (`smackorig.dll`) and on
-load patches every reimplemented function in `REBEXE.EXE` with a `jmp` to the reconstruction. The game is
-playable at every step, so each function is verified in its real context.
+The executable was analysed in Ghidra and rewritten in C++ function by function. Each reconstructed function was
+first loaded into the running original game in place of its machine code and checked against the original, both by
+replaying captured calls and by playing. Once every function was reconstructed, the same sources were linked into a
+standalone executable without `REBEXE.EXE`, and then ported from Win32/DirectX to SDL3 through `minwin`, a small
+platform layer that implements the subset of Win32 the game uses. The original toolchain, ABI and verification
+harnesses have since been retired, and the code modernized (see
+[modernization decisions](design/modernization_aggressive.md)); they remain in the repository history. No
+decompiler output is committed.
 
-Link-time glue (`tools/gen_link_symbols.py`) keeps the source free of addresses:
+The original 3D tactical mode was not reconstructed. Since 2026-10-19 `src/game/space_battle/` is the only battle
+simulator: it runs live for Take Command and headless for Simulate Results and AI battles, behind the strategic
+`BattleSetup` / `BattleResults` seam in `src/game/app/`, with its SDL presenter in `src/port/native/space_battle/`.
+See [the battle design](design/tactical_combat.md).
 
-- Reconstructed code references original functions and globals by name. Names come from
-  `symbols/symbols.csv`; Ghidra default names (`FUN_00401000`, `DAT_006be668`) resolve by pattern. Any such
-  symbol that is *referenced but not defined* becomes an absolute COFF symbol at the original address, so
-  calls go straight into `REBEXE.EXE`.
-- Any symbol that is *defined* and names an original function gets a hook-table entry.
-- Overloads are told apart by the `signature` column (e.g. `String::String` + `(char const *)`).
-- `tools/patch_vtables.py` rewrites reconstructed constructors/destructors to store the original vtable
-  addresses (`Class::vftable` rows), so objects are indistinguishable from ones the original code builds.
-
-The DLL links no C runtime: reconstructed code calls the game's own statically linked CRT (heap, `rand`
-state, FILE handles are shared with the original). The small runtime in `src/hybrid` uses only kernel32 and
-must not call into the game (it runs in `DllMain`, before the game's CRT initializes).
-
-Compiler settings mirror the original's ABI: clang-cl targeting i686-pc-windows-msvc (MSVC C++ ABI:
-thiscall, vtable layout), `/arch:IA32` (x87 floating point like the original), no RTTI, no exceptions
-(the game never throws; `operator new` returns NULL), non-sized `operator delete`.
-
-**Phase 2 — Standalone.** When every game function is reconstructed, the same sources link into an
-executable without `REBEXE.EXE`: globals get definitions, the CRT becomes the host libc (with an
-MSVC-compatible `rand` for fidelity), and Windows APIs are behind a platform layer.
-
-**Phase 3 — Port.** Replace the platform layer with SDL (window/input/audio), a software 8-bit blitter,
-a Smacker decoder (libsmacker/ffmpeg), and 64-bit-clean data structures (explicit serialization for save
-files and `.DAT` loading, no layout punning). Targets: Linux x86-64, macOS arm64/x86-64.
-
-## Scope decision: 3D tactical combat
-
-The 3D tactical space battle mode is **not** decompiled faithfully (user decision: it is the weakest part
-of the game; a fresh tactical mode may be written later). Nuance found by the code map: the game's
-auto-resolve is the tactical engine's own battle simulation run headless (`TACT_ABSTRACT`), so the tactical
-module splits into
-
-- the **battle simulation core** (~207 KB: ships, fighters, weapons, damage) — decompiled faithfully,
-  because auto-resolve results drive the strategic game's balance;
-- the **3D presentation** (~143 KB: Direct3D Retained Mode rendering, camera, effects, tactical UI) —
-  fenced off, never decompiled; this also removes the hardest porting dependency (D3DRM).
-
-Details and the strategic↔tactical handoff are in [code_map.md](code_map.md#tactical-combat-out-of-scope).
-
-## Verification
-
-1. **Differential testing** (`tools/difftest.py`). The hybrid DLL can capture real calls
-   (`REB_CAPTURE=addr[:count[:skip]],...`): CPU state at entry plus a snapshot of all process memory. The
-   tester replays each capture in Unicorn twice — original machine code vs. reconstruction — and compares
-   return value, ESP (calling convention), callee-saved registers, x87 stack, every byte written outside the
-   callee's frame, and the sequence of Win32 calls (stubbed: they return 0). Win32/COM calls are stubbed, so
-   functions whose behaviour depends on what DirectX returns are covered by smoke tests instead.
-2. **Smoke/scenario tests** (`tools/run_game.sh tests/scenarios/*.txt`): scripted input + screenshots under
-   Wine/Xvfb. `REB_DISABLE_HOOKS=all` or a list of addresses bisects a regression to one function.
-
-## Repository layout
+## Source layout
 
 ```
-src/game/        reconstructed game code (portable target; no addresses, no hybrid-only code)
-src/hybrid/      hybrid runtime: DllMain, hook installer, capture, proxy .def
-symbols/         symbols.csv (names/addresses — source of truth), imports.csv, library_functions.csv, modules.csv
-tools/           build/run/test tooling; gq = Ghidra query client
-docker/          dev image: Wine, Xvfb, clang-19/lld, MSVC CRT/SDK headers via xwin
-tests/scenarios/ input scripts for run_game.sh
-docs/            this file, library_code.md, code_map.md
+src/game/             the reconstructed game: strategy, AI, missions, economy, UI, saves, the space-battle simulator
+src/port/minwin/      the Win32 subset the game is written against (headers)
+src/port/minwin_impl/ its SDL3/FreeType implementation: windows and input, GDI, DirectDraw, sound, Smacker, config
+src/port/native/      entry point, OS adapters (Linux, macOS, Windows), LAN, smoke tests, battle presenter
+tools/                build, asset, AI-match and analysis tooling; gq is the Ghidra query client
+symbols/              symbols.csv (names and addresses of the original functions), imports, modules
 ```
 
-Untracked, in the main checkout only: `orig_game_files/` (the user's licensed copy), `work/game` (a writable
-game copy used by every run), `ghidra_proj/`, `tools/ghidra/`, `refs/` (open-rebellion, StarWarsRebellionEditor.NET).
+## Analysis setup
+
+To reproduce the Ghidra project against your own `REBEXE.EXE` (untracked: `ghidra_proj/`, `tools/ghidra/`):
+
+```sh
+MISE_ENV=ghidra mise install                         # JDK 21 for Ghidra
+# Ghidra 12.1 unpacked to tools/ghidra, then:
+tools/ghidra_headless.sh ghidra_proj Rebellion -import "orig_game_files/Star Wars - Rebellion/REBEXE.EXE"
+uv venv -p 3.12 tools/.venv && uv pip install --python tools/.venv --no-index \
+    --find-links tools/ghidra/Ghidra/Features/PyGhidra/pypkg/dist pyghidra
+tools/ghidra_server.sh start && tools/gq -f tools/py/apply_symbols.py && tools/gq --save
+```

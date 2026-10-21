@@ -14,11 +14,12 @@ namespace reb::native
 {
 
 class AudioContext;
+class LanGame;
 
 // Owns the application and its platform-dependent display service.
 class GameContext
 {
-public:
+  public:
   GameContext();
   ~GameContext();
 
@@ -30,11 +31,13 @@ public:
   RebellionApplication& CreateApplication(HINSTANCE instance, uint32_t flags, const std::string& commandLine);
   void ReleaseApplication() noexcept;
   AudioContext& GetAudioContext() noexcept;
+  LanGame& GetLanGame() noexcept;
   BattleFlow* GetBattleFlow() const noexcept;
   void SetBattleFlow(std::unique_ptr<BattleFlow> battleFlow) noexcept;
 
-private:
+  private:
   std::unique_ptr<AudioContext> audio_;
+  std::unique_ptr<LanGame> lan_;
   std::unique_ptr<UiResources> uiResources_;
   std::unique_ptr<DirectDrawHost> directDrawHost_;
   std::unique_ptr<RebellionApplication> application_;

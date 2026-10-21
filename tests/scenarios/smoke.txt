@@ -1,4 +1,4 @@
-# Boot to main menu; minimal smoke test for hybrid builds
+# Boot to main menu; minimal smoke test
 12 key Escape
 16 key Escape
 20 key Escape

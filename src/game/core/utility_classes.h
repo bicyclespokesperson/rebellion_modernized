@@ -10,7 +10,7 @@
 // there is no virtual destructor.
 class ObjectBase
 {
-public:
+  public:
   ObjectBase();
   ~ObjectBase();
   virtual void WriteName(std::string* out, int kind) = 0;
@@ -19,7 +19,7 @@ public:
 // A 32-bit value that saves and loads itself.
 class PersistentInt
 {
-public:
+  public:
   explicit PersistentInt(int value);
   int Get() const;
   void WriteBytes(ostream* out);
@@ -37,7 +37,7 @@ void WriteValuePersistentInt(ostream* out, PersistentInt* value);
 // Park-Miller style generator (multiplier 41358, modulus 2^31-1).
 class RandomGenerator
 {
-public:
+  public:
   using result_type = uint32_t;
   static constexpr result_type min()
   {
@@ -68,7 +68,7 @@ public:
 // CRC-32 (polynomial 0x04c11db7, MSB first, no final xor other than the complement) of everything fed to it.
 class Crc32
 {
-public:
+  public:
   Crc32();
   Crc32(const Crc32& other);
   virtual ~Crc32();

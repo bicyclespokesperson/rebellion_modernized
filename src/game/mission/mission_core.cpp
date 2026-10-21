@@ -5,7 +5,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
 
-extern int g_missionEventKindsBuilt; // 0x6b8fe0
+extern int g_missionEventKindsBuilt;     // 0x6b8fe0
 extern EventKindSet g_missionEventKinds; // 0x6b8fe8
 
 namespace
@@ -23,7 +23,13 @@ constexpr int kPhaseOutcome = 8;
 
 // ---- construction -----------------------------------------------------------------------------------------
 
-Mission::Mission() : m_userId(0), m_userId2(0), m_taskStatus(0), m_completionStatus(0), m_phase(0), m_flagsA4(0)
+Mission::Mission()
+    : m_userId(0)
+    , m_userId2(0)
+    , m_taskStatus(0)
+    , m_completionStatus(0)
+    , m_phase(0)
+    , m_flagsA4(0)
 {
   m_leaderSeedKey.m_value = 0;
 }
@@ -40,8 +46,9 @@ int Mission::GetOwnerKey(ObjectKey* out)
 
 int Mission::BuildEventKinds()
 {
-  if (g_missionEventKindsBuilt)
+  if (g_missionEventKindsBuilt) {
     return 1;
+  }
   g_missionEventKindsBuilt = 1;
   const int baseOk = InitEventKinds(0, &g_missionEventKinds);
   const int addOk = g_missionEventKinds.Add(kKindMissionOrder, kDefaultEventKindValue) != nullptr;
@@ -64,8 +71,9 @@ int Mission::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_missionEventKinds.Contains(orderKind))
+  if (result && g_missionEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -196,7 +204,8 @@ int Mission::HasCompletionStatus()
 
 // ---- mission iterator -------------------------------------------------------------------------------------
 
-MissionIterator::MissionIterator(GameObjNotifier* parent) : ChildIterator(parent, &family::kMissions, 1)
+MissionIterator::MissionIterator(GameObjNotifier* parent)
+    : ChildIterator(parent, &family::kMissions, 1)
 {
 }
 

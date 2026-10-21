@@ -27,7 +27,7 @@ constexpr COLORREF kEmpireColor = 0xff00;
 } // namespace
 
 BattleInProgressWindow::BattleInProgressWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId)
-: CoolGameWindow(instance, 0, 0, 0x17c, 200, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
+    : CoolGameWindow(instance, 0, 0, 0x17c, 200, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0)
 {
   m_galaxy = parent;
   m_style = 0x46000000;
@@ -52,25 +52,23 @@ void BattleInProgressWindow::OnCreate1()
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   CoolLabel text(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-  if (GetVersionCheckResult() == 0)
-  {
+  if (GetVersionCheckResult() == 0) {
     const ResourceStringId resourceText = {0x1a00, 2};
     text.SetTextFromResource(&resourceText);
-  }
-  else
-  {
+  } else {
     text.SetText(g_battleInProgressText);
   }
   auto* banner = NewOrNull<DibBitmap>(art, kBannerBitmapId, kHelperBitmapKind);
-  HDC windowDc = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(windowDc);
-  ReleaseDC(m_hwnd, windowDc);
-  auto* background =
-    NewOrNull<DibBitmap>(static_cast<LONG>(banner->Width()), static_cast<LONG>(banner->Height()), banner, dc);
+  HDC windowDc = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(windowDc);
+  reb::compat::ReleaseDC(m_hwnd, windowDc);
+  auto* background
+      = NewOrNull<DibBitmap>(static_cast<LONG>(banner->Width()), static_cast<LONG>(banner->Height()), banner, dc);
   banner->Blit(background, 0, 0, 0, 0, 0, 0);
-  if (banner)
+  if (banner) {
     delete banner;
-  HGDIOBJ saved = SelectObject(dc, background->DibSectionHandle());
+  }
+  HGDIOBJ saved = reb::compat::SelectObject(dc, background->DibSectionHandle());
   text.MoveTo(0, 0xe);
   text.m_width = m_width;
   text.SetFont(0xb);
@@ -78,8 +76,8 @@ void BattleInProgressWindow::OnCreate1()
   text.SetColor(m_galaxy->m_side == kAlliance ? kAllianceColor : kEmpireColor, nullptr);
   text.m_drawFlags = 1;
   text.Draw(dc);
-  SelectObject(dc, saved);
-  DeleteDC(dc);
+  reb::compat::SelectObject(dc, saved);
+  reb::compat::DeleteDC(dc);
   SetPaintBackground(background, 1);
   CenterIn(m_galaxy->m_panelArea.left, m_galaxy->m_panelArea.top, m_galaxy->m_panelArea.right,
            m_galaxy->m_panelArea.bottom);

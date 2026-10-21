@@ -69,13 +69,12 @@ void* CreateScrapOrder();
 
 constexpr int kMaxKeyedFactories = 0x800;
 
-struct KeyedFactoryEntry
-{
+struct KeyedFactoryEntry {
   int key;
   void* (*create)();
 };
 
-extern int g_keyedFactoryCount; // 0x6b6fd8
+extern int g_keyedFactoryCount;              // 0x6b6fd8
 extern KeyedFactoryEntry g_keyedFactories[]; // 0x6b2fd8, kMaxKeyedFactories entries
 
 void RegisterGameObjFactories()
@@ -254,23 +253,24 @@ void RegisterOrderFactories()
 void* CreateKeyedObject(int key)
 {
   void* (*create)() = nullptr;
-  for (int i = 0; i < g_keyedFactoryCount && !create; ++i)
-  {
-    if (g_keyedFactories[i].key == key)
+  for (int i = 0; i < g_keyedFactoryCount && !create; ++i) {
+    if (g_keyedFactories[i].key == key) {
       create = g_keyedFactories[i].create;
+    }
   }
-  if (create)
+  if (create) {
     return create();
+  }
   return nullptr;
 }
 
 int RegisterKeyedFactory(int key, void* (*factory)())
 {
   bool absent = true;
-  for (int i = 0; i < g_keyedFactoryCount && absent; ++i)
+  for (int i = 0; i < g_keyedFactoryCount && absent; ++i) {
     absent = g_keyedFactories[i].key != key;
-  if (absent && static_cast<uint32_t>(g_keyedFactoryCount) + 1U < kMaxKeyedFactories)
-  {
+  }
+  if (absent && static_cast<uint32_t>(g_keyedFactoryCount) + 1U < kMaxKeyedFactories) {
     g_keyedFactories[g_keyedFactoryCount].key = key;
     g_keyedFactories[g_keyedFactoryCount].create = factory;
     ++g_keyedFactoryCount;

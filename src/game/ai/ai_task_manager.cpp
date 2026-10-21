@@ -10,9 +10,13 @@
 #include <limits>
 #include <memory>
 
-// ---- AiMissionHistoryEntry ----------------------------------------------------------------------------------------------
+// ---- AiMissionHistoryEntry
+// ----------------------------------------------------------------------------------------------
 
-AiMissionHistoryEntry::AiMissionHistoryEntry() : AvlNode(), m_time(), m_key()
+AiMissionHistoryEntry::AiMissionHistoryEntry()
+    : AvlNode()
+    , m_time()
+    , m_key()
 {
   m_id = 0;
   m_x1c = 0;
@@ -48,17 +52,19 @@ int AiMissionHistoryEntry::Fill(const void* mission)
   const uint32_t id = m_id;
   const int kind = *reinterpret_cast<const int*>(raw + 0x24);
   m_x1c = kind;
-  if (kind == 1 || kind == 2)
+  if (kind == 1 || kind == 2) {
     m_x20 = 1;
-  else if (kind == 3)
+  } else if (kind == 3) {
     m_x20 = 2;
-  else
+  } else {
     m_x20 = 0;
+  }
   AssignGameTime(&m_time, reinterpret_cast<const GameTime*>(raw + 0x28));
   return id != 0 && againstSystem;
 }
 
-// ---- AiMissionHistory ---------------------------------------------------------------------------------------------------
+// ---- AiMissionHistory
+// ---------------------------------------------------------------------------------------------------
 
 AiMissionHistory::AiMissionHistory() = default;
 
@@ -75,15 +81,13 @@ void AiMissionHistory::Clear()
 
 int AiMissionHistory::Insert(AiMissionHistoryEntry* entry)
 {
-  if (!entry)
+  if (!entry) {
     return 0;
-  std::unique_ptr<AiMissionHistoryEntry> pending(entry);
-  try
-  {
-    m_entries.emplace(entry->m_id, std::move(pending));
   }
-  catch (...)
-  {
+  std::unique_ptr<AiMissionHistoryEntry> pending(entry);
+  try {
+    m_entries.emplace(entry->m_id, std::move(pending));
+  } catch (...) {
     pending.release();
     throw;
   }
@@ -92,13 +96,12 @@ int AiMissionHistory::Insert(AiMissionHistoryEntry* entry)
 
 void AiMissionHistory::Remove(AiMissionHistoryEntry* entry)
 {
-  if (!entry)
+  if (!entry) {
     return;
+  }
   const auto [first, last] = m_entries.equal_range(entry->m_id);
-  for (auto position = first; position != last; ++position)
-  {
-    if (position->second.get() == entry)
-    {
+  for (auto position = first; position != last; ++position) {
+    if (position->second.get() == entry) {
       m_entries.extract(position).mapped().release();
       return;
     }
@@ -110,19 +113,17 @@ void AiMissionHistory::Load(istream* in)
   Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  }
+  for (uint32_t index = 0; index < count; ++index) {
     auto* entry = NewOrNull<AiMissionHistoryEntry>();
-    if (!entry)
-    {
+    if (!entry) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     entry->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       delete entry;
       return;
     }
@@ -132,26 +133,27 @@ void AiMissionHistory::Load(istream* in)
 
 void AiMissionHistory::Save(ostream* out)
 {
-  if (Count() > std::numeric_limits<uint32_t>::max())
-  {
+  if (Count() > std::numeric_limits<uint32_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
     return;
   }
   auto count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (const auto& node : Entries())
+  for (const auto& node : Entries()) {
     node.second->Write(out);
+  }
 }
 
 int AiMissionHistory::Add(const void* mission)
 {
-  if (!mission)
+  if (!mission) {
     return 0;
+  }
   auto* entry = NewOrNull<AiMissionHistoryEntry>();
-  if (!entry)
+  if (!entry) {
     return 0;
-  if (!entry->Fill(mission))
-  {
+  }
+  if (!entry->Fill(mission)) {
     delete entry;
     return 0;
   }
@@ -163,20 +165,22 @@ AiMissionHistoryEntry* AiMissionHistory::Find(const int* key, uint32_t id, int x
 {
   bool found = false;
   auto position = Entries().begin();
-  while (position != Entries().end() && !found)
-  {
+  while (position != Entries().end() && !found) {
     AiMissionHistoryEntry* entry = position->second.get();
     found = entry->m_id == id && entry->m_key.m_value == static_cast<uint32_t>(*key) && entry->m_x20 == x20;
-    if (found)
+    if (found) {
       return entry;
-    if (id < entry->m_id)
+    }
+    if (id < entry->m_id) {
       break;
+    }
     ++position;
   }
   return nullptr;
 }
 
-// ---- AiTaskManager ------------------------------------------------------------------------------------------------------
+// ---- AiTaskManager
+// ------------------------------------------------------------------------------------------------------
 
 AiTaskManager::AiTaskManager()
 {
@@ -215,27 +219,24 @@ void AiTaskManager::Load(istream* in, AiSideController* owner)
   ReadValue32(in, &m_view);
   int16_t count;
   ReadValue16(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0)
-  {
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0) {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
     return;
   }
-  while (count != 0)
-  {
+  while (count != 0) {
     int type = 0;
     ReadValue32(in, &type);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       return;
+    }
     AiTaskBase* task = MakeTask(type);
-    if (!task)
-    {
+    if (!task) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     task->SetOwner(owner);
     task->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0)
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0) {
       delete task;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
@@ -256,8 +257,7 @@ void AiTaskManager::Save(ostream* out)
   WriteValue32(out, &m_view);
   int16_t count = Count();
   WriteValue16(out, &count);
-  for (const auto& entry : Entries())
-  {
+  for (const auto& entry : Entries()) {
     AiTaskBase* task = entry.second.get();
     uint32_t id = task->m_id;
     WriteValue32(out, &id);
@@ -274,11 +274,11 @@ void AiTaskManager::Save(ostream* out)
 uint32_t AiTaskManager::CreateTask(int type, AiSideController* owner)
 {
   uint32_t id = 0;
-  if (FindById(type))
+  if (FindById(type)) {
     return id;
+  }
   AiTaskBase* task = MakeTask(type);
-  if (task)
-  {
+  if (task) {
     task->SetOwner(owner);
     task->m_flags.m_value = 0;
     id = AddWithId(task);
@@ -289,30 +289,30 @@ uint32_t AiTaskManager::CreateTask(int type, AiSideController* owner)
 AiTaskBase* AiTaskManager::SelectNext()
 {
   m_last = PickBest();
-  if (m_last != nullptr)
+  if (m_last != nullptr) {
     return m_last;
+  }
   auto position = PositionOf(m_current);
-  if (position == Entries().end() || ++position == Entries().end())
+  if (position == Entries().end() || ++position == Entries().end()) {
     position = Entries().begin();
+  }
   m_current = position == Entries().end() ? nullptr : position->second.get();
   AiTaskBase* start = m_current;
   bool wrapped = false;
   int wants = m_current->m_flags.Get();
-  while (wants != 1)
-  {
-    if (wrapped)
-    {
+  while (wants != 1) {
+    if (wrapped) {
       m_last = nullptr;
       return m_last;
     }
-    if (++position == Entries().end())
+    if (++position == Entries().end()) {
       position = Entries().begin();
+    }
     m_current = position == Entries().end() ? nullptr : position->second.get();
     wrapped = start == m_current;
     wants = m_current->m_flags.Get();
   }
-  if (!wrapped)
-  {
+  if (!wrapped) {
     m_last = m_current;
     return m_current;
   }
@@ -322,8 +322,7 @@ AiTaskBase* AiTaskManager::SelectNext()
 
 AiTaskBase* AiTaskManager::MakeTask(int type)
 {
-  switch (type)
-  {
+  switch (type) {
     case 1:
       return NewOrNull<AiTask1>(m_view);
     case 2:
@@ -361,27 +360,29 @@ AiTaskBase* AiTaskManager::PickBest()
   AiTaskBase* best = nullptr;
   uint32_t bestPriority = 0;
   auto position = PositionOf(m_cursor);
-  if (position == Entries().end() || ++position == Entries().end())
+  if (position == Entries().end() || ++position == Entries().end()) {
     position = Entries().begin();
+  }
   m_cursor = position == Entries().end() ? nullptr : position->second.get();
   AiTaskBase* task = m_cursor;
-  while (task)
-  {
-    if (task->m_flags.Get() == 1 && bestPriority < static_cast<uint32_t>(task->m_priority))
-    {
+  while (task) {
+    if (task->m_flags.Get() == 1 && bestPriority < static_cast<uint32_t>(task->m_priority)) {
       bestPriority = task->m_priority;
       best = task;
     }
-    if (++position == Entries().end())
+    if (++position == Entries().end()) {
       position = Entries().begin();
+    }
     task = position == Entries().end() ? nullptr : position->second.get();
-    if (task == m_cursor)
+    if (task == m_cursor) {
       task = nullptr;
+    }
   }
   return best;
 }
 
-// ---- AiNoticeQueue ------------------------------------------------------------------------------------------------------
+// ---- AiNoticeQueue
+// ------------------------------------------------------------------------------------------------------
 
 AiNoticeQueue::AiNoticeQueue()
 {
@@ -418,19 +419,17 @@ void AiNoticeQueue::Load(istream* in)
   Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return;
-  for (; count != 0; --count)
-  {
+  }
+  for (; count != 0; --count) {
     auto* group = NewOrNull<AiNoticeGroup>();
-    if (!group)
-    {
+    if (!group) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
     }
     group->Load(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(group) == 0)
-    {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(group) == 0) {
       delete group;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return;
@@ -440,25 +439,28 @@ void AiNoticeQueue::Load(istream* in)
 
 void AiNoticeQueue::Save(ostream* out)
 {
-  if (!WriteCount32(out, Count()))
+  if (!WriteCount32(out, Count())) {
     return;
-  for (const auto& entry : Entries())
+  }
+  for (const auto& entry : Entries()) {
     entry.second->Save(out);
+  }
 }
 
 void AiNoticeQueue::Add(std::unique_ptr<NotifPayload> notice)
 {
-  if (!notice)
+  if (!notice) {
     return;
-  if (notice->m_value0c == 0)
-  {
+  }
+  if (notice->m_value0c == 0) {
     return;
   }
   AiNoticeGroup* node = FindById(notice->m_value0c);
-  if (node)
+  if (node) {
     node->Add(std::move(notice));
-  else
+  } else {
     NewGroup(std::move(notice));
+  }
 }
 
 AiNoticeGroup* AiNoticeQueue::DetachFinished()
@@ -466,15 +468,11 @@ AiNoticeGroup* AiNoticeQueue::DetachFinished()
   bool detached = false;
   AiNoticeGroup* group = nullptr;
   group = m_groups.First();
-  while (group && !detached)
-  {
-    if (group->m_finished != 0)
-    {
+  while (group && !detached) {
+    if (group->m_finished != 0) {
       DetachById(group->m_id);
       detached = true;
-    }
-    else
-    {
+    } else {
       auto position = PositionOf(group);
       ++position;
       group = position == Entries().end() ? nullptr : position->second.get();
@@ -486,10 +484,10 @@ AiNoticeGroup* AiNoticeQueue::DetachFinished()
 void AiNoticeQueue::NewGroup(std::unique_ptr<NotifPayload> notice)
 {
   std::unique_ptr<AiNoticeGroup> group(NewOrNull<AiNoticeGroup>());
-  if (group)
-  {
+  if (group) {
     group->Add(std::move(notice));
-    if (AddWithId(group.get()) != 0)
+    if (AddWithId(group.get()) != 0) {
       group.release();
+    }
   }
 }

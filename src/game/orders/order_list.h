@@ -15,7 +15,7 @@
 
 class MessageTree
 {
-public:
+  public:
   void Clear()
   {
     m_registry.Clear();
@@ -72,7 +72,7 @@ public:
   ~MessageTree();
 
   // Appends messages from the stream; an unknown kind or malformed body sets fail state.
-  void Read(istream* in); // 0x536f00
+  void Read(istream* in);   // 0x536f00
   void Write(ostream* out); // 0x536f70
   // Takes ownership of `message` (any message, only its id is used): queued under its id, or deleted when it has no id
   // or the id is already queued.
@@ -80,6 +80,6 @@ public:
   MessageBase* Detach(uint32_t id); // 0x537030
 
   uint32_t m_unk0c; // +0x0c, 1
-private:
+  private:
   IdRegistry<MessageBase> m_registry;
 };

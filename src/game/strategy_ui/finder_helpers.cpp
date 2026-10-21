@@ -20,58 +20,51 @@ void SelectNeighbourTab(CoolTabControl* tabs, WPARAM key)
   const uint32_t selectedId = tabs->m_selected ? tabs->m_selected->m_childId : 0;
   auto& children = tabs->m_children;
   auto position = children.PositionOf(children.FindById(selectedId));
-  if (position != children.Entries().end())
-  {
-    if (key == VK_LEFT)
-    {
-      if (position == children.Entries().begin())
+  if (position != children.Entries().end()) {
+    if (key == VK_LEFT) {
+      if (position == children.Entries().begin()) {
         position = children.Entries().end();
-      else
+      } else {
         position = std::prev(position);
-    }
-    else
+      }
+    } else {
       position = std::next(position);
-    while (position != children.Entries().end())
-    {
+    }
+    while (position != children.Entries().end()) {
       auto* tab = static_cast<CoolWindow*>((*position).get());
-      if (IsWindowVisible(tab->m_hwnd))
-      {
+      if (reb::compat::IsWindowVisible(tab->m_hwnd)) {
         tabs->SelectTab(tab->m_childId, 1);
         return;
       }
-      if (key == VK_LEFT)
-      {
-        if (position == children.Entries().begin())
+      if (key == VK_LEFT) {
+        if (position == children.Entries().begin()) {
           position = children.Entries().end();
-        else
+        } else {
           position = std::prev(position);
-      }
-      else
+        }
+      } else {
         position = std::next(position);
+      }
     }
     return;
   }
-  if (auto* first = tabs->m_children.First())
+  if (auto* first = tabs->m_children.First()) {
     tabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
+  }
 }
 
 } // namespace
 
-void FinderOnKeyDown(CustomDialogBox* window,
-                     CoolTabControl* tabs,
-                     CoolStringField* nameField,
-                     CoolDragList* list,
-                     WPARAM key,
-                     LPARAM lParam,
-                     bool forwardOtherKeys)
+void FinderOnKeyDown(CustomDialogBox* window, CoolTabControl* tabs, CoolStringField* nameField, CoolDragList* list,
+                     WPARAM key, LPARAM lParam, bool forwardOtherKeys)
 {
-  switch (key)
-  {
+  switch (key) {
     case VK_TAB:
       break;
     default:
-      if (forwardOtherKeys)
+      if (forwardOtherKeys) {
         window->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
+      }
       break;
     case VK_ESCAPE:
       window->PostCloseRequest();
@@ -81,13 +74,12 @@ void FinderOnKeyDown(CustomDialogBox* window,
       SelectNeighbourTab(tabs, key);
       break;
     case VK_UP:
-      SetFocus(nameField->m_hwnd);
+      reb::compat::SetFocus(nameField->m_hwnd);
       return;
     case VK_DOWN:
-      if (list->m_items->First())
-      {
-        SetFocus(list->m_hwnd);
-        PostMessageA(list->m_hwnd, WM_KEYDOWN, key, lParam);
+      if (list->m_items->First()) {
+        reb::compat::SetFocus(list->m_hwnd);
+        reb::compat::PostMessageA(list->m_hwnd, WM_KEYDOWN, key, lParam);
         return;
       }
   }
@@ -99,14 +91,15 @@ void CountIntoCell(ForceCell* cells, int cellCount, GameObj* force)
 {
   ObjectKey recordKey;
   GetObjectRecordKey(force, &recordKey);
-  for (int i = 0; i < cellCount; ++i)
-  {
-    if (recordKey.m_value != cells[i].m_key.m_value)
+  for (int i = 0; i < cellCount; ++i) {
+    if (recordKey.m_value != cells[i].m_key.m_value) {
       continue;
+    }
     ++cells[i].m_count;
     cells[i].m_flags |= kCellFlagPresent;
-    if (!(force->m_stateFlags & 1))
+    if (!(force->m_stateFlags & 1)) {
       cells[i].m_flags |= kCellFlagUnusable;
+    }
     return;
   }
 }
@@ -127,14 +120,8 @@ void ShowCount(CoolLabel* label, std::string* text, uint16_t count, int x)
 
 } // namespace
 
-void DrawForceCells(const ForceCell* cells,
-                    int cellCount,
-                    CoolLabel* label,
-                    std::string* text,
-                    int firstX,
-                    int side,
-                    const HBRUSH* brushes,
-                    HDC dc)
+void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, std::string* text, int firstX, int side,
+                    const HBRUSH* brushes, HDC dc)
 {
   label->SetFont(10);
   label->m_drawFlags = 1;
@@ -143,39 +130,29 @@ void DrawForceCells(const ForceCell* cells,
   int x = firstX;
   int brush = kNoBrush;
   COLORREF color = ObjectKey().m_value;
-  for (int i = 0; i < cellCount; ++i)
-  {
+  for (int i = 0; i < cellCount; ++i) {
     const ForceCell& cell = cells[i];
     ShowCount(label, text, cell.m_count, x);
-    if (cell.m_count == 0)
-    {
+    if (cell.m_count == 0) {
       label->SetText(g_noForcesText);
       color = 0xffffff;
       brush = kNoBrush;
-    }
-    else if (!(cell.m_flags & kCellFlagPresent))
-    {
-      if (cell.m_flags & kCellFlagUnusable)
-      {
+    } else if (!(cell.m_flags & kCellFlagPresent)) {
+      if (cell.m_flags & kCellFlagUnusable) {
         color = 0xffffff;
         brush = 2;
       }
-    }
-    else if (!(cell.m_flags & kCellFlagUnusable))
-    {
+    } else if (!(cell.m_flags & kCellFlagUnusable)) {
       color = side == kEmpire ? 0 : 0xffffff;
       brush = side == kEmpire ? 1 : 0;
-    }
-    else
-    {
+    } else {
       color = side == kEmpire ? 0 : 0xffffff;
       brush = side == kEmpire ? 4 : 3;
     }
-    if (brush < kNoBrush)
-    {
-      HGDIOBJ saved = SelectObject(dc, brushes[brush]);
-      PatBlt(dc, x, 2, 0x15, 0x10, PATCOPY);
-      SelectObject(dc, saved);
+    if (brush < kNoBrush) {
+      HGDIOBJ saved = reb::compat::SelectObject(dc, brushes[brush]);
+      reb::compat::PatBlt(dc, x, 2, 0x15, 0x10, PATCOPY);
+      reb::compat::SelectObject(dc, saved);
     }
     label->SetColor(color, nullptr);
     label->Draw(dc);

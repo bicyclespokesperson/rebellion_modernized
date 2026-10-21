@@ -1,11 +1,12 @@
 #pragma once
-// Capacity bookkeeping for moves that put units into a container (a system, a fleet or a capital ship), 0x54f830-0x550fb0.
+// Capacity bookkeeping for moves that put units into a container (a system, a fleet or a capital ship),
+// 0x54f830-0x550fb0.
 //
 // The container's room is tracked in nine "buckets", one per range of object families (see GetCapacityBucketRange):
-// capital ships, fighters, facilities, characters, troops, fleets, missions and so on. A CapacitySlot says how much room
-// a bucket has left (or that it is unlimited) together with the two statuses that explain a refusal; a UnitCount says
-// how many units a move adds to (or takes from) a bucket. A CapacityLeg holds the slots for one moving unit, split into
-// what the destination accepts ("incoming") and what leaving frees ("outgoing").
+// capital ships, fighters, facilities, characters, troops, fleets, missions and so on. A CapacitySlot says how much
+// room a bucket has left (or that it is unlimited) together with the two statuses that explain a refusal; a UnitCount
+// says how many units a move adds to (or takes from) a bucket. A CapacityLeg holds the slots for one moving unit, split
+// into what the destination accepts ("incoming") and what leaving frees ("outgoing").
 #include <cstdint>
 
 #include "core/entry_identity.h"
@@ -23,13 +24,13 @@ const FamilyRange* GetCapacityBucketRange(int index); // 0x54f5b0
 // Room left in one bucket. VT 0x6620dc.
 class CapacitySlot
 {
-public:
-  CapacitySlot(); // 0x54f830
+  public:
+  CapacitySlot();                          // 0x54f830
   CapacitySlot(const CapacitySlot& other); // 0x54f8d0
-  virtual ~CapacitySlot(); // 0x54f880
+  virtual ~CapacitySlot();                 // 0x54f880
 
   // Marks the slot as refusing everything: m_status = {1, 0x29}. Returns 1.
-  int MarkOverCapacity(); // 0x54f940
+  int MarkOverCapacity();                             // 0x54f940
   CapacitySlot& operator=(const CapacitySlot& other); // 0x54fae0
   // Unlimited, nothing left over, both statuses ok. Returns 1.
   int Reset(); // 0x54fb20
@@ -44,55 +45,54 @@ public:
   // Compute, then stores the remaining room back into `capacity` if both are limited and nothing went wrong.
   int Commit(CapacitySlot* capacity, const UnitCount& count, int consume); // 0x54fd90
 
-  int m_unlimited; // +0x04, 1 until a limit is known
-  int m_remaining; // +0x08
-  StatusCode m_status; // +0x0c, whether an incoming or outgoing unit order is allowed
+  int m_unlimited;          // +0x04, 1 until a limit is known
+  int m_remaining;          // +0x08
+  StatusCode m_status;      // +0x0c, whether an incoming or outgoing unit order is allowed
   StatusCode m_limitStatus; // +0x14, the reason reported when the capacity limit is exceeded
 };
 
 // The scratch slot used while comparing; same layout, its own vtable (0x6620e4).
 class CapacityScratch : public CapacitySlot
 {
-public:
-  CapacityScratch(); // 0x54fa40
+  public:
+  CapacityScratch();           // 0x54fa40
   ~CapacityScratch() override; // 0x54fa90
 };
 
 // How many units a move adds to a bucket. VT 0x6620e0.
-struct UnitCount
-{
-  UnitCount(); // 0x54f9b0
+struct UnitCount {
+  UnitCount();                       // 0x54f9b0
   UnitCount(const UnitCount& other); // 0x54fa00
-  virtual ~UnitCount(); // 0x54f9f0
+  virtual ~UnitCount();              // 0x54f9f0
 
   // Back to "nothing counted". Returns 1.
-  int Reset(); // 0x54fa20
+  int Reset();               // 0x54fa20
   int IsNonNegative() const; // 0x54fa30
 
   int m_counted; // +0x04
-  int m_amount; // +0x08
+  int m_amount;  // +0x08
 };
 
 class CapacitySlotArray
 {
-public:
-  CapacitySlotArray(); // 0x54fe10
+  public:
+  CapacitySlotArray();                               // 0x54fe10
   CapacitySlotArray(const CapacitySlotArray& other); // 0x54fe80
-  virtual ~CapacitySlotArray(); // 0x54fe60
+  virtual ~CapacitySlotArray();                      // 0x54fe60
 
   CapacitySlotArray& operator=(const CapacitySlotArray& other); // 0x54ff00
-  int MarkAllOverCapacity(); // 0x54ff30
+  int MarkAllOverCapacity();                                    // 0x54ff30
 
   CapacitySlot m_slots[kCapacityBuckets]; // +0x04
 };
 
 class UnitCountArray
 {
-public:
-  UnitCountArray(); // 0x54ff50
+  public:
+  UnitCountArray();          // 0x54ff50
   virtual ~UnitCountArray(); // 0x54ffa0
 
-  int ResetAll(); // 0x54ffc0
+  int ResetAll();             // 0x54ffc0
   int AllNonNegative() const; // 0x54fff0
 
   UnitCount m_counts[kCapacityBuckets]; // +0x04
@@ -100,8 +100,8 @@ public:
 
 class CapacityTable
 {
-public:
-  CapacityTable(); // 0x550020
+  public:
+  CapacityTable();          // 0x550020
   virtual ~CapacityTable(); // 0x550090
 
   int MarkAllIncomingOverCapacity(); // 0x5500f0
@@ -113,11 +113,11 @@ public:
 // Units a move adds, per bucket: the moving object itself and what it carries.
 class UnitCountTable
 {
-public:
-  UnitCountTable(); // 0x550100
+  public:
+  UnitCountTable();          // 0x550100
   virtual ~UnitCountTable(); // 0x550170
 
-  int ResetAll(); // 0x5501c0
+  int ResetAll();             // 0x5501c0
   int AllNonNegative() const; // 0x5501e0
   // Counts `object` and its children into the buckets. A child or the object itself is counted when it passes the
   // state filter *filter (or, with `invert`, when it fails it). Refuses with {1, 0x19} an object of no bucket's
@@ -126,38 +126,34 @@ public:
   // Adds `delta` units to the bucket that holds `family`.
   int AddFamily(uint32_t family, int delta, StatusCode* status); // 0x5504d0
 
-  UnitCountArray m_own; // +0x04
+  UnitCountArray m_own;     // +0x04
   UnitCountArray m_carried; // +0x74
 };
 
 // The capacity needed by one moving unit. Keyed by the unit's key (+0x18).
 class CapacityLeg : public ObjectKeyNode
 {
-public:
-  CapacityLeg(); // 0x550620
+  public:
+  CapacityLeg();           // 0x550620
   ~CapacityLeg() override; // 0x5506a0
 
   // Fills the table from the unit's incoming/outgoing order checks and capacity queries for `kind` and `side`.
   int Build(int side, int arg, int kind, const int* filter, GameObj* unit); // 0x550700
   // The tightest room in `slots` once `counts` are added (released): into *out. The leg itself is unused.
-  int MinRemaining(const CapacitySlotArray* slots,
-                   const UnitCountArray* counts,
-                   int consume,
+  int MinRemaining(const CapacitySlotArray* slots, const UnitCountArray* counts, int consume,
                    CapacitySlot* out); // 0x550af0
   // Applies `counts` to every slot of `slots` (see CapacitySlot::Compute for `consume`); stops at the first failure.
   // Returns 1 if all fit.
   int CommitAll(CapacitySlotArray* slots, const UnitCountArray* counts, int consume); // 0x550bd0
   // Tightest incoming room into *tightest, and *incoming; the outgoing room folds into *tightest.
-  int MinRemainingBoth(const UnitCountTable* counts,
-                       int consume,
-                       CapacitySlot* tightest,
-                       CapacitySlot* incoming); // 0x550c90
+  int MinRemainingBoth(const UnitCountTable* counts, int consume, CapacitySlot* tightest,
+                       CapacitySlot* incoming);                                           // 0x550c90
   int MinRemainingOutgoing(const UnitCountTable* counts, int consume, CapacitySlot* out); // 0x550de0
-  int CommitBoth(UnitCountTable* counts, int consume); // 0x550eb0
-  int CommitOutgoing(UnitCountTable* counts, int consume); // 0x550fb0
-  int MarkAllIncomingOverCapacity(); // 0x551050
+  int CommitBoth(UnitCountTable* counts, int consume);                                    // 0x550eb0
+  int CommitOutgoing(UnitCountTable* counts, int consume);                                // 0x550fb0
+  int MarkAllIncomingOverCapacity();                                                      // 0x551050
 
-  int m_flag; // +0x1c, 1
+  int m_flag;            // +0x1c, 1
   ObjectKey m_parentKey; // +0x20
   CapacityTable m_table; // +0x24
 };

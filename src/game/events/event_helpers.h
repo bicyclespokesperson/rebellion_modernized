@@ -38,15 +38,14 @@ GameObjNotifier* findTimerOwner(TimerEvent* timer, Resolve resolve, int* ok)
   StatusCode status(kStatusCategory, kStatusOk);
   GameObjNotifier* owner = nullptr;
   *ok = timer->CheckValid(&status);
-  if (*ok)
-  {
-    if (succeeded(status))
-    {
+  if (*ok) {
+    if (succeeded(status)) {
       const StatusCode missing(kStatusCategory, kStatusMissingTarget);
       *ok = resolve(&timer->m_key, &owner, &missing, &status);
     }
-    if (!*ok || !succeeded(status))
+    if (!*ok || !succeeded(status)) {
       return nullptr;
+    }
   }
   return owner;
 }
@@ -64,8 +63,7 @@ void fireOnTimerOwner(TimerEvent* timer, Resolve resolve, Method method)
 {
   int ok = 0;
   auto* owner = static_cast<Owner*>(findTimerOwner(timer, resolve, &ok));
-  if (ok && owner)
-  {
+  if (ok && owner) {
     NotifyContext ctx(timer->m_context);
     method(owner, &ctx);
   }
@@ -85,13 +83,13 @@ int checkOnTarget(Command* command, Resolve resolve, StatusCode* status, Ask ask
   GameObjNotifier* target = nullptr;
   int ok = 1;
   *status = StatusCode(kStatusCategory, kStatusOk);
-  if (succeeded(*status))
-  {
+  if (succeeded(*status)) {
     const StatusCode missing(kStatusCategory, kStatusMissingTarget);
     ok = resolve(&command->m_key, &target, &missing, status);
   }
-  if (ok && succeeded(*status))
+  if (ok && succeeded(*status)) {
     ok = ask(static_cast<GameObj*>(target));
+  }
   return ok;
 }
 
@@ -105,8 +103,9 @@ int executeOnTarget(Command* command, Resolve resolve, Act act)
   StatusCode status(kStatusCategory, kStatusOk);
   const StatusCode missing(kStatusCategory, kStatusMissingTarget);
   const int ok = resolve(&command->m_key, &target, &missing, &status);
-  if (ok && succeeded(status))
+  if (ok && succeeded(status)) {
     act(static_cast<GameObj*>(target), &ctx);
+  }
   return 0;
 }
 

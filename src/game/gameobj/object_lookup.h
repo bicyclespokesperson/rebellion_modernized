@@ -9,7 +9,7 @@
 // GetObjectInFamilies_xx_yy(view, key): the object named by `key`, or null if its family is outside the range.
 // GetFirstObjectInFamilies_xx_yy(view): the first (lowest key) visible object of the range.
 //
-// Families (see code_map.md): fleets 0x08, troop regiments 0x10-0x13, capital ships 0x14-0x1b, fighter squadrons
+// Families: fleets 0x08, troop regiments 0x10-0x13, capital ships 0x14-0x1b, fighter squadrons
 // 0x1c-0x1f, facilities 0x20-0x2f, characters 0x30-0x3b, special forces 0x3c-0x3f, missions 0x40-0x7f, sectors
 // 0x80-0x8f, systems 0x90-0x97, manufacturing managers 0xa0-0xaf, game root 0xf1, side roots 0xf2, sides 0xf3.
 

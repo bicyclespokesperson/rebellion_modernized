@@ -15,7 +15,7 @@ class Crc32;
 // {flag, key, value} entry of a KeyQueue. m_flag is 1 for every entry the game creates.
 class KeyQueueNode
 {
-public:
+  public:
   KeyQueueNode();
   ~KeyQueueNode();
   void Read(istream* in);
@@ -25,15 +25,15 @@ public:
   void Checksum(Crc32* crc);
   ObjectKey* GetKey(ObjectKey* out) const; // 0x52fd10
 
-  int m_flag; // +0x0c
+  int m_flag;      // +0x0c
   ObjectKey m_key; // +0x10
-  int m_value; // +0x14
+  int m_value;     // +0x14
 };
 
 // FIFO of KeyQueueNodes. m_ok is saved with the queue; the persistence functions return 0 if an entry cannot be built.
 class KeyQueue
 {
-public:
+  public:
   KeyQueue();
   ~KeyQueue();
   KeyQueue(const KeyQueue&) = delete;
@@ -54,14 +54,14 @@ public:
 
   int m_ok;
 
-private:
+  private:
   std::deque<std::unique_ptr<KeyQueueNode>> m_entries;
 };
 
 // ObjectKeySet whose entries carry a second key.
 class ObjectKeyPairSet : public ObjectKeySet
 {
-public:
+  public:
   ObjectKeyPairSet();
   explicit ObjectKeyPairSet(const ObjectKeyPairSet& other);
   ~ObjectKeyPairSet() override;
@@ -71,4 +71,14 @@ public:
   int Checksum(Crc32* crc) override;
 
   int AddPair(const ObjectKey* key, const ObjectKey* second);
+  auto TypedEntries() const
+  {
+    return Entries() | std::views::transform([](const auto& node) -> const ObjectKeyPairNode& {
+      return static_cast<const ObjectKeyPairNode&>(*node);
+    });
+  }
+
+  private:
+  using ObjectKeySet::Add;
+  using ObjectKeySet::AddKey;
 };

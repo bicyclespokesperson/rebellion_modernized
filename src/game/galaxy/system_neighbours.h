@@ -6,8 +6,7 @@
 class GameObjNotifier;
 
 // A position on the galaxy map.
-struct MapPosition
-{
+struct MapPosition {
   int16_t m_x;
   int16_t m_y;
 };
@@ -19,28 +18,27 @@ struct MapPosition
 // element being looked at. Both stay null for an invalid key (VT 0x66a890, only the destructor is virtual).
 class SystemNeighbourCursor
 {
-public:
-  SystemNeighbourCursor(); // 0x58af30
+  public:
+  SystemNeighbourCursor();          // 0x58af30
   virtual ~SystemNeighbourCursor(); // 0x58af70 (scalar deleting 0x58af50)
 
-  GameObjNotifier** m_begin; // +0x04
+  GameObjNotifier** m_begin;   // +0x04
   GameObjNotifier** m_current; // +0x08
 };
 
 // One system's neighbours: the 200 systems by ascending distance (unused ids last), then a spare null.
-struct SystemNeighbours
-{
+struct SystemNeighbours {
   GameObjNotifier* m_systems[201];
 };
 
 // Ids of systems start at 100 (family 0x90): entry `id - 100` belongs to the system with that id.
 class SystemNeighbourTable
 {
-public:
+  public:
   static constexpr int kSystemCount = 200;
   static constexpr int kFirstSystemId = 100;
 
-  SystemNeighbourTable(); // 0x58af80, all entries null
+  SystemNeighbourTable();          // 0x58af80, all entries null
   virtual ~SystemNeighbourTable(); // 0x58afc0 (scalar deleting 0x58afa0)
 
   // Points `out` at the neighbour list of the system `key` names. Returns 1 if the key is a system's, else 0 with
@@ -53,8 +51,7 @@ public:
 };
 
 // A system and its distance from the system whose list is being built.
-struct SystemDistance
-{
+struct SystemDistance {
   GameObjNotifier* m_system;
   int m_distance;
 };

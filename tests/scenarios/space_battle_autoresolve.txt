@@ -1,6 +1,6 @@
 # Load RebelsFastStart, run at Fast speed; ~40 s after unpausing, a space battle at Ando pops up
 # (Imperial fleet vs. the Alliance defenders). We choose "Simulate Results" (auto-resolve), not Retreat
-# or Take Command (tactical). Runtime ~130 s. See docs/ui_navigation.md.
+# or Take Command (tactical). Runtime ~130 s.
 12 key Escape
 16 key Escape
 20 key Escape

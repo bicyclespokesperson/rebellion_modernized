@@ -6,12 +6,15 @@
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
 #include "strategy_ui/object_status_window.h"
+#include "strategy_ui/eta_display.h"
+#include "ui/cool_drag_list.h"
+#include "ui/cool_list_item.h"
 
-extern const char* g_statusSeparator; // 0x6a872c ":"
-extern const char* g_noText; // 0x6a8730 "No"
-extern const char* g_yesText; // 0x6a8734 "Yes"
-extern const char* g_emptyText; // 0x6b120c
-extern const char* g_spaceString; // 0x6a7f40 " "
+extern const char* g_statusSeparator;     // 0x6a872c ":"
+extern const char* g_noText;              // 0x6a8730 "No"
+extern const char* g_yesText;             // 0x6a8734 "Yes"
+extern const char* g_emptyText;           // 0x6b120c
+extern const char* g_spaceString;         // 0x6a7f40 " "
 extern const int16_t g_stringGroup65d424; // 0x65d424 group of every localised string of the window
 
 namespace status_page
@@ -65,17 +68,15 @@ inline void AppendLeftOfTotal(std::string* text, uint32_t left, uint32_t total)
 
 // The optional "rule value" rows (a GNPRTB-style value of the object, when the rule lookup succeeds). `nextRow` is the
 // row it would occupy; returns the row of the last row added (`nextRow - 1` when none).
-inline int AddRuleValueRows(std::string* text,
-                            GameObjNotifier* object,
-                            int nextRow,
-                            CoolListItemList* labels,
+inline int AddRuleValueRows(std::string* text, GameObjNotifier* object, int nextRow, CoolListItemList* labels,
                             CoolListItemList* values)
 {
   StatusCode status(1, static_cast<uint32_t>(-1));
   int ruleValue = 0;
   QueryRuleValueB(static_cast<GameObj*>(object), &status, &ruleValue);
-  if (status.m_second != static_cast<uint32_t>(-1) || ruleValue == 0)
+  if (status.m_second != static_cast<uint32_t>(-1) || ruleValue == 0) {
     return nextRow - 1;
+  }
   const ResourceStringId ruleLabelId = StringId(0x3814);
   std::string ruleLabel = LoadStringResource(&ruleLabelId);
   text->clear();
@@ -86,6 +87,7 @@ inline int AddRuleValueRows(std::string* text,
     *text += ruleNameCopy;
   }
   AddStatusRow(nextRow, text, labels);
+  labels->FindById(nextRow)->m_fontSlot = strategy_ui::EtaFontSlot(0);
   text->clear();
   {
     std::string labelCopy(ruleLabel.c_str());
@@ -93,6 +95,7 @@ inline int AddRuleValueRows(std::string* text,
     text->append(std::to_string(static_cast<long>(ruleValue)));
   }
   AddStatusRow(nextRow, text, values);
+  values->FindById(nextRow)->m_fontSlot = strategy_ui::EtaFontSlot(0);
   text->clear();
   return nextRow;
 }

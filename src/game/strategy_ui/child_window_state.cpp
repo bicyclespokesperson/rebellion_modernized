@@ -2,14 +2,20 @@
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_game_window.h"
 
-ChildWindowState::ChildWindowState() : m_type(0), m_x(0), m_y(0), m_width(0), m_height(0), m_shown(0), m_valid(0)
+ChildWindowState::ChildWindowState()
+    : m_type(0)
+    , m_x(0)
+    , m_y(0)
+    , m_width(0)
+    , m_height(0)
+    , m_shown(0)
+    , m_valid(0)
 {
 }
 
 ChildWindowState::ChildWindowState(CoolWindow* window)
 {
-  if (!window)
-  {
+  if (!window) {
     m_type = 0;
     m_x = 0;
     m_y = 0;

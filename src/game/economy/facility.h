@@ -4,9 +4,9 @@
 #include "gameobj/child_iterator.h"
 #include "gameobj/unit_obj_base.h"
 
-// Facility (ctor 0x539980, VT 0x6613a8, secondary ObjectBase VT 0x6613a0): abstract base of the facility families 0x20-0x2f
-// (ALLFAC/DEFFAC/MANFAC/PROFAC records), 0x58 bytes, no fields of its own. Vtable: 115 slots, 0-111 are UnitObjBase's,
-// 112-114 are new (112 reads the SD record's word +0x58, the shared body Detector uses too).
+// Facility (ctor 0x539980, VT 0x6613a8, secondary ObjectBase VT 0x6613a0): abstract base of the facility families
+// 0x20-0x2f (ALLFAC/DEFFAC/MANFAC/PROFAC records), 0x58 bytes, no fields of its own. Vtable: 115 slots, 0-111 are
+// UnitObjBase's, 112-114 are new (112 reads the SD record's word +0x58, the shared body Detector uses too).
 //
 // Hierarchy:
 //   Facility
@@ -18,22 +18,22 @@
 // The data block of Facility objects (VT 0x66a150, 0x18 bytes, ctor 0x584100): a UnitObjData without fields.
 class FacilityData : public UnitObjData
 {
-public:
-  FacilityData(); // 0x584100
+  public:
+  FacilityData();           // 0x584100
   ~FacilityData() override; // 0x584120 (deleting), 0x584140
 };
 
 class Facility : public UnitObjBase
 {
-public:
-  Facility(); // 0x539980
+  public:
+  Facility();           // 0x539980
   ~Facility() override; // 0x5399c0 (scalar deleting destructor 0x5399a0)
 
-  int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x5399e0
-  int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x539a00
-  GameObjData* CreateData() override; // 58, 0x539c90
+  int GetEventKinds(int unused, EventKindSet* out) override;                                 // 15, 0x5399e0
+  int CheckOrder(int a, int orderKind, StatusCode* out) override;                            // 22, 0x539a00
+  GameObjData* CreateData() override;                                                        // 58, 0x539c90
   int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override; // 60, 0x539c70
-  int OnUsableChanged(int newValue, NotifyContext* ctx) override; // 68, 0x558290 (shared jump)
+  int OnUsableChanged(int newValue, NotifyContext* ctx) override;   // 68, 0x558290 (shared jump)
   int OnExistingChanged(int newValue, NotifyContext* ctx) override; // 74, 0x5582d0 (shared jump)
 
   virtual uint32_t
@@ -67,8 +67,8 @@ int UpdateFacilityChildren(GameObj* object, NotifyContext* ctx);
 // Iterator over families [0x20,0x30) (VT 0x661574, destructor only).
 class FacilityIterator : public ChildIterator
 {
-public:
-  FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter); // 0x539d70
+  public:
+  FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter);                // 0x539d70
   FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side); // 0x539df0
   ~FacilityIterator() override; // 0x539e70 (scalar deleting destructor 0x539d50)
 };

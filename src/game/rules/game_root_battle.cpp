@@ -39,8 +39,9 @@ bool isSystemKey(const ObjectKey& key)
 
 uint32_t opposingSide(uint32_t side)
 {
-  if (side == kBothSides)
+  if (side == kBothSides) {
     return kBothSides;
+  }
   return side == kAllianceSide ? kEmpireSide : kAllianceSide;
 }
 
@@ -73,11 +74,11 @@ uint32_t findProjector(GameObjNotifier* system, uint32_t side)
 {
   uint32_t found = 0;
   FleetIterator fleets(system, 1, side);
-  for (fleets.Begin(); fleets.Current() != nullptr && found == 0; fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current() != nullptr && found == 0; fleets.Advance()) {
     CapShipIterator ships(fleets.Current(), 1, side);
-    for (ships.Begin(); ships.Current() != nullptr && found == 0; ships.Advance())
+    for (ships.Begin(); ships.Current() != nullptr && found == 0; ships.Advance()) {
       found = projectorStillWorks(ships.Current());
+    }
   }
   return found;
 }
@@ -87,22 +88,22 @@ GameObjNotifier* findMobileUnit(GameObjNotifier* system, uint32_t side)
 {
   GameObjNotifier* found = nullptr;
   FleetIterator fleets(system, 1, side);
-  for (fleets.Begin(); fleets.Current() != nullptr && found == nullptr; fleets.Advance())
-  {
+  for (fleets.Begin(); fleets.Current() != nullptr && found == nullptr; fleets.Advance()) {
     CapShipIterator ships(fleets.Current(), 1, side);
-    for (ships.Begin(); ships.Current() != nullptr && found == nullptr; ships.Advance())
-    {
-      if (static_cast<GameObj*>(ships.Current())->GetTransitSpeed(0) != 0)
+    for (ships.Begin(); ships.Current() != nullptr && found == nullptr; ships.Advance()) {
+      if (static_cast<GameObj*>(ships.Current())->GetTransitSpeed(0) != 0) {
         found = fleets.Current();
+      }
     }
   }
-  if (found != nullptr)
+  if (found != nullptr) {
     return found;
+  }
   FightSquadIterator squads(system, 1, side);
-  for (squads.Begin(); squads.Current() != nullptr && found == nullptr; squads.Advance())
-  {
-    if (static_cast<GameObj*>(squads.Current())->GetTransitSpeed(0) != 0)
+  for (squads.Begin(); squads.Current() != nullptr && found == nullptr; squads.Advance()) {
+    if (static_cast<GameObj*>(squads.Current())->GetTransitSpeed(0) != 0) {
       found = squads.Current();
+    }
   }
   return found;
 }
@@ -110,11 +111,13 @@ GameObjNotifier* findMobileUnit(GameObjNotifier* system, uint32_t side)
 int markAutorouting(GameObjNotifier* system, uint32_t side, NotifyContext* ctx, int ok)
 {
   FleetIterator fleets(system, 1, side);
-  for (fleets.Begin(); fleets.Current() != nullptr; fleets.Advance())
+  for (fleets.Begin(); fleets.Current() != nullptr; fleets.Advance()) {
     ok = both(static_cast<GameObj*>(fleets.Current())->SetAutorouting(1, ctx), ok);
+  }
   FightSquadIterator squads(system, 1, side);
-  for (squads.Begin(); squads.Current() != nullptr; squads.Advance())
+  for (squads.Begin(); squads.Current() != nullptr; squads.Advance()) {
     ok = both(static_cast<GameObj*>(squads.Current())->SetAutorouting(1, ctx), ok);
+  }
   return ok;
 }
 
@@ -131,10 +134,7 @@ NotifyContext* GameRoot::GetBattleContext()
   return &m_ctx90;
 }
 
-int GameRoot::QueryRetreat(int side,
-                           uint32_t* gravityWell,
-                           uint32_t* hasMobileUnit,
-                           int* canRetreat,
+int GameRoot::QueryRetreat(int side, uint32_t* gravityWell, uint32_t* hasMobileUnit, int* canRetreat,
                            uint32_t* retreatDays)
 {
   *gravityWell = 0;
@@ -143,25 +143,27 @@ int GameRoot::QueryRetreat(int side,
   *retreatDays = 0;
   GameObjNotifier* system = GetMasterInFamilies_90_98(&m_key8c);
   int valid = system != nullptr;
-  if (valid != 0 && side != 2 && side != 1)
+  if (valid != 0 && side != 2 && side != 1) {
     valid = 0;
-  if (valid != 0)
+  }
+  if (valid != 0) {
     *gravityWell = findProjector(system, opposingSide(side));
+  }
   GameObjNotifier* unit = nullptr;
-  if (valid != 0)
+  if (valid != 0) {
     unit = findMobileUnit(system, side);
-  if (unit == nullptr)
+  }
+  if (unit == nullptr) {
     return valid;
+  }
   *hasMobileUnit = 1;
   ObjectKey retreatSystem;
-  if (valid != 0)
-  {
+  if (valid != 0) {
     ObjectKey owner;
     GetOwnerKeyValue(unit, &owner);
     valid = isSystemKey(owner);
   }
-  if (valid != 0)
-  {
+  if (valid != 0) {
     RulesMgr* rules = rulesMgr();
     IntPair status;
     ObjectKey target;
@@ -169,32 +171,29 @@ int GameRoot::QueryRetreat(int side,
     ObjectKey owner;
     valid = rules->FindDestination(static_cast<GameObj*>(unit), GetOwnerKeyValue(unit, &owner), &target, 0, 0, &placed,
                                    &status);
-    if (valid != 0 && status.m_second == -1)
-    {
+    if (valid != 0 && status.m_second == -1) {
       GameObjNotifier* placedObject = GetMasterInFamilies_01_ff(&placed);
-      if (placedObject != nullptr)
-      {
+      if (placedObject != nullptr) {
         ObjectKey placedOwner;
         placedObject->GetOwnerKey(&placedOwner);
-        if (isSystemKey(placedOwner))
-        {
+        if (isSystemKey(placedOwner)) {
           *canRetreat = 1;
           retreatSystem = placedOwner;
         }
       }
     }
   }
-  if (valid != 0 && *canRetreat != 0)
-  {
+  if (valid != 0 && *canRetreat != 0) {
     auto* here = static_cast<System*>(GetMasterInFamilies_90_98(&m_key8c));
     auto* there = static_cast<System*>(GetMasterInFamilies_90_98(&retreatSystem));
     valid = here != nullptr && there != nullptr;
-    if (valid != 0)
-    {
-      MapPosition thereAt;
-      MapPosition hereAt;
-      there->GetRecordField4c(reinterpret_cast<uint32_t*>(&thereAt));
-      here->GetRecordField4c(reinterpret_cast<uint32_t*>(&hereAt));
+    if (valid != 0) {
+      uint32_t herePacked = 0;
+      uint32_t therePacked = 0;
+      here->GetRecordField4c(&herePacked);
+      there->GetRecordField4c(&therePacked);
+      const MapPosition hereAt{static_cast<int16_t>(herePacked), static_cast<int16_t>(herePacked >> 16)};
+      const MapPosition thereAt{static_cast<int16_t>(therePacked), static_cast<int16_t>(therePacked >> 16)};
       *retreatDays = TravelDays(&hereAt, &thereAt);
     }
   }
@@ -204,8 +203,7 @@ int GameRoot::QueryRetreat(int side,
 int GameRoot::ClearBattle()
 {
   const int hasRandom = HasRandomGenerator();
-  if (hasRandom != 0)
-  {
+  if (hasRandom != 0) {
     m_key8c.Reset();
     NotifyContext cleared;
     m_ctx90 = cleared;
@@ -217,18 +215,17 @@ int GameRoot::StartPendingBattle()
 {
   NotifyContext* ctx = &m_ctx90;
   int ok = HasRandomGenerator();
-  if (ok == 0)
+  if (ok == 0) {
     return ok;
+  }
   ok = ClearBattle() != 0;
-  for (auto* system = static_cast<System*>(GetFirstMasterInFamilies_90_98()); system != nullptr;)
-  {
-    if (m_key8c.OrNull() != nullptr)
+  for (auto* system = static_cast<System*>(GetFirstMasterInFamilies_90_98()); system != nullptr;) {
+    if (m_key8c.OrNull() != nullptr) {
       break;
-    if (system->GetDataFlagBit3() != 0)
-    {
+    }
+    if (system->GetDataFlagBit3() != 0) {
       ok = both(system->SetDataFlag8(0), ok);
-      if ((system->m_flags & kBattlePendingFlag) != 0)
-      {
+      if ((system->m_flags & kBattlePendingFlag) != 0) {
         ObjectKey systemKey;
         GetObjectKey(system, &systemKey);
         m_key8c = systemKey;
@@ -237,8 +234,7 @@ int GameRoot::StartPendingBattle()
     const FamilyRange systems(0x90, 0x98);
     system = static_cast<System*>(system->FindNextSibling(&systems, 1));
   }
-  if (m_key8c.OrNull() == nullptr)
-  {
+  if (m_key8c.OrNull() == nullptr) {
     m_unk70 = 0;
     return ok;
   }
@@ -246,8 +242,9 @@ int GameRoot::StartPendingBattle()
   m_ctx90.m_reserved18 = kBattleContextTag;
   auto* battleSystem = static_cast<System*>(GetMasterInFamilies_90_98(&m_key8c));
   ok = both(battleSystem != nullptr, ok);
-  if (battleSystem != nullptr)
+  if (battleSystem != nullptr) {
     ok = both(battleSystem->SetBattle(1, ctx), ok);
+  }
   return ok;
 }
 
@@ -255,38 +252,40 @@ int GameRoot::PrepareBattle()
 {
   NotifyContext* ctx = &m_ctx90;
   int ok = HasRandomGenerator();
-  if (ok == 0)
+  if (ok == 0) {
     return ok;
+  }
   ok = m_key8c.IsSet() != 0;
   auto* system = static_cast<System*>(GetMasterInFamilies_90_98(&m_key8c));
   ok = both(system != nullptr, ok);
-  if (system == nullptr)
+  if (system == nullptr) {
     return ok;
+  }
   ok = both(system->SetBattle(0, ctx), ok);
   uint32_t attacker = system->GetDataWord64();
   const int allianceHere = hasFleets(system, kAllianceSide) || hasSquads(system, kAllianceSide);
   const int empireHere = hasFleets(system, kEmpireSide) || hasSquads(system, kEmpireSide);
   uint32_t defender = 0;
-  if (attacker == 0 && allianceHere != 0 && empireHere != 0)
-  {
+  if (attacker == 0 && allianceHere != 0 && empireHere != 0) {
     const uint32_t controller = (system->m_controlBits >> 6) & 3;
     attacker = controller == kBothSides ? kBothSides : opposingSide(controller);
   }
-  if (attacker != 0)
+  if (attacker != 0) {
     defender = opposingSide(attacker);
-  if (attacker != 0)
-  {
+  }
+  if (attacker != 0) {
     RulesMgr* rules = rulesMgr();
     ok = both(rules != nullptr, ok);
-    if (rules != nullptr)
-    {
+    if (rules != nullptr) {
       FightSquadIterator squads(system, 1, attacker);
-      for (squads.Begin(); squads.Current() != nullptr; squads.Advance())
+      for (squads.Begin(); squads.Current() != nullptr; squads.Advance()) {
         ok = both(rules->EnforceLocation(static_cast<GameObj*>(squads.Current()), ctx), ok);
+      }
     }
   }
-  if (defender != 0)
+  if (defender != 0) {
     ok = markAutorouting(system, defender, ctx, ok);
+  }
   return ok;
 }
 
@@ -295,39 +294,37 @@ int GameRoot::ResolveBattle()
   NotifyContext* ctx = &m_ctx90;
   uint32_t winner = 0;
   uint32_t loser = 0;
-  if (HasRandomGenerator() == 0)
+  if (HasRandomGenerator() == 0) {
     return 0;
+  }
   int keySet = m_key8c.IsSet() != 0;
   auto* system = static_cast<System*>(GetMasterInFamilies_90_98(&m_key8c));
   int ok = system != nullptr && keySet != 0;
-  if (system != nullptr)
-  {
+  if (system != nullptr) {
     const int allianceHere = hasFleets(system, kAllianceSide) || hasSquads(system, kAllianceSide);
     const int empireHere = hasFleets(system, kEmpireSide) || hasSquads(system, kEmpireSide);
     // The battle is reported as failed while both sides still have units (as the original does).
     ok = !(allianceHere != 0 && empireHere != 0) && ok != 0;
-    if (allianceHere != 0 && empireHere == 0)
-    {
+    if (allianceHere != 0 && empireHere == 0) {
       winner = kAllianceSide;
       loser = kEmpireSide;
-    }
-    else if (allianceHere == 0 && empireHere != 0)
-    {
+    } else if (allianceHere == 0 && empireHere != 0) {
       winner = kEmpireSide;
       loser = kAllianceSide;
     }
-    if (allianceHere == 0 || empireHere == 0)
+    if (allianceHere == 0 || empireHere == 0) {
       ok = both(system->SetControlKindBattleWon(winner, ctx), ok);
-    if (loser != 0)
-    {
+    }
+    if (loser != 0) {
       const int valueSide2 = system->GetDataWord68(2);
       const int valueSide1 = system->GetDataWord68(1);
       ok = both(ApplyStrengthImbalance(system, winner, valueSide1, valueSide2, ctx), ok);
     }
     auto* characters = static_cast<CharacterMgr*>(GetGameRootMember_c0());
     ok = both(characters != nullptr, ok);
-    if (characters != nullptr)
+    if (characters != nullptr) {
       ok = both(characters->ShiftLoyaltyForSystem(system, winner, ctx), ok);
+    }
   }
   return both(ClearBattle(), ok);
 }

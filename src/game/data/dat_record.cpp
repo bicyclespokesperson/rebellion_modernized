@@ -19,8 +19,8 @@ constexpr int16_t kArticleGroup = 2;
 
 void appendWithArticle(std::string* out, const std::string& name)
 {
-  const ResourceStringId article = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
-                                    kArticleGroup};
+  const ResourceStringId article
+      = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA, kArticleGroup};
   {
     std::string articleText = LoadStringResource(&article);
     *out += articleText;
@@ -32,7 +32,14 @@ void appendWithArticle(std::string* out, const std::string& name)
 
 // ---- DatRecord ---------------------------------------------------------------------------------------------
 
-DatRecord::DatRecord() : m_hasData(0), m_first(0), m_second(0), m_third(0), m_small(0), m_small2(0), m_name("<not set>")
+DatRecord::DatRecord()
+    : m_hasData(0)
+    , m_first(0)
+    , m_second(0)
+    , m_third(0)
+    , m_small(0)
+    , m_small2(0)
+    , m_name("<not set>")
 {
 }
 
@@ -40,8 +47,7 @@ DatRecord::~DatRecord() = default;
 
 void DatRecord::WriteName(std::string* out, int kind)
 {
-  switch (kind)
-  {
+  switch (kind) {
     case 1:
     case 2:
     case 4:
@@ -49,11 +55,11 @@ void DatRecord::WriteName(std::string* out, int kind)
       break;
     case 0x20:
     case 0x21:
-    {
-      const std::string name(m_name);
-      appendWithArticle(out, name);
-      break;
-    }
+      {
+        const std::string name(m_name);
+        appendWithArticle(out, name);
+        break;
+      }
     default:
       break;
   }
@@ -76,20 +82,24 @@ int DatRecord::Parse(istream* in)
   ScopedStrstream token;
   int endOfLine = 0;
   int ok = 1;
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     ok = 0;
-  if (ok)
-  {
-    ReadCsvField(in, token.get(), &endOfLine);
-    if (iostream_access::WrittenBytes(iostream_access::BufferOf(token.get())) == 0)
-      ok = 0;
-    if (iostream_access::State(in) != 0)
-      ok = 0;
-    if (ok)
-      ok = ParseFields(in, &endOfLine);
   }
-  while (endOfLine == 0)
+  if (ok) {
     ReadCsvField(in, token.get(), &endOfLine);
+    if (iostream_access::WrittenBytes(iostream_access::BufferOf(token.get())) == 0) {
+      ok = 0;
+    }
+    if (iostream_access::State(in) != 0) {
+      ok = 0;
+    }
+    if (ok) {
+      ok = ParseFields(in, &endOfLine);
+    }
+  }
+  while (endOfLine == 0) {
+    ReadCsvField(in, token.get(), &endOfLine);
+  }
   return ok;
 }
 
@@ -149,7 +159,13 @@ int DatRecord::ParseFields(istream* in, int* endOfLine)
 
 // ---- SdRecord ----------------------------------------------------------------------------------------------
 
-SdRecord::SdRecord() : m_field40(0), m_field44(0), m_field48(0), m_field4c(0), m_field50(0), m_field54(0)
+SdRecord::SdRecord()
+    : m_field40(0)
+    , m_field44(0)
+    , m_field48(0)
+    , m_field4c(0)
+    , m_field50(0)
+    , m_field54(0)
 {
 }
 
@@ -219,13 +235,14 @@ int SdRecord::ParseFields(istream* in, int* endOfLine)
 void* CreateRecordForKey(int low, int high)
 {
   void* (*factory)() = nullptr;
-  for (int i = 0; i < g_recordFactoryCount; ++i)
-  {
+  for (int i = 0; i < g_recordFactoryCount; ++i) {
     const RecordFactoryEntry& entry = g_recordFactories[i];
-    if (entry.m_low == low && entry.m_high == high)
+    if (entry.m_low == low && entry.m_high == high) {
       factory = entry.m_factory;
-    if (factory)
+    }
+    if (factory) {
       break;
+    }
   }
   return factory ? factory() : nullptr;
 }
@@ -233,10 +250,10 @@ void* CreateRecordForKey(int low, int high)
 int RegisterRecordFactory(const int* key, void* (*factory)())
 {
   bool found = false;
-  for (int i = 0; i < g_recordFactoryCount && !found; ++i)
+  for (int i = 0; i < g_recordFactoryCount && !found; ++i) {
     found = g_recordFactories[i].m_low == key[0] && g_recordFactories[i].m_high == key[1];
-  if (!found && static_cast<unsigned>(g_recordFactoryCount) + 1 < kMaxRecordFactories + 1u)
-  {
+  }
+  if (!found && static_cast<unsigned>(g_recordFactoryCount) + 1 < kMaxRecordFactories + 1u) {
     RecordFactoryEntry& entry = g_recordFactories[g_recordFactoryCount];
     entry.m_low = key[0];
     entry.m_high = key[1];
@@ -255,8 +272,9 @@ strstream* ReadCsvField(istream* in, strstream* token, int* endOfLine)
   iostream_access::Lock(tokenIos);
   const int lockCount = tokenIos->m_lockCount;
   tokenIos->m_state = 0;
-  if (lockCount < 0)
+  if (lockCount < 0) {
     mtx_unlock(&tokenIos->m_lock);
+  }
   ostream_seekp_pos(iostream_access::AsOstream(token), 0);
   istream_seekg_pos(iostream_access::AsIstream(token), 0);
 
@@ -265,53 +283,39 @@ strstream* ReadCsvField(istream* in, strstream* token, int* endOfLine)
   bool closingQuoteSeen = false;
   bool fieldEnded = false;
   char previous = 0;
-  if (initialEndOfLine == 0)
-  {
+  if (initialEndOfLine == 0) {
     bool stop;
-    do
-    {
+    do {
       const char current = static_cast<char>(istream_get(in));
       const bool ended = iostream_access::State(in) != 0 || current == '\n';
       *endOfLine = ended;
       bool emit = true;
-      if (!ended)
-      {
-        if (atFieldStart)
-        {
+      if (!ended) {
+        if (atFieldStart) {
           quoted = current == '"';
           emit = !quoted;
           atFieldStart = false;
           fieldEnded = current == ',';
-        }
-        else if (quoted)
-        {
-          if (current == '"')
-          {
-            if (previous == '"')
-            {
+        } else if (quoted) {
+          if (current == '"') {
+            if (previous == '"') {
               closingQuoteSeen = false;
-            }
-            else
-            {
+            } else {
               emit = false;
               closingQuoteSeen = true;
             }
-          }
-          else if (previous == '"' && closingQuoteSeen)
-          {
+          } else if (previous == '"' && closingQuoteSeen) {
             fieldEnded = true;
           }
-        }
-        else
-        {
+        } else {
           fieldEnded = current == ',';
         }
       }
       stop = ended || fieldEnded;
-      if (!stop)
-      {
-        if (emit)
+      if (!stop) {
+        if (emit) {
           ostream_operator_ls_char(iostream_access::AsOstream(token), current);
+        }
         previous = current;
       }
     } while (!stop);
@@ -323,8 +327,9 @@ strstream* ReadCsvField(istream* in, strstream* token, int* endOfLine)
 int SkipRestOfLine(istream* in, int* endOfLine)
 {
   ScopedStrstream token;
-  while (iostream_access::State(in) == 0 && *endOfLine == 0)
+  while (iostream_access::State(in) == 0 && *endOfLine == 0) {
     ReadCsvField(in, token.get(), endOfLine);
+  }
   *endOfLine = 0;
   return 1;
 }
@@ -335,8 +340,7 @@ int SkipTableHeader(istream* in)
   int endOfLine = 0;
   char marker[8];
   marker[0] = '\0';
-  while (iostream_access::State(in) == 0 && std::strcmp(marker, "****") != 0)
-  {
+  while (iostream_access::State(in) == 0 && std::strcmp(marker, "****") != 0) {
     strstream* field = ReadCsvField(in, token.get(), &endOfLine);
     ios* fieldIos = iostream_access::IosOf(field);
     iostream_access::Lock(fieldIos);

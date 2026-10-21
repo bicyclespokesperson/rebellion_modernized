@@ -58,8 +58,9 @@ int status(StatusCode* out, int category, int code)
 
 int Mission::CanAllTeamAct()
 {
-  if (GetDataField1c() < 5 && TargetLocationDiffersFromOrigin())
+  if (GetDataField1c() < 5 && TargetLocationDiffersFromOrigin()) {
     return 0;
+  }
   return 1;
 }
 
@@ -69,8 +70,7 @@ int Mission::AverageMemberSkill()
   int count = 0;
   MissionPersonIterator members(this);
   members.Begin();
-  while (members.Current())
-  {
+  while (members.Current()) {
     ++count;
     total += static_cast<Role*>(members.Current())->GetLeadership();
     members.Advance();
@@ -95,10 +95,8 @@ int Mission::CountMembers()
 uint32_t Mission::GetPhaseLevel()
 {
   const uint32_t levels = dataOf(this)->m_levels.m_levels;
-  if (dataOf(this)->m_unk18 != 0)
-  {
-    switch (m_phase)
-    {
+  if (dataOf(this)->m_unk18 != 0) {
+    switch (m_phase) {
       case 2:
         return levels & 0xf;
       case 3:
@@ -116,19 +114,16 @@ uint32_t Mission::GetPhaseLevel()
 
 int Mission::ComputePhaseLevels(MissionPhaseLevels* out)
 {
-  if (GetRecordDetectionPhases() == 0)
-  {
+  if (GetRecordDetectionPhases() == 0) {
     out->m_levels &= 0xffff0000;
     return 1;
   }
   out->m_levels = (out->m_levels & 0xffff4110) | 0x4110;
-  if (!IsDataField1cAbove6())
-  {
-    if (IsDataField1cAbove4())
+  if (!IsDataField1cAbove6()) {
+    if (IsDataField1cAbove4()) {
       out->m_levels &= 0xffffff00;
-  }
-  else if (m_completionStatus == 7)
-  {
+    }
+  } else if (m_completionStatus == 7) {
     out->m_levels = (out->m_levels & 0xffffff00) ^ 3;
   }
   return 1;
@@ -137,8 +132,9 @@ int Mission::ComputePhaseLevels(MissionPhaseLevels* out)
 int Mission::GetOriginSystem(GameObj** out)
 {
   GameObjNotifier* object = GetMasterInFamilies_01_ff(&m_originLocationKey);
-  if (object && isSystemFamily(object))
+  if (object && isSystemFamily(object)) {
     *out = static_cast<GameObj*>(object);
+  }
   return *out != nullptr;
 }
 
@@ -157,8 +153,9 @@ int Mission::GetTargetObject(GameObj** out)
 int Mission::GetTargetLocationSystem(GameObj** out)
 {
   GameObjNotifier* object = GetMasterInFamilies_01_ff(&m_targetLocationKey);
-  if (object && isSystemFamily(object))
+  if (object && isSystemFamily(object)) {
     *out = static_cast<GameObj*>(object);
+  }
   return *out != nullptr;
 }
 
@@ -175,8 +172,9 @@ int Mission::GetObjectiveInOwnerView(GameObj** out)
 {
   *out = nullptr;
   const int view = viewOfControlSide(m_flags);
-  if (view)
+  if (view) {
     *out = static_cast<GameObj*>(GetObjectInFamilies_01_ff(view, &m_objectiveKey));
+  }
   return *out != nullptr;
 }
 
@@ -184,8 +182,9 @@ int Mission::GetTargetInOwnerView(GameObj** out)
 {
   *out = nullptr;
   const int view = viewOfControlSide(m_flags);
-  if (view)
+  if (view) {
     *out = static_cast<GameObj*>(GetObjectInFamilies_01_ff(view, &m_targetKey));
+  }
   return *out != nullptr;
 }
 
@@ -194,13 +193,15 @@ int Mission::GetMemberTransitFlags(Role* person, int* a, int* b, int* c)
   *a = 0;
   *b = 0;
   *c = 0;
-  if (!HasCompletionStatus() && (person->m_flags78 & kRemoveOrResignRequests) == 0)
+  if (!HasCompletionStatus() && (person->m_flags78 & kRemoveOrResignRequests) == 0) {
     return 1;
+  }
   bool sameSide = false;
   GameObjNotifier* parent = nullptr;
   person->GetParent(&parent);
-  if (parent)
+  if (parent) {
     sameSide = ((person->m_flags ^ parent->m_flags) & 0xc0) == 0;
+  }
   *a = 1;
   const int field68 = GetRecordField68();
   const bool flag = (person->m_stateFlags & kHyperdriveActive) != 0 || field68 == 2 || (field68 == 1 && !sameSide);
@@ -215,28 +216,27 @@ int ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey*
   seed->m_value = 0;
   int bestLeadership = 0;
   int bestRank = 1;
-  for (const auto& nodeEntry : team->Entries())
-  {
+  for (const auto& nodeEntry : team->Entries()) {
     auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
-    if (!(key.Family() >= 0x30 && key.Family() < 0x40))
+    if (!(key.Family() >= 0x30 && key.Family() < 0x40)) {
       continue;
+    }
     Role* person = static_cast<Role*>(GetMasterInFamilies_30_40(&key));
-    if (!person || (person->m_flags78 & kRemoveOrResignRequests) != 0 || (person->m_stateFlags & kDestroyed) != 0 ||
-        person->IsCaptured() != 0)
-    {
+    if (!person || (person->m_flags78 & kRemoveOrResignRequests) != 0 || (person->m_stateFlags & kDestroyed) != 0
+        || person->IsCaptured() != 0) {
       continue;
     }
     const int rank = person->GetMissionLeaderRank();
-    const bool better = !leader->IsSet() || bestRank < rank ||
-                        (person->GetMissionLeaderRank() == bestRank && bestLeadership < person->GetLeadership());
-    if (!better)
+    const bool better = !leader->IsSet() || bestRank < rank
+                        || (person->GetMissionLeaderRank() == bestRank && bestLeadership < person->GetLeadership());
+    if (!better) {
       continue;
+    }
     person->GetKey(leader);
-    if (person->m_record)
-    {
+    if (person->m_record) {
       ObjectKey recordKey;
       recordKey.m_value = (person->m_record->m_third << 24) | (person->m_record->m_id & 0xffffff);
       seed->m_value = recordKey.m_value;
@@ -260,12 +260,13 @@ int Mission::CheckActivity(const ActivityRequest* request, StatusCode* out)
 {
   status(out, kStatusCategory, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (out->m_second == static_cast<uint32_t>(kStatusOk))
-  {
-    if (IsPhase4())
+  if (out->m_second == static_cast<uint32_t>(kStatusOk)) {
+    if (IsPhase4()) {
       status(out, kStatusMissionCategory, 0x40);
-    if (out->m_second == static_cast<uint32_t>(kStatusOk) && !IsPhase8())
+    }
+    if (out->m_second == static_cast<uint32_t>(kStatusOk) && !IsPhase8()) {
       status(out, kStatusMissionCategory, 0x41);
+    }
   }
   return result;
 }
@@ -280,15 +281,17 @@ int Mission::TryComplete(const ActivityRequest* request, NotifyContext* ctx)
 {
   StatusCode result(kStatusCategory, kStatusOk);
   int allowed = CheckActivityStatus(request, &result);
-  if (allowed && result.m_second == static_cast<uint32_t>(kStatusOk))
+  if (allowed && result.m_second == static_cast<uint32_t>(kStatusOk)) {
     allowed = CompleteIfOutcomePhase(ctx);
+  }
   return allowed;
 }
 
 int Mission::CompleteIfOutcomePhase(NotifyContext* ctx)
 {
-  if (IsPhase8())
+  if (IsPhase8()) {
     return CompleteWith(2, ctx);
+  }
   return 0;
 }
 
@@ -311,45 +314,39 @@ int Mission::CheckTargetDefault(MissionCheckArgs* args, StatusCode* statusOut, i
   *statusOut = StatusCode(kStatusCategory, kStatusOk);
   *code = 0;
   int ok = 1;
-  if (args->m_flag0c != 0 && (args->m_objective == nullptr || args->m_target == nullptr))
+  if (args->m_flag0c != 0 && (args->m_objective == nullptr || args->m_target == nullptr)) {
     ok = 0;
-  if (args->m_flag04 != 0)
-  {
-    if (ok)
+  }
+  if (args->m_flag04 != 0) {
+    if (ok) {
       ok = CheckSummaryAgainstRecord(args->m_record, args->m_summary, statusOut);
-    if (args->m_flag0c == 0)
+    }
+    if (args->m_flag0c == 0) {
       return ok;
-    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk) && (args->m_target->m_stateFlags & 0x10) != 0)
-    {
+    }
+    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk) && (args->m_target->m_stateFlags & 0x10) != 0) {
       *statusOut = StatusCode(kStatusMissionCategory, 0x13);
       *code = -1;
     }
   }
-  if (args->m_flag0c != 0)
-  {
+  if (args->m_flag0c != 0) {
     auto* record = static_cast<MissionSD*>(args->m_record);
-    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk) && record->m_containerLossEnds != 0 &&
-        (args->m_target->m_stateFlags & kDestroyed) != 0)
-    {
+    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk) && record->m_containerLossEnds != 0
+        && (args->m_target->m_stateFlags & kDestroyed) != 0) {
       *statusOut = StatusCode(kStatusMissionCategory, 0x12);
       *code = 7;
     }
-    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk))
-    {
+    if (ok && statusOut->m_second == static_cast<uint32_t>(kStatusOk)) {
       const uint32_t side = args->m_controlSide;
       const uint32_t objectiveSide = (args->m_objective->m_flags >> 6) & 3;
       int allowed;
-      if (side == objectiveSide)
-      {
+      if (side == objectiveSide) {
         allowed = record->m_ownSideTarget;
-      }
-      else
-      {
+      } else {
         const uint32_t opposite = side == 3 ? 3 : 2 - (side != 1);
         allowed = opposite == objectiveSide ? record->m_opponentTarget : record->m_otherSideTarget;
       }
-      if (allowed == 0)
-      {
+      if (allowed == 0) {
         *statusOut = StatusCode(kStatusMissionCategory, 0x23);
         *code = 8;
       }
@@ -373,8 +370,7 @@ int Mission::ComputeAllTeamCanAct(uint32_t* out)
   MissionPersonIterator members(this);
   members.Begin();
   uint32_t canAct = *out;
-  while (canAct != 0 && members.Current())
-  {
+  while (canAct != 0 && members.Current()) {
     *out = (~members.Current()->m_stateFlags >> 11) & 1;
     members.Advance();
     canAct = *out;
@@ -386,31 +382,33 @@ int Mission::ComputeAllTeamCanAct(uint32_t* out)
 int Mission::ReadyUnlessPhase4Or8(NotifyContext* ctx)
 {
   int result = 1;
-  if (!IsPhase4() && !IsPhase8())
+  if (!IsPhase4() && !IsPhase8()) {
     result = SetReadyForNextPhase(1, ctx);
+  }
   return result;
 }
 
 int Mission::ReadyIfPhase8(NotifyContext* ctx)
 {
   int result = IsPhase8();
-  if (result)
+  if (result) {
     result = SetReadyForNextPhase(1, ctx);
+  }
   return result;
 }
 
 int Mission::DestroyIfPhase11(NotifyContext* ctx)
 {
-  if (m_phase != kPhaseFinished)
+  if (m_phase != kPhaseFinished) {
     return 0;
+  }
   return ChangeDestroyedReason(kDestroyedReasonMissionDone, ctx) != 0;
 }
 
 int Mission::ScheduleTimerEvent(NotifyContext* ctx)
 {
   int result = 1;
-  if (!HasMembers() && m_completionStatus != 0)
-  {
+  if (!HasMembers() && m_completionStatus != 0) {
     result = ArmTimerAfterSetFlag(kEventMissionTimer, 1, this, &dataOf(this)->m_statB, ctx) != 0;
   }
   return result;
@@ -418,28 +416,25 @@ int Mission::ScheduleTimerEvent(NotifyContext* ctx)
 
 int Mission::AdvancePhase(NotifyContext* ctx)
 {
-  if (HasCompletionStatus())
-  {
+  if (HasCompletionStatus()) {
     SetPhase(kPhaseFinished, ctx);
     return 1;
   }
   int result = 1;
-  if (m_flagsA4 & mission_flag::kReadyForNextPhase)
-  {
+  if (m_flagsA4 & mission_flag::kReadyForNextPhase) {
     const int cleared = SetReadyForNextPhase(0, ctx);
     int next = m_phase + 1;
-    if (m_phase == kPhaseRepeat)
-    {
-      if (GetRecordRepeats() != 0)
+    if (m_phase == kPhaseRepeat) {
+      if (GetRecordRepeats() != 0) {
         next = kPhaseOutcome;
-    }
-    else if (m_phase == kPhaseFinished)
-    {
+      }
+    } else if (m_phase == kPhaseFinished) {
       next = kPhaseFinished;
     }
     const int advanced = SetPhase(next, ctx);
-    if (advanced && cleared)
+    if (advanced && cleared) {
       return 1;
+    }
     result = 0;
   }
   return result;
@@ -448,8 +443,7 @@ int Mission::AdvancePhase(NotifyContext* ctx)
 int Mission::UpdateLeaderAndTeamKeys(NotifyContext* ctx)
 {
   int ok = 1;
-  if (m_phase != 1 && m_phase != kPhaseFinished)
-  {
+  if (m_phase != 1 && m_phase != kPhaseFinished) {
     ObjectKey leader;
     NullableKey seed;
     seed.m_value = 0;
@@ -458,8 +452,9 @@ int Mission::UpdateLeaderAndTeamKeys(NotifyContext* ctx)
     ok = leaderSet && chosen;
     const int seedSet = SetLeaderSeedKey(&seed, ctx);
     ok = seedSet && ok;
-    if (ok && (m_flagsA4 & mission_flag::kImpliedTeam) == 0)
+    if (ok && (m_flagsA4 & mission_flag::kImpliedTeam) == 0) {
       ok = leader.IsSet() != 0;
+    }
   }
   return ok;
 }
@@ -468,17 +463,14 @@ int Mission::UpdateTeamAndTarget(NotifyContext* ctx)
 {
   int ok = 1;
   int markReady = 0;
-  if (IsPhase4())
-  {
+  if (IsPhase4()) {
     uint32_t allCanAct = 1;
     ok = ComputeAllTeamCanAct(&allCanAct) != 0;
-    if (allCanAct != 0)
-    {
+    if (allCanAct != 0) {
       GameObj* target = nullptr;
       const int haveTarget = GetTargetObject(&target);
       ok = haveTarget && ok;
-      if (target)
-      {
+      if (target) {
         ObjectKey owner;
         const int gotOwner = target->GetOwnerKey(&owner);
         ok = gotOwner && ok;
@@ -489,37 +481,32 @@ int Mission::UpdateTeamAndTarget(NotifyContext* ctx)
       int anyStopped = 1;
       RulesMgr* rules = GetRulesMgr();
       ok = rules != nullptr && ok;
-      if (rules)
-      {
+      if (rules) {
         MissionPersonIterator members(this);
         members.Begin();
-        while (members.Current())
-        {
+        while (members.Current()) {
           uint32_t arrived = 1;
-          if (members.Current()->m_stateFlags & kEnrouteActive)
-          {
+          if (members.Current()->m_stateFlags & kEnrouteActive) {
             const int evaluated = rules->ResumeTrip(members.Current(), &arrived, ctx);
             ok = evaluated && ok;
           }
-          if (arrived == 0)
-          {
+          if (arrived == 0) {
             anyMoving = 0;
-          }
-          else
-          {
+          } else {
             anyStopped = 0;
           }
           members.Advance();
         }
-        if (anyMoving == 0 && anyStopped == 0)
+        if (anyMoving == 0 && anyStopped == 0) {
           anyMoving = 1;
+        }
       }
-      if (anyMoving != 0 && !HasCompletionStatus())
+      if (anyMoving != 0 && !HasCompletionStatus()) {
         markReady = 1;
+      }
     }
   }
-  if (markReady)
-  {
+  if (markReady) {
     const int set = SetReadyForNextPhase(1, ctx);
     ok = set && ok;
   }

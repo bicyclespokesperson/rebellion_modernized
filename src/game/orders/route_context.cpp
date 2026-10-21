@@ -71,13 +71,13 @@ GameObj* asObject(GameObjNotifier* object)
 // ---- construction ---------------------------------------------------------------------------------------------
 
 RouteContext::RouteContext()
-: ObjectKeySet(),
-  m_flag(1),
-  m_status(kStatusCategory, kStatusRefused),
-  m_side(0),
-  m_arg(0),
-  m_kind(0),
-  m_filter(0)
+    : ObjectKeySet()
+    , m_flag(1)
+    , m_status(kStatusCategory, kStatusRefused)
+    , m_side(0)
+    , m_arg(0)
+    , m_kind(0)
+    , m_filter(0)
 {
 }
 
@@ -112,21 +112,18 @@ int RouteContext::ResolveInSideView(const ObjectKey* key, GameObjNotifier** out)
   *out = nullptr;
   int view = 0;
   int ok = 0;
-  if (isOk(m_status))
-  {
-    if (m_side == 1)
-    {
+  if (isOk(m_status)) {
+    if (m_side == 1) {
       view = 1;
       ok = 1;
-    }
-    else if (m_side == 2)
-    {
+    } else if (m_side == 2) {
       view = 2;
       ok = 1;
     }
   }
-  if (ok)
+  if (ok) {
     *out = GetObjectInFamilies_01_ff(view, key);
+  }
   return ok;
 }
 
@@ -135,8 +132,9 @@ int RouteContext::ResolveObject(const ObjectKey* key, StatusCode* status, GameOb
   *status = okStatus();
   *out = nullptr;
   const int ok = ResolveInSideView(key, out);
-  if (ok && *out == nullptr)
+  if (ok && *out == nullptr) {
     setStatus(status, kStatusMissingDestination);
+  }
   return ok;
 }
 
@@ -145,10 +143,12 @@ int RouteContext::ResolveUnit(const ObjectKey* key, StatusCode* status, GameObjN
   int ok = 1;
   *status = m_status;
   *out = nullptr;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = ResolveInSideView(key, out);
-  if (ok && isOk(*status) && *out == nullptr)
+  }
+  if (ok && isOk(*status) && *out == nullptr) {
     setStatus(status, kStatusMissingUnit);
+  }
   return ok;
 }
 
@@ -158,8 +158,9 @@ int RouteContext::ResolveContainer(GameObj* object, StatusCode* status, GameObjN
   *out = nullptr;
   ObjectKey ownerKey;
   const int ok = ResolveInSideView(GetOwnerKeyValue(object, &ownerKey), out);
-  if (ok && *out == nullptr)
+  if (ok && *out == nullptr) {
     setStatus(status, kStatusMissingContainer);
+  }
   return ok;
 }
 
@@ -167,15 +168,13 @@ int RouteContext::FindLegAndParent(const ObjectKey* key, CapacityLeg** leg, Capa
 {
   *leg = nullptr;
   int found = 0;
-  if (isOk(m_status))
-  {
+  if (isOk(m_status)) {
     *leg = static_cast<CapacityLeg*>(Find(key));
     found = *leg != nullptr;
   }
   *parent = nullptr;
   int result = 0;
-  if (found)
-  {
+  if (found) {
     *parent = static_cast<CapacityLeg*>(Find(&(*leg)->m_parentKey));
     result = *parent != nullptr;
   }
@@ -186,10 +185,11 @@ int RouteContext::CheckObjectKind(GameObj* object, StatusCode* status)
 {
   *status = okStatus();
   const uint32_t family = object->GetFamily();
-  const bool accepted =
-    isSystemFamily(family) || inFamilies(family, 0x98, 0xa0) || isFleetFamily(family) || isCapShipFamily(family);
-  if (!accepted)
+  const bool accepted
+      = isSystemFamily(family) || inFamilies(family, 0x98, 0xa0) || isFleetFamily(family) || isCapShipFamily(family);
+  if (!accepted) {
     setStatus(status, kStatusBadObjectKind);
+  }
   return 1;
 }
 
@@ -199,18 +199,19 @@ int RouteContext::AddLeg(GameObj* object)
 {
   auto* leg = NewOrNull<CapacityLeg>();
   int ok = 0;
-  if (leg == nullptr)
+  if (leg == nullptr) {
     return ok;
-  if (leg->m_flag == 0)
-  {
+  }
+  if (leg->m_flag == 0) {
     delete leg;
     return 0;
   }
   ok = leg->Build(m_side, m_arg, m_kind, &m_filter, object);
-  if (ok)
+  if (ok) {
     Add(leg);
-  else
+  } else {
     delete leg;
+  }
   return ok;
 }
 
@@ -218,32 +219,38 @@ int RouteContext::AddUnitLegs(const ObjectKey* key)
 {
   int ok = 1;
   GameObjNotifier* unit = nullptr;
-  if (isOk(m_status))
+  if (isOk(m_status)) {
     ok = ResolveObject(key, &m_status, &unit);
+  }
   GameObjNotifier* container = nullptr;
-  if (!ok)
+  if (!ok) {
     return ok;
-  if (isOk(m_status))
+  }
+  if (isOk(m_status)) {
     ok = ResolveContainer(asObject(unit), &m_status, &container);
-  if (!ok)
+  }
+  if (!ok) {
     return ok;
-  if (isOk(m_status))
+  }
+  if (isOk(m_status)) {
     ok = CheckObjectKind(asObject(unit), &m_status);
-  if (!ok || !isOk(m_status))
+  }
+  if (!ok || !isOk(m_status)) {
     return ok;
-  if (Find(key))
+  }
+  if (Find(key)) {
     return ok;
+  }
   const int added = AddLeg(asObject(unit));
   ok = 0;
-  if (added)
-  {
+  if (added) {
     GameObjNotifier* parent = nullptr;
     ok = asObject(unit)->GetParent(&parent);
-    if (ok)
-    {
+    if (ok) {
       ObjectKey parentKey;
-      if (!Find(parent->GetKey(&parentKey)))
+      if (!Find(parent->GetKey(&parentKey))) {
         ok = AddLeg(asObject(parent));
+      }
     }
   }
   return ok;
@@ -253,48 +260,52 @@ int RouteContext::AddContainerLegs(const ObjectKey* key)
 {
   int ok = 1;
   GameObjNotifier* unit = nullptr;
-  if (isOk(m_status))
+  if (isOk(m_status)) {
     ok = ResolveObject(key, &m_status, &unit);
+  }
   GameObjNotifier* container = nullptr;
-  if (!ok)
+  if (!ok) {
     return ok;
-  if (isOk(m_status))
+  }
+  if (isOk(m_status)) {
     ok = ResolveContainer(asObject(unit), &m_status, &container);
-  if (!ok)
+  }
+  if (!ok) {
     return ok;
-  if (isOk(m_status))
+  }
+  if (isOk(m_status)) {
     ok = CheckObjectKind(asObject(unit), &m_status);
-  if (!ok || !isOk(m_status))
+  }
+  if (!ok || !isOk(m_status)) {
     return ok;
+  }
   ObjectKey containerKey;
-  if (Find(container->GetKey(&containerKey)))
+  if (Find(container->GetKey(&containerKey))) {
     return ok;
+  }
   const int added = AddLeg(asObject(container));
   ok = 0;
-  if (added)
-  {
+  if (added) {
     GameObjNotifier* parent = nullptr;
     ok = asObject(container)->GetParent(&parent);
-    if (ok)
-    {
+    if (ok) {
       ObjectKey parentKey;
-      if (!Find(parent->GetKey(&parentKey)))
+      if (!Find(parent->GetKey(&parentKey))) {
         ok = AddLeg(asObject(parent));
+      }
     }
   }
   FleetIterator fleets(container, kStateFilterAll);
   fleets.Begin();
-  while (ok && fleets.Current())
-  {
+  while (ok && fleets.Current()) {
     ok = AddLeg(asObject(fleets.Current()));
-    if (ok)
-    {
+    if (ok) {
       CapShipIterator ships(fleets.Current(), kStateFilterAll);
       ships.Begin();
-      do
-      {
-        if (!ships.Current())
+      do {
+        if (!ships.Current()) {
           break;
+        }
         ok = AddLeg(asObject(ships.Current()));
         ships.Advance();
       } while (ok);
@@ -307,13 +318,13 @@ int RouteContext::AddContainerLegs(const ObjectKey* key)
 int RouteContext::MarkOverCapacity(const ObjectKey* key)
 {
   int result = 1;
-  if (Find(key))
-  {
+  if (Find(key)) {
     CapacityLeg* leg = nullptr;
     CapacityLeg* parent = nullptr;
     result = 0;
-    if (FindLegAndParent(key, &leg, &parent))
+    if (FindLegAndParent(key, &leg, &parent)) {
       result = leg->MarkAllIncomingOverCapacity();
+    }
   }
   return result;
 }
@@ -325,10 +336,12 @@ int RouteContext::CountUnit(const ObjectKey* key, StatusCode* status, UnitCountT
   int ok = 1;
   *status = okStatus();
   GameObjNotifier* unit = nullptr;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = ResolveUnit(key, status, &unit);
-  if (ok && isOk(*status))
+  }
+  if (ok && isOk(*status)) {
     ok = counts->CountObject(asObject(unit), &m_filter, 0, status);
+  }
   return ok;
 }
 
@@ -336,16 +349,17 @@ int RouteContext::CountUnits(const ObjectKeySet* keys, StatusCode* status, UnitC
 {
   int ok = 1;
   *status = okStatus();
-  for (auto nodePosition = keys->Entries().begin(); nodePosition != keys->Entries().end();)
-  {
+  for (auto nodePosition = keys->Entries().begin(); nodePosition != keys->Entries().end();) {
     ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
-    if (!(isOk(*status) && true))
+    if (!(isOk(*status) && true)) {
       break;
+    }
 
     ObjectKey key;
     ok = CountUnit(node->GetKey(&key), status, counts);
-    if (!ok)
+    if (!ok) {
       return 0;
+    }
   }
   return ok;
 }
@@ -356,16 +370,18 @@ int RouteContext::FreeParent(const ObjectKey* key, StatusCode* status)
   *status = okStatus();
   UnitCountTable counts;
   GameObjNotifier* unit = nullptr;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = ResolveUnit(key, status, &unit);
-  if (ok && isOk(*status))
+  }
+  if (ok && isOk(*status)) {
     ok = counts.CountObject(asObject(unit), &m_filter, 0, status);
-  if (ok && isOk(*status))
-  {
+  }
+  if (ok && isOk(*status)) {
     ObjectKey parentKey;
     ok = asObject(unit)->GetValidParentKey(&parentKey);
-    if (ok && Find(&parentKey))
+    if (ok && Find(&parentKey)) {
       ok = Commit(&counts, 0, &parentKey);
+    }
   }
   return ok;
 }
@@ -374,16 +390,17 @@ int RouteContext::FreeParentsOf(const ObjectKeySet* units, StatusCode* status)
 {
   int ok = 1;
   *status = okStatus();
-  for (auto nodePosition = units->Entries().begin(); nodePosition != units->Entries().end();)
-  {
+  for (auto nodePosition = units->Entries().begin(); nodePosition != units->Entries().end();) {
     ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
-    if (!(isOk(*status) && true))
+    if (!(isOk(*status) && true)) {
       break;
+    }
 
     ObjectKey key;
     ok = FreeParent(node->GetKey(&key), status);
-    if (!ok)
+    if (!ok) {
       return 0;
+    }
   }
   return ok;
 }
@@ -394,17 +411,15 @@ int RouteContext::FreeCarriedParents(GameObj* object, StatusCode* status)
   UnitCountTable unusedCounts;
   ObjectKeyValueSet carried;
   int result = 0;
-  if (static_cast<ManuMgr*>(object)->ManuMgr::GetQueueCopy(&carried))
+  if (static_cast<ManuMgr*>(object)->ManuMgr::GetQueueCopy(&carried)) {
     result = FreeParentsOf(&carried, status);
+  }
   return result;
 }
 
 // ---- room at the destination ----------------------------------------------------------------------------------
 
-int RouteContext::MinRoomAt(GameObj* object,
-                            UnitCountTable* counts,
-                            int consume,
-                            CapacityLeg** best,
+int RouteContext::MinRoomAt(GameObj* object, UnitCountTable* counts, int consume, CapacityLeg** best,
                             CapacitySlot* slot)
 {
   ObjectKey key;
@@ -417,32 +432,33 @@ int RouteContext::MinRoomAt(GameObj* object,
   CapacityScratch parentRoom;
   CapacityScratch chosen;
   int ok = 0;
-  if (found)
+  if (found) {
     ok = leg->MinRemainingBoth(counts, consume, &legRoom, &arrivalRoom);
+  }
   int result = 0;
-  if (!ok)
+  if (!ok) {
     return result;
+  }
   result = parent->MinRemainingOutgoing(counts, consume, &parentRoom);
-  if (!result)
+  if (!result) {
     return result;
+  }
   chosen = legRoom.IsReplacedBy(parentRoom) ? parentRoom : legRoom;
   StatusCode error;
   const bool fits = chosen.GetError(&error)->m_second == static_cast<uint32_t>(kStatusOk);
-  if (fits)
+  if (fits) {
     chosen = arrivalRoom;
-  if (*best != nullptr && !chosen.IsReplacedBy(*slot))
+  }
+  if (*best != nullptr && !chosen.IsReplacedBy(*slot)) {
     return result;
+  }
   *best = leg;
   *slot = chosen;
   return result;
 }
 
-int RouteContext::CheckRoom(UnitCountTable* counts,
-                            int consume,
-                            const ObjectKey* destination,
-                            StatusCode* status,
-                            CapacitySlot* slot,
-                            ObjectKey* tightest)
+int RouteContext::CheckRoom(UnitCountTable* counts, int consume, const ObjectKey* destination, StatusCode* status,
+                            CapacitySlot* slot, ObjectKey* tightest)
 {
   tightest->Reset();
   *status = okStatus();
@@ -451,40 +467,33 @@ int RouteContext::CheckRoom(UnitCountTable* counts,
   CapacityLeg* best = nullptr;
   int ok = counts->AllNonNegative();
   GameObjNotifier* object = nullptr;
-  if (ok)
-  {
-    if (isOk(*status))
+  if (ok) {
+    if (isOk(*status)) {
       ok = ResolveObject(destination, status, &object);
-    if (ok && isOk(*status))
-    {
+    }
+    if (ok && isOk(*status)) {
       ok = MinRoomAt(asObject(object), counts, consume, &best, slot);
-      if (ok)
-      {
+      if (ok) {
         const uint32_t family = object->GetFamily();
-        if (isSystemFamily(family))
-        {
+        if (isSystemFamily(family)) {
           GameObjNotifier* fleet = nullptr;
           auto* system = static_cast<System*>(asObject(object));
-          ok = m_kind == kKindFacilityMove ? system->FindFleetWithFlag04(m_arg, &fleet) :
-                                             system->FindFleetWithFlag02(m_arg, &fleet);
-          if (ok)
-          {
-            if (fleet != nullptr)
+          ok = m_kind == kKindFacilityMove ? system->FindFleetWithFlag04(m_arg, &fleet)
+                                           : system->FindFleetWithFlag02(m_arg, &fleet);
+          if (ok) {
+            if (fleet != nullptr) {
               ok = MinRoomAt(asObject(fleet), counts, consume, &best, slot);
-            if (ok)
-            {
+            }
+            if (ok) {
               StatusCode error;
               const bool fullyFits = slot->GetError(&error)->m_second == static_cast<uint32_t>(kStatusOk);
-              if (!fullyFits)
-              {
+              if (!fullyFits) {
                 FleetIterator fleets(system, kStateFilterUsable, static_cast<uint32_t>(m_arg));
                 fleets.Begin();
-                while (fleets.Current() && ok)
-                {
+                while (fleets.Current() && ok) {
                   CapShipIterator ships(fleets.Current(), kStateFilterUsable, static_cast<uint32_t>(m_arg));
                   ships.Begin();
-                  while (ships.Current() && ok)
-                  {
+                  while (ships.Current() && ok) {
                     ok = MinRoomAt(asObject(ships.Current()), counts, consume, &best, slot);
                     ships.Advance();
                   }
@@ -493,46 +502,36 @@ int RouteContext::CheckRoom(UnitCountTable* counts,
               }
             }
           }
-        }
-        else if (isFleetFamily(family))
-        {
+        } else if (isFleetFamily(family)) {
           CapShipIterator ships(object, kStateFilterUsable, static_cast<uint32_t>(m_arg));
           ships.Begin();
-          while (ships.Current() && ok)
-          {
+          while (ships.Current() && ok) {
             ok = MinRoomAt(asObject(ships.Current()), counts, consume, &best, slot);
             ships.Advance();
           }
-        }
-        else if (!isCapShipFamily(family) && !inFamilies(family, 0x98, 0xa0))
-        {
+        } else if (!isCapShipFamily(family) && !inFamilies(family, 0x98, 0xa0)) {
           ok = 0;
         }
       }
     }
-    if (ok)
-    {
-      if (isOk(*status))
-      {
+    if (ok) {
+      if (isOk(*status)) {
         StatusCode error;
         *status = *slot->GetError(&error);
       }
-      if (ok && isOk(*status))
-      {
+      if (ok && isOk(*status)) {
         ObjectKey key;
         *tightest = *best->GetKey(&key);
       }
     }
   }
-  if (!ok)
+  if (!ok) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
-int RouteContext::CheckRoomCounts(UnitCountTable* counts,
-                                  int consume,
-                                  const ObjectKey* destination,
-                                  StatusCode* status,
+int RouteContext::CheckRoomCounts(UnitCountTable* counts, int consume, const ObjectKey* destination, StatusCode* status,
                                   CapacitySlot* slot)
 {
   *status = okStatus();
@@ -540,20 +539,21 @@ int RouteContext::CheckRoomCounts(UnitCountTable* counts,
   GameObjNotifier* object = nullptr;
   CapacityLeg* best = nullptr;
   int ok = counts->AllNonNegative();
-  if (ok)
-  {
-    if (isOk(*status))
+  if (ok) {
+    if (isOk(*status)) {
       ok = ResolveObject(destination, status, &object);
-    if (ok && isOk(*status))
+    }
+    if (ok && isOk(*status)) {
       ok = MinRoomAt(asObject(object), counts, consume, &best, slot);
-    if (ok && isOk(*status))
-    {
+    }
+    if (ok && isOk(*status)) {
       StatusCode error;
       *status = *slot->GetError(&error);
     }
   }
-  if (!ok)
+  if (!ok) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
@@ -563,20 +563,19 @@ int RouteContext::Commit(UnitCountTable* counts, int consume, const ObjectKey* k
   CapacityLeg* parent = nullptr;
   int ok = FindLegAndParent(key, &leg, &parent);
   int committed = 0;
-  if (ok)
+  if (ok) {
     committed = leg->CommitBoth(counts, consume);
+  }
   int result = 0;
-  if (committed)
+  if (committed) {
     result = parent->CommitOutgoing(counts, consume);
+  }
   return result;
 }
 
 // ---- whole checks ---------------------------------------------------------------------------------------------
 
-int RouteContext::CheckMove(const ObjectKey* unit,
-                            const ObjectKey* destination,
-                            StatusCode* status,
-                            CapacitySlot* slot,
+int RouteContext::CheckMove(const ObjectKey* unit, const ObjectKey* destination, StatusCode* status, CapacitySlot* slot,
                             ObjectKey* tightest)
 {
   int ok = 1;
@@ -584,55 +583,55 @@ int RouteContext::CheckMove(const ObjectKey* unit,
   slot->Reset();
   tightest->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = CountUnit(unit, status, &counts);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = FreeParent(unit, status);
-    if (ok)
-    {
-      if (isOk(*status))
+    }
+    if (ok) {
+      if (isOk(*status)) {
         ok = CheckRoom(&counts, 1, destination, status, slot, tightest);
-      if (ok && isOk(*status))
+      }
+      if (ok && isOk(*status)) {
         ok = Commit(&counts, 1, tightest);
+      }
     }
   }
   return ok;
 }
 
-int RouteContext::CheckMoveSets(const ObjectKeySet* units,
-                                const ObjectKeySet* others,
-                                const ObjectKey* destination,
-                                StatusCode* status,
-                                CapacitySlot* slot,
-                                ObjectKey* tightest)
+int RouteContext::CheckMoveSets(const ObjectKeySet* units, const ObjectKeySet* others, const ObjectKey* destination,
+                                StatusCode* status, CapacitySlot* slot, ObjectKey* tightest)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   tightest->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = CountUnits(units, status, &counts);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = CountUnits(others, status, &counts);
-    if (ok)
-    {
-      if (isOk(*status))
+    }
+    if (ok) {
+      if (isOk(*status)) {
         ok = FreeParentsOf(units, status);
-      if (ok)
-      {
-        if (isOk(*status))
+      }
+      if (ok) {
+        if (isOk(*status)) {
           ok = FreeParentsOf(others, status);
-        if (ok)
-        {
-          if (isOk(*status))
+        }
+        if (ok) {
+          if (isOk(*status)) {
             ok = CheckRoom(&counts, 1, destination, status, slot, tightest);
-          if (ok && isOk(*status))
+          }
+          if (ok && isOk(*status)) {
             ok = Commit(&counts, 1, tightest);
+          }
         }
       }
     }
@@ -640,78 +639,75 @@ int RouteContext::CheckMoveSets(const ObjectKeySet* units,
   return ok;
 }
 
-int RouteContext::CheckArrival(const ObjectKey* unit,
-                               const ObjectKey* destination,
-                               StatusCode* status,
-                               CapacitySlot* slot,
-                               ObjectKey* tightest)
+int RouteContext::CheckArrival(const ObjectKey* unit, const ObjectKey* destination, StatusCode* status,
+                               CapacitySlot* slot, ObjectKey* tightest)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   tightest->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = CountUnit(unit, status, &counts);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = CheckRoom(&counts, 1, destination, status, slot, tightest);
-    if (ok && isOk(*status))
+    }
+    if (ok && isOk(*status)) {
       ok = Commit(&counts, 1, tightest);
+    }
   }
   return ok;
 }
 
-int RouteContext::CheckArrivalOfFamily(const ObjectKey* unitKey,
-                                       const ObjectKey* destination,
-                                       StatusCode* status,
-                                       CapacitySlot* slot,
-                                       ObjectKey* tightest)
+int RouteContext::CheckArrivalOfFamily(const ObjectKey* unitKey, const ObjectKey* destination, StatusCode* status,
+                                       CapacitySlot* slot, ObjectKey* tightest)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   tightest->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = counts.AddFamily(unitKey->Family(), 1, status);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = CheckRoom(&counts, 1, destination, status, slot, tightest);
-    if (ok && isOk(*status))
+    }
+    if (ok && isOk(*status)) {
       ok = Commit(&counts, 1, tightest);
+    }
   }
   return ok;
 }
 
-int RouteContext::CheckMoveSimple(const ObjectKey* unit,
-                                  const ObjectKey* destination,
-                                  StatusCode* status,
+int RouteContext::CheckMoveSimple(const ObjectKey* unit, const ObjectKey* destination, StatusCode* status,
                                   CapacitySlot* slot)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = CountUnit(unit, status, &counts);
-  if (ok)
-  {
-    if (isOk(*status))
-      ok = FreeParent(unit, status);
-    if (ok && isOk(*status))
-      ok = CheckRoomCounts(&counts, 1, destination, status, slot);
   }
-  if (ok && isOk(*status))
+  if (ok) {
+    if (isOk(*status)) {
+      ok = FreeParent(unit, status);
+    }
+    if (ok && isOk(*status)) {
+      ok = CheckRoomCounts(&counts, 1, destination, status, slot);
+    }
+  }
+  if (ok && isOk(*status)) {
     ok = Commit(&counts, 1, destination);
+  }
   return ok;
 }
 
-int RouteContext::CheckMoveInverted(const ObjectKey* unit,
-                                    const ObjectKey* destination,
-                                    StatusCode* status,
+int RouteContext::CheckMoveInverted(const ObjectKey* unit, const ObjectKey* destination, StatusCode* status,
                                     CapacitySlot* slot)
 {
   int ok = 1;
@@ -720,55 +716,59 @@ int RouteContext::CheckMoveInverted(const ObjectKey* unit,
   UnitCountTable counts;
   GameObjNotifier* object = nullptr;
   counts.ResetAll();
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = ResolveUnit(unit, status, &object);
-  if (ok && isOk(*status))
+  }
+  if (ok && isOk(*status)) {
     ok = counts.CountObject(asObject(object), &m_filter, 1, status);
-  if (ok && isOk(*status))
+  }
+  if (ok && isOk(*status)) {
     ok = CheckRoomCounts(&counts, 1, destination, status, slot);
-  if (ok && isOk(*status))
+  }
+  if (ok && isOk(*status)) {
     ok = Commit(&counts, 1, destination);
+  }
   return ok;
 }
 
-int RouteContext::CheckFamilyArrival(const ObjectKey* unitKey,
-                                     const ObjectKey* destination,
-                                     StatusCode* status,
+int RouteContext::CheckFamilyArrival(const ObjectKey* unitKey, const ObjectKey* destination, StatusCode* status,
                                      CapacitySlot* slot)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = counts.AddFamily(unitKey->Family(), 1, status);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = CheckRoomCounts(&counts, 1, destination, status, slot);
-    if (ok && isOk(*status))
+    }
+    if (ok && isOk(*status)) {
       ok = Commit(&counts, 1, destination);
+    }
   }
   return ok;
 }
 
-int RouteContext::CheckUnitArrival(const ObjectKey* unit,
-                                   const ObjectKey* destination,
-                                   StatusCode* status,
+int RouteContext::CheckUnitArrival(const ObjectKey* unit, const ObjectKey* destination, StatusCode* status,
                                    CapacitySlot* slot)
 {
   int ok = 1;
   *status = okStatus();
   slot->Reset();
   UnitCountTable counts;
-  if (isOk(*status))
+  if (isOk(*status)) {
     ok = CountUnit(unit, status, &counts);
-  if (ok)
-  {
-    if (isOk(*status))
+  }
+  if (ok) {
+    if (isOk(*status)) {
       ok = CheckRoomCounts(&counts, 1, destination, status, slot);
-    if (ok && isOk(*status))
+    }
+    if (ok && isOk(*status)) {
       ok = Commit(&counts, 1, destination);
+    }
   }
   return ok;
 }

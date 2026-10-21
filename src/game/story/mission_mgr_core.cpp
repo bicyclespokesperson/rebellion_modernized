@@ -12,7 +12,7 @@
 
 extern "C" void* operator_new(size_t size);
 
-extern int g_missionMgrEventKindsReady; // 0x6b92e4
+extern int g_missionMgrEventKindsReady;     // 0x6b92e4
 extern EventKindSet g_missionMgrEventKinds; // 0x6b92e8
 
 namespace
@@ -25,8 +25,8 @@ constexpr uint32_t kFamilyMissionTypeBegin = 0x40;
 constexpr uint32_t kFamilyMissionTypeEnd = 0x80;
 constexpr int kEventLukeDagobah = 0x221;
 constexpr int kEventFinalBattle = 0x220;
-constexpr size_t kTypeTableHeader = alignof(MissionTypeCheckEntry) > 4 ? alignof(MissionTypeCheckEntry) :
-                                                                         4; // keeps the entries aligned
+constexpr size_t kTypeTableHeader
+    = alignof(MissionTypeCheckEntry) > 4 ? alignof(MissionTypeCheckEntry) : 4; // keeps the entries aligned
 
 bool isMaster(const GameObjRoot* object)
 {
@@ -35,9 +35,11 @@ bool isMaster(const GameObjRoot* object)
 
 } // namespace
 
-// ---- construction -----------------------------------------------------------------------------------------------------
+// ---- construction
+// -----------------------------------------------------------------------------------------------------
 
-MissionMgr::MissionMgr() : m_storyFlags(0)
+MissionMgr::MissionMgr()
+    : m_storyFlags(0)
 {
   SetId(6);
   ClearTypeTable();
@@ -79,7 +81,8 @@ int MissionMgr::UpdateObservedByEmpire(NotifyContext* ctx)
   return SetObservedByEmpire(1, ctx) != 0 ? 1 : 0;
 }
 
-// ---- the mission-type table -------------------------------------------------------------------------------------------
+// ---- the mission-type table
+// -------------------------------------------------------------------------------------------
 
 int MissionMgr::ClearTypeTable()
 {
@@ -91,8 +94,7 @@ int MissionMgr::ClearTypeTable()
 int MissionMgr::FreeTypeTable()
 {
   m_typeCount = 0;
-  if (m_typeTable)
-  {
+  if (m_typeTable) {
     ::operator delete(reinterpret_cast<char*>(m_typeTable) - kTypeTableHeader);
     m_typeTable = nullptr;
   }
@@ -102,43 +104,40 @@ int MissionMgr::FreeTypeTable()
 int MissionMgr::BuildTypeTable()
 {
   const int cleared = FreeTypeTable();
-  if (cleared)
-  {
-    for (DatRecord* record : GetRecordsOfType(kFamilyMissionTypeBegin))
-    {
+  if (cleared) {
+    for (DatRecord* record : GetRecordsOfType(kFamilyMissionTypeBegin)) {
       ++m_typeCount;
     }
-    if (cleared && m_typeCount != 0)
-    {
+    if (cleared && m_typeCount != 0) {
       const int count = m_typeCount;
       void* block = ::operator new(count * sizeof(MissionTypeCheckEntry) + kTypeTableHeader);
       MissionTypeCheckEntry* entries = nullptr;
-      if (block)
-      {
+      if (block) {
         *static_cast<int*>(block) = count;
         entries = reinterpret_cast<MissionTypeCheckEntry*>(static_cast<char*>(block) + kTypeTableHeader);
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < count; ++i) {
           new (&entries[i].m_recordKey) ObjectKey();
+        }
       }
       m_typeTable = entries;
-      if (entries)
-      {
+      if (entries) {
         auto records = GetRecordsOfType(kFamilyMissionTypeBegin);
-        if (records.empty())
+        if (records.empty()) {
           return 1;
+        }
         bool ok = true;
         MissionTypeCheckEntry* entry = entries;
-        for (DatRecord* record : records)
-        {
+        for (DatRecord* record : records) {
           ObjectKey recordKey;
           auto* mission = static_cast<GameObj*>(CreateObjectForKey(GetAiRecordKey(record, &recordKey)));
           ok = mission != nullptr && ok;
-          if (mission)
-          {
+          if (mission) {
             ObjectKey storedKey;
             entry->m_recordKey = *GetAiRecordKey(record, &storedKey);
-            const int reported = static_cast<Mission*>(mission)->GetCheckFunctions(
-              reinterpret_cast<MissionCheckFunctions*>(&entry->m_checkMember));
+            MissionCheckFunctions checks{};
+            const int reported = static_cast<Mission*>(mission)->GetCheckFunctions(&checks);
+            entry->m_checkMember = checks.m_unk00;
+            entry->m_checkTarget = checks.m_unk04;
             ok = reported != 0 && ok;
             delete mission;
           }
@@ -156,16 +155,14 @@ int MissionMgr::BuildTypeTable()
 int MissionMgr::FindTypeChecks(const ObjectKey* typeKey, MissionCheckFunctions* out)
 {
   bool known = false;
-  if (m_typeCount != 0)
+  if (m_typeCount != 0) {
     known = typeKey->Family() >= kFamilyMissionTypeBegin && typeKey->Family() < kFamilyMissionTypeEnd;
+  }
   int found = 0;
-  if (known)
-  {
-    for (int i = 0; i < m_typeCount && !found; ++i)
-    {
+  if (known) {
+    for (int i = 0; i < m_typeCount && !found; ++i) {
       const MissionTypeCheckEntry& entry = m_typeTable[i];
-      if (entry.m_recordKey.m_value == typeKey->m_value)
-      {
+      if (entry.m_recordKey.m_value == typeKey->m_value) {
         found = 1;
         out->m_unk00 = entry.m_checkMember;
         out->m_unk04 = entry.m_checkTarget;
@@ -175,7 +172,8 @@ int MissionMgr::FindTypeChecks(const ObjectKey* typeKey, MissionCheckFunctions* 
   return found;
 }
 
-// ---- persistence ------------------------------------------------------------------------------------------------------
+// ---- persistence
+// ------------------------------------------------------------------------------------------------------
 
 int MissionMgr::Read(istream* in)
 {
@@ -210,15 +208,16 @@ int MissionMgr::CreateViews(int controlKind, NotifyContext* ctx)
 int MissionMgr::ReadBody(istream* in)
 {
   int result = GameObj::Read(in);
-  if (!result)
+  if (!result) {
     return result;
+  }
   ReadValue32(in, &m_storyFlags);
   result = 0;
-  if (m_statA.Read(in))
-  {
+  if (m_statA.Read(in)) {
     result = m_statB.Read(in);
-    if (result && isMaster(this))
+    if (result && isMaster(this)) {
       result = BuildTypeTable();
+    }
   }
   return result;
 }
@@ -226,35 +225,37 @@ int MissionMgr::ReadBody(istream* in)
 int MissionMgr::WriteBody(ostream* out)
 {
   int result = GameObj::Write(out);
-  if (!result)
+  if (!result) {
     return result;
+  }
   WriteValue32(out, &m_storyFlags);
   result = 0;
-  if (m_statA.Write(out))
+  if (m_statA.Write(out)) {
     result = m_statB.Write(out);
+  }
   return result;
 }
 
 int MissionMgr::ChecksumBody(Crc32* crc)
 {
   int result = GameObj::Checksum(crc);
-  if (!result)
+  if (!result) {
     return result;
+  }
   crc->AddInt(static_cast<int>(m_storyFlags));
   result = 0;
-  if (m_statA.Checksum(crc))
+  if (m_statA.Checksum(crc)) {
     result = m_statB.Checksum(crc);
+  }
   return result;
 }
 
 int MissionMgr::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = GameObj::ApplyAll(ctx);
-  if (result)
-  {
+  if (result) {
     GameObj::ApplyAll(ctx);
-    if (ctx->m_flag04 == 1)
-    {
+    if (ctx->m_flag04 == 1) {
       ApplyLukeDagobahRequired(ctx);
       ApplyLukeDagobah(ctx);
       ApplyLukePalace(ctx);
@@ -275,26 +276,25 @@ int MissionMgr::ApplyAllBody(NotifyContext* ctx)
 int MissionMgr::ValidateBody()
 {
   int result = GameObj::Validate();
-  if (!result)
+  if (!result) {
     return result;
+  }
   const FamilyRange persons(0x30, 0x40);
-  for (GameObjNotifier* node = GetFirstMasterInFamilies_30_40(); node;)
-  {
+  for (GameObjNotifier* node = GetFirstMasterInFamilies_30_40(); node;) {
     Role* person = static_cast<Role*>(node);
     ObjectKey missionKey(person->m_missionKey);
-    if (missionKey.OrNull())
-    {
+    if (missionKey.OrNull()) {
       auto* mission = static_cast<Mission*>(GetMasterInFamilies_40_80(&missionKey));
       result = mission != nullptr;
-      if (result)
-      {
+      if (result) {
         ObjectKey personKey;
         result = mission->IsMember(person->GetKey(&personKey));
       }
     }
     node = static_cast<GameObj*>(person)->FindNextSibling(&persons, 1);
-    if (!result)
+    if (!result) {
       break;
+    }
   }
   return result;
 }
@@ -302,8 +302,9 @@ int MissionMgr::ValidateBody()
 int MissionMgr::CreateViewsBody(int controlKind, NotifyContext* ctx)
 {
   int ok = GameObj::CreateViews(controlKind, ctx) ? 1 : 0;
-  if (isMaster(this))
+  if (isMaster(this)) {
     ok = BuildTypeTable() && ok ? 1 : 0;
+  }
 
   m_statA.SetLevel(g_gnprtb1802);
   m_statA.SetProgress(g_gnprtb1803);
@@ -319,15 +320,14 @@ int MissionMgr::CreateViewsBody(int controlKind, NotifyContext* ctx)
   return SetBountyHuntersActive(1, &armContext) && ok ? 1 : 0;
 }
 
-// ---- event kinds ------------------------------------------------------------------------------------------------------
+// ---- event kinds
+// ------------------------------------------------------------------------------------------------------
 
 int MissionMgr::BuildEventKinds()
 {
-  return story::buildKindsOnce(&g_missionMgrEventKindsReady,
-                               []
-                               {
-                                 return InitEventKinds(0, &g_missionMgrEventKinds);
-                               });
+  return story::buildKindsOnce(&g_missionMgrEventKindsReady, [] {
+    return InitEventKinds(0, &g_missionMgrEventKinds);
+  });
 }
 
 int MissionMgr::GetEventKinds(int unused, EventKindSet* out)
@@ -340,29 +340,26 @@ int MissionMgr::CheckOrder(int a, int orderKind, StatusCode* out)
   return story::checkOrder(BuildEventKinds(), g_missionMgrEventKinds, orderKind, out);
 }
 
-// ---- the story flag properties ----------------------------------------------------------------------------------------
+// ---- the story flag properties
+// ----------------------------------------------------------------------------------------
 
-#define REB_DEFINE_STORY_FLAG(NAME, MASK)                                       \
-  int MissionMgr::Set##NAME(int on, NotifyContext* ctx)                         \
-  {                                                                             \
-    return story::setFlagProperty(                                              \
-      this, &MissionMgr::m_storyFlags, MASK, on,                                \
-      [&](MissionMgr* view)                                                     \
-      {                                                                         \
-        view->Apply##NAME(ctx);                                                 \
-      },                                                                        \
-      [&]                                                                       \
-      {                                                                         \
-        On##NAME##Changed(on, ctx);                                             \
-      });                                                                       \
-  }                                                                             \
-  int MissionMgr::Apply##NAME(NotifyContext* ctx)                               \
-  {                                                                             \
-    return story::applyFlagProperty(this, &MissionMgr::m_storyFlags, MASK, ctx, \
-                                    [&](int value)                              \
-                                    {                                           \
-                                      return On##NAME##Notified(value, ctx);    \
-                                    });                                         \
+#define REB_DEFINE_STORY_FLAG(NAME, MASK)                                                                              \
+  int MissionMgr::Set##NAME(int on, NotifyContext* ctx)                                                                \
+  {                                                                                                                    \
+    return story::setFlagProperty(                                                                                     \
+        this, &MissionMgr::m_storyFlags, MASK, on,                                                                     \
+        [&](MissionMgr* view) {                                                                                        \
+          view->Apply##NAME(ctx);                                                                                      \
+        },                                                                                                             \
+        [&] {                                                                                                          \
+          On##NAME##Changed(on, ctx);                                                                                  \
+        });                                                                                                            \
+  }                                                                                                                    \
+  int MissionMgr::Apply##NAME(NotifyContext* ctx)                                                                      \
+  {                                                                                                                    \
+    return story::applyFlagProperty(this, &MissionMgr::m_storyFlags, MASK, ctx, [&](int value) {                       \
+      return On##NAME##Notified(value, ctx);                                                                           \
+    });                                                                                                                \
   }
 
 REB_DEFINE_STORY_FLAG(LukeDagobahRequired, story_flag::kLukeDagobahRequired)
@@ -388,16 +385,16 @@ int MissionMgr::OnBountyHuntersActiveChanged(int on, NotifyContext* ctx)
 int MissionMgr::OnLukeDagobahRequiredNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrLukeDagobahRequiredNotif)", "LukeDagobahRequired", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnLukeDagobahNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("MissionMgrLukeDagobahNotif", "LukeDagobah", on, 0, ctx);
     result = PostPayloadFlag(kEventLukeDagobah, this, on, ctx);
   }
@@ -407,72 +404,79 @@ int MissionMgr::OnLukeDagobahNotified(int on, NotifyContext* ctx)
 int MissionMgr::OnLukePalaceNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrLukePalaceNotif)", "LukePalace", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnHanCapturedAtPalaceNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrHanCapturedAtPalaceNotif)", "HanCapturedAtPalace", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnLeiaPalaceNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrLeiaPalaceNotif)", "LeiaPalace", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnChewbaccaPalaceNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrChewbaccaPalaceNotif)", "ChewbaccaPalace", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnDarthPickupNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrDarthPickupNotif)", "DarthPickup", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnDarthToLukeFinalBattleNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrDarthToLukeFinalBattleNotif)", "DarthToLukeFinalBattle", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnDarthToEmperorFinalBattleNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrDarthToEmperorFinalBattleNotif)", "DarthToEmperorFinalBattle", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnFinalBattleReadyNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrFinalBattleReadyNotif)", "FinalBattleReady", on, 0, ctx);
+  }
   return result;
 }
 
 int MissionMgr::OnFinalBattleNotified(int on, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("MissionMgrFinalBattleNotif", "FinalBattle", on, 0, ctx);
     result = PostPayloadFlag(kEventFinalBattle, this, on, ctx);
   }
@@ -482,8 +486,9 @@ int MissionMgr::OnFinalBattleNotified(int on, NotifyContext* ctx)
 int MissionMgr::OnBountyHuntersActiveNotified(int on, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogFlag("(MissionMgrBountyHuntersActiveNotif)", "BountyHuntersActive", on, 0, ctx);
+  }
   return result;
 }
 EventKindSet g_missionMgrEventKinds{};

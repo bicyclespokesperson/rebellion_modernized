@@ -2,10 +2,11 @@
 
 #include <cstdlib>
 #include <new>
+#include <system_error>
 
-#include "audio/interlocked_import.h"
 #include "core/checked_new.h"
 #include "port/native/audio_context.h"
+#include "port/native/platform.h"
 #include "ui/cool_window.h"
 
 namespace
@@ -26,12 +27,10 @@ extern const char* g_waveResourceType; // 0x6ac954 "WAVE"
 namespace
 {
 
-constexpr uint32_t kDefaultPrimaryFormat = 0x2b110110; // 11025 Hz, 1 channel, 16 bit
+constexpr uint32_t kDefaultPrimaryFormat = 0x2b110110;  // 11025 Hz, 1 channel, 16 bit
 constexpr uint32_t kListenerPrimaryFormat = 0x2b110208; // 11025 Hz, 2 channels, 8 bit
-constexpr int kEventCount = 2;
 constexpr int kWakeEvent = 0;
 constexpr int kStopEvent = 1;
-constexpr DWORD kEventStackBytes = 0x4000;
 constexpr int kMinVolume = -10000;
 constexpr uint16_t kBitsPerByte = 8;
 constexpr uint8_t kPlayWithDefaultVolume = 0;
@@ -86,15 +85,17 @@ SoundRequest::~SoundRequest() = default;
 
 int SoundManager::Initialize(HWND window, unsigned flags, int smackParameter)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return kSoundFailed;
+  }
   return InitializeImpl(window, flags, smackParameter);
 }
 
 void SoundManager::Shutdown(int force)
 {
-  if (audioContextAvailable())
+  if (audioContextAvailable()) {
     ShutdownImpl(force);
+  }
 }
 
 IDirectSound* SoundManager::GetDirectSound()
@@ -104,8 +105,9 @@ IDirectSound* SoundManager::GetDirectSound()
 
 void SoundManager::SetEventCallback(SoundEventCallback callback)
 {
-  if (audioContextAvailable())
+  if (audioContextAvailable()) {
     Audio().soundEventCallback = callback;
+  }
 }
 
 int SoundManager::Play(SoundRequest* request)
@@ -125,8 +127,9 @@ int SoundManager::Release(SoundRequest* request)
 
 void SoundManager::ReleaseAll(int everything)
 {
-  if (audioContextAvailable())
+  if (audioContextAvailable()) {
     ReleaseAllImpl(everything);
+  }
 }
 
 int SoundManager::Query(SoundRequest* request)
@@ -146,14 +149,16 @@ int SoundManager::SetVolume(SoundRequest* request, int volume)
 
 void SoundManager::SetDefaultVolume(int volume)
 {
-  if (audioContextAvailable())
+  if (audioContextAvailable()) {
     Audio().soundVolume = volume;
+  }
 }
 
 void SoundManager::SetMasterVolume(LONG volume)
 {
-  if (audioContextAvailable())
+  if (audioContextAvailable()) {
     SetMasterVolumeImpl(volume);
+  }
 }
 
 // ---- device -------------------------------------------------------------------------------------------------
@@ -162,35 +167,29 @@ int SoundManager::InitializeImpl(HWND window, unsigned flags, int smackParameter
 {
   int result;
   Audio().soundWindow = window;
-  if (flags & kSoundInitCdAudio)
+  if (flags & kSoundInitCdAudio) {
     Audio().cdAudio.Open(window);
-  if (Audio().directSound == nullptr)
-  {
-    if (DirectSoundCreate(nullptr, &Audio().directSound, nullptr) == DS_OK)
-    {
-      if (Audio().directSound->SetCooperativeLevel(Audio().soundWindow, DSSCL_EXCLUSIVE) == DS_OK)
-      {
-        if (flags & kSoundInitListenerFormat)
+  }
+  if (Audio().directSound == nullptr) {
+    if (reb::compat::DirectSoundCreate(nullptr, &Audio().directSound, nullptr) == DS_OK) {
+      if (Audio().directSound->SetCooperativeLevel(Audio().soundWindow, DSSCL_EXCLUSIVE) == DS_OK) {
+        if (flags & kSoundInitListenerFormat) {
           result = SetPrimaryBufferFormat3D(kListenerPrimaryFormat);
-        else
+        } else {
           result = SetPrimaryBufferFormat(kDefaultPrimaryFormat);
-      }
-      else
-      {
+        }
+      } else {
         result = kSoundCooperativeLevelFailed;
       }
-    }
-    else
-    {
+    } else {
       result = kSoundNoDevice;
     }
-  }
-  else
-  {
+  } else {
     result = kSoundAlreadyInitialized;
   }
-  if (flags & kSoundInitShareWithSmacker)
+  if (flags & kSoundInitShareWithSmacker) {
     Audio().smackSound.Share(window, smackParameter, Audio().directSound);
+  }
   StartEventThread();
   ++Audio().soundUseCount;
   return result;
@@ -200,22 +199,17 @@ void SoundManager::ShutdownImpl(int force)
 {
   --Audio().soundUseCount;
   bool lastUser;
-  if (force == 1 || Audio().soundUseCount < 0)
-  {
+  if (force == 1 || Audio().soundUseCount < 0) {
     Audio().soundUseCount = 0;
     lastUser = true;
-  }
-  else
-  {
+  } else {
     lastUser = Audio().soundUseCount == 0;
   }
-  if (lastUser)
-  {
+  if (lastUser) {
     StopEventThread();
     ReleaseAllImpl(1);
     ReleasePrimaryBuffer();
-    if (Audio().directSound)
-    {
+    if (Audio().directSound) {
       Audio().directSound->Release();
       Audio().directSound = nullptr;
     }
@@ -229,18 +223,19 @@ int SoundManager::SetPrimaryBufferFormat3D(uint32_t packedFormat)
   description.dwSize = sizeof(description);
   description.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRL3D | DSBCAPS_GLOBALFOCUS;
   if (Audio().directSound->CreateSoundBuffer(reinterpret_cast<LPCDSBUFFERDESC>(&description), &Audio().primaryBuffer,
-                                             nullptr) != DS_OK)
+                                             nullptr)
+      != DS_OK) {
     return kSoundCreatePrimaryFailed;
-  if (Audio().primaryBuffer->SetFormat(&Audio().primaryFormat) != DS_OK)
-  {
+  }
+  if (Audio().primaryBuffer->SetFormat(&Audio().primaryFormat) != DS_OK) {
     ReleasePrimaryBuffer();
     return kSoundSetFormatFailed;
   }
-  if (Audio().primaryBuffer->QueryInterface(IID_IDirectSound3DListener, reinterpret_cast<void**>(&Audio().listener)) !=
-      DS_OK)
+  if (Audio().primaryBuffer->QueryInterface(reb::compat::IID_IDirectSound3DListener, reinterpret_cast<void**>(&Audio().listener))
+      != DS_OK) {
     return kSoundQueryListenerFailed;
-  if (Audio().primaryBuffer->Play(0, 0, DSBPLAY_LOOPING) != DS_OK)
-  {
+  }
+  if (Audio().primaryBuffer->Play(0, 0, DSBPLAY_LOOPING) != DS_OK) {
     ReleasePrimaryBuffer();
     return kSoundCreatePrimaryFailed;
   }
@@ -249,14 +244,12 @@ int SoundManager::SetPrimaryBufferFormat3D(uint32_t packedFormat)
 
 void SoundManager::ReleasePrimaryBuffer()
 {
-  if (Audio().primaryBuffer)
-  {
+  if (Audio().primaryBuffer) {
     Audio().primaryBuffer->Stop();
     Audio().primaryBuffer->Release();
     Audio().primaryBuffer = nullptr;
   }
-  if (Audio().listener)
-  {
+  if (Audio().listener) {
     Audio().listener->Release();
     Audio().listener = nullptr;
   }
@@ -265,41 +258,44 @@ void SoundManager::ReleasePrimaryBuffer()
 int SoundManager::SetPrimaryBufferFormat(uint32_t packedFormat)
 {
   StorePrimaryFormat(packedFormat);
-  if (!Audio().primaryBuffer)
-  {
+  if (!Audio().primaryBuffer) {
     DSBUFFERDESC1 description = {};
     description.dwSize = sizeof(description);
     description.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLVOLUME;
-    if (!Audio().directSound)
+    if (!Audio().directSound) {
       return kSoundCreatePrimaryFailed;
+    }
     if (Audio().directSound->CreateSoundBuffer(reinterpret_cast<LPCDSBUFFERDESC>(&description), &Audio().primaryBuffer,
-                                               nullptr) != DS_OK)
+                                               nullptr)
+        != DS_OK) {
       return kSoundCreatePrimaryFailed;
+    }
   }
   return Audio().primaryBuffer->SetFormat(&Audio().primaryFormat) != DS_OK ? kSoundSetFormatFailed : kSoundOk;
 }
 
 void SoundManager::SetMasterVolumeImpl(LONG volume)
 {
-  if (!Audio().primaryBuffer)
-  {
+  if (!Audio().primaryBuffer) {
     SetPrimaryBufferFormat(kListenerPrimaryFormat);
-    if (!Audio().primaryBuffer)
+    if (!Audio().primaryBuffer) {
       return;
+    }
   }
   Audio().primaryBuffer->SetVolume(volume);
 }
 
 LONG SoundManager::GetMasterVolume()
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return 0;
+  }
   LONG volume = 0;
-  if (!Audio().primaryBuffer)
-  {
+  if (!Audio().primaryBuffer) {
     SetPrimaryBufferFormat(kListenerPrimaryFormat);
-    if (!Audio().primaryBuffer)
+    if (!Audio().primaryBuffer) {
       return volume;
+    }
   }
   Audio().primaryBuffer->GetVolume(&volume);
   return volume;
@@ -309,17 +305,18 @@ LONG SoundManager::GetMasterVolume()
 
 int SoundManager::CreateBuffer(DSBUFFERDESC1* description, IDirectSoundBuffer** buffer)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return kSoundNoDevice;
-  if (!Audio().directSound)
+  }
+  if (!Audio().directSound) {
     return kSoundNoDevice;
+  }
   int result = Audio().directSound->CreateSoundBuffer(reinterpret_cast<LPCDSBUFFERDESC>(description), buffer, nullptr);
-  if (result != DS_OK)
+  if (result != DS_OK) {
     return result;
-  if (Audio().soundVolume > 0)
-  {
-    if (Audio().soundVolume <= -kMinVolume)
-    {
+  }
+  if (Audio().soundVolume > 0) {
+    if (Audio().soundVolume <= -kMinVolume) {
       // A positive default volume means an attenuation: it is negated once, in place.
       Audio().soundVolume = -Audio().soundVolume;
       (*buffer)->SetVolume(Audio().soundVolume);
@@ -333,98 +330,110 @@ int SoundManager::CreateBuffer(DSBUFFERDESC1* description, IDirectSoundBuffer** 
 
 int SoundManager::DuplicateBuffer(IDirectSoundBuffer** duplicate, IDirectSoundBuffer** original)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return kSoundNoDevice;
-  if (!Audio().directSound)
+  }
+  if (!Audio().directSound) {
     return kSoundNoDevice;
+  }
   return Audio().directSound->DuplicateSoundBuffer(*original, duplicate);
 }
 
 int SoundManager::PostBufferEvent(uint32_t message, uint32_t first, uint32_t second)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return 0;
+  }
   QueueEvent(message, first, second);
   return 0;
 }
 
 void SoundManager::HandleBufferEvent(uint32_t message, uint32_t sourceKey, uint32_t bufferKey)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return;
-  if (message != kSoundBufferFinishedMessage)
+  }
+  if (message != kSoundBufferFinishedMessage) {
     return;
-  if (KeyedSoundNode* node = Audio().soundSources.Find(sourceKey))
+  }
+  if (KeyedSoundNode* node = Audio().soundSources.Find(sourceKey)) {
     static_cast<SoundSource*>(node)->ReleaseUser(bufferKey);
+  }
 }
 
 void SoundManager::SweepSources(int)
 {
-  if (!audioContextAvailable())
+  if (!audioContextAvailable()) {
     return;
-  if (InterlockedExchange(&Audio().sweepBusy, 1) != 0)
+  }
+  if (Audio().sweepBusy.exchange(1) != 0) {
     return;
+  }
   auto& catalog = Audio().soundCatalog;
-  for (auto entry = catalog.Entries().begin(); entry != catalog.Entries().end();)
-  {
+  for (auto entry = catalog.Entries().begin(); entry != catalog.Entries().end();) {
     auto current = entry++;
     auto* node = current->second.get();
-    if (static_cast<SoundSource*>(node)->m_users == 1)
+    if (static_cast<SoundSource*>(node)->m_users == 1) {
       Audio().soundCatalog.DeleteNode(static_cast<SoundSource*>(node));
+    }
   }
   auto& sources = Audio().soundSources;
-  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
-  {
+  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();) {
     auto current = entry++;
     auto* node = current->second.get();
     auto* source = static_cast<SoundSource*>(node);
-    if (source->m_keepLoaded == 0 && source->IsAnyPlaying() == 0)
+    if (source->m_keepLoaded == 0 && source->IsAnyPlaying() == 0) {
       Audio().soundSources.DeleteNode(source);
+    }
   }
-  InterlockedExchange(&Audio().sweepBusy, 0);
+  Audio().sweepBusy.exchange(0);
 }
 
 // ---- sounds -------------------------------------------------------------------------------------------------
 
 int SoundManager::LoadResourceSource(SoundRequest* request)
 {
-  if (Audio().soundSources.Find(request->SourceKey()))
+  if (Audio().soundSources.Find(request->SourceKey())) {
     return kSoundAlreadyLoaded;
+  }
   SoundSource* source;
   int error = CreateResourceSource(request, FindResourceModule(request->m_moduleIndex), &source);
-  if (error != 0 || source == nullptr)
+  if (error != 0 || source == nullptr) {
     return kSoundFailed;
+  }
   Audio().soundSources.Add(source);
-  if (request->m_keepLoaded)
+  if (request->m_keepLoaded) {
     source->m_keepLoaded = 1;
+  }
   return kSoundOk;
 }
 
 int SoundManager::LoadFileSource(SoundRequest* request, const char* fileName, long seekPosition)
 {
-  if (Audio().soundSources.Find(request->SourceKey()))
+  if (Audio().soundSources.Find(request->SourceKey())) {
     return kSoundAlreadyLoaded;
+  }
   SoundSource* source;
-  if (CreateFileSource(request, fileName, seekPosition, &source) != 0 || source == nullptr)
+  if (CreateFileSource(request, fileName, seekPosition, &source) != 0 || source == nullptr) {
     return kSoundFailed;
+  }
   source->m_key = request->SourceKey();
   Audio().soundSources.Add(source);
-  if (request->m_keepLoaded)
+  if (request->m_keepLoaded) {
     source->m_keepLoaded = 1;
+  }
   return kSoundOk;
 }
 
 int SoundManager::StartSource(SoundRequest* request)
 {
   int result;
-  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey()))
-  {
+  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey())) {
     result = static_cast<SoundSource*>(node)->Play(&request->m_handle, request->m_loop);
-    if (result == 0)
+    if (result == 0) {
       request->m_playing = 1;
-  }
-  else
-  {
+    }
+  } else {
     result = kSoundNotLoaded;
   }
   SweepSources(0);
@@ -434,8 +443,9 @@ int SoundManager::StartSource(SoundRequest* request)
 int SoundManager::PlayImpl(SoundRequest* request)
 {
   int result = kSoundFailed;
-  if (Audio().soundSources.Find(request->SourceKey()) || LoadResourceSource(request) == 0)
+  if (Audio().soundSources.Find(request->SourceKey()) || LoadResourceSource(request) == 0) {
     result = StartSource(request);
+  }
   SweepSources(0);
   return result;
 }
@@ -443,8 +453,9 @@ int SoundManager::PlayImpl(SoundRequest* request)
 int SoundManager::PlayFromFileImpl(SoundRequest* request, const char* fileName, long seekPosition)
 {
   int result = kSoundFailed;
-  if (Audio().soundSources.Find(request->SourceKey()) || LoadFileSource(request, fileName, seekPosition) == 0)
+  if (Audio().soundSources.Find(request->SourceKey()) || LoadFileSource(request, fileName, seekPosition) == 0) {
     result = StartSource(request);
+  }
   SweepSources(0);
   return result;
 }
@@ -452,11 +463,9 @@ int SoundManager::PlayFromFileImpl(SoundRequest* request, const char* fileName, 
 int SoundManager::ReleaseImpl(SoundRequest* request)
 {
   int result = kSoundNoSuchSound;
-  if (Audio().soundSources.Find(request->SourceKey()))
-  {
+  if (Audio().soundSources.Find(request->SourceKey())) {
     result = kSoundOk;
-    do
-    {
+    do {
       Audio().soundSources.DeleteByKey(request->SourceKey());
     } while (Audio().soundSources.Find(request->SourceKey()));
   }
@@ -465,26 +474,26 @@ int SoundManager::ReleaseImpl(SoundRequest* request)
 
 void SoundManager::ReleaseAllImpl(int everything)
 {
-  if (everything == 1)
-  {
+  if (everything == 1) {
     Audio().soundSources.SoundIdTree::Clear();
     return;
   }
   auto& sources = Audio().soundSources;
-  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
-  {
+  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();) {
     auto current = entry++;
     auto* node = current->second.get();
     auto* source = static_cast<SoundSource*>(node);
-    if (source->m_keepLoaded == 0)
+    if (source->m_keepLoaded == 0) {
       Audio().soundSources.DeleteNode(source);
+    }
   }
 }
 
 int SoundManager::QueryImpl(SoundRequest* request)
 {
-  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey()))
+  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey())) {
     return static_cast<SoundSource*>(node)->QueryPlaying(request);
+  }
   request->m_keepLoaded = 0;
   request->m_playing = 0;
   return kSoundNotLoaded;
@@ -493,86 +502,91 @@ int SoundManager::QueryImpl(SoundRequest* request)
 int SoundManager::StopImpl(SoundRequest* request, int sweep)
 {
   int result = kSoundNotLoaded;
-  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey()))
+  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey())) {
     result = static_cast<SoundSource*>(node)->Stop(&request->m_handle, sweep);
-  if (sweep != 0)
+  }
+  if (sweep != 0) {
     SweepSources(0);
+  }
   return result;
 }
 
 int SoundManager::SetVolumeImpl(SoundRequest* request, int volume)
 {
-  if (volume > 0 || volume < kMinVolume)
+  if (volume > 0 || volume < kMinVolume) {
     return kSoundFailed;
-  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey()))
+  }
+  if (KeyedSoundNode* node = Audio().soundSources.Find(request->SourceKey())) {
     return static_cast<SoundSource*>(node)->SetVolume(request->m_handle, volume);
+  }
   return kSoundNotLoaded;
 }
 
 int SoundManager::CreateResourceSource(SoundRequest* request, HMODULE module, SoundSource** source)
 {
   int result = kSoundFailed;
-  if (request->m_soundId == 0 || module == nullptr)
+  if (request->m_soundId == 0 || module == nullptr) {
     return result;
-  HRSRC resource = FindResourceA(module, MAKEINTRESOURCEA(static_cast<WORD>(request->m_soundId)), g_waveResourceType);
-  if (!resource)
+  }
+  HRSRC resource = reb::compat::FindResourceA(module, MAKEINTRESOURCEA(static_cast<WORD>(request->m_soundId)), g_waveResourceType);
+  if (!resource) {
     return result;
-  HGLOBAL loaded = LoadResource(module, resource);
-  if (!loaded)
+  }
+  HGLOBAL loaded = reb::compat::LoadResource(module, resource);
+  if (!loaded) {
     return result;
-  void* image = LockResource(loaded);
-  if (!image)
+  }
+  void* image = reb::compat::LockResource(loaded);
+  if (!image) {
     return result;
-  if (request->m_kind == kSoundKindWave)
-  {
+  }
+  if (request->m_kind == kSoundKindWave) {
     result = kSoundOk;
     *source = NewOrNull<SoundSource>(static_cast<const void*>(image), static_cast<int>(kBufferStatic), request);
-  }
-  else
-  {
+  } else {
     result = kSoundUnsupportedKind;
   }
-  FreeResource(loaded);
+  reb::compat::FreeResource(loaded);
   return result;
 }
 
 int SoundManager::CreateFileSource(SoundRequest* request, const char* fileName, long seekPosition, SoundSource** source)
 {
-  if (!fileName)
+  if (!fileName) {
     return kSoundFailed;
-  if (request->m_kind != kSoundKindWave)
+  }
+  if (request->m_kind != kSoundKindWave) {
     return kSoundUnsupportedKind;
+  }
   *source = NewOrNull<SoundSource>(fileName, seekPosition, static_cast<int>(kBufferStreamed), request);
   return kSoundOk;
 }
 
 // ---- event thread -------------------------------------------------------------------------------------------
 
-DWORD WINAPI SoundManager::EventThreadProc(void*)
+void SoundManager::EventThreadProc()
 {
-  if (!Audio().soundThreadReady)
-    return 99;
-  DWORD signalled = WaitForMultipleObjects(kEventCount, Audio().soundEvents, FALSE, INFINITE);
-  while (signalled != WAIT_FAILED)
-  {
-    if (signalled == WAIT_OBJECT_0 + kStopEvent)
-      return 0;
-    if (InterlockedExchange(&Audio().soundDispatchBusy, 1) == 0)
-    {
-      if (Audio().soundEventCallback && !Audio().soundShuttingDown)
-      {
-        while (true)
-        {
-          EnterCriticalSection(&Audio().soundQueueLock);
+  reb::platform::RaiseCurrentThreadPriority();
+  if (!Audio().soundThreadReady) {
+    return;
+  }
+  for (;;) {
+    if (Audio().soundEvents.Wait() == kStopEvent) {
+      return;
+    }
+    if (Audio().soundDispatchBusy.exchange(1) == 0) {
+      if (Audio().soundEventCallback && !Audio().soundShuttingDown) {
+        while (true) {
+          Audio().soundQueueLock.lock();
           std::unique_ptr<SoundEvent> event;
-          if (!Audio().soundEventQueue.empty())
-          {
+          if (!Audio().soundEventQueue.empty()) {
             event = std::move(Audio().soundEventQueue.front());
             Audio().soundEventQueue.pop_front();
           }
-          LeaveCriticalSection(&Audio().soundQueueLock);
-          if (!event)
+          Audio().soundQueueLock.unlock();
+          if (!event) {
             break;
+          }
           uint32_t message;
           uint32_t first;
           uint32_t second;
@@ -580,90 +594,59 @@ DWORD WINAPI SoundManager::EventThreadProc(void*)
           Audio().soundEventCallback(message, first, second);
         }
       }
-      InterlockedExchange(&Audio().soundDispatchBusy, 0);
+      Audio().soundDispatchBusy.exchange(0);
     }
-    signalled = WaitForMultipleObjects(kEventCount, Audio().soundEvents, FALSE, INFINITE);
   }
-  return 0x56;
 }
 
 int SoundManager::QueueEvent(uint32_t message, uint32_t first, uint32_t second)
 {
   int result = 0;
-  if (Audio().soundShuttingDown)
+  if (Audio().soundShuttingDown) {
     return 0;
-  if (Audio().soundEventCallback && Audio().soundEvents[kWakeEvent] && Audio().soundThreadReady)
-  {
+  }
+  if (Audio().soundEventCallback && Audio().soundThreadReady) {
     std::unique_ptr<SoundEvent> event(NewOrNull<SoundEvent>(message, first, second));
-    if (!event)
+    if (!event) {
       return 0;
-    EnterCriticalSection(&Audio().soundQueueLock);
-    try
-    {
-      Audio().soundEventQueue.push_back(std::move(event));
-      result = SetEvent(Audio().soundEvents[kWakeEvent]);
     }
-    catch (...)
-    {
+    Audio().soundQueueLock.lock();
+    try {
+      Audio().soundEventQueue.push_back(std::move(event));
+      Audio().soundEvents.At(kWakeEvent)->Set();
+      result = 1;
+    } catch (...) {
       result = 0;
     }
-    LeaveCriticalSection(&Audio().soundQueueLock);
+    Audio().soundQueueLock.unlock();
   }
   return result;
 }
 
 int SoundManager::StartEventThread()
 {
-  int error = 0;
-  if (Audio().soundThread != nullptr || Audio().soundThreadReady != 0)
+  if (Audio().soundThread.joinable() || Audio().soundThreadReady != 0) {
     return kSoundAlreadyInitialized;
-  InitializeCriticalSection(&Audio().soundQueueLock);
+  }
   Audio().soundThreadReady = 1;
   Audio().soundShuttingDown = 0;
-  for (HANDLE& event : Audio().soundEvents)
-  {
-    event = CreateEventA(nullptr, FALSE, FALSE, nullptr);
-    if (!event)
-      error = 1;
+  Audio().soundEvents.Reset();
+  try {
+    Audio().soundThread = std::thread(&EventThreadProc);
+  } catch (const std::system_error&) {
+    StopEventThread();
+    return 1;
   }
-  if (error == 0)
-  {
-    DWORD threadId;
-    Audio().soundThread = CreateThread(nullptr, kEventStackBytes, &EventThreadProc, nullptr, 0, &threadId);
-    if (!Audio().soundThread)
-      error = 1;
-    else
-      SetThreadPriority(Audio().soundThread, THREAD_PRIORITY_ABOVE_NORMAL);
-    if (error == 0)
-      return 0;
-  }
-  StopEventThread();
-  return error;
+  return 0;
 }
 
 void SoundManager::StopEventThread()
 {
   Audio().soundShuttingDown = 1;
-  if (Audio().soundThread)
-  {
-    if (Audio().soundEvents[kStopEvent])
-      SetEvent(Audio().soundEvents[kStopEvent]);
-    WaitForSingleObject(Audio().soundThread, INFINITE);
-    CloseHandle(Audio().soundThread);
-    Audio().soundThread = nullptr;
+  if (Audio().soundThread.joinable()) {
+    Audio().soundEvents.At(kStopEvent)->Set();
+    Audio().soundThread.join();
   }
-  for (HANDLE& event : Audio().soundEvents)
-  {
-    if (event)
-    {
-      CloseHandle(event);
-      event = nullptr;
-    }
-  }
-  if (Audio().soundThreadReady)
-  {
-    DeleteCriticalSection(&Audio().soundQueueLock);
-    Audio().soundThreadReady = 0;
-  }
+  Audio().soundThreadReady = 0;
 }
 const char* g_waveResourceType = nullptr;

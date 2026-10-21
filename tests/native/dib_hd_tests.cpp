@@ -12,14 +12,26 @@
 
 namespace minwin_gdi
 {
-int DeviceScale() { return 4; }
-uint64_t DeviceBitmapRevision(HBITMAP) { return 0; }
-bool CopyDeviceBitmapPixels(HBITMAP, DeviceBitmapPixels&) { return false; }
-uint64_t SetDeviceBitmapPixels(HBITMAP, int, std::span<const uint8_t>, int, int, int, int) { return 0; }
-void InvalidateDeviceBitmap(HBITMAP) {}
+int DeviceScale()
+{
+  return 4;
 }
+uint64_t DeviceBitmapRevision(HBITMAP)
+{
+  return 0;
+}
+bool CopyDeviceBitmapPixels(HBITMAP, DeviceBitmapPixels&)
+{
+  return false;
+}
+uint64_t SetDeviceBitmapPixels(HBITMAP, int, std::span<const uint8_t>, int, int, int, int)
+{
+  return 0;
+}
+void InvalidateDeviceBitmap(HBITMAP) {}
+} // namespace minwin_gdi
 
-DibBitmap::DibBitmap(int width, int height, DibBitmap*)
+DibBitmap::DibBitmap(int width, int height, DibBitmap* format)
 {
   m_storage.resize(sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD) + static_cast<size_t>(width) * height);
   m_info = reinterpret_cast<BITMAPINFOHEADER*>(m_storage.data());
@@ -30,31 +42,73 @@ DibBitmap::DibBitmap(int width, int height, DibBitmap*)
   m_info->biBitCount = 8;
   m_bits = m_storage.data() + sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD);
   m_colorCount = 256;
+  m_hdKeyed = format && format->m_hdKeyed;
   m_dibSection = nullptr;
   m_remapTable = nullptr;
 }
 DibBitmap::~DibBitmap() = default;
-int DibBitmap::IsLoaded() const { return m_info != nullptr; }
-int DibBitmap::Width() const { return m_info->biWidth; }
-int DibBitmap::Height() const { return m_info->biHeight; }
-uint16_t DibBitmap::BitCount() const { return m_info->biBitCount; }
-uint32_t DibBitmap::Compression() const { return m_info->biCompression; }
-uint32_t DibBitmap::HeaderSize() const { return m_info->biSize; }
-int DibBitmap::RowStride() const { return Width(); }
-int DibBitmap::RowIndex(int y) const { return y; }
-HBITMAP DibBitmap::DibSectionHandle() const { return nullptr; }
+int DibBitmap::IsLoaded() const
+{
+  return m_info != nullptr;
+}
+int DibBitmap::Width() const
+{
+  return m_info->biWidth;
+}
+int DibBitmap::Height() const
+{
+  return m_info->biHeight;
+}
+uint16_t DibBitmap::BitCount() const
+{
+  return m_info->biBitCount;
+}
+uint32_t DibBitmap::Compression() const
+{
+  return m_info->biCompression;
+}
+uint32_t DibBitmap::HeaderSize() const
+{
+  return m_info->biSize;
+}
+int DibBitmap::RowStride() const
+{
+  return Width();
+}
+int DibBitmap::RowIndex(int y) const
+{
+  return y;
+}
+HBITMAP DibBitmap::DibSectionHandle() const
+{
+  return nullptr;
+}
 void DibBitmap::CacheTransparentColor() {}
-void DibBitmap::NotifyPixelsChanged() { m_hdPixels.clear(); m_hdScale = 1; }
-uint32_t DibBitmap::Blit24(DibBitmap*, int, int, int, int, int, int) { std::abort(); }
-void DibBitmap::BlitKeyed24(DibBitmap*, int, int, uint32_t, int, int, int, int) { std::abort(); }
-void DibBitmap::BlitKeyedRgb24(DibBitmap*, int, int, Rgb24, int, int, int, int) { std::abort(); }
+void DibBitmap::NotifyPixelsChanged()
+{
+  m_hdPixels.clear();
+  m_hdScale = 1;
+}
+uint32_t DibBitmap::Blit24(DibBitmap*, int, int, int, int, int, int)
+{
+  std::abort();
+}
+void DibBitmap::BlitKeyed24(DibBitmap*, int, int, uint32_t, int, int, int, int)
+{
+  std::abort();
+}
+void DibBitmap::BlitKeyedRgb24(DibBitmap*, int, int, Rgb24, int, int, int, int)
+{
+  std::abort();
+}
 
 namespace
 {
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 std::vector<uint8_t> Detail(int width, int height, uint8_t value)
@@ -69,7 +123,10 @@ void VerifySameIndexCopyAndKeyedComposition()
   std::memset(source.m_bits, 7, 8);
   std::memset(destination.m_bits, 7, 8);
   auto detail = Detail(4, 2, 7);
-  detail[0] = 1; detail[1] = 2; detail[8] = 3; detail[9] = 4;
+  detail[0] = 1;
+  detail[1] = 2;
+  detail[8] = 3;
+  detail[9] = 4;
   Require(source.SetHighResolutionPixels(2, detail));
   Require(source.Blit(&destination, 0, 0, 0, 0, 1, 1));
   Require(destination.m_hdPixels[0] == 1 && destination.m_hdPixels[1] == 2);
@@ -95,21 +152,24 @@ void VerifySameIndexCopyAndKeyedComposition()
   DibBitmap legacy(4, 2, nullptr);
   std::memset(legacy.m_bits, 7, 8);
   Require(legacy.Blit(&destination, 0, 0, 0, 0, 1, 1));
-  Require(destination.m_hdPixels[0] == 7 && destination.m_hdPixels[1] == 7 &&
-          destination.m_hdPixels[8] == 7 && destination.m_hdPixels[9] == 7);
+  Require(destination.m_hdPixels[0] == 7 && destination.m_hdPixels[1] == 7 && destination.m_hdPixels[8] == 7
+          && destination.m_hdPixels[9] == 7);
 }
 
 void VerifyRemapsUseDevicePixels()
 {
   DibBitmap source(4, 2, nullptr);
   DibBitmap destination(4, 2, nullptr);
+  source.m_colorKey = 0;
   source.m_bits[0] = 7;
   auto detail = Detail(4, 2, 7);
-  detail[0] = 1; detail[1] = 2; detail[8] = 3; detail[9] = 4;
+  detail[0] = 1;
+  detail[1] = 2;
+  detail[8] = 3;
+  detail[9] = 4;
   Require(source.SetHighResolutionPixels(2, detail));
   std::array<uint8_t, 512> remap{};
-  for (int i = 0; i < 256; ++i)
-  {
+  for (int i = 0; i < 256; ++i) {
     remap[i] = static_cast<uint8_t>(i + 10);
     remap[256 + i] = static_cast<uint8_t>(i + 20);
   }
@@ -126,6 +186,70 @@ void VerifyRemapsUseDevicePixels()
   destination.m_hdPixels[0] = 1;
   Require(source.BlitRemappedOverlay(&destination, 0, 0, 0, 0, 1, 1));
   Require(destination.m_hdPixels[0] == 21);
+}
+
+void VerifyDetailPixelKeyingAndIntermediatePropagation()
+{
+  DibBitmap source(2, 1, nullptr);
+  DibBitmap destination(2, 1, nullptr);
+  source.m_colorKey = 0;
+  source.m_bits[0] = 0;
+  source.m_bits[1] = 5;
+  destination.m_bits[0] = 9;
+  destination.m_bits[1] = 9;
+  std::vector<uint8_t> pixels(8, 5);
+  pixels[0] = 7; // logical key with visible reconstructed HD pixel
+  pixels[2] = 0; // logical opaque pixel with HD key
+  Require(source.SetHighResolutionPixels(2, pixels, true));
+
+  Require(source.BlitKeyed(&destination, 0, 0, 0, 0, 0, 2, 1));
+  Require(destination.m_hdPixels[0] == 7 && destination.m_hdPixels[1] == 5);
+  Require(destination.m_hdPixels[2] == 9 && destination.m_hdPixels[3] == 5);
+  Require(source.m_bits[0] == 0 && source.m_bits[1] == 5 && source.m_hdPixels == pixels);
+
+  DibBitmap keyedIntermediate(2, 1, nullptr);
+  keyedIntermediate.m_colorKey = 0;
+  keyedIntermediate.m_bits[0] = 0;
+  keyedIntermediate.m_bits[1] = 0;
+  Require(source.BlitKeyed(&keyedIntermediate, 0, 0, 0, 0, 0, 2, 1));
+  Require(keyedIntermediate.m_hdKeyed);
+  DibBitmap layered(2, 1, nullptr);
+  layered.m_bits[0] = 11;
+  layered.m_bits[1] = 11;
+  const std::vector<uint8_t> layeredPixels(8, 11);
+  Require(layered.SetHighResolutionPixels(2, layeredPixels));
+  Require(keyedIntermediate.DrawKeyed(&layered, 0, 0));
+  Require(layered.m_hdPixels[0] == 7 && layered.m_hdPixels[2] == 11);
+
+  DibBitmap copiedIntermediate(2, 1, nullptr);
+  Require(source.Blit(&copiedIntermediate, 0, 0, 0, 0, 2, 1));
+  Require(copiedIntermediate.m_hdKeyed);
+
+  std::array<uint8_t, 512> remap{};
+  for (int i = 0; i < 256; ++i) {
+    remap[i] = static_cast<uint8_t>(i + 10);
+  }
+  source.m_remapTable = remap.data();
+  destination.m_hdPixels.assign(8, 9);
+  Require(source.BlitRemapped(&destination, 0, 0, 0, 0, 2, 1));
+  Require(destination.m_hdPixels[0] == 17 && destination.m_hdPixels[2] == 9);
+
+  DibBitmap intermediate(2, 1, &source);
+  Require(intermediate.m_hdKeyed);
+  intermediate.m_colorKey = 0;
+  Require(intermediate.FillRect(0, 0, 2, 1, 0));
+  Require(source.DrawKeyed(&intermediate, 0, 0));
+  Require(intermediate.m_hdKeyed && intermediate.m_hdPixels[0] == 7 && intermediate.m_hdPixels[2] == 0);
+  Require(intermediate.FillRect(1, 0, 1, 1, 0));
+  DibBitmap composite(2, 1, nullptr);
+  std::memset(composite.m_bits, 9, 2);
+  Require(intermediate.DrawKeyed(&composite, 0, 0));
+  Require(composite.m_hdPixels[0] == 7 && composite.m_hdPixels[2] == 9);
+
+  DibBitmap finalComposite(2, 1, nullptr);
+  std::memset(finalComposite.m_bits, 11, 2);
+  Require(intermediate.DrawKeyed(&finalComposite, 0, 0));
+  Require(finalComposite.m_hdPixels[0] == 7 && finalComposite.m_hdPixels[2] == 11);
 }
 
 void VerifyThreefoldDetail()
@@ -163,12 +287,13 @@ void VerifyIndexedSpriteFiltering()
   IndexedSpriteFilter filter;
   Require(filter.EnsureDetail(sprite));
   Require(sprite.m_hdScale == 4);
-  for (int y = 0; y < 4; ++y)
-  {
-    for (int x = 0; x < 4; ++x)
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
       Require(sprite.m_hdPixels[y * 12 + x] == 0);
-    for (int x = 4; x < 12; ++x)
+    }
+    for (int x = 4; x < 12; ++x) {
       Require(sprite.m_hdPixels[y * 12 + x] != 0);
+    }
     Require(sprite.m_hdPixels[y * 12 + 4] == 1);
     Require(sprite.m_hdPixels[y * 12 + 7] == 2);
   }
@@ -197,8 +322,9 @@ void VerifyIndexedSpriteFiltering()
   uniformColors[6 * 4 + 1] = 8;
   uniformColors[6 * 4 + 2] = 8;
   Require(filter.EnsureDetail(uniform));
-  for (uint8_t pixel : uniform.m_hdPixels)
+  for (uint8_t pixel : uniform.m_hdPixels) {
     Require(pixel == 5);
+  }
 
   const std::vector<uint8_t> authored(2 * 1 * 16, 6);
   Require(uniform.SetHighResolutionPixels(4, authored));
@@ -210,14 +336,14 @@ void MeasureIndexedSpriteFiltering()
   DibBitmap sprite(106, 133, nullptr);
   sprite.m_colorKey = 0;
   auto* colors = reinterpret_cast<uint8_t*>(sprite.m_info) + sprite.m_info->biSize;
-  for (int i = 0; i < 256; ++i)
-  {
+  for (int i = 0; i < 256; ++i) {
     colors[i * 4] = static_cast<uint8_t>(i);
     colors[i * 4 + 1] = static_cast<uint8_t>(i);
     colors[i * 4 + 2] = static_cast<uint8_t>(i);
   }
-  for (int i = 0; i < 106 * 133; ++i)
+  for (int i = 0; i < 106 * 133; ++i) {
     sprite.m_bits[i] = static_cast<uint8_t>(1 + i % 255);
+  }
   IndexedSpriteFilter filter;
   const auto start = std::chrono::steady_clock::now();
   Require(filter.EnsureDetail(sprite));
@@ -227,10 +353,11 @@ void MeasureIndexedSpriteFiltering()
   sprite.NotifyPixelsChanged();
   Require(filter.EnsureDetail(sprite));
   const auto nextFrame = std::chrono::steady_clock::now();
-  std::printf("indexed_sprite_filter initial=%lldms cached=%lldus next_frame=%lldms\n",
-              static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(first - start).count()),
-              static_cast<long long>(std::chrono::duration_cast<std::chrono::microseconds>(cached - first).count()),
-              static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(nextFrame - cached).count()));
+  std::printf(
+      "indexed_sprite_filter initial=%lldms cached=%lldus next_frame=%lldms\n",
+      static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(first - start).count()),
+      static_cast<long long>(std::chrono::duration_cast<std::chrono::microseconds>(cached - first).count()),
+      static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(nextFrame - cached).count()));
 }
 } // namespace
 
@@ -240,5 +367,6 @@ int main()
   MeasureIndexedSpriteFiltering();
   VerifySameIndexCopyAndKeyedComposition();
   VerifyRemapsUseDevicePixels();
+  VerifyDetailPixelKeyingAndIntermediatePropagation();
   VerifyThreefoldDetail();
 }

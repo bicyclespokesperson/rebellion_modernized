@@ -13,8 +13,9 @@ constexpr uint32_t kFilterAll = 1;
 int applyAllOnSideView(ManufacturingFacility* facility, NotifyContext* ctx)
 {
   const int result = facility->IsSideView();
-  if (result)
+  if (result) {
     facility->ApplyAllForward(ctx);
+  }
   return result;
 }
 } // namespace
@@ -56,8 +57,9 @@ int ManufacturingFacility::ChecksumBody(Crc32* crc)
 int ManufacturingFacility::ApplyAllBody(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     ApplyAllImpl(ctx);
+  }
   return result;
 }
 
@@ -89,11 +91,11 @@ int ManufacturingFacility::CreateViewsForward(int controlKind, NotifyContext* ct
 int ManufacturingFacility::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 {
   const int result = CreateViewsStubShared(this, controlKind, ctx);
-  if (result)
-  {
+  if (result) {
     const int duration = static_cast<int>(Facility::GetRecordField5c());
-    if (m_data)
+    if (m_data) {
       static_cast<ProcFacilData*>(m_data)->m_duration = duration;
+    }
   }
   return result;
 }
@@ -246,54 +248,51 @@ int CountManufacturingFacility28Children(GameObj* parent, uint32_t side, uint32_
 // ---- iterators ------------------------------------------------------------------------------------------------------
 
 ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* parent)
-: ChildIterator(parent, &kManufacturingFamilies, kFilterAll)
+    : ChildIterator(parent, &kManufacturingFamilies, kFilterAll)
 {
 }
 
 ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kManufacturingFamilies, stateFilter)
+    : ChildIterator(parent, &kManufacturingFamilies, stateFilter)
 {
 }
 
 ManufacturingFacilityIterator::~ManufacturingFacilityIterator() = default;
 
 ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kFamily2A, stateFilter)
+    : ChildIterator(parent, &kFamily2A, stateFilter)
 {
 }
 
-ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent,
-                                                                 uint32_t stateFilter,
+ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter,
                                                                  uint32_t side)
-: ChildIterator(parent, side, &kFamily2A, stateFilter)
+    : ChildIterator(parent, side, &kFamily2A, stateFilter)
 {
 }
 
 ManufacturingFacility2AIterator::~ManufacturingFacility2AIterator() = default;
 
 ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kFamily29, stateFilter)
+    : ChildIterator(parent, &kFamily29, stateFilter)
 {
 }
 
-ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent,
-                                                                 uint32_t stateFilter,
+ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter,
                                                                  uint32_t side)
-: ChildIterator(parent, side, &kFamily29, stateFilter)
+    : ChildIterator(parent, side, &kFamily29, stateFilter)
 {
 }
 
 ManufacturingFacility29Iterator::~ManufacturingFacility29Iterator() = default;
 
 ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kFamily28, stateFilter)
+    : ChildIterator(parent, &kFamily28, stateFilter)
 {
 }
 
-ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent,
-                                                                 uint32_t stateFilter,
+ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter,
                                                                  uint32_t side)
-: ChildIterator(parent, side, &kFamily28, stateFilter)
+    : ChildIterator(parent, side, &kFamily28, stateFilter)
 {
 }
 

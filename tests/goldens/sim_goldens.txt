@@ -1,7 +1,0 @@
-# name | save file in the install's SaveGame directory | ticks | checkpoint interval (ticks)
-# battle1: Empire game, auto-resolved space battle at about tick +2250 (flow states 3-12, 21, 23 reached)
-battle1 | SAVEGAME.001 | 3000 | 500
-# alliance1: Alliance game, AI (Empire) activity only
-alliance1 | SAVEGAME.002 | 2000 | 500
-# empire1: Empire game, AI (Alliance) activity only
-empire1 | SAVEGAME.004 | 2000 | 500

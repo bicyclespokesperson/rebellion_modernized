@@ -13,64 +13,44 @@
 
 class CoolVerticalScrollBar : public CoolScrollBar
 {
-public:
-  CoolVerticalScrollBar(HINSTANCE instance,
-                        int x,
-                        int y,
-                        int width,
-                        int height,
-                        CoolWindow* parent,
-                        CoolScrollable* owner,
-                        uint16_t artSlot,
-                        uint16_t artId,
-                        int total,
-                        int first,
-                        int last,
+  public:
+  CoolVerticalScrollBar(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                        CoolScrollable* owner, uint16_t artSlot, uint16_t artId, int total, int first, int last,
                         uint32_t buttonFlags); // 0x60f640
-  ~CoolVerticalScrollBar() override; // 0x60f6c0 (scalar deleting destructor 0x60f6a0)
+  ~CoolVerticalScrollBar() override;           // 0x60f6c0 (scalar deleting destructor 0x60f6a0)
 
-  void OnCommand(WPARAM command) override; // slot 9, 0x60f6d0
-  int Layout() override; // slot 10, 0x60fa80
-  RECT* GetThumbRect(RECT* out) override; // slot 11, 0x60fb80
-  RECT* GetTrackRect(RECT* out) override; // slot 12, 0x60fca0: between the arrows
-  int BuildThumb() override; // slot 13, 0x60f910
-  int BuildTrack() override; // slot 14, 0x60f7b0
+  void OnCommand(WPARAM command) override;   // slot 9, 0x60f6d0
+  int Layout() override;                     // slot 10, 0x60fa80
+  RECT* GetThumbRect(RECT* out) override;    // slot 11, 0x60fb80
+  RECT* GetTrackRect(RECT* out) override;    // slot 12, 0x60fca0: between the arrows
+  int BuildThumb() override;                 // slot 13, 0x60f910
+  int BuildTrack() override;                 // slot 14, 0x60f7b0
   void OnLButtonDown(int x, int y) override; // slot 15, 0x60fd50
-  void OnDragTimer() override; // slot 16, 0x60fea0
-  void PageBack() override; // slot 17, 0x60fff0
-  void PageForward() override; // slot 18, 0x610060
-  void PageLeft() override; // slot 19, 0x619730: does nothing
-  void PageRight() override; // slot 20, 0x619730: does nothing
+  void OnDragTimer() override;               // slot 16, 0x60fea0
+  void PageBack() override;                  // slot 17, 0x60fff0
+  void PageForward() override;               // slot 18, 0x610060
+  void PageLeft() override;                  // slot 19, 0x619730: does nothing
+  void PageRight() override;                 // slot 20, 0x619730: does nothing
 };
 
 class CoolHorizontalScrollBar : public CoolScrollBar
 {
-public:
-  CoolHorizontalScrollBar(HINSTANCE instance,
-                          int x,
-                          int y,
-                          int width,
-                          int height,
-                          CoolWindow* parent,
-                          CoolScrollable* owner,
-                          uint16_t artSlot,
-                          uint16_t artId,
-                          int total,
-                          int first,
-                          int last,
+  public:
+  CoolHorizontalScrollBar(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                          CoolScrollable* owner, uint16_t artSlot, uint16_t artId, int total, int first, int last,
                           uint32_t buttonFlags); // 0x6100d0
-  ~CoolHorizontalScrollBar() override; // 0x610150 (scalar deleting destructor 0x610130)
+  ~CoolHorizontalScrollBar() override;           // 0x610150 (scalar deleting destructor 0x610130)
 
-  void OnCommand(WPARAM command) override; // slot 9, 0x610160
-  int Layout() override; // slot 10, 0x610510
-  RECT* GetThumbRect(RECT* out) override; // slot 11, 0x610680
-  RECT* GetTrackRect(RECT* out) override; // slot 12, 0x610760: between the arrows
-  int BuildThumb() override; // slot 13, 0x6103a0
-  int BuildTrack() override; // slot 14, 0x610240
+  void OnCommand(WPARAM command) override;   // slot 9, 0x610160
+  int Layout() override;                     // slot 10, 0x610510
+  RECT* GetThumbRect(RECT* out) override;    // slot 11, 0x610680
+  RECT* GetTrackRect(RECT* out) override;    // slot 12, 0x610760: between the arrows
+  int BuildThumb() override;                 // slot 13, 0x6103a0
+  int BuildTrack() override;                 // slot 14, 0x610240
   void OnLButtonDown(int x, int y) override; // slot 15, 0x610810
-  void OnDragTimer() override; // slot 16, 0x610900
-  void PageBack() override; // slot 17, 0x619730: does nothing
-  void PageForward() override; // slot 18, 0x619730: does nothing
-  void PageLeft() override; // slot 19, 0x610a20
-  void PageRight() override; // slot 20, 0x610aa0
+  void OnDragTimer() override;               // slot 16, 0x610900
+  void PageBack() override;                  // slot 17, 0x619730: does nothing
+  void PageForward() override;               // slot 18, 0x619730: does nothing
+  void PageLeft() override;                  // slot 19, 0x610a20
+  void PageRight() override;                 // slot 20, 0x610aa0
 };

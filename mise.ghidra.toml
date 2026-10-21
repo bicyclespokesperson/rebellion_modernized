@@ -1,0 +1,6 @@
+# Decompilation tooling only (MISE_ENV=ghidra); tools/ghidra_headless.sh and tools/ghidra_py select it.
+[tools]
+java = "temurin-21"
+
+[env]
+GHIDRA_INSTALL_DIR = "{{config_root}}/tools/ghidra"

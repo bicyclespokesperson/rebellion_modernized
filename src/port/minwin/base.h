@@ -1,6 +1,5 @@
-// minwin: handles, GUID and IUnknown, the geometry structs, HRESULT and the registry/wait constants shared by every DLL's header.
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// minwin: handles, GUID and IUnknown, the geometry structs, HRESULT and the registry/wait constants shared by every
+// DLL's header. Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/core.h"
 
@@ -31,23 +30,19 @@ using LPSTR = CHAR*;
 using LPCSTR = const CHAR*;
 using HANDLE = void*;
 using HRESULT = LONG;
-union _LARGE_INTEGER
-{
-  struct
-  {
+union _LARGE_INTEGER {
+  struct {
     DWORD LowPart;
     LONG HighPart;
   };
-  struct
-  {
+  struct {
     DWORD LowPart;
     LONG HighPart;
   } u;
   LONGLONG QuadPart;
 };
 using LARGE_INTEGER = union _LARGE_INTEGER;
-struct _GUID
-{
+struct _GUID {
   ULONG Data1;
   unsigned short Data2;
   unsigned short Data3;
@@ -63,8 +58,7 @@ using LPCLSID = CLSID*;
 #define REFCLSID const CLSID&
 using ACCESS_MASK = DWORD;
 using PRTL_CRITICAL_SECTION_DEBUG = struct _RTL_CRITICAL_SECTION_DEBUG*;
-struct _RTL_CRITICAL_SECTION
-{
+struct _RTL_CRITICAL_SECTION {
   PRTL_CRITICAL_SECTION_DEBUG DebugInfo;
   LONG LockCount;
   LONG RecursionCount;
@@ -85,8 +79,7 @@ using HINSTANCE = struct HINSTANCE__*;
 using HMODULE = HINSTANCE;
 using HRSRC = struct HRSRC__*;
 using HFILE = int;
-struct _FILETIME
-{
+struct _FILETIME {
   DWORD dwLowDateTime;
   DWORD dwHighDateTime;
 };
@@ -105,8 +98,7 @@ using HPALETTE = struct HPALETTE__*;
 using HPEN = struct HPEN__*;
 using HCURSOR = HICON;
 using COLORREF = DWORD;
-struct tagRECT
-{
+struct tagRECT {
   LONG left;
   LONG top;
   LONG right;
@@ -114,30 +106,26 @@ struct tagRECT
 };
 using RECT = struct tagRECT;
 using LPRECT = struct tagRECT*;
-struct tagPOINT
-{
+struct tagPOINT {
   LONG x;
   LONG y;
 };
 using POINT = struct tagPOINT;
 using LPPOINT = struct tagPOINT*;
-struct tagSIZE
-{
+struct tagSIZE {
   LONG cx;
   LONG cy;
 };
 using SIZE = struct tagSIZE;
 using LPSIZE = struct tagSIZE*;
-struct tagPOINTS
-{
+struct tagPOINTS {
   SHORT x;
   SHORT y;
 };
 using POINTS = struct tagPOINTS;
 struct IUnknown;
 using LPUNKNOWN = IUnknown*;
-struct IUnknown
-{
+struct IUnknown {
   virtual HRESULT REB_STDCALL QueryInterface(const IID& riid, void** ppvObject) = 0;
   virtual ULONG REB_STDCALL AddRef() = 0;
   virtual ULONG REB_STDCALL Release() = 0;
@@ -159,7 +147,7 @@ struct IUnknown
 #define REG_DWORD ((DWORD)4)
 #define LOWORD(l) ((WORD)(((DWORD_PTR)(l)) & 0xffff))
 #define HIWORD(l) ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
-#define MAKELONG(a, b) \
+#define MAKELONG(a, b)                                                                                                 \
   ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
 #define HFILE_ERROR -1
 #define ERROR_SUCCESS ((LONG)0)

@@ -43,7 +43,8 @@ int CallGameHook2AF0();
 // The id handed to objects that still have the default id 1 (see GameObjRoot::ApplyDefaultId).
 int CallIdHook();
 
-// Asks the rules object for a value (0x555e60 / 0x5560b0 on the object at g_gameState+0xbc); *out is 0 if there is none.
+// Asks the rules object for a value (0x555e60 / 0x5560b0 on the object at g_gameState+0xbc); *out is 0 if there is
+// none.
 int QueryRuleValueA(GameObjNotifier* manager, StatusCode* status, int* out);
 int QueryRuleValueB(GameObj* unit, StatusCode* status, int* out);
 
@@ -51,7 +52,7 @@ int QueryRuleValueB(GameObj* unit, StatusCode* status, int* out);
 // notify switches plus two reserved ints. GetViewFlag/SetViewFlag take the object's ViewSide (1 or 2).
 class NotifyContext
 {
-public:
+  public:
   NotifyContext();
   NotifyContext(const NotifyContext& other);
   virtual ~NotifyContext();
@@ -63,10 +64,10 @@ public:
   int GetViewFlag(int view) const;
   void SetViewFlag(int view, int value);
 
-  int m_flag04; // +0x04
-  int m_flag08; // +0x08
+  int m_flag04;      // +0x04
+  int m_flag08;      // +0x08
   int m_notifyView1; // +0x0c
   int m_notifyView2; // +0x10
-  int m_reserved14; // +0x14
-  int m_reserved18; // +0x18
+  int m_reserved14;  // +0x14
+  int m_reserved18;  // +0x18
 };

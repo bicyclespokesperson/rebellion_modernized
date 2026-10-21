@@ -41,21 +41,24 @@ GameObj* asGameObj(GameObjNotifier* object)
 // Adds one to the counter of `key` in `counts`, creating the counter first. Returns 0 if it could not be created.
 int countKey(ObjectKeyValueSet* counts, ObjectKey* key, int ok)
 {
-  if (key->OrNull() == nullptr)
+  if (key->OrNull() == nullptr) {
     return ok;
+  }
   ObjectKeyNode* node = counts->Find(key);
-  if (node == nullptr)
-  {
+  if (node == nullptr) {
     ok = counts->AddKeyValue(key, 0);
-    if (ok == 0)
+    if (ok == 0) {
       return 0;
+    }
     node = counts->Find(key);
   }
-  if (ok == 0)
+  if (ok == 0) {
     return 0;
+  }
   ok = node != nullptr;
-  if (ok)
+  if (ok) {
     static_cast<ObjectKeyValueNode*>(node)->m_value += 1;
+  }
   return ok;
 }
 
@@ -69,20 +72,15 @@ int GameRoot::BindDifficultyTables()
 int GameRoot::ReadBody(istream* in)
 {
   int ok = GameObj::Read(in);
-  if (ok != 0 && (m_flags & kViewSideMask) == 0)
-  {
+  if (ok != 0 && (m_flags & kViewSideMask) == 0) {
     ok = DestroyRandomGenerator();
-    if (ok != 0)
-    {
+    if (ok != 0) {
       ok = CreateRandomGenerator();
-      if (ok != 0)
-      {
+      if (ok != 0) {
         ok = HasRandomGenerator();
-        if (ok != 0)
-        {
+        if (ok != 0) {
           ok = m_settings.Read(in);
-          if (ok != 0)
-          {
+          if (ok != 0) {
             ReadValue32(in, &m_unk6c);
             ReadValue32(in, &m_unk70);
             ReadValue32(in, &m_unk74);
@@ -92,14 +90,13 @@ int GameRoot::ReadBody(istream* in)
             ReadValue32(in, &m_unk78[3]);
             ReadValue32(in, &m_unk78[4]);
             ok = m_key8c.Read(in);
-            if (ok != 0)
-            {
+            if (ok != 0) {
               ok = m_ctx90.Read(in);
-              if (ok != 0)
-              {
+              if (ok != 0) {
                 m_random->Read(in);
-                if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+                if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
                   ok = 0;
+                }
               }
             }
           }
@@ -113,14 +110,11 @@ int GameRoot::ReadBody(istream* in)
 int GameRoot::WriteBody(ostream* out)
 {
   int ok = GameObj::Write(out);
-  if (ok != 0 && (m_flags & kViewSideMask) == 0)
-  {
+  if (ok != 0 && (m_flags & kViewSideMask) == 0) {
     ok = HasRandomGenerator();
-    if (ok != 0)
-    {
+    if (ok != 0) {
       ok = m_settings.Write(out);
-      if (ok != 0)
-      {
+      if (ok != 0) {
         WriteValue32(out, &m_unk6c);
         WriteValue32(out, &m_unk70);
         WriteValue32(out, &m_unk74);
@@ -130,11 +124,11 @@ int GameRoot::WriteBody(ostream* out)
         WriteValue32(out, &m_unk78[3]);
         WriteValue32(out, &m_unk78[4]);
         ok = m_key8c.Write(out);
-        if (ok != 0)
-        {
+        if (ok != 0) {
           ok = m_ctx90.Write(out);
-          if (ok != 0)
+          if (ok != 0) {
             m_random->Write(out);
+          }
         }
       }
     }
@@ -145,14 +139,11 @@ int GameRoot::WriteBody(ostream* out)
 int GameRoot::ChecksumBody(Crc32* crc)
 {
   int ok = GameObj::Checksum(crc);
-  if (ok != 0 && (m_flags & kViewSideMask) == 0)
-  {
+  if (ok != 0 && (m_flags & kViewSideMask) == 0) {
     ok = HasRandomGenerator();
-    if (ok != 0)
-    {
+    if (ok != 0) {
       ok = m_settings.Checksum(crc);
-      if (ok != 0)
-      {
+      if (ok != 0) {
         crc->AddInt(m_unk6c);
         crc->AddInt(m_unk70);
         crc->AddInt(m_unk74);
@@ -162,8 +153,9 @@ int GameRoot::ChecksumBody(Crc32* crc)
         crc->AddInt(m_unk78[3]);
         crc->AddInt(m_unk78[4]);
         ok = m_key8c.Checksum(crc);
-        if (ok != 0)
+        if (ok != 0) {
           ok = m_ctx90.Checksum(crc);
+        }
       }
     }
   }
@@ -175,15 +167,15 @@ int GameRoot::CreateRandomGenerator()
   void* memory = ::operator new(sizeof(RandomGenerator));
   RandomGenerator* generator = memory ? new (memory) RandomGenerator(m_settings.m_field10) : nullptr;
   m_random = generator;
-  if (generator != nullptr)
+  if (generator != nullptr) {
     SetGameRandom(generator);
+  }
   return generator != nullptr;
 }
 
 int GameRoot::DestroyRandomGenerator()
 {
-  if (m_random != nullptr)
-  {
+  if (m_random != nullptr) {
     delete m_random;
     m_random = nullptr;
     SetGameRandom(nullptr);
@@ -199,44 +191,47 @@ int GameRoot::HasRandomGenerator()
 int GameRoot::ValidateBody()
 {
   int ok = GameObj::Validate();
-  if (ok != 0 && (m_flags & kViewSideMask) == 0)
-  {
-    ok = m_master_f2000003 && m_master_20000005 && m_master_f8000006 && m_master_f9000007 && m_master_fa000008 &&
-         m_master_f300000f && m_master_f3000010 && m_master_98000440 && m_master_98000441 && m_master_98000442 &&
-         m_master_98000480 && m_master_98000481;
+  if (ok != 0 && (m_flags & kViewSideMask) == 0) {
+    ok = m_master_f2000003 && m_master_20000005 && m_master_f8000006 && m_master_f9000007 && m_master_fa000008
+         && m_master_f300000f && m_master_f3000010 && m_master_98000440 && m_master_98000441 && m_master_98000442
+         && m_master_98000480 && m_master_98000481;
   }
-  if (ok == 0)
+  if (ok == 0) {
     return ok;
+  }
   ok = ValidateBuilders();
-  if (ok == 0)
+  if (ok == 0) {
     return ok;
+  }
   ok = ValidateLocks();
-  if (ok == 0)
+  if (ok == 0) {
     return ok;
-  for (int view = 0; view < 3 && ok != 0; ++view)
-  {
+  }
+  for (int view = 0; view < 3 && ok != 0; ++view) {
     const ObjectKey sideRootKey = ObjectKey::Make(family::kSideRoot, 3);
     GameObjNotifier* sideRoot = LookupObject(&sideRootKey, view);
     ok = sideRoot != nullptr;
-    if (ok == 0)
+    if (ok == 0) {
       break;
+    }
     GameObjIterator children(sideRoot, 4);
-    for (children.Begin(); children.Current() != nullptr && ok != 0; children.Advance())
-    {
+    for (children.Begin(); children.Current() != nullptr && ok != 0; children.Advance()) {
       GameObj* child = asGameObj(children.Current());
-      if (child->m_stateFlags & 0x40)
-      {
+      if (child->m_stateFlags & 0x40) {
         ok = view != 0;
         continue;
       }
       GameObjIterator grandchildren(child, 4);
       const int hasGrandchildren = grandchildren.HasCurrent();
-      if (!hasGrandchildren)
+      if (!hasGrandchildren) {
         continue;
-      if (!(asGameObj(children.Current())->m_stateFlags & kCreatedFlag))
+      }
+      if (!(asGameObj(children.Current())->m_stateFlags & kCreatedFlag)) {
         ok = view != 0;
-      if (asGameObj(children.Current())->m_stateFlags & 0x8)
+      }
+      if (asGameObj(children.Current())->m_stateFlags & 0x8) {
         ok = 0;
+      }
     }
   }
   return ok;
@@ -246,18 +241,14 @@ int GameRoot::ValidateBuilders()
 {
   int ok = GameObj::Validate();
   GameObjNotifier* unit = GetFirstMasterInFamilies_10_40();
-  while (ok != 0 && unit != nullptr)
-  {
+  while (ok != 0 && unit != nullptr) {
     GameObj* object = asGameObj(unit);
-    if ((object->m_stateFlags & kCreatedFlag) && (object->m_stateFlags & kUnfinishedMask) == 0)
-    {
+    if ((object->m_stateFlags & kCreatedFlag) && (object->m_stateFlags & kUnfinishedMask) == 0) {
       ObjectKey builder(object->m_builderKey);
-      if (builder.OrNull() != nullptr)
-      {
+      if (builder.OrNull() != nullptr) {
         GameObjNotifier* manager = GetMasterInFamilies_a0_b0(&builder);
         ok = 0;
-        if (manager != nullptr)
-        {
+        if (manager != nullptr) {
           ObjectKey unitKey;
           object->GetKey(&unitKey);
           ok = static_cast<ManuMgr*>(manager)->ManuMgr::IsQueued(&unitKey);
@@ -274,34 +265,30 @@ int GameRoot::ValidateLocks()
   int ok = GameObj::Validate();
   ObjectKeyValueSet counts;
   GameObjNotifier* mission = GetFirstMasterInFamilies_40_80();
-  while (ok != 0 && mission != nullptr)
-  {
+  while (ok != 0 && mission != nullptr) {
     ObjectKey key(static_cast<Mission*>(mission)->m_objectiveKey);
     ok = countKey(&counts, &key, ok);
     mission = asGameObj(mission)->FindNextSibling(&kMissionFamilies, 1);
   }
-  for (int view = 1; ok != 0 && view <= 2; ++view)
-  {
+  for (int view = 1; ok != 0 && view <= 2; ++view) {
     GameObjNotifier* character = GetFirstObjectInRangeForSide(view, &kCharacterFamilies, 0);
-    while (character != nullptr && ok != 0)
-    {
+    while (character != nullptr && ok != 0) {
       ObjectKey key(static_cast<Role*>(character)->m_missionKey);
       ok = countKey(&counts, &key, ok);
       character = asGameObj(character)->FindNextSibling(&kCharacterFamilies, 0);
     }
   }
   GameObjNotifier* object = FindObjectInRange(&kAllFamilies, 0, 0);
-  while (ok != 0 && object != nullptr)
-  {
+  while (ok != 0 && object != nullptr) {
     int locks = 0;
     ok = asGameObj(object)->GetLockCount(&locks);
-    if (ok != 0)
-    {
+    if (ok != 0) {
       int expected = 0;
       ObjectKey key;
       object->GetKey(&key);
-      if (ObjectKeyNode* node = counts.Find(&key))
+      if (ObjectKeyNode* node = counts.Find(&key)) {
         expected = static_cast<ObjectKeyValueNode*>(node)->m_value;
+      }
       ok = locks == expected;
     }
     object = asGameObj(object)->FindNextSibling(&kAllFamilies, 0);

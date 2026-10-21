@@ -21,8 +21,9 @@ namespace
 {
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void Rewind(ScopedStrstream& stream)
@@ -30,21 +31,19 @@ void Rewind(ScopedStrstream& stream)
   Require(istream_seekg_pos(stream.get()->In(), 0) == stream.get()->In());
 }
 
-struct RegistryEntry
-{
+struct RegistryEntry {
   uint32_t m_id = 0;
   IdRegistry<RegistryEntry>* owner = nullptr;
   int* destroyed = nullptr;
   bool tryReinsert = false;
   ~RegistryEntry()
   {
-    if (destroyed)
+    if (destroyed) {
       ++*destroyed;
-    if (owner)
-    {
+    }
+    if (owner) {
       Require(!owner->Remove(this));
-      if (tryReinsert)
-      {
+      if (tryReinsert) {
         auto replacement = std::make_unique<RegistryEntry>();
         Require(owner->AddWithId(replacement.get()) == 0);
       }
@@ -155,8 +154,9 @@ void VerifyReferenceCountAndCodec()
 {
   ObjectRefList references;
   constexpr uint32_t count = 65536;
-  for (uint32_t i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i) {
     Require(references.AddKey(ObjectKey::Make(0x90, i + 1)));
+  }
   Require(references.Size() == count);
   ScopedStrstream stream;
   Require(references.Write(stream.get()->Out()));
@@ -211,8 +211,10 @@ void VerifyEventKindValuesAndCodec()
 
 class CountedRankedItem : public AiRankedItem
 {
-public:
-  CountedRankedItem(const ObjectKey& key, int score, int* destroyed) : AiRankedItem(key, score), m_destroyed(destroyed)
+  public:
+  CountedRankedItem(const ObjectKey& key, int score, int* destroyed)
+      : AiRankedItem(key, score)
+      , m_destroyed(destroyed)
   {
   }
 
@@ -221,7 +223,7 @@ public:
     ++*m_destroyed;
   }
 
-private:
+  private:
   int* m_destroyed;
 };
 

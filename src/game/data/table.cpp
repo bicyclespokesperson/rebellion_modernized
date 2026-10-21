@@ -15,8 +15,7 @@ const char* GetGameDataDirectory();
 extern GDataTables* g_gdataTables;
 extern int g_tableClassCount;
 
-struct TableClassRegistration
-{
+struct TableClassRegistration {
   char m_name[0x28];
   void* (*m_factory)();
 };
@@ -28,8 +27,7 @@ namespace
 
 constexpr int kMaxTableClasses = 10;
 
-struct TableFileSpec
-{
+struct TableFileSpec {
   uint16_t m_secondId;
   uint32_t m_tableId;
 };
@@ -37,18 +35,19 @@ struct TableFileSpec
 constexpr uint16_t kTableDirectoryStringId = 0x642;
 
 constexpr TableFileSpec kTableFiles[] = {
-  {0x708, 0x01}, {0x709, 0x02}, {0x70b, 0x03}, {0x70c, 0x04}, {0x70d, 0x05}, {0x712, 0x0a}, {0x713, 0x0b},
-  {0x714, 0x0c}, {0x715, 0x0d}, {0x71c, 0x14}, {0x71d, 0x15}, {0x71e, 0x16}, {0x71f, 0x17}, {0x720, 0x18},
-  {0x721, 0x19}, {0x722, 0x1a}, {0x723, 0x1b}, {0x724, 0x1c}, {0x725, 0x1d}, {0x730, 0x28}, {0x731, 0x29},
-  {0x732, 0x2a}, {0x733, 0x2b}, {0x734, 0x2c}, {0x744, 0x3c}, {0x745, 0x3d}, {0x758, 0x50}, {0x759, 0x51},
-  {0x75a, 0x52}, {0x75b, 0x53}, {0x75c, 0x54}, {0x75d, 0x55}, {0x75e, 0x56}, {0, 0},
+    {0x708, 0x01}, {0x709, 0x02}, {0x70b, 0x03}, {0x70c, 0x04}, {0x70d, 0x05}, {0x712, 0x0a}, {0x713, 0x0b},
+    {0x714, 0x0c}, {0x715, 0x0d}, {0x71c, 0x14}, {0x71d, 0x15}, {0x71e, 0x16}, {0x71f, 0x17}, {0x720, 0x18},
+    {0x721, 0x19}, {0x722, 0x1a}, {0x723, 0x1b}, {0x724, 0x1c}, {0x725, 0x1d}, {0x730, 0x28}, {0x731, 0x29},
+    {0x732, 0x2a}, {0x733, 0x2b}, {0x734, 0x2c}, {0x744, 0x3c}, {0x745, 0x3d}, {0x758, 0x50}, {0x759, 0x51},
+    {0x75a, 0x52}, {0x75b, 0x53}, {0x75c, 0x54}, {0x75d, 0x55}, {0x75e, 0x56}, {0, 0},
 };
 
 } // namespace
 
 // ---- TableBase ---------------------------------------------------------------------------------------------
 
-TableBase::TableBase() : m_version(1)
+TableBase::TableBase()
+    : m_version(1)
 {
 }
 
@@ -88,28 +87,28 @@ uint32_t Table::AddEntry(TableEntry* entry)
 
 void Table::Add(TableEntry* entry)
 {
-  if (entry)
+  if (entry) {
     AddEntry(entry);
+  }
 }
 
 TableEntry* Table::FindStepEntry(int value)
 {
   const auto entries = m_entries.Entries();
   auto position = entries.begin();
-  if (position != entries.end())
-  {
+  if (position != entries.end()) {
     auto* node = (*position).get();
-    do
-    {
-      if (value < static_cast<TableEntry*>(node)->m_field20)
+    do {
+      if (value < static_cast<TableEntry*>(node)->m_field20) {
         break;
+      }
       ++position;
       node = position == entries.end() ? nullptr : (*position).get();
     } while (position != entries.end());
-    if (node)
-    {
-      if (position == entries.begin())
+    if (node) {
+      if (position == entries.begin()) {
         return static_cast<TableEntry*>(node);
+      }
       return static_cast<TableEntry*>((*std::prev(position)).get());
     }
   }
@@ -120,33 +119,31 @@ int Table::Read(istream* in)
 {
   m_entries.Clear();
   int ok = ReadVersion(in);
-  if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
+  }
   uint32_t count = 0;
   int nameLength = 0;
   ReadValue32(in, &count);
   ReadValue32(in, &nameLength);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || nameLength < 1 ||
-      nameLength >= static_cast<int>(sizeof(m_name)))
-  {
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || nameLength < 1
+      || nameLength >= static_cast<int>(sizeof(m_name))) {
     iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
     return 0;
   }
   istream_read(in, m_name, nameLength);
-  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
     return 0;
+  }
   m_name[nameLength] = '\0';
-  for (uint32_t index = 0; index < count; ++index)
-  {
+  for (uint32_t index = 0; index < count; ++index) {
     auto* entry = static_cast<TableEntry*>(CreateTableEntryByClassName(m_name));
-    if (!entry)
-    {
+    if (!entry) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
     }
     ok = entry->Read(in);
-    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddEntry(entry) == 0)
-    {
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddEntry(entry) == 0) {
       delete entry;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
@@ -158,37 +155,41 @@ int Table::Read(istream* in)
 int Table::Write(ostream* out)
 {
   int ok = WriteVersion(out);
-  if (!ok)
+  if (!ok) {
     return 0;
-  if (!WriteCount32(out, m_entries.Count()))
+  }
+  if (!WriteCount32(out, m_entries.Count())) {
     return 0;
+  }
   int length = static_cast<int>(std::strlen(m_name));
   WriteValue32(out, &length);
   ostream_write(out, m_name, length);
-  for (const auto& entry : m_entries.Entries())
-  {
+  for (const auto& entry : m_entries.Entries()) {
     auto* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Write(out);
-    if (!ok)
+    if (!ok) {
       return 0;
+    }
   }
+  return ok;
 }
 
 int Table::Checksum(Crc32* crc)
 {
   int ok = ChecksumVersion(crc);
-  if (!ok)
+  if (!ok) {
     return ok;
+  }
   crc->AddInt(static_cast<int32_t>(m_entries.Count()));
   const int length = static_cast<int>(std::strlen(m_name));
   crc->AddInt(length);
   crc->Update(reinterpret_cast<const uint8_t*>(m_name), length);
-  for (const auto& entry : m_entries.Entries())
-  {
+  for (const auto& entry : m_entries.Entries()) {
     auto* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Checksum(crc);
-    if (!ok)
+    if (!ok) {
       break;
+    }
   }
   return ok;
 }
@@ -203,20 +204,21 @@ int Table::ParseText(istream* in)
   istream_operator_rs_charptr(iostream_access::AsIstream(ReadCsvField(in, token.get(), &endOfLine)), m_name);
   SkipRestOfLine(in, &endOfLine);
   ok = IsTableEntryClassRegistered(m_name);
-  if (!ok)
+  if (!ok) {
     return ok;
+  }
   SkipTableHeader(in);
-  if (iostream_access::State(in) != 0)
+  if (iostream_access::State(in) != 0) {
     return ok;
-  do
-  {
+  }
+  do {
     auto* entry = static_cast<TableEntry*>(CreateTableEntryByClassName(m_name));
-    if (entry)
-    {
-      if (entry->ParseText(in))
+    if (entry) {
+      if (entry->ParseText(in)) {
         Add(entry);
-      else
+      } else {
         delete entry;
+      }
     }
   } while (iostream_access::State(in) == 0);
   return ok;
@@ -229,22 +231,23 @@ int TableBase::Open(uint16_t firstId, uint16_t secondId, const char* directory)
   ScopedStrstream plainName;
   ostream* prefixedOut = iostream_access::AsOstream(prefixedName.get());
   ostream* plainOut = iostream_access::AsOstream(plainName.get());
-  if (directory)
+  if (directory) {
     ostream_operator_ls_cstr(ostream_operator_ls_cstr(prefixedOut, directory), "\\");
+  }
   ostream* afterFirst = ostream_operator_ls_cstr(plainOut, LoadRcdataString(firstId));
   ostream* afterSecond = ostream_operator_ls_cstr(afterFirst, LoadRcdataString(secondId));
   ostream_operator_ls_char(afterSecond, 0);
   char* fileName = strstreambuf_str(iostream_access::BufferOf(plainName.get()));
   OpenInputFile(file.get(), fileName);
-  if (file.FileDescriptor() == -1)
-  {
+  if (file.FileDescriptor() == -1) {
     ostream_operator_ls_cstr(prefixedOut, fileName);
     OpenInputFile(file.get(), strstreambuf_str(iostream_access::BufferOf(prefixedName.get())));
     strstreambuf_freeze(iostream_access::BufferOf(prefixedName.get()), 0);
   }
   strstreambuf_freeze(iostream_access::BufferOf(plainName.get()), 0);
-  if (file.FileDescriptor() != -1)
+  if (file.FileDescriptor() != -1) {
     Read(file.get()->In());
+  }
   CloseFileStream(file.get());
   return 1;
 }
@@ -263,7 +266,8 @@ int TableFile::Load(uint16_t firstId, uint16_t secondId, const char* directory)
   return m_table.Open(firstId, secondId, directory);
 }
 
-TableFileList::TableFileList() : m_ready(1)
+TableFileList::TableFileList()
+    : m_ready(1)
 {
 }
 
@@ -271,7 +275,8 @@ TableFileList::~TableFileList() = default;
 
 // ---- GDataTables -------------------------------------------------------------------------------------------
 
-GDataTables::GDataTables() : m_tables(nullptr)
+GDataTables::GDataTables()
+    : m_tables(nullptr)
 {
   m_ready = CreateTableList();
 }
@@ -283,8 +288,7 @@ GDataTables::~GDataTables()
 
 void GDataTables::DeleteTableList()
 {
-  if (m_tables)
-  {
+  if (m_tables) {
     delete m_tables;
     m_tables = nullptr;
   }
@@ -300,32 +304,34 @@ int GDataTables::CreateTableList()
 uint32_t GDataTables::LoadTable(uint16_t firstId, uint16_t secondId, uint32_t tableId)
 {
   auto* file = NewOrNull<TableFile>();
-  if (!file)
+  if (!file) {
     return 0;
-  if (file->m_version == 0 || !file->Load(firstId, secondId, GetGameDataDirectory()))
-  {
+  }
+  if (file->m_version == 0 || !file->Load(firstId, secondId, GetGameDataDirectory())) {
     delete file;
     return 0;
   }
   file->SetId(tableId);
   const uint32_t id = m_tables->AddWithId(file);
-  if (id == 0)
+  if (id == 0) {
     delete file;
+  }
   return id;
 }
 
 int GDataTables::RegisterAllTables()
 {
-  if (!CreateTableList())
+  if (!CreateTableList()) {
     return 0;
+  }
   uint32_t result = 0;
   // The terminator keeps the compiler from forming a pointer just past the table, which the post-link vtable patcher
   // would mistake for the address of the next object.
-  for (const TableFileSpec* spec = kTableFiles; spec->m_secondId != 0; ++spec)
-  {
+  for (const TableFileSpec* spec = kTableFiles; spec->m_secondId != 0; ++spec) {
     result = LoadTable(kTableDirectoryStringId, spec->m_secondId, spec->m_tableId);
-    if (!result)
+    if (!result) {
       return 0;
+    }
   }
   return static_cast<int>(result);
 }
@@ -333,10 +339,10 @@ int GDataTables::RegisterAllTables()
 int GDataTables::ChecksumAll(Crc32* crc)
 {
   int result = 1;
-  for (const auto& entry : m_tables->Entries())
-  {
-    if (!result)
+  for (const auto& entry : m_tables->Entries()) {
+    if (!result) {
       break;
+    }
     result = static_cast<TableFile*>(entry.get())->m_table.Checksum(crc);
   }
   return result;
@@ -355,8 +361,7 @@ GDataTables* GetGDataTables()
 
 void DestroyGDataTables()
 {
-  if (g_gdataTables)
-  {
+  if (g_gdataTables) {
     delete g_gdataTables;
     g_gdataTables = nullptr;
   }
@@ -366,8 +371,9 @@ void InitGDataTables()
 {
   DestroyGDataTables();
   g_gdataTables = NewOrNull<GDataTables>();
-  if (g_gdataTables && g_gdataTables->m_ready && g_gdataTables->RegisterAllTables())
+  if (g_gdataTables && g_gdataTables->m_ready && g_gdataTables->RegisterAllTables()) {
     return;
+  }
   DestroyGDataTables();
 }
 
@@ -375,16 +381,14 @@ void InitGDataTables()
 
 int RegisterTableClass(const char* className, void* (*factory)())
 {
-  if (g_tableClassCount + 1 < kMaxTableClasses)
-  {
+  if (g_tableClassCount + 1 < kMaxTableClasses) {
     TableClassRegistration& entry = g_tableClasses[g_tableClassCount];
     entry.m_factory = factory;
     char* out = entry.m_name;
     char c = *className;
     *out = c;
     int remaining = sizeof(entry.m_name);
-    while (c != '\0' && --remaining != 0)
-    {
+    while (c != '\0' && --remaining != 0) {
       c = *++className;
       *++out = c;
     }

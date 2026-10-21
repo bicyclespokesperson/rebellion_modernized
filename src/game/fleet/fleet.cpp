@@ -84,8 +84,7 @@ int hasReadyShip(Fleet* fleet)
   int ready = 0;
   CapShipIterator ships(fleet, kExistingFilter, fleet->ControlSide());
   ships.Begin();
-  while (ships.Current() && ready == 0)
-  {
+  while (ships.Current() && ready == 0) {
     ready = isReady(currentObject(ships)) ? 1 : 0;
     ships.Advance();
   }
@@ -102,7 +101,9 @@ T* asPointer(intptr_t value)
 
 // ---- construction -----------------------------------------------------------------------------------------
 
-Fleet::Fleet() : GameObj(), m_fleetFlags(0)
+Fleet::Fleet()
+    : GameObj()
+    , m_fleetFlags(0)
 {
 }
 
@@ -143,24 +144,27 @@ int Fleet::Validate()
 int Fleet::ReadImpl(istream* in)
 {
   const int result = GameObj::Read(in);
-  if (result)
+  if (result) {
     ReadValue32(in, &m_fleetFlags);
+  }
   return result;
 }
 
 int Fleet::WriteImpl(ostream* out)
 {
   const int result = GameObj::Write(out);
-  if (result)
+  if (result) {
     WriteValue32(out, &m_fleetFlags);
+  }
   return result;
 }
 
 int Fleet::ChecksumImpl(Crc32* crc)
 {
   const int result = GameObj::Checksum(crc);
-  if (result)
+  if (result) {
     crc->AddInt(m_fleetFlags);
+  }
   return result;
 }
 
@@ -169,35 +173,33 @@ int Fleet::ValidateImpl()
   uint32_t consistent = GameObj::Validate();
   GameObjIterator children(this, kAlwaysFilter);
   children.Begin();
-  while (children.Current())
-  {
-    if (consistent == 0)
+  while (children.Current()) {
+    if (consistent == 0) {
       return 0;
+    }
     ObjectKey key;
     children.Current()->GetKey(&key);
     consistent = 0;
-    if (isShipFamily(key.m_value >> 24))
-    {
+    if (isShipFamily(key.m_value >> 24)) {
       consistent = ((children.Current()->m_flags ^ m_flags) & kControlSideMask) == 0;
     }
     children.Advance();
   }
   int result = 0;
-  if (consistent != 0)
-  {
+  if (consistent != 0) {
     int total = 0;
-    if (SumShipCounts(&total, 0, 0) != 0 && total < 2)
+    if (SumShipCounts(&total, 0, 0) != 0 && total < 2) {
       result = 1;
+    }
   }
   return result;
 }
 
 int Fleet::CollectDependencies(void* context, int value, ObjectKeyValueSet* out)
 {
-  const uint32_t targetFamily =
-    static_cast<uint32_t>(static_cast<const ActivityRequest*>(context)->m_target.m_value) >> 24;
-  if (isFleetFamily(targetFamily))
-  {
+  const uint32_t targetFamily
+      = static_cast<uint32_t>(static_cast<const ActivityRequest*>(context)->m_target.m_value) >> 24;
+  if (isFleetFamily(targetFamily)) {
     GameObjIterator children(this, kExistingFilter);
     return AddChildKeys(&children, out, 1, ControlSide());
   }
@@ -214,27 +216,27 @@ int Fleet::CreateViews(int controlKind, NotifyContext* ctx)
 int Fleet::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 {
   int result = GameObj::CreateViews(controlKind, ctx);
-  if (result)
+  if (result) {
     result = SetFlag01(1, ctx);
+  }
   return result;
 }
 
 int Fleet::ApplyAll(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
+  if (result) {
     result = ApplyAllImpl(ctx);
+  }
   return result;
 }
 
 int Fleet::ApplyAllImpl(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     GameObj::ApplyAll(ctx);
-    if (ctx->m_flag04 == 1)
-    {
+    if (ctx->m_flag04 == 1) {
       ApplyFlag01(ctx);
       ApplyFlag02(ctx);
       ApplyFlag04(ctx);
@@ -254,13 +256,11 @@ int Fleet::SumUnitStat119()
   int total = 0;
   CapShipIterator ships(this, kUsableFilter);
   ships.Begin();
-  while (ships.Current())
-  {
+  while (ships.Current()) {
     total += static_cast<CombatUnit*>(ships.Current())->GetDefenseLeft();
     FightSquadIterator squadrons(ships.Current(), kUsableFilter);
     squadrons.Begin();
-    while (squadrons.Current())
-    {
+    while (squadrons.Current()) {
       total += static_cast<CombatUnit*>(squadrons.Current())->GetDefenseLeft();
       squadrons.Advance();
     }
@@ -275,10 +275,10 @@ int Fleet::FindShipByNumber(int number, GameObjNotifier** out)
   *out = nullptr;
   CapShipIterator ships(this, kExistingFilter, ControlSide());
   ships.Begin();
-  do
-  {
-    if (!ships.Current() || *out != nullptr)
+  do {
+    if (!ships.Current() || *out != nullptr) {
       break;
+    }
     result = static_cast<CapShip*>(ships.Current())->FindCharacterById(number, out);
     ships.Advance();
   } while (result != 0);
@@ -292,13 +292,14 @@ int Fleet::SumShipCounts(int* out, int unused1, int unused2)
   int count = 0;
   CapShipIterator ships(this, kExistingFilter);
   ships.Begin();
-  do
-  {
-    if (!ships.Current())
+  do {
+    if (!ships.Current()) {
       break;
+    }
     result = static_cast<CapShip*>(ships.Current())->CountCharacters(&count, 0, 0);
-    if (result)
+    if (result) {
       *out += count;
+    }
     ships.Advance();
   } while (result != 0);
   return result;
@@ -310,21 +311,18 @@ int Fleet::GetTransitSpeed(int arg)
   bool first = true;
   CapShipIterator ships(this, kExistingFilter);
   ships.Begin();
-  while (ships.Current())
-  {
-    if (isReady(currentObject(ships)))
-    {
-      if (first)
-      {
+  while (ships.Current()) {
+    if (isReady(currentObject(ships))) {
+      if (first) {
         first = false;
         speed = currentObject(ships)->GetTransitSpeed(arg);
       }
-      if (speed != 0)
-      {
-        const bool notFaster =
-          currentObject(ships)->GetTransitSpeed(arg) != 0 && currentObject(ships)->GetTransitSpeed(arg) <= speed;
-        if (!notFaster)
+      if (speed != 0) {
+        const bool notFaster
+            = currentObject(ships)->GetTransitSpeed(arg) != 0 && currentObject(ships)->GetTransitSpeed(arg) <= speed;
+        if (!notFaster) {
           speed = currentObject(ships)->GetTransitSpeed(arg);
+        }
       }
     }
     ships.Advance();
@@ -355,8 +353,7 @@ int Fleet::UpdateDamaged(NotifyContext* ctx)
   uint32_t damaged = 0;
   CapShipIterator ships(this, kExistingFilter);
   ships.Begin();
-  while (ships.Current() && damaged == 0)
-  {
+  while (ships.Current() && damaged == 0) {
     damaged = currentObject(ships)->m_stateFlags;
     ships.Advance();
     damaged = (damaged & kDamaged) ? 1 : 0;
@@ -369,13 +366,11 @@ int Fleet::RefreshFromShips(NotifyContext* ctx)
   bool ok = true;
   CapShipIterator ships(this, kExistingFilter, ControlSide());
   const int hasShips = ships.HasCurrent();
-  if (!hasShips)
-  {
-    if (m_fleetFlags & kFlag01)
+  if (!hasShips) {
+    if (m_fleetFlags & kFlag01) {
       ok = ChangeDestroyedReason(kDestroyedReasonNoShips, ctx) != 0;
-  }
-  else
-  {
+    }
+  } else {
     const int flagged = SetFlag01(1, ctx);
     const int created = SetCreated(1, ctx);
     ok = created != 0 && flagged != 0;
@@ -390,8 +385,9 @@ int Fleet::RefreshFromShips(NotifyContext* ctx)
 int Fleet::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = InitEventKinds();
-  if (result)
+  if (result) {
     *out = g_fleetEventKinds;
+  }
   return result;
 }
 
@@ -399,8 +395,9 @@ int Fleet::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   setStatus(out, kStatusNotSupported);
   const int result = InitEventKinds();
-  if (result && g_fleetEventKinds.Contains(orderKind))
+  if (result && g_fleetEventKinds.Contains(orderKind)) {
     setStatus(out, kStatusOk);
+  }
   return result;
 }
 
@@ -408,34 +405,28 @@ int Fleet::CheckFleetRequest(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (result)
-  {
-    if (isOk(out))
-    {
+  if (result) {
+    if (isOk(out)) {
       StatusCode verdict(kFleetStatusCategory, kFleetStatusNoShips);
       CapShipIterator ships(this, kExistingFilter);
       ships.Begin();
-      while (ships.Current())
-      {
-        if (isOk(&verdict))
+      while (ships.Current()) {
+        if (isOk(&verdict)) {
           break;
+        }
         const uint32_t flags = currentObject(ships)->m_stateFlags;
-        if (!(flags & kCompleted))
-        {
+        if (!(flags & kCompleted)) {
           verdict = StatusCode(kStatusCategory, kStatusShipNotCompleted);
-        }
-        else if (!(currentObject(ships)->m_stateFlags & kEnroute))
-        {
+        } else if (!(currentObject(ships)->m_stateFlags & kEnroute)) {
           verdict = StatusCode(kStatusCategory, kStatusOk);
-        }
-        else
-        {
+        } else {
           verdict = StatusCode(kStatusCategory, kStatusShipEnroute);
         }
         ships.Advance();
       }
-      if (!isOk(&verdict))
+      if (!isOk(&verdict)) {
         *out = verdict;
+      }
     }
     return result;
   }
@@ -447,8 +438,9 @@ int Fleet::CheckRequestImpl(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckFleetRequest(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -456,8 +448,9 @@ int Fleet::CheckRenameImpl(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -465,8 +458,9 @@ int Fleet::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckActivityRequest(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -484,12 +478,9 @@ int Fleet::GetIncomingUnitCapacity(const FamilyRange* range, int b, int* o1, int
   *o2 = 0;
   *o3 = 0;
   const bool capitalShips = !(range->m_first < family::kCapitalShip || family::kFighterSquadron < range->m_second);
-  if (capitalShips)
-  {
+  if (capitalShips) {
     *o2 = 1;
-  }
-  else
-  {
+  } else {
     *o1 = 0;
   }
   return 1;
@@ -499,12 +490,12 @@ int Fleet::CheckAssaultImpl(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckFleetRequest(request, out);
-  if (result && isOk(out) && !(m_fleetFlags & kBlockade))
-  {
+  if (result && isOk(out) && !(m_fleetFlags & kBlockade)) {
     setStatus(out, kFleetStatusCategory, kFleetStatusNotBlockading);
   }
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -512,8 +503,9 @@ int Fleet::CheckAssault(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckAssaultImpl(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -521,8 +513,9 @@ int Fleet::CheckBombardImpl(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckFleetRequest(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -530,8 +523,9 @@ int Fleet::CheckBombard(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusOk);
   const int result = CheckBombardImpl(request, out);
-  if (!result)
+  if (!result) {
     setStatus(out, kStatusNoSuchOrder);
+  }
   return result;
 }
 
@@ -539,8 +533,7 @@ int Fleet::StartAssault(intptr_t request, NotifyContext* ctx)
 {
   StatusCode status(kStatusCategory, kStatusOk);
   bool ok = CheckAssault(asPointer<const ActivityRequest>(request), &status) != 0;
-  if (isOk(&status))
-  {
+  if (isOk(&status)) {
     const int started = SetAssault(1, ctx);
     ok = started != 0 && ok;
   }
@@ -551,8 +544,7 @@ int Fleet::StartBombard(intptr_t request, NotifyContext* ctx)
 {
   StatusCode status(kStatusCategory, kStatusOk);
   bool ok = CheckBombard(asPointer<const ActivityRequest>(request), &status) != 0;
-  if (isOk(&status))
-  {
+  if (isOk(&status)) {
     const int started = SetBombard(1, ctx);
     ok = started != 0 && ok;
   }
@@ -572,8 +564,7 @@ int Fleet::InitializeAfterSetup(intptr_t ctx)
 int Fleet::NotifyUnitExisting(intptr_t other, int b, intptr_t ctx)
 {
   bool ok = GameObj::NotifyUnitExisting(other, b, ctx) != 0;
-  if (isShipFamily(asPointer<GameObj>(other)->GetFamily()))
-  {
+  if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
     const int refreshed = RefreshFromShips(asPointer<NotifyContext>(ctx));
     ok = refreshed != 0 && ok;
   }
@@ -583,8 +574,7 @@ int Fleet::NotifyUnitExisting(intptr_t other, int b, intptr_t ctx)
 int Fleet::NotifyUnitUsable(intptr_t other, int b, intptr_t ctx)
 {
   bool ok = GameObj::NotifyUnitUsable(other, b, ctx) != 0;
-  if (isShipFamily(asPointer<GameObj>(other)->GetFamily()))
-  {
+  if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
     const int updated = UpdateUsable(asPointer<NotifyContext>(ctx));
     ok = updated != 0 && ok;
   }
@@ -594,8 +584,7 @@ int Fleet::NotifyUnitUsable(intptr_t other, int b, intptr_t ctx)
 int Fleet::NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx)
 {
   bool ok = GameObj::NotifyUnitDamaged(other, b, ctx) != 0;
-  if (isShipFamily(asPointer<GameObj>(other)->GetFamily()))
-  {
+  if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
     const int updated = UpdateDamaged(asPointer<NotifyContext>(ctx));
     ok = updated != 0 && ok;
   }
@@ -606,26 +595,24 @@ int Fleet::Reparent(ObjectKey* key, NotifyContext* ctx)
 {
   bool ok = true;
   const uint32_t targetFamily = key->m_value >> 24;
-  if (isFleetFamily(targetFamily))
-  {
+  if (isFleetFamily(targetFamily)) {
     GameObjIterator children(this, kAlwaysFilter);
     children.Begin();
-    while (children.Current())
-    {
+    while (children.Current()) {
       GameObj* child = currentObject(children);
       children.Advance();
-      if ((child->m_stateFlags & kExisting) && (child->m_stateFlags & kCompleted))
-      {
+      if ((child->m_stateFlags & kExisting) && (child->m_stateFlags & kCompleted)) {
         const int moved = child->GameObj::Reparent(key, ctx);
         ok = moved != 0 && ok;
       }
     }
     return ok;
   }
-  const bool intoSystemOrSideRoot = (targetFamily >= family::kSystem && targetFamily < family::kSystem + 8) ||
-                                    (targetFamily >= family::kSideRoot && targetFamily < family::kSide);
-  if (!intoSystemOrSideRoot)
+  const bool intoSystemOrSideRoot = (targetFamily >= family::kSystem && targetFamily < family::kSystem + 8)
+                                    || (targetFamily >= family::kSideRoot && targetFamily < family::kSide);
+  if (!intoSystemOrSideRoot) {
     return 0;
+  }
   return GameObj::Reparent(key, ctx) != 0;
 }
 
@@ -646,15 +633,15 @@ int Fleet::OnUsableChanged(int newValue, NotifyContext* ctx)
 int Fleet::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 {
   bool ok = GameObj::OnDestroyedChanged(newValue, ctx) != 0;
-  if (newValue != 0)
-  {
+  if (newValue != 0) {
     const int battleCleared = SetBattle(0, ctx);
     ok = battleCleared != 0 && ok;
     const int assaultCleared = SetAssault(0, ctx);
     ok = assaultCleared != 0 && ok;
     const int bombardCleared = SetBombard(0, ctx);
-    if (bombardCleared != 0 && ok)
+    if (bombardCleared != 0 && ok) {
       return 1;
+    }
     ok = false;
   }
   return ok;
@@ -665,12 +652,9 @@ int Fleet::OnAutoroutingChanged(int newValue, NotifyContext* ctx)
   int result = GameObj::OnAutoroutingChanged(newValue, ctx);
   CapShipIterator ships(this, kExistingFilter);
   ships.Begin();
-  while (ships.Current())
-  {
-    if (isReady(currentObject(ships)))
-    {
-      if (currentObject(ships)->GetTransitSpeed(0) == 0)
-      {
+  while (ships.Current()) {
+    if (isReady(currentObject(ships))) {
+      if (currentObject(ships)->GetTransitSpeed(0) == 0) {
         const int stranded = currentObject(ships)->ChangeDestroyedReason(kDestroyedReasonStranded, ctx);
         result = stranded != 0 && result != 0 ? 1 : 0;
       }

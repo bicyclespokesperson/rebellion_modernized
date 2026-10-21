@@ -5,7 +5,9 @@
 
 // ---- KeyQueueNode ------------------------------------------------------------------------------------------
 
-KeyQueueNode::KeyQueueNode() : m_flag(1), m_value(0)
+KeyQueueNode::KeyQueueNode()
+    : m_flag(1)
+    , m_value(0)
 {
 }
 
@@ -40,7 +42,8 @@ void KeyQueueNode::Checksum(Crc32* crc)
 
 // ---- KeyQueue ----------------------------------------------------------------------------------------------
 
-KeyQueue::KeyQueue() : m_ok(1)
+KeyQueue::KeyQueue()
+    : m_ok(1)
 {
 }
 
@@ -54,9 +57,11 @@ void KeyQueue::Clear()
 int KeyQueue::CountMatching(KeyQueueNode* probe)
 {
   int matches = 0;
-  for (const auto& entry : m_entries)
-    if (entry->m_key.m_value == probe->m_key.m_value && entry->m_value == probe->m_value)
+  for (const auto& entry : m_entries) {
+    if (entry->m_key.m_value == probe->m_key.m_value && entry->m_value == probe->m_value) {
       ++matches;
+    }
+  }
   return matches;
 }
 
@@ -66,19 +71,19 @@ int KeyQueue::Read(istream* in)
   ReadValue32(in, &m_ok);
   uint32_t count = 0;
   ReadValue32(in, &count);
-  if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail)
+  if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) {
     return 0;
-  for (uint32_t i = 0; i < count; ++i)
-  {
+  }
+  for (uint32_t i = 0; i < count; ++i) {
     std::unique_ptr<KeyQueueNode> node(NewOrNull<KeyQueueNode>());
-    if (!node)
-    {
+    if (!node) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       return 0;
     }
     node->Read(in);
-    if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail)
+    if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) {
       return 0;
+    }
     Add(std::move(node));
   }
   return 1;
@@ -87,10 +92,12 @@ int KeyQueue::Read(istream* in)
 int KeyQueue::Write(ostream* out)
 {
   WriteValue32(out, &m_ok);
-  if (!WriteCount32(out, m_entries.size()))
+  if (!WriteCount32(out, m_entries.size())) {
     return 0;
-  for (const auto& node : m_entries)
+  }
+  for (const auto& node : m_entries) {
     node->WriteFields(out);
+  }
   return (iostream_access::IosOf(out)->m_state & iostream_flags::kFail) == 0;
 }
 
@@ -98,15 +105,17 @@ int KeyQueue::Checksum(Crc32* crc)
 {
   crc->AddInt(m_ok);
   crc->AddInt(static_cast<int>(m_entries.size()));
-  for (const auto& node : m_entries)
+  for (const auto& node : m_entries) {
     node->Checksum(crc);
+  }
   return 1;
 }
 
 KeyQueueNode* KeyQueue::Dequeue()
 {
-  if (m_entries.empty())
+  if (m_entries.empty()) {
     return nullptr;
+  }
   auto node = std::move(m_entries.front());
   m_entries.pop_front();
   return node.release();
@@ -114,15 +123,17 @@ KeyQueueNode* KeyQueue::Dequeue()
 
 int KeyQueue::Add(std::unique_ptr<KeyQueueNode> node)
 {
-  if (!node)
+  if (!node) {
     return 0;
+  }
   m_entries.push_back(std::move(node));
   return 1;
 }
 
 // ---- ObjectKeyPairSet --------------------------------------------------------------------------------------
 
-ObjectKeyPairSet::ObjectKeyPairSet() : ObjectKeySet()
+ObjectKeyPairSet::ObjectKeyPairSet()
+    : ObjectKeySet()
 {
 }
 

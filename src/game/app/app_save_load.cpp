@@ -1,4 +1,5 @@
 #include <new>
+#include <string_view>
 
 #include "app/app_control_cmds.h"
 #include "app/app_externals.h"
@@ -16,7 +17,7 @@
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_options_window.h"
 #include "strategy_ui/game_ui_facade.h"
-#include "tactical/comm2.h"
+#include "multiplayer/comm_helpers.h"
 #include "ui/cool_app.h"
 
 // Save and load of games, the small state hooks the other screens call, and a few settings. The save file starts
@@ -26,7 +27,7 @@ namespace
 {
 
 constexpr char kBackslash[] = "\\";
-constexpr char kHelpFile[] = "swhelp.hlp";
+constexpr std::string_view kHelpFile = "swhelp.hlp";
 constexpr int kAutosaveSlot = 6;
 constexpr int kResourceSaveDirectory = 0x610;
 constexpr int kResourceSaveFileLocal = 0x611;
@@ -37,7 +38,7 @@ constexpr int kSpeedAckText = 0x1206;
 
 HCURSOR ShowWaitCursor()
 {
-  return SetCursor(LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f02)));
+  return reb::compat::SetCursor(reb::compat::LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f02)));
 }
 
 void ClearStreamState(strstream* stream)
@@ -51,48 +52,37 @@ void ClearStreamState(strstream* stream)
 void RetireActiveWindow(RebellionApplication* app)
 {
   CoolWindow* retired = app->m_activeWindow;
-  if (!retired)
+  if (!retired) {
     return;
+  }
   retired->Hide();
-  if (app->m_strategicWindow == retired)
+  if (app->m_strategicWindow == retired) {
     app->m_strategicWindow = nullptr;
-  if (app->m_tacticalWindow == retired)
-    app->m_tacticalWindow = nullptr;
-  PostMessageA(app->m_hwnd, kMsgDestroyWindow, 0, reinterpret_cast<LPARAM>(retired));
+  }
+  reb::compat::PostMessageA(app->m_hwnd, kMsgDestroyWindow, 0, reinterpret_cast<LPARAM>(retired));
   app->m_activeWindow = nullptr;
 }
 
 void DestroyStrategicWindowObject(RebellionApplication* app)
 {
   CoolWindow* window = app->m_strategicWindow;
-  if (!window)
+  if (!window) {
     return;
-  if (app->m_activeWindow == window)
+  }
+  if (app->m_activeWindow == window) {
     app->m_activeWindow = nullptr;
-  BOOL destroyed = DestroyWindow(window->m_hwnd);
-  if (destroyed && app->m_strategicWindow)
+  }
+  BOOL destroyed = reb::compat::DestroyWindow(window->m_hwnd);
+  if (destroyed && app->m_strategicWindow) {
     delete app->m_strategicWindow;
+  }
   app->m_strategicWindow = nullptr;
-}
-
-void DestroyTacticalWindowObject(RebellionApplication* app)
-{
-  CoolWindow* window = app->m_tacticalWindow;
-  if (!window)
-    return;
-  if (app->m_activeWindow == window)
-    app->m_activeWindow = nullptr;
-  DestroyWindow(window->m_hwnd);
-  if (app->m_tacticalWindow)
-    delete app->m_tacticalWindow;
-  app->m_tacticalWindow = nullptr;
 }
 
 void DestroyAllScreensForLoad(RebellionApplication* app)
 {
   RetireActiveWindow(app);
   DestroyStrategicWindowObject(app);
-  DestroyTacticalWindowObject(app);
 }
 
 } // namespace
@@ -102,8 +92,9 @@ void DestroyAllScreensForLoad(RebellionApplication* app)
 int RebellionApplication::SaveStrategicState(void* stream)
 {
   GalaxyWindow* window = m_strategicWindow;
-  if (window)
+  if (window) {
     window->SaveState(static_cast<ostream*>(stream));
+  }
   return window != nullptr;
 }
 
@@ -115,40 +106,11 @@ int RebellionApplication::LoadStrategicState(void* stream)
   m_peersReady = 0;
   SetState(kStateStrategic);
   GalaxyWindow* window = m_strategicWindow;
-  if (window)
-  {
+  if (window) {
     window->LoadState(static_cast<istream*>(stream));
     UiAckSync(m_side);
   }
   return window != nullptr;
-}
-
-int RebellionApplication::SaveTacticalState(void* stream)
-{
-#ifdef REB_NO_TACTICAL_3D
-  (void)stream;
-  return 0;
-#else
-  TacticalWindow* window = static_cast<TacticalWindow*>(m_tacticalWindow);
-  if (window)
-    FUN_0059cb60(window, stream);
-  return window != nullptr;
-#endif
-}
-
-int RebellionApplication::LoadTacticalState(void* stream)
-{
-  DestroyAllScreensForLoad(this);
-  SetState(kStateTactical);
-#ifdef REB_NO_TACTICAL_3D
-  (void)stream;
-  return 0;
-#else
-  TacticalWindow* window = static_cast<TacticalWindow*>(m_tacticalWindow);
-  if (window)
-    FUN_0059cb80(window, stream);
-  return window != nullptr;
-#endif
 }
 
 // ---- Save file names and headers --------------------------------------------------------------------------------
@@ -163,12 +125,10 @@ std::string RebellionApplication::MakeSaveFileName(int slot, int isNetworkGame)
   std::string name;
   ScopedIfstream unusedFile;
   ScopedStrstream text;
-  if (slot != 0)
-  {
+  if (slot != 0) {
     ostream* out = iostream_access::AsOstream(text.get());
     char* installed = GetInstalledLocation();
-    if (installed)
-    {
+    if (installed) {
       ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, installed), kBackslash);
       operator delete(installed);
     }
@@ -184,14 +144,21 @@ std::string RebellionApplication::MakeSaveFileName(int slot, int isNetworkGame)
   return std::string(name);
 }
 
+int RebellionApplication::DeleteSave(int slot, int isNetworkGame)
+{
+  const std::string fileName = MakeSaveFileName(slot, isNetworkGame);
+  return !fileName.empty() && DeleteGameFile(fileName.c_str());
+}
+
 SavedGameInfo RebellionApplication::ReadSaveHeader(int slot, int isNetworkGame)
 {
   SavedGameInfo info;
   std::string fileName = MakeSaveFileName(slot, isNetworkGame);
   ScopedIfstream file;
   OpenInputFile(file.get(), fileName.c_str());
-  if (GetFileError() == 0)
+  if (GetFileError() == 0) {
     info.Read(file.get()->In());
+  }
   CloseFileStream(file.get());
   return SavedGameInfo(info);
 }
@@ -221,8 +188,7 @@ int RebellionApplication::LoadPendingGame()
   m_pendingLoadSlot = 0;
   ScopedIfstream file;
   OpenInputFile(file.get(), fileName.c_str());
-  if (GetFileError() == 0)
-  {
+  if (GetFileError() == 0) {
     HCURSOR previousCursor = ShowWaitCursor();
     SavedGameInfo info;
     info.Read(file.get()->In());
@@ -231,16 +197,16 @@ int RebellionApplication::LoadPendingGame()
     m_unknown134 = info.m_unknown14;
     m_gameType = info.m_gameType;
     m_autosaveTick = 0;
-    if (CoolGetResourceModule(kResourceDllSlot) == nullptr)
-    {
+    if (CoolGetResourceModule(kResourceDllSlot) == nullptr) {
       char* dllLocation = GetDllLocation();
       CoolRegisterResourceDll(dllLocation, g_textstraDllName, kResourceDllSlot);
-      if (dllLocation)
+      if (dllLocation) {
         operator delete(dllLocation);
+      }
     }
     CreateBattleFlow();
     loaded = iostream_access::State(file.get()) == 0 && AppRestoreGame(file.get()->In());
-    SetCursor(previousCursor);
+    reb::compat::SetCursor(previousCursor);
   }
   CloseFileStream(file.get());
   return loaded;
@@ -254,56 +220,57 @@ int RebellionApplication::SavePendingGame()
   std::string fileName = MakeSaveFileName(slot, isNetworkGame);
   std::string name = m_pendingSaveName;
   m_pendingSaveName.clear();
-  if (name.empty())
-  {
+  if (name.empty()) {
     isNetworkGame = m_networkMode == 7 && m_gameType == 2;
     (name = GetSaveName(slot, isNetworkGame));
-    if (name.empty())
+    if (name.empty()) {
       AppendSpaces(name, 1);
+    }
   }
   m_pendingSaveSlot = 0;
   HCURSOR previousCursor = ShowWaitCursor();
-  saved = reb::native::WriteSaveAtomically(fileName.c_str(),
-                                           [&](ostream* out)
-                                           {
-                                             SavedGameInfo info;
-                                             info.m_gameType = m_gameType;
-                                             info.m_unknown10 = 1;
-                                             info.m_unknown14 = 0;
-                                             info.m_slot = slot;
-                                             info.SetName(name);
-                                             info.m_side = m_side;
-                                             info.m_unknown24 = m_autosaveTick;
-                                             info.Write(out);
-                                             return AppSaveGame(out);
-                                           });
-  SetCursor(previousCursor);
-  if ((m_state == kStateOptionsMenu || m_state == kStateOptionsInGame) && m_activeWindow)
+  saved = reb::native::WriteSaveAtomically(fileName.c_str(), [&](ostream* out) {
+    SavedGameInfo info;
+    info.m_gameType = m_gameType;
+    info.m_unknown10 = 1;
+    info.m_unknown14 = 0;
+    info.m_slot = slot;
+    info.SetName(name);
+    info.m_side = m_side;
+    info.m_unknown24 = m_autosaveTick;
+    info.Write(out);
+    return AppSaveGame(out);
+  });
+  reb::compat::SetCursor(previousCursor);
+  if ((m_state == kStateOptionsMenu || m_state == kStateOptionsInGame) && m_activeWindow) {
     static_cast<GameOptionsWindow*>(m_activeWindow)->GameOptionsWindow::OnSaveResult(saved, slot);
+  }
   return saved;
 }
 
 void RebellionApplication::ProcessPendingSaveLoad()
 {
-  if (!(m_commandLineFlags & kAppNoAutosave) && m_pendingSaveSlot == 0 && AppIsGameRunning())
-  {
+  if (!(m_commandLineFlags & kAppNoAutosave) && m_pendingSaveSlot == 0 && AppIsGameRunning()) {
     AppSetAutosaveFlag(0);
     std::string autosaveName(g_autosaveName);
     m_pendingSaveSlot = kAutosaveSlot;
     (m_pendingSaveName = autosaveName);
     m_autosaveTick = GameHookTickCount();
   }
-  if (m_pendingLoadSlot != 0)
+  if (m_pendingLoadSlot != 0) {
     LoadPendingGame();
-  if (m_pendingSaveSlot != 0)
+  }
+  if (m_pendingSaveSlot != 0) {
     SavePendingGame();
+  }
 }
 
 int RebellionApplication::IsSessionActive()
 {
   int active = 0;
-  if (m_pendingLoadSlot != 0 || m_pendingSaveSlot != 0 || AppIsGameRunning())
+  if (m_pendingLoadSlot != 0 || m_pendingSaveSlot != 0 || AppIsGameRunning()) {
     active = 1;
+  }
   return active;
 }
 
@@ -311,20 +278,21 @@ void RebellionApplication::SendSaveCommand(int a, int b, std::string name, int d
 {
   void* commandMemory = operator new(sizeof(MpPlayerInfoMsg));
   MpPlayerInfoMsg* command = commandMemory ? new (commandMemory) MpPlayerInfoMsg() : nullptr;
-  if (!command)
+  if (!command) {
     return;
+  }
   command->m_playerId = b;
   command->m_action = a;
   (command->m_playerName = name);
   command->m_extra = d;
   void* executorMemory = operator new(sizeof(MessageCodec));
-  CommandExecutor* executor =
-    executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
-  if (!executor)
+  CommandExecutor* executor
+      = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
+  if (!executor) {
     return;
+  }
   static_cast<MessageCodec*>(executor)->MessageCodec::Serialize(command);
-  if (executor->m_valid)
-  {
+  if (executor->m_valid) {
     CommSendMessage(executor->m_buffer, executor->m_size, 4, 1);
     CommFlushAll();
   }
@@ -336,17 +304,18 @@ void RebellionApplication::SendSaveCommand(int a, int b, std::string name, int d
 
 int RebellionApplication::HasWaitedLongEnough()
 {
-  if (m_waitElapsed == 0 && m_waitTimer.ElapsedSeconds() > 0.25f)
+  if (m_waitElapsed == 0 && m_waitTimer.ElapsedSeconds() > 0.25f) {
     m_waitElapsed = 1;
+  }
   return m_waitElapsed;
 }
 
 void RebellionApplication::PromptForPause()
 {
-  if (m_state < kStateOptionsMenu || m_state > kStateOptionsInGame)
-  {
-    if (UiGetInputActive() == 0)
+  if (m_state < kStateOptionsMenu || m_state > kStateOptionsInGame) {
+    if (UiGetInputActive() == 0) {
       AppShowNoticeDialog(kNoticePausedMessage, 0, 0x1203, 0x190d, 500, 0x50);
+    }
     UiSetPausePending(1);
   }
 }
@@ -358,26 +327,27 @@ void RebellionApplication::PlayClickSound()
 
 void RebellionApplication::OnDialogEndedEnableSpeed()
 {
-  if (m_gameType == 2)
-  {
-    if (m_state != kStateStrategic)
+  if (m_gameType == 2) {
+    if (m_state != kStateStrategic) {
       return;
+    }
     UiAckSync(UiGetHumanSide());
-    if (m_strategicWindow->m_unknownAc != 0)
+    if (m_strategicWindow->m_unknownAc != 0) {
       return;
-    if ((UiAreAllSynced() == 0 && UiIsPauseTick() != 0) || UiGetHold() != 0)
+    }
+    if ((UiAreAllSynced() == 0 && UiIsPauseTick() != 0) || UiGetHold() != 0) {
       AppShowAckDialog(0, kSpeedAckText, 500, 0x50);
-  }
-  else if (m_gameType == 1)
-  {
+    }
+  } else if (m_gameType == 1) {
     UiAckSync(UiGetHumanSide());
   }
 }
 
 void RebellionApplication::ShowResumeNotice()
 {
-  if (m_gameType == 2)
+  if (m_gameType == 2) {
     AppShowAckDialog(0, kSpeedAckText, 500, 0x50);
+  }
 }
 
 // ---- Help, settings and display ------------------------------------------------------------------------------
@@ -387,10 +357,11 @@ BOOL RebellionApplication::ShowHelp()
   char* dllLocation = GetDllLocation();
   std::string path = StringFromText(dllLocation);
   operator delete(dllLocation);
-  if (!path.empty())
-    path += kBackslash;
+  if (!path.empty()) {
+    path += '\\';
+  }
   path += kHelpFile;
-  return WinHelpA(m_hwnd, path.c_str(), HELP_FINDER, 0);
+  return reb::compat::WinHelpA(m_hwnd, path.c_str(), HELP_FINDER, 0);
 }
 
 void RebellionApplication::SetVolume(int volume)
@@ -408,48 +379,47 @@ void RebellionApplication::SetDisplayOptions(uint32_t options)
 
 void RebellionApplication::SetIdentityPaletteForDisplay()
 {
-  HDC dc = GetDC(m_hwnd);
-  if (!dc)
+  HDC dc = reb::compat::GetDC(m_hwnd);
+  if (!dc) {
     return;
-  if (GetDeviceCaps(dc, RASTERCAPS) & RC_PALETTE)
-  {
+  }
+  if (reb::compat::GetDeviceCaps(dc, RASTERCAPS) & RC_PALETTE) {
     LOGPALETTE header;
     header.palVersion = 0x300;
     header.palNumEntries = 1;
-    HPALETTE palette = CreatePalette(&header);
-    int reservedColors = GetDeviceCaps(dc, NUMCOLORS);
-    if (GetDeviceCaps(dc, SIZEPALETTE) == 256)
-    {
+    HPALETTE palette = reb::compat::CreatePalette(&header);
+    int reservedColors = reb::compat::GetDeviceCaps(dc, NUMCOLORS);
+    if (reb::compat::GetDeviceCaps(dc, SIZEPALETTE) == 256) {
       PALETTEENTRY entries[256];
-      SetSystemPaletteUse(dc, SYSPAL_NOSTATIC);
-      SetSystemPaletteUse(dc, SYSPAL_STATIC);
-      GetSystemPaletteEntries(dc, 0, 256, entries);
+      reb::compat::SetSystemPaletteUse(dc, SYSPAL_NOSTATIC);
+      reb::compat::SetSystemPaletteUse(dc, SYSPAL_STATIC);
+      reb::compat::GetSystemPaletteEntries(dc, 0, 256, entries);
       int half = reservedColors / 2;
-      for (int i = 0; i < half; ++i)
+      for (int i = 0; i < half; ++i) {
         entries[i].peFlags = 0;
+      }
       int next = half;
-      if (half < 256 - half)
-      {
-        for (int i = half; i < 256 - half; ++i)
+      if (half < 256 - half) {
+        for (int i = half; i < 256 - half; ++i) {
           entries[i] = PALETTEENTRY{0, 0, 0, 0};
+        }
         next = 256 - half;
       }
-      for (int i = next; i < 256; ++i)
+      for (int i = next; i < 256; ++i) {
         entries[i].peFlags = 0;
-      if (palette)
-      {
-        if (ResizePalette(palette, 256))
-        {
-          SetPaletteEntries(palette, 0, 256, entries);
-          HPALETTE previous = SelectPalette(dc, palette, 0);
-          RealizePalette(dc);
-          SelectPalette(dc, previous, 0);
+      }
+      if (palette) {
+        if (reb::compat::ResizePalette(palette, 256)) {
+          reb::compat::SetPaletteEntries(palette, 0, 256, entries);
+          HPALETTE previous = reb::compat::SelectPalette(dc, palette, 0);
+          reb::compat::RealizePalette(dc);
+          reb::compat::SelectPalette(dc, previous, 0);
         }
-        DeleteObject(palette);
+        reb::compat::DeleteObject(palette);
       }
     }
   }
-  ReleaseDC(m_hwnd, dc);
+  reb::compat::ReleaseDC(m_hwnd, dc);
 }
 
 StringMap RebellionApplication::CopyNetworkSettings() const

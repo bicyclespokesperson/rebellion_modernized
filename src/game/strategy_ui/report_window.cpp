@@ -25,7 +25,7 @@
 #include "ui/object_list_item.h"
 #include "ui/resource_dll.h"
 
-extern const char* g_gokresDllName; // 0x6a8708 "gokres.dll"
+extern const char* g_gokresDllName;       // 0x6a8708 "gokres.dll"
 extern const int16_t g_stringGroup65d424; // 0x65d424
 
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);
@@ -45,8 +45,7 @@ constexpr uint16_t kClickSound = 0x260;
 constexpr int kAlliance = 1;
 constexpr int kEmpire = 2;
 
-enum ReportChild : uint32_t
-{
+enum ReportChild : uint32_t {
   kCloseId = 10,
   kNextId = 11,
   kPreviousId = 12,
@@ -67,24 +66,17 @@ ResourceStringId StringId(uint16_t id)
 
 COLORREF ReportColor(int side)
 {
-  if (side == 1)
+  if (side == 1) {
     return 0x20000ff;
-  if (side == 2)
+  }
+  if (side == 2) {
     return 0x200ff00;
+  }
   return 0x2ffff00;
 }
 
-CoolStrobeButton* NewButton(HMODULE art,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            CoolWindow* parent,
-                            uint32_t childId,
-                            uint32_t normalId,
-                            uint32_t pressedId,
-                            DibBitmap* backdrop,
-                            int pixelHit = 0)
+CoolStrobeButton* NewButton(HMODULE art, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
+                            uint32_t normalId, uint32_t pressedId, DibBitmap* backdrop, int pixelHit = 0)
 {
   return NewOrNull<CoolStrobeButton>(art, x, y, width, height, parent, childId, normalId, pressedId, backdrop, 0,
                                      pixelHit);
@@ -92,8 +84,9 @@ CoolStrobeButton* NewButton(HMODULE art,
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
@@ -115,32 +108,35 @@ Notice15* DetailedReport(UiTextNotice* notice)
 
 int ReportSide(UiTextNotice* notice)
 {
-  if (Notice15* report = DetailedReport(notice))
+  if (Notice15* report = DetailedReport(notice)) {
     return report->m_f6c;
+  }
   return notice->m_owner;
 }
 
 int ReportOtherSide(UiTextNotice* notice)
 {
-  if (Notice15* report = DetailedReport(notice))
+  if (Notice15* report = DetailedReport(notice)) {
     return report->m_f68;
+  }
   return 0;
 }
 
 bool ShowsSecondList(UiTextNotice* notice)
 {
-  if (Notice15* report = DetailedReport(notice))
+  if (Notice15* report = DetailedReport(notice)) {
     return report->m_f64 != 0;
+  }
   return false;
 }
 
 ObjectKeySet* ReportSet(UiTextNotice* notice, int index)
 {
   Notice15* report = DetailedReport(notice);
-  if (!report)
+  if (!report) {
     return nullptr;
-  switch (index)
-  {
+  }
+  switch (index) {
     case 0:
       return &report->m_set70;
     case 1:
@@ -158,8 +154,7 @@ ObjectKeySet* ReportSet(UiTextNotice* notice, int index)
   }
 }
 
-struct UnitTab
-{
+struct UnitTab {
   uint32_t m_overlayId;
   int m_itemWidth;
   int m_itemHeight;
@@ -171,24 +166,23 @@ struct UnitTab
 bool FindUnitTab(int subTabId, UnitTab* out)
 {
   static constexpr UnitTab kTabs[] = {
-    {3, 0xa5, 0x46, 0x14, 0x1c, 0}, {3, 0xa5, 0x46, 0x1c, 0x20, 0}, {3, 0xa5, 0x46, 0x28, 0x30, 0},
-    {3, 0xa5, 0x46, 0x22, 0x28, 0}, {3, 0xa5, 0x46, 0x10, 0x14, 0}, {4, 0x6e, 0x32, 0x30, 0x40, 1},
+      {3, 0xa5, 0x46, 0x14, 0x1c, 0}, {3, 0xa5, 0x46, 0x1c, 0x20, 0}, {3, 0xa5, 0x46, 0x28, 0x30, 0},
+      {3, 0xa5, 0x46, 0x22, 0x28, 0}, {3, 0xa5, 0x46, 0x10, 0x14, 0}, {4, 0x6e, 0x32, 0x30, 0x40, 1},
   };
-  if (subTabId < static_cast<int>(kUnitTabFirst) || subTabId > static_cast<int>(kUnitTabLast))
+  if (subTabId < static_cast<int>(kUnitTabFirst) || subTabId > static_cast<int>(kUnitTabLast)) {
     return false;
+  }
   *out = kTabs[subTabId - kUnitTabFirst];
   return true;
 }
 
 void CopyFamilyRange(ObjectKeySet* from, uint32_t first, uint32_t end, ObjectKeySet* to)
 {
-  for (const auto& ownedNode : from->Entries())
-  {
+  for (const auto& ownedNode : from->Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     node->GetKey(&key);
-    if (first <= key.Family() && key.Family() < end)
-    {
+    if (first <= key.Family() && key.Family() < end) {
       auto* copy = NewOrNull<ObjectKeyNode>(*node);
       to->Add(copy);
     }
@@ -200,8 +194,8 @@ void CopyFamilyRange(ObjectKeySet* from, uint32_t first, uint32_t end, ObjectKey
 // ---- Construction ------------------------------------------------------------------------------------------
 
 ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, UiTextNotice* notice)
-: CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, 0, kArtSlot, 0, childId, 0, 1, 0, 0),
-  m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
+    : CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, 0, kArtSlot, 0, childId, 0, 1, 0, 0)
+    , m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   m_style = 0x46000000;
   m_galaxy = parent;
@@ -217,20 +211,19 @@ ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t ch
   m_listKind = 0;
   m_nextItemId = 1;
   m_gokres = FindResourceModule(kGokresSlot);
-  if (!m_gokres)
-  {
+  if (!m_gokres) {
     char* dllLocation = GetDllLocation();
     m_gokres = LoadResourceModule(dllLocation, g_gokresDllName, kGokresSlot);
-    if (dllLocation)
+    if (dllLocation) {
       operator delete(dllLocation);
+    }
   }
 }
 
 ReportWindow::~ReportWindow()
 {
   delete m_list;
-  if (m_items)
-  {
+  if (m_items) {
     m_items->Clear();
     delete m_items;
   }
@@ -259,14 +252,13 @@ void ReportWindow::OnCreate1()
   auto* cornerB = NewOrNull<DibBitmap>(art, 0x2a0au, kBitmapKind);
   auto* cornerC = NewOrNull<DibBitmap>(art, 0x2a0bu, kBitmapKind);
 
-  HDC window = GetDC(m_hwnd);
-  HDC dc = CreateCompatibleDC(window);
-  ReleaseDC(m_hwnd, window);
+  HDC window = reb::compat::GetDC(m_hwnd);
+  HDC dc = reb::compat::CreateCompatibleDC(window);
+  reb::compat::ReleaseDC(m_hwnd, window);
   const int frameX = alliance ? 0x19c : 0x19f;
   const COLORREF color = ReportColor(ReportSide(m_notice));
 
-  auto composePage = [&](DibBitmap* corner)
-  {
+  auto composePage = [&](DibBitmap* corner) {
     DibBitmap* surface = NewSurface(panel, dc);
     corner->Blit(surface, 0xc, 0xd, 0, 0, 0, 0);
     panel->DrawKeyed(surface, 0, 0);
@@ -278,7 +270,7 @@ void ReportWindow::OnCreate1()
   portrait->Blit(surface, 0xc, 0xd, 0, 0, 0, 0);
   panel->DrawKeyed(surface, 0, 0);
   frame->DrawKeyed(surface, frameX, 0);
-  HGDIOBJ previous = SelectObject(dc, surface->DibSectionHandle());
+  HGDIOBJ previous = reb::compat::SelectObject(dc, surface->DibSectionHandle());
   title.SetColor(color, nullptr);
   title.MoveTo(0xc, 0xd);
   title.SetFont(0xb);
@@ -302,10 +294,10 @@ void ReportWindow::OnCreate1()
   text.Measure(dc);
   text.Draw(dc);
   SetPaintBackground(surface, 1);
-  SelectObject(dc, previous);
+  reb::compat::SelectObject(dc, previous);
 
   surface = composePage(cornerC);
-  previous = SelectObject(dc, surface->DibSectionHandle());
+  previous = reb::compat::SelectObject(dc, surface->DibSectionHandle());
   title.Draw(dc);
   std::string expanded;
   ExpandMessageTemplate(&expanded, 0x7013, nullptr, nullptr, nullptr, nullptr);
@@ -316,11 +308,11 @@ void ReportWindow::OnCreate1()
   text.MoveTo(0x1d, (text.m_rect.top - text.m_rect.bottom) + 0xb1);
   text.Measure(dc);
   text.Draw(dc);
-  SelectObject(dc, previous);
+  reb::compat::SelectObject(dc, previous);
   AddOverlay(surface, 5);
 
   surface = composePage(cornerA);
-  previous = SelectObject(dc, surface->DibSectionHandle());
+  previous = reb::compat::SelectObject(dc, surface->DibSectionHandle());
   text.SetColor(0xffffff, nullptr);
   text.SetFont(4);
   text.m_drawFlags = 1;
@@ -337,11 +329,11 @@ void ReportWindow::OnCreate1()
   text.Measure(dc);
   text.Draw(dc);
   title.Draw(dc);
-  SelectObject(dc, previous);
+  reb::compat::SelectObject(dc, previous);
   AddOverlay(surface, 3);
 
   surface = composePage(cornerB);
-  previous = SelectObject(dc, surface->DibSectionHandle());
+  previous = reb::compat::SelectObject(dc, surface->DibSectionHandle());
   text.SetColor(0x2ffffff, nullptr);
   text.m_width = 0x6e;
   text.MoveTo(0x26, 0x75);
@@ -362,9 +354,9 @@ void ReportWindow::OnCreate1()
   text.Measure(dc);
   text.Draw(dc);
   title.Draw(dc);
-  SelectObject(dc, previous);
+  reb::compat::SelectObject(dc, previous);
   AddOverlay(surface, 4);
-  DeleteDC(dc);
+  reb::compat::DeleteDC(dc);
   DeleteBitmap(panel);
   DeleteBitmap(portrait);
   DeleteBitmap(cornerA);
@@ -372,67 +364,57 @@ void ReportWindow::OnCreate1()
   DeleteBitmap(cornerC);
   DeleteBitmap(frame);
 
-  m_closeButton =
-    alliance ? NewButton(art, 0x1a7, 0x19, 0x20, 0x1f, this, kCloseId, 0x2882, 0x2883, GetPaintBackgroundIfOwned()) :
-               NewButton(art, 0x1aa, 0x15, 0x2c, 0x29, this, kCloseId, 0x2888, 0x2889, GetPaintBackgroundIfOwned());
-  if (m_closeButton)
-  {
+  m_closeButton
+      = alliance ? NewButton(art, 0x1a7, 0x19, 0x20, 0x1f, this, kCloseId, 0x2882, 0x2883, GetPaintBackgroundIfOwned())
+                 : NewButton(art, 0x1aa, 0x15, 0x2c, 0x29, this, kCloseId, 0x2888, 0x2889, GetPaintBackgroundIfOwned());
+  if (m_closeButton) {
     m_closeButton->Create(0);
     m_closeButton->SetClickSound(kClickSound);
   }
 
   const int tabWidth = alliance ? 0x29 : 0x2c;
-  m_pageTabs =
-    alliance ?
-      NewOrNull<CoolTabControl>(host, 0x1a2, 0x58, 0x29, 0xcb, kPageTabsId, this, GetPaintBackgroundIfOwned()) :
-      NewOrNull<CoolTabControl>(host, 0x1aa, 0x59, 0x2c, 0xda, kPageTabsId, this, GetPaintBackgroundIfOwned());
-  if (m_pageTabs)
-  {
+  m_pageTabs
+      = alliance
+            ? NewOrNull<CoolTabControl>(host, 0x1a2, 0x58, 0x29, 0xcb, kPageTabsId, this, GetPaintBackgroundIfOwned())
+            : NewOrNull<CoolTabControl>(host, 0x1aa, 0x59, 0x2c, 0xda, kPageTabsId, this, GetPaintBackgroundIfOwned());
+  if (m_pageTabs) {
     m_pageTabs->Create(0);
     DibBitmap* tabBackdrop = m_pageTabs->m_background;
-    auto addPageTab =
-      [&](int y, uint32_t childId, uint32_t normalId, uint32_t pressedId, int tooltip, int select, int notify)
-    {
-      CoolStrobeButton* tab =
-        NewButton(art, 0, y, tabWidth, 0x29, m_pageTabs, childId, normalId, pressedId, tabBackdrop);
-      if (!tab)
-        return;
-      tab->Create(0);
-      tab->SetClickSound(kClickSound);
-      if (tooltip)
-      {
-        const ResourceStringId tip = StringId(static_cast<uint16_t>(tooltip));
-        AddToolFromString(tab, &tip);
-      }
-      m_pageTabs->AddTab(tab, select, notify);
-    };
+    auto addPageTab
+        = [&](int y, uint32_t childId, uint32_t normalId, uint32_t pressedId, int tooltip, int select, int notify) {
+            CoolStrobeButton* tab
+                = NewButton(art, 0, y, tabWidth, 0x29, m_pageTabs, childId, normalId, pressedId, tabBackdrop);
+            if (!tab) {
+              return;
+            }
+            tab->Create(0);
+            tab->SetClickSound(kClickSound);
+            if (tooltip) {
+              const ResourceStringId tip = StringId(static_cast<uint16_t>(tooltip));
+              AddToolFromString(tab, &tip);
+            }
+            m_pageTabs->AddTab(tab, select, notify);
+          };
     addPageTab(0, kReportPage, alliance ? 0x29e8 : 0x29f2, alliance ? 0x29e9 : 0x29f3, 0x1944, 1, 0);
 
     uint32_t teamNormal;
     uint32_t teamPressed;
-    if (ReportSide(m_notice) == 1)
-    {
+    if (ReportSide(m_notice) == 1) {
       teamNormal = alliance ? 0x29ea : 0x29f4;
       teamPressed = alliance ? 0x29eb : 0x29f5;
-    }
-    else
-    {
+    } else {
       teamNormal = alliance ? 0x29ec : 0x29f6;
       teamPressed = alliance ? 0x29ed : 0x29f7;
     }
     CoolStrobeButton* teamTab = NewButton(art, 0, alliance ? 0x35 : 0x3b, tabWidth, 0x29, m_pageTabs, kTeamPage,
                                           teamNormal, teamPressed, tabBackdrop);
-    if (teamTab)
-    {
+    if (teamTab) {
       teamTab->Create(0);
       teamTab->SetClickSound(kClickSound);
-      if (ReportSide(m_notice) == 1)
-      {
+      if (ReportSide(m_notice) == 1) {
         const ResourceStringId tip = StringId(0x1937);
         AddToolFromString(teamTab, &tip);
-      }
-      else if (ReportSide(m_notice) == 2)
-      {
+      } else if (ReportSide(m_notice) == 2) {
         const ResourceStringId tip = StringId(0x1938);
         AddToolFromString(teamTab, &tip);
       }
@@ -442,13 +424,10 @@ void ReportWindow::OnCreate1()
     uint32_t otherNormal;
     uint32_t otherPressed;
     const int variant = ReportOtherSide(m_notice);
-    if (alliance)
-    {
+    if (alliance) {
       otherNormal = variant == 1 ? 0x29ea : (variant == 2 ? 0x29ec : 0x29f0);
       otherPressed = variant == 1 ? 0x29eb : (variant == 2 ? 0x29ed : 0x29f1);
-    }
-    else
-    {
+    } else {
       otherNormal = variant == 1 ? 0x29f4 : (variant == 2 ? 0x29f6 : 0x29fa);
       otherPressed = variant == 1 ? 0x29f5 : (variant == 2 ? 0x29f7 : 0x29fb);
     }
@@ -458,17 +437,16 @@ void ReportWindow::OnCreate1()
   }
 
   m_unitTabs = NewOrNull<CoolTabControl>(host, 0x24, 0x3b, 0x169, 0x29, kUnitTabsId, this, FindOverlayBitmap(3));
-  if (m_unitTabs)
-  {
+  if (m_unitTabs) {
     m_unitTabs->m_style &= ~kStyleVisible;
     m_unitTabs->Create(0);
     DibBitmap* unitBackdrop = m_unitTabs->m_background;
-    auto addUnitTab =
-      [&](int x, uint32_t childId, uint32_t normalId, uint32_t pressedId, uint16_t tooltip, int select, int notify)
-    {
+    auto addUnitTab = [&](int x, uint32_t childId, uint32_t normalId, uint32_t pressedId, uint16_t tooltip, int select,
+                          int notify) {
       CoolStrobeButton* tab = NewButton(art, x, 0, 0x31, 0x29, m_unitTabs, childId, normalId, pressedId, unitBackdrop);
-      if (!tab)
+      if (!tab) {
         return;
+      }
       tab->Create(0);
       const ResourceStringId tip = StringId(tooltip);
       AddToolFromString(tab, &tip);
@@ -486,8 +464,7 @@ void ReportWindow::OnCreate1()
   m_items = NewOrNull<CoolListItemList>(4);
   m_list = NewOrNull<CoolDragList>(host, 0x25, 0x88, 0x15b, 0xa6, this, GetPaintBackgroundIfOwned(), 6, 0xa5, 0x46, 0,
                                    0, 0, 0, 10, 1, nullptr);
-  if (m_list)
-  {
+  if (m_list) {
     m_list->m_options.m_value = kDragListFlowLayout | kDragListNoDrag | kDragListSingleSelect;
     m_list->m_style &= ~kStyleVisible;
     m_list->Create(0);
@@ -501,10 +478,9 @@ void ReportWindow::OnCreate1()
 
   const uint32_t previousNormal = alliance ? 0x2a0d : 0x2a0e;
   const uint32_t previousPressed = alliance ? 0x2a0f : 0x2a10;
-  m_previousButton =
-    NewButton(art, 0xe2, 0xb6, 0xa9, 0x60, this, kPreviousId, previousNormal, previousPressed, FindOverlayBitmap(5), 1);
-  if (m_previousButton)
-  {
+  m_previousButton = NewButton(art, 0xe2, 0xb6, 0xa9, 0x60, this, kPreviousId, previousNormal, previousPressed,
+                               FindOverlayBitmap(5), 1);
+  if (m_previousButton) {
     DibBitmap* normal = m_previousButton->GetStateBitmap(0);
     DibBitmap* pressed = m_previousButton->GetStateBitmap(1);
     auto* combined = NewOrNull<DibBitmap>(normal->Width(), normal->Height(), normal);
@@ -522,8 +498,7 @@ void ReportWindow::OnCreate1()
 
   m_nextButton = NewButton(art, 0x1d, 0xb6, 0xa9, 0x60, this, kNextId, 0x2a0c, (side != kAlliance) + 0x2a0f,
                            FindOverlayBitmap(5), 1);
-  if (m_nextButton)
-  {
+  if (m_nextButton) {
     GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_notice->MessageKey());
     DibBitmap* normal = m_nextButton->GetStateBitmap(0);
     DibBitmap* pressed = m_nextButton->GetStateBitmap(1);
@@ -532,13 +507,10 @@ void ReportWindow::OnCreate1()
     pressed->DrawKeyed(combined, 0, 0);
     m_nextButton->ReplaceBitmap(1, combined);
     m_nextButton->m_style &= ~kStyleVisible;
-    if (!reported)
-    {
+    if (!reported) {
       const ResourceStringId nextLabel = StringId(0x1945);
       m_nextButton->SetLabelFromResource(&nextLabel);
-    }
-    else
-    {
+    } else {
       m_nextButton->SetLabel(static_cast<GameObj*>(reported)->GetName()->c_str());
     }
     m_nextButton->SetStateColor(0, 0xffffff);
@@ -557,8 +529,9 @@ void ReportWindow::OnCreate1()
 
 void ReportWindow::DrawOverlay(HDC dc)
 {
-  if (!(m_currentPage > static_cast<int>(kReportPage) && m_currentPage < static_cast<int>(kOptionsPage)))
+  if (!(m_currentPage > static_cast<int>(kReportPage) && m_currentPage < static_cast<int>(kOptionsPage))) {
     return;
+  }
   CoolWindow* pageTab = m_pageTabs->m_children.FindById(SelectedChildId(m_pageTabs));
   m_label.SetColor(ReportColor(ReportSide(m_notice)), nullptr);
   m_label.MoveTo(0xc, 0x24);
@@ -582,32 +555,29 @@ void ReportWindow::DrawOverlay(HDC dc)
 
 void ReportWindow::OnCommand(int a, int b, int c)
 {
-  switch (a & 0xffff)
-  {
+  switch (a & 0xffff) {
     case kCloseId:
       PostCloseRequest();
       ModalReportClose(m_commandId, m_notice->m_id);
       break;
     case kNextId:
     case kPreviousId:
-    {
-      GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_notice->MessageKey());
-      if (reported)
       {
-        ObjectKey sectorKey;
-        GetObjectKey(reported->m_parent, &sectorKey);
-        CoolWindow* sectorWindow = m_galaxy->OpenSectorWindow(&sectorKey);
-        if (static_cast<int16_t>(a) == kPreviousId)
-        {
-          ObjectKey reportedKey;
-          GetObjectKey(reported, &reportedKey);
-          static_cast<SectorWindow*>(sectorWindow)->SectorWindow::OpenWindowOfType(&reportedKey, 4);
+        GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_notice->MessageKey());
+        if (reported) {
+          ObjectKey sectorKey;
+          GetObjectKey(reported->m_parent, &sectorKey);
+          CoolWindow* sectorWindow = m_galaxy->OpenSectorWindow(&sectorKey);
+          if (static_cast<int16_t>(a) == kPreviousId) {
+            ObjectKey reportedKey;
+            GetObjectKey(reported, &reportedKey);
+            static_cast<SectorWindow*>(sectorWindow)->SectorWindow::OpenWindowOfType(&reportedKey, 4);
+          }
         }
+        ModalReportReset(m_commandId);
+        PostCloseRequest();
+        break;
       }
-      ModalReportReset(m_commandId);
-      PostCloseRequest();
-      break;
-    }
     case kPageTabsId:
       SelectPage(static_cast<uint32_t>(b) >> 16);
       break;
@@ -619,46 +589,42 @@ void ReportWindow::OnCommand(int a, int b, int c)
 
 void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  if (key == VK_ESCAPE)
-  {
+  if (key == VK_ESCAPE) {
     PostCloseRequest();
     ModalReportClose(m_commandId, m_notice->m_id);
     return;
   }
-  if (key != VK_LEFT && key != VK_RIGHT)
-  {
+  if (key != VK_LEFT && key != VK_RIGHT) {
     m_parent->WindowProc(WM_KEYDOWN, key, lParam);
     return;
   }
   const bool backwards = key == VK_LEFT;
   auto* tab = m_unitTabs->m_children.FindById(SelectedChildId(m_unitTabs));
   auto position = m_unitTabs->m_children.PositionOf(tab);
-  if (position != m_unitTabs->m_children.Entries().end())
-  {
-    if (backwards)
-      position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end() :
-                                                                        std::prev(position);
-    else
+  if (position != m_unitTabs->m_children.Entries().end()) {
+    if (backwards) {
+      position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end()
+                                                                      : std::prev(position);
+    } else {
       position = std::next(position);
-    for (; position != m_unitTabs->m_children.Entries().end();)
-    {
+    }
+    for (; position != m_unitTabs->m_children.Entries().end();) {
       tab = (*position).get();
       auto* window = static_cast<CoolWindow*>(tab);
-      if (IsWindowVisible(window->m_hwnd))
-      {
+      if (reb::compat::IsWindowVisible(window->m_hwnd)) {
         m_unitTabs->SelectTab(window->m_childId, 1);
         return;
       }
-      if (backwards)
-        position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end() :
-                                                                          std::prev(position);
-      else
+      if (backwards) {
+        position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end()
+                                                                        : std::prev(position);
+      } else {
         position = std::next(position);
+      }
     }
     return;
   }
-  if (auto* first = m_unitTabs->m_children.First())
-  {
+  if (auto* first = m_unitTabs->m_children.First()) {
     m_unitTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
   }
 }
@@ -667,13 +633,13 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 
 void ReportWindow::SelectPage(int tabId)
 {
-  if (m_currentPage == tabId)
+  if (m_currentPage == tabId) {
     return;
-  switch (tabId)
-  {
+  }
+  switch (tabId) {
     case kReportPage:
       m_list->Hide();
-      SetFocus(m_hwnd);
+      reb::compat::SetFocus(m_hwnd);
       m_unitTabs->Hide();
       m_previousButton->Hide();
       m_nextButton->Hide();
@@ -684,7 +650,7 @@ void ReportWindow::SelectPage(int tabId)
     case kOtherPage:
       FillList(m_listKind, 1);
       m_list->Show(5);
-      SetFocus(m_list->m_hwnd);
+      reb::compat::SetFocus(m_list->m_hwnd);
       m_unitTabs->Show(5);
       m_previousButton->Hide();
       m_nextButton->Hide();
@@ -692,7 +658,7 @@ void ReportWindow::SelectPage(int tabId)
       return;
     case kOptionsPage:
       m_list->Hide();
-      SetFocus(m_hwnd);
+      reb::compat::SetFocus(m_hwnd);
       m_unitTabs->Hide();
       m_previousButton->Show(5);
       m_nextButton->Show(5);
@@ -704,47 +670,51 @@ void ReportWindow::SelectPage(int tabId)
 
 void ReportWindow::FillList(int subTabId, int force)
 {
-  if (m_listKind == subTabId && force == 0)
+  if (m_listKind == subTabId && force == 0) {
     return;
+  }
   ObjectKeySet firstSet;
   ObjectKeySet secondSet;
   ObjectKeySet thirdSet;
   m_items->Clear();
   UnitTab unitTab;
-  if (!FindUnitTab(subTabId, &unitTab))
+  if (!FindUnitTab(subTabId, &unitTab)) {
     return;
-
-  if (FindOverlayBitmap(unitTab.m_overlayId) == GetPaintBackgroundIfOwned())
-  {
-    RECT captions = {0xc, 0x24, 0x175, 0x3b};
-    InvalidateRect(m_hwnd, &captions, FALSE);
   }
-  else
-  {
+
+  if (FindOverlayBitmap(unitTab.m_overlayId) == GetPaintBackgroundIfOwned()) {
+    RECT captions = {0xc, 0x24, 0x175, 0x3b};
+    reb::compat::InvalidateRect(m_hwnd, &captions, FALSE);
+  } else {
     DibBitmap* background = SetPaintBackgroundById(unitTab.m_overlayId);
     m_list->SetBackground(background, m_list->m_x, m_list->m_y);
     m_list->SetItemSize(static_cast<int16_t>(unitTab.m_itemWidth), static_cast<int16_t>(unitTab.m_itemHeight));
   }
 
   const uint32_t selectedPage = SelectedChildId(m_pageTabs);
-  if (selectedPage != kTeamPage && selectedPage != kOtherPage)
+  if (selectedPage != kTeamPage && selectedPage != kOtherPage) {
     return;
+  }
   const bool team = selectedPage == kTeamPage;
   ObjectKeySet emptySet;
   ObjectKeySet* source1 = ReportSet(m_notice, team ? 1 : 0);
   ObjectKeySet* source2 = ReportSet(m_notice, team ? 3 : 2);
   ObjectKeySet* source3 = ReportSet(m_notice, team ? 4 : 5);
-  if (!source1)
+  if (!source1) {
     source1 = &emptySet;
-  if (!source2)
+  }
+  if (!source2) {
     source2 = &emptySet;
-  if (!source3)
+  }
+  if (!source3) {
     source3 = &emptySet;
+  }
   const int threeColumns = unitTab.m_threeColumns;
   CopyFamilyRange(source1, unitTab.m_firstFamily, unitTab.m_endFamily, &firstSet);
   CopyFamilyRange(source2, unitTab.m_firstFamily, unitTab.m_endFamily, &secondSet);
-  if (threeColumns)
+  if (threeColumns) {
     CopyFamilyRange(source3, unitTab.m_firstFamily, unitTab.m_endFamily, &thirdSet);
+  }
 
   auto firstPosition = firstSet.Entries().begin();
   auto secondPosition = secondSet.Entries().begin();
@@ -753,13 +723,10 @@ void ReportWindow::FillList(int subTabId, int force)
   int firstDone = 0;
   int secondDone = 0;
   int thirdDone = threeColumns == 0;
-  auto addColumnItem = [&](auto& position, const auto& end, int& done, uint16_t emptyId)
-  {
-    if (position == end)
-    {
+  auto addColumnItem = [&](auto& position, const auto& end, int& done, uint16_t emptyId) {
+    if (position == end) {
       std::string* emptyRowHeading = nullptr;
-      if (!done)
-      {
+      if (!done) {
         done = 1;
         const ResourceStringId id = StringId(emptyId);
         heading = LoadStringResource(&id);
@@ -774,19 +741,20 @@ void ReportWindow::FillList(int subTabId, int force)
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
     AddListItem(object, threeColumns, nullptr);
     ++position;
-    if (position == end)
+    if (position == end) {
       done = 1;
+    }
   };
-  while (!firstDone || !secondDone || !thirdDone)
-  {
+  while (!firstDone || !secondDone || !thirdDone) {
     addColumnItem(firstPosition, firstSet.Entries().end(), firstDone, 0x8526);
-    if (threeColumns)
+    if (threeColumns) {
       addColumnItem(thirdPosition, thirdSet.Entries().end(), thirdDone, 0x8526);
+    }
     addColumnItem(secondPosition, secondSet.Entries().end(), secondDone, 0x1941);
   }
   m_list->Refresh();
   RECT captions = m_label.m_rect;
-  InvalidateRect(m_hwnd, &captions, FALSE);
+  reb::compat::InvalidateRect(m_hwnd, &captions, FALSE);
   m_listKind = subTabId;
 }
 
@@ -794,12 +762,10 @@ void ReportWindow::AddListItem(GameObjNotifier* object, int threeColumns, const 
 {
   const int height = m_list->m_itemHeight;
   const int width = m_list->m_itemWidth;
-  if (!object)
-  {
+  if (!object) {
     ObjectKey unset;
     auto* item = NewOrNull<ObjectListItem>(static_cast<uint32_t>(m_nextItemId++), &unset);
-    if (emptyRowHeading)
-    {
+    if (emptyRowHeading) {
       item->m_text = emptyRowHeading->c_str();
       item->m_fontSlot = 6;
       item->m_textOffsetY = 10;
@@ -819,8 +785,7 @@ void ReportWindow::AddListItem(GameObjNotifier* object, int threeColumns, const 
   picture->DrawKeyed(surface, (width - pictureWidth) / 2, top);
   void* memory = ::operator new(sizeof(ObjectListItem));
   ObjectListItem* item = nullptr;
-  if (memory)
-  {
+  if (memory) {
     ObjectKey itemKey;
     GetObjectKey(object, &itemKey);
     const auto itemId = static_cast<uint32_t>(m_nextItemId++);

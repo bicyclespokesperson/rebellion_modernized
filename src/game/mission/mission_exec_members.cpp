@@ -37,11 +37,9 @@ intptr_t contextAsInt(NotifyContext* ctx)
 void collectAdrift(GameObj* parent, uint32_t stateFilter, ObjectKeyValueSet* out)
 {
   RoleIterator roles(parent, stateFilter);
-  for (roles.Begin(); roles.Current(); roles.Advance())
-  {
+  for (roles.Begin(); roles.Current(); roles.Advance()) {
     Role* person = static_cast<Role*>(roles.Current());
-    if ((person->m_flags78 >> 6) & 1)
-    {
+    if ((person->m_flags78 >> 6) & 1) {
       ObjectKey key;
       out->AddKeyValue(person->GetKey(&key), 0);
     }
@@ -64,72 +62,65 @@ int MissionMgr::ReassignMissionMembers(Mission* mission, int* moved, NotifyConte
   int anyInMission = 0;
   {
     MissionPersonIterator members(mission);
-    for (members.Begin(); members.Current(); members.Advance())
-    {
+    for (members.Begin(); members.Current(); members.Advance()) {
       Role* person = static_cast<Role*>(members.Current());
       int resigning = 0;
       int stays = 0;
       int flagC = 0;
       ok = mission->Mission::GetMemberTransitFlags(person, &resigning, &stays, &flagC) && ok;
-      if (!(resigning != 0 && stays != 0 && !(person->m_flags78 & role_flag::kMissionRemoveRequest)))
+      if (!(resigning != 0 && stays != 0 && !(person->m_flags78 & role_flag::kMissionRemoveRequest))) {
         continue;
+      }
 
       ok = FindPersonMissionPoint(person, mission, flagC, &currentKey) && ok;
-      if (!haveFirstKey)
-      {
+      if (!haveFirstKey) {
         haveFirstKey = true;
         firstKey = currentKey;
       }
-      if (firstKey.m_value != currentKey.m_value)
+      if (firstKey.m_value != currentKey.m_value) {
         continue;
+      }
 
       ObjectKey personKey;
       movers.AddKeyValue(person->GetKey(&personKey), 0);
-      const bool inTeamOrDecoys =
-        mission->IsInTeam(person->GetKey(&personKey)) != 0 || mission->IsInDecoys(person->GetKey(&personKey)) != 0;
-      if (!inTeamOrDecoys)
+      const bool inTeamOrDecoys
+          = mission->IsInTeam(person->GetKey(&personKey)) != 0 || mission->IsInDecoys(person->GetKey(&personKey)) != 0;
+      if (!inTeamOrDecoys) {
         continue;
+      }
       anyInMission = 1;
-      if (firstKey.IsSet() && mission->HasCompletionStatus())
-      {
+      if (firstKey.IsSet() && mission->HasCompletionStatus()) {
         ObjectKeyValueSet set4(mission->m_finishedMembers);
         set4.AddKeyValue(person->GetKey(&personKey), 0);
         mission->SetFinishedMembers(&set4, ctx);
       }
     }
   }
-  if (movers.Count() != 0)
-  {
+  if (movers.Count() != 0) {
     *moved = 1;
-    for (const auto& entry : movers.Entries())
-    {
+    for (const auto& entry : movers.Entries()) {
       auto* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey nodeKey;
       node->GetKey(&nodeKey);
       ok = mission->RemoveMember(&nodeKey, anyInMission, ctx) && ok;
     }
-    if (anyInMission == 0)
-    {
+    if (anyInMission == 0) {
       ok = ReleaseFreePersons(&movers, ctx) && ok;
-    }
-    else
-    {
+    } else {
       int step;
-      if (!firstKey.IsSet())
-      {
+      if (!firstKey.IsSet()) {
         step = ReleasePersons(&movers, ctx);
-      }
-      else
-      {
-        step =
-          CreateMissionType42(static_cast<int>(side), &levels, &firstKey, &movers, (mission->m_flagsA4 >> 2) & 1, ctx);
+      } else {
+        step = CreateMissionType42(static_cast<int>(side), &levels, &firstKey, &movers, (mission->m_flagsA4 >> 2) & 1,
+                                   ctx);
       }
       ok = step && ok;
     }
   }
   int result = 0;
-  if (ok)
+  if (ok) {
     result = !(mission->CountMembers() == memberCount && *moved != 0);
+  }
   return result;
 }
 
@@ -137,15 +128,16 @@ int MissionMgr::ReleasePersonsOfKey(ObjectKey* key, NotifyContext* ctx)
 {
   Role* person = personOf(key);
   int ok = person != nullptr;
-  if (person && ((person->m_stateFlags & kStateAutorouting) || (person->m_flags78 & kPersonFlagAdrift)))
-  {
+  if (person && ((person->m_stateFlags & kStateAutorouting) || (person->m_flags78 & kPersonFlagAdrift))) {
     ObjectKey owner;
     const int got = person->GetOwnerKey(&owner) && ok;
     ok = 0;
-    if (got)
+    if (got) {
       ok = owner.IsSet();
-    if (owner.OrNull())
+    }
+    if (owner.OrNull()) {
       ok = ReleaseAdriftPersonsOfSystem(&owner, ctx) && ok;
+    }
   }
   return ok;
 }
@@ -154,36 +146,32 @@ int MissionMgr::ReleaseAdriftPersonsOfSystem(ObjectKey* systemKey, NotifyContext
 {
   auto* system = static_cast<GameObj*>(GetMasterInFamilies_01_ff(systemKey));
   ObjectKeyValueSet adrift;
-  if (system)
-  {
+  if (system) {
     collectAdrift(system, 3, &adrift);
     FleetIterator fleets(system, 4);
-    for (fleets.Begin(); fleets.Current(); fleets.Advance())
-    {
+    for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
       CapShipIterator ships(fleets.Current(), 4);
-      for (ships.Begin(); ships.Current(); ships.Advance())
+      for (ships.Begin(); ships.Current(); ships.Advance()) {
         collectAdrift(static_cast<GameObj*>(ships.Current()), 3, &adrift);
+      }
     }
   }
   int ok = system != nullptr;
-  for (const auto& entry : adrift.Entries())
-  {
+  for (const auto& entry : adrift.Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     Role* person = personOf(&nodeKey);
-    if (person)
+    if (person) {
       ok = person->Reparent(systemKey, ctx) && ok;
+    }
   }
-  if (system)
-  {
-    const bool battlePending = InFamilies(system->GetFamily(), kFamilySystemBegin, kFamilySystemEnd) &&
-                               (static_cast<System*>(system)->m_flags & system_flag::kBattlePending);
-    if (!battlePending)
-    {
+  if (system) {
+    const bool battlePending = InFamilies(system->GetFamily(), kFamilySystemBegin, kFamilySystemEnd)
+                               && (static_cast<System*>(system)->m_flags & system_flag::kBattlePending);
+    if (!battlePending) {
       int moved = 0;
-      do
-      {
+      do {
         ok = ReleaseSystemPersons(system, &moved, ctx) && ok;
       } while (moved != 0);
     }
@@ -202,49 +190,38 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
   int ok = CollectStrandedPersons(system, &unusedA, &side, &flag, &key, &persons, ctx) != 0;
   {
     FleetIterator fleets(system, 4);
-    for (fleets.Begin(); fleets.Current(); fleets.Advance())
-    {
+    for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
       CapShipIterator ships(fleets.Current(), 4);
-      for (ships.Begin(); ships.Current(); ships.Advance())
-        ok =
-          CollectStrandedPersons(static_cast<GameObj*>(ships.Current()), &unusedA, &side, &flag, &key, &persons, ctx) &&
-          ok;
+      for (ships.Begin(); ships.Current(); ships.Advance()) {
+        ok = CollectStrandedPersons(static_cast<GameObj*>(ships.Current()), &unusedA, &side, &flag, &key, &persons, ctx)
+             && ok;
+      }
     }
   }
   *moved = persons.Count() != 0;
-  if (*moved)
-  {
-    if (!key.OrNull())
-    {
+  if (*moved) {
+    if (!key.OrNull()) {
       ok = ReleasePersons(&persons, ctx) && ok;
-    }
-    else
-    {
+    } else {
       int hasFreePerson = 0;
       for (auto position = persons.Entries().begin(); position != persons.Entries().end() && (!hasFreePerson);
-           ++position)
-      {
+           ++position) {
         auto* node = static_cast<ObjectKeyNode*>((*position).get());
         ObjectKey nodeKey;
         node->GetKey(&nodeKey);
-        if (InFamilies(&nodeKey, kFamilyPersonBegin, kFamilyPersonEnd))
-        {
+        if (InFamilies(&nodeKey, kFamilyPersonBegin, kFamilyPersonEnd)) {
           Role* person = personOf(&nodeKey);
-          if (person && person->IsCaptured() == 0)
+          if (person && person->IsCaptured() == 0) {
             hasFreePerson = 1;
+          }
         }
       }
       int step;
-      if (!hasFreePerson)
-      {
+      if (!hasFreePerson) {
         step = ReleaseFreePersons(&persons, ctx);
-      }
-      else if (flag == 0)
-      {
+      } else if (flag == 0) {
         step = CreateMissionType43(static_cast<int>(side), &key, &persons, 0, ctx);
-      }
-      else
-      {
+      } else {
         step = CreateMissionType44(static_cast<int>(side), &key, &persons, ctx);
       }
       ok = step && ok;
@@ -256,40 +233,33 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
 int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 {
   int ok = 1;
-  for (const auto& nodeEntry : persons->Entries())
-  {
+  for (const auto& nodeEntry : persons->Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
 
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
-    auto* person = static_cast<Character*>(GetMasterInFamilies_30_40(&nodeKey));
+    Role* person = static_cast<Role*>(GetMasterInFamilies_30_40(&nodeKey));
     ok = person != nullptr && ok;
-    if (!person)
+    if (!person) {
       continue;
+    }
 
     ObjectKeyValueSet single;
     ObjectKey personKey;
     single.AddKeyValue(person->GetKey(&personKey), 0);
-    if (!(person->m_stateFlags & kStateDestroyed))
-    {
-      if (person->IsCaptured() == 0)
-      {
+    if (!(person->m_stateFlags & kStateDestroyed)) {
+      if (person->IsCaptured() == 0) {
         ObjectKey noHolder;
         ok = person->HandleCaptureByOpponent(&noHolder, ctx) && ok;
-      }
-      else
-      {
+      } else {
         ok = person->SetUncapturedState(ctx) && ok;
       }
     }
     ObjectKey location;
-    if (!(person->m_stateFlags & kStateDestroyed))
-    {
+    if (!(person->m_stateFlags & kStateDestroyed)) {
       ok = FindPersonDestination(person, 0, &location) && ok;
-      if (!location.OrNull())
-      {
-        if (!(person->m_stateFlags & kStateDestroyed) && person->IsCaptured() == 0)
-        {
+      if (!location.OrNull()) {
+        if (!(person->m_stateFlags & kStateDestroyed) && person->IsCaptured() == 0) {
           ObjectKey noHolder;
           ok = person->HandleCaptureByOpponent(&noHolder, ctx) && ok;
         }
@@ -297,8 +267,7 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
       }
     }
     ok = person->SetAutorouting(0, ctx) && ok;
-    if (!(person->m_stateFlags & kStateDestroyed))
-    {
+    if (!(person->m_stateFlags & kStateDestroyed)) {
       const int implied = person->IsCaptured();
       ok = CreateMissionType43(static_cast<int>(person->ControlSide()), &location, &single, implied, ctx) && ok;
     }
@@ -309,15 +278,15 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 int MissionMgr::ReleaseFreePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 {
   int ok = 1;
-  for (const auto& nodeEntry : persons->Entries())
-  {
+  for (const auto& nodeEntry : persons->Entries()) {
     auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
 
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
-    auto* person = static_cast<Character*>(GetMasterInFamilies_30_40(&nodeKey));
-    if (person && person->IsCaptured() != 0 && !(person->m_stateFlags & kStateDestroyed))
+    Role* person = static_cast<Role*>(GetMasterInFamilies_30_40(&nodeKey));
+    if (person && person->IsCaptured() != 0 && !(person->m_stateFlags & kStateDestroyed)) {
       ok = person->SetUncapturedState(ctx) && ok;
+    }
   }
   return ok;
 }
@@ -345,7 +314,8 @@ int MissionMgr::InjureStoryCharacter(NotifyContext* ctx)
   int ok = FindLuke(&story, &parent, &parentKey);
   int amount = 0;
   ok = RollMissionRuleBonus1809(&amount) && ok;
-  if (story)
+  if (story) {
     ok = static_cast<Character*>(story)->ApplyInjury(amount, kInjuryReasonMission, ctx) && ok;
+  }
   return ok;
 }

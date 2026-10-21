@@ -30,8 +30,6 @@ src/game/strategy_ui/advisor_alliance.cpp:AllianceAdvisor::LoadCueScripts:ea755e
 src/game/strategy_ui/advisor_empire.cpp:EmpireAdvisor::LoadCueScripts:ea755ea02c  file.get() reads a smart pointer; strstreambuf_str only touches the other object's buffer
 src/game/strategy_ui/object_menu.cpp:::AddMenuEntry:a303eb7fd2  DwordAt memcpy's from the record into a local; CoolAppGetResourceModule reads
 src/game/strategy_ui/troop_finder_window.cpp:TroopFinderWindow::SetFilter:d5ae919dde  ++rowCount is a local no other argument reads; GetKey writes only its out-key
-src/game/tactical/tactical_facade.cpp:::TacticalBeginBattle:2c2770994b  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
-src/game/tactical/tactical_facade.cpp:::TacticalBeginBattle:98dcf2a2b8  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
 src/game/ui/text_scroll_field.cpp:TextScrollField::TextScrollField:627c272217  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
 src/game/video/avi_window.cpp:VideoWindow::VideoWindow:9bf7a0516e  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
 src/game/video/smacker_window.cpp:SmackerWindow::SmackerWindow:893df4a3f4  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers

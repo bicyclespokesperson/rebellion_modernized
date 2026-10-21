@@ -25,7 +25,7 @@
 #include "ui/cool_window.h"
 
 extern HPALETTE g_palette;
-extern const int16_t g_sectorGridWidth; // 0x659ef8
+extern const int16_t g_sectorGridWidth;  // 0x659ef8
 extern const int16_t g_sectorGridHeight; // 0x659efa
 
 uint32_t DimMenuColor(uint32_t color);
@@ -49,8 +49,9 @@ constexpr double kSectorScaleY = 10.0;
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
@@ -74,18 +75,11 @@ bool InFamilies(uint32_t family, uint32_t first, uint32_t end)
 
 // ---- Construction ------------------------------------------------------------------------------------------
 
-SectorWindow::SectorWindow(HINSTANCE instance,
-                           int x,
-                           int y,
-                           int width,
-                           int height,
-                           GalaxyWindow* parent,
-                           DibBitmap* background,
-                           uint32_t childId,
-                           GameObjNotifier* sector)
-: CustomDialogBox(instance, x, y, width, height, parent, childId, background),
-  m_systems(1),
-  m_markers(1)
+SectorWindow::SectorWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
+                           DibBitmap* background, uint32_t childId, GameObjNotifier* sector)
+    : CustomDialogBox(instance, x, y, width, height, parent, childId, background)
+    , m_systems(1)
+    , m_markers(1)
 {
   m_closeButton = nullptr;
   m_sideButton = nullptr;
@@ -109,14 +103,14 @@ SectorWindow::~SectorWindow()
   delete m_sideButton;
   delete m_closeButton;
   DeleteBitmap(m_unknown154);
-  if (m_dragImage)
-  {
+  if (m_dragImage) {
     m_dragImage->~CoolDragImage();
     ::operator delete(m_dragImage);
   }
   DeleteBitmap(m_dragLayer);
-  if (m_remapTable)
+  if (m_remapTable) {
     ::operator delete(m_remapTable);
+  }
 }
 
 void SectorWindow::OnCreate1()
@@ -125,19 +119,19 @@ void SectorWindow::OnCreate1()
   std::string emptyText;
   HMODULE art = CoolAppGetResourceModule(kArtSlot);
   HMODULE strings = CoolAppGetResourceModule(kStringSlot);
-  HDC window = GetDC(m_hwnd);
-  HPALETTE previousPalette = SelectPalette(window, g_palette, 0);
-  m_memoryDc = CreateCompatibleDC(window);
-  auto* surface =
-    NewOrNull<DibBitmap>(static_cast<LONG>(m_width), static_cast<LONG>(m_height), m_galaxy->m_offscreen, window);
+  HDC window = reb::compat::GetDC(m_hwnd);
+  HPALETTE previousPalette = reb::compat::SelectPalette(window, g_palette, 0);
+  m_memoryDc = reb::compat::CreateCompatibleDC(window);
+  auto* surface
+      = NewOrNull<DibBitmap>(static_cast<LONG>(m_width), static_cast<LONG>(m_height), m_galaxy->m_offscreen, window);
   SetPaintBackground(surface, 1);
   m_remapTable = surface->BuildRemapTable(DimMenuColor);
   g_stringModule = strings;
   m_dragImage = NewOrNull<CoolDragImage>(m_galaxy);
   m_dragLayer = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight),
                                      m_paintBackground, window);
-  SelectPalette(window, previousPalette, 0);
-  ReleaseDC(m_hwnd, window);
+  reb::compat::SelectPalette(window, previousPalette, 0);
+  reb::compat::ReleaseDC(m_hwnd, window);
 
   m_titleLabel->m_height = 0x14;
   m_titleLabel->MoveTo(2, 2);
@@ -147,8 +141,7 @@ void SectorWindow::OnCreate1()
   m_titleLabel->SetColor(0x200f0f0, nullptr);
 
   auto* closeImage = NewOrNull<DibBitmap>(art, 0x277cu, 2u);
-  if (closeImage)
-  {
+  if (closeImage) {
     const int imageWidth = closeImage->Width();
     m_closeButton = NewOrNull<CoolStrobeButton>(art, (m_width - imageWidth) - 3, 2, closeImage->Width(),
                                                 closeImage->Height(), this, kCloseId, 0x277cu, 0x277du, surface, 0, 1);
@@ -156,8 +149,7 @@ void SectorWindow::OnCreate1()
     DeleteBitmap(closeImage);
   }
   auto* sideImage = NewOrNull<DibBitmap>(art, 0x27e2u, 2u);
-  if (sideImage)
-  {
+  if (sideImage) {
     const int left = m_closeButton->m_x;
     m_sideButton = NewOrNull<CoolStrobeButton>(art, left - sideImage->Width(), 2, sideImage->Width(),
                                                sideImage->Height(), this, kSideId, 0x27e2u, 0x27e3u, surface, 0, 1);
@@ -186,19 +178,18 @@ void SectorWindow::OnCreate1()
   }
 
   SystemIterator systems(m_sector, 4);
-  for (systems.Begin(); systems.Current(); systems.Advance())
-  {
+  for (systems.Begin(); systems.Current(); systems.Advance()) {
     GameObjNotifier* system = systems.Current();
     ObjectKey key;
     GetObjectKey(system, &key);
     auto* node = NewOrNull<ObjectKeyIdNode>();
     node->m_key = key;
-    if (node)
+    if (node) {
       m_objects.Add(node, 0);
+    }
 
     auto* icon = NewOrNull<ObjectListItem>(&key);
-    if (icon)
-    {
+    if (icon) {
       uint32_t position;
       static_cast<System*>(system)->GetRecordField4c(&position);
       const int deltaX = static_cast<int16_t>(position) - static_cast<int16_t>(originPosition);
@@ -206,7 +197,7 @@ void SectorWindow::OnCreate1()
       const int deltaY = static_cast<int16_t>(position >> 16) - static_cast<int16_t>(originPosition >> 16);
       const int y = ScaledOffset(deltaY, g_sectorGridHeight, kSectorScaleY, m_height);
       RECT area;
-      SetRect(&area, x, y, iconWidth + x, iconHeight + y);
+      reb::compat::SetRect(&area, x, y, iconWidth + x, iconHeight + y);
       icon->m_x = x;
       icon->m_y = y;
       icon->m_rect = area;
@@ -214,10 +205,9 @@ void SectorWindow::OnCreate1()
       icon->m_textOffsetY = iconHeight + 0xb;
       m_systems.Insert(icon);
 
-      auto* energyBar = NewOrNull<BitmapStatusBar>(area.left, area.bottom + 2, area.right - area.left, 3,
-                                                              this, 0x2ffffff, 0x2ff0000, nullptr, 0, 0);
-      if (energyBar)
-      {
+      auto* energyBar = NewOrNull<BitmapStatusBar>(area.left, area.bottom + 2, area.right - area.left, 3, this,
+                                                   0x2ffffff, 0x2ff0000, nullptr, 0, 0);
+      if (energyBar) {
         energyBar->m_style &= ~kStyleVisible;
         energyBar->SetTickColor(0x808080);
         energyBar->Create(0);
@@ -226,11 +216,9 @@ void SectorWindow::OnCreate1()
         const ResourceStringId tip = StringId(0x1822);
         AddToolFromString(energyBar, &tip);
       }
-      auto* materialBar =
-        NewOrNull<BitmapStatusBar>(energyBar->m_x, energyBar->m_y + 1 + energyBar->m_height, energyBar->m_width, 3,
-                                   this, 0x200ffff, 0x20f5cf9, nullptr, 0, 0);
-      if (materialBar)
-      {
+      auto* materialBar = NewOrNull<BitmapStatusBar>(energyBar->m_x, energyBar->m_y + 1 + energyBar->m_height,
+                                                     energyBar->m_width, 3, this, 0x200ffff, 0x20f5cf9, nullptr, 0, 0);
+      if (materialBar) {
         materialBar->m_style &= ~kStyleVisible;
         materialBar->SetTickColor(0x808080);
         materialBar->Create(0);
@@ -240,11 +228,10 @@ void SectorWindow::OnCreate1()
         AddToolFromString(materialBar, &tip);
       }
       const bool alliance = m_galaxy->m_side == 1;
-      auto* loyaltyBar = NewOrNull<BitmapStatusBar>(
-        materialBar->m_x, materialBar->m_height + 1 + materialBar->m_y, materialBar->m_width, 3, this,
-        alliance ? 0x20000ffu : 0x200ff00u, alliance ? 0x200ff00u : 0x20000ffu, nullptr, 0, 0);
-      if (loyaltyBar)
-      {
+      auto* loyaltyBar = NewOrNull<BitmapStatusBar>(materialBar->m_x, materialBar->m_height + 1 + materialBar->m_y,
+                                                    materialBar->m_width, 3, this, alliance ? 0x20000ffu : 0x200ff00u,
+                                                    alliance ? 0x200ff00u : 0x20000ffu, nullptr, 0, 0);
+      if (loyaltyBar) {
         loyaltyBar->m_style &= ~kStyleVisible;
         loyaltyBar->m_childId = ((key.m_value & 0x3ff) << 6) | 3;
         loyaltyBar->Create(0);
@@ -255,23 +242,22 @@ void SectorWindow::OnCreate1()
 
       const int centerX = iconWidth / 2 + area.left;
       const int centerY = iconHeight / 2 + area.top;
-      struct MarkerSlot
-      {
+      struct MarkerSlot {
         uint32_t m_kindBits;
         int m_left;
         int m_top;
       };
       const MarkerSlot slots[] = {
-        {0x40000, centerX - markerWidth, centerY - markerHeight},
-        {0x80000, centerX - markerWidth, centerY + 1},
-        {0x100000, centerX + 1, centerY - markerHeight},
-        {0x400000, centerX + 1, centerY + 1},
+          {0x40000, centerX - markerWidth, centerY - markerHeight},
+          {0x80000, centerX - markerWidth, centerY + 1},
+          {0x100000, centerX + 1, centerY - markerHeight},
+          {0x400000, centerX + 1, centerY + 1},
       };
-      for (const MarkerSlot& slot : slots)
-      {
+      for (const MarkerSlot& slot : slots) {
         auto* marker = NewOrNull<ObjectListItem>((key.m_value & 0xffff) | slot.m_kindBits, &key);
-        if (!marker)
+        if (!marker) {
           continue;
+        }
         marker->m_rect.left = slot.m_left;
         marker->m_rect.top = slot.m_top;
         marker->m_rect.right = slot.m_left + markerWidth;
@@ -285,8 +271,7 @@ void SectorWindow::OnCreate1()
       OnObjectUpdated(&updatedKey, system);
     }
   }
-  if ((m_galaxy->m_mouseMode & 4) == 0)
-  {
+  if ((m_galaxy->m_mouseMode & 4) == 0) {
     SoundRequest request(0, 0, 0, 0, 0, 0);
     request.m_kind = 1;
     request.m_soundId = kSoundId;
@@ -301,31 +286,30 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
   HWND hwnd = m_hwnd;
   HWND galaxyWindow = m_galaxy->m_hwnd;
-  if (message == WM_CAPTURECHANGED && CoolGameWindow::m_dragging)
+  if (message == WM_CAPTURECHANGED && CoolGameWindow::m_dragging) {
     return CustomDialogBox::WindowProc(message, wParam, lParam);
-  if (message < 0x10)
-  {
-    if (message == WM_PAINT)
-    {
+  }
+  if (message < 0x10) {
+    if (message == WM_PAINT) {
       PAINTSTRUCT paint;
-      HDC dc = BeginPaint(hwnd, &paint);
-      HPALETTE previousPalette = SelectPalette(dc, g_palette, 0);
+      HDC dc = reb::compat::BeginPaint(hwnd, &paint);
+      HPALETTE previousPalette = reb::compat::SelectPalette(dc, g_palette, 0);
       m_inputBlocked = 0;
       m_galaxy->m_offscreen->Blit(m_paintBackground, 0, 0, m_x, m_y, m_clientWidth, m_clientHeight);
       m_paintBackground->ApplyRemapTable(0, 0, static_cast<int16_t>(m_clientWidth),
                                          static_cast<int16_t>(m_clientHeight));
       m_frame->DrawKeyed(m_paintBackground, 0, 0);
       (void)m_systems.First();
-      HGDIOBJ previousBitmap = SelectObject(m_memoryDc, m_paintBackground->DibSectionHandle());
+      HGDIOBJ previousBitmap = reb::compat::SelectObject(m_memoryDc, m_paintBackground->DibSectionHandle());
       CoolLabel label(static_cast<const char*>(nullptr), 0, 0, 100, 0, 1u, 1u);
       label.SetFont(10);
       label.m_drawFlags = 1;
-      for (const auto& ownedNode : m_systems.Entries())
-      {
+      for (const auto& ownedNode : m_systems.Entries()) {
         auto* item = static_cast<CoolListItem*>(ownedNode.get());
         DibBitmap* image = item->m_selectedImage;
-        if (!image)
+        if (!image) {
           continue;
+        }
         int x = item->m_x;
         int y = item->m_y;
         image->DrawKeyed(m_paintBackground, x, y);
@@ -336,250 +320,232 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
         label.MoveTo(x, y);
         label.Draw(m_memoryDc);
       }
-      SelectObject(m_memoryDc, previousBitmap);
+      reb::compat::SelectObject(m_memoryDc, previousBitmap);
       ObjectKey unusedKey;
-      for (const auto& ownedNode : m_markers.Entries())
-      {
+      for (const auto& ownedNode : m_markers.Entries()) {
         auto* marker = static_cast<CoolListItem*>(ownedNode.get());
-        if ((marker->m_state.m_value & kMarkerVisible) == 0)
+        if ((marker->m_state.m_value & kMarkerVisible) == 0) {
           continue;
+        }
         DibBitmap* image = marker->m_image;
-        if ((marker->m_state.m_value & kMarkerHighlighted) != 0 && marker->m_selectedImage)
-        {
+        if ((marker->m_state.m_value & kMarkerHighlighted) != 0 && marker->m_selectedImage) {
           image = marker->m_selectedImage;
         }
-        if (image)
+        if (image) {
           image->DrawKeyed(m_paintBackground, marker->m_rect.left, marker->m_rect.top);
+        }
       }
       m_paintBackground->DrawToDc(dc, 0x40, SRCCOPY, 0, 0, 0, 0, 0, 0);
       m_titleLabel->Draw(dc);
-      SelectPalette(dc, previousPalette, 0);
-      EndPaint(hwnd, &paint);
-      for (HWND child = GetWindow(hwnd, GW_CHILD); child; child = GetWindow(child, GW_HWNDNEXT))
-      {
-        UpdateWindow(child);
+      reb::compat::SelectPalette(dc, previousPalette, 0);
+      reb::compat::EndPaint(hwnd, &paint);
+      for (HWND child = reb::compat::GetWindow(hwnd, GW_CHILD); child; child = reb::compat::GetWindow(child, GW_HWNDNEXT)) {
+        reb::compat::UpdateWindow(child);
       }
       return 0;
     }
-    if (message == WM_DESTROY)
-    {
-      if (!m_memoryDc)
+    if (message == WM_DESTROY) {
+      if (!m_memoryDc) {
         return 0;
-      DeleteDC(m_memoryDc);
+      }
+      reb::compat::DeleteDC(m_memoryDc);
       return 0;
     }
     return CustomDialogBox::WindowProc(message, wParam, lParam);
   }
 
-  if (message < 0x112)
-  {
-    if (message == WM_COMMAND)
-    {
-      if ((wParam & 0xffff) == kCloseId)
-      {
+  if (message < 0x112) {
+    if (message == WM_COMMAND) {
+      if ((wParam & 0xffff) == kCloseId) {
         PostCloseRequest();
         return 0;
       }
-      if ((wParam & 0xffff) != kSideId)
+      if ((wParam & 0xffff) != kSideId) {
         return CustomDialogBox::WindowProc(WM_COMMAND, wParam, lParam);
+      }
       int x = m_x;
       int y = m_y;
       const int leftSlot = m_galaxy->SectorSlotX(false);
       x = x != leftSlot ? leftSlot : m_galaxy->SectorSlotX(true);
-      for (const auto& ownedNode : m_galaxy->m_children.Entries())
-      {
+      for (const auto& ownedNode : m_galaxy->m_children.Entries()) {
         auto* node = ownedNode.get();
         auto* other = static_cast<CoolWindow*>(node);
-        if ((other->m_childId & 0x3f) == 1 && other->m_childId != m_childId)
-        {
+        if ((other->m_childId & 0x3f) == 1 && other->m_childId != m_childId) {
           x = other->m_x;
           y = other->m_y;
-          SendMessageA(galaxyWindow, kGalaxyCloseSector, other->m_childId, 0);
+          reb::compat::SendMessageA(galaxyWindow, kGalaxyCloseSector, other->m_childId, 0);
           break;
         }
       }
       Hide();
-      SetWindowPos(hwnd, nullptr, x, y, m_width, m_height, 0x305);
+      reb::compat::SetWindowPos(hwnd, nullptr, x, y, m_width, m_height, 0x305);
       ShowAndTrack(5);
-      UpdateWindow(hwnd);
+      reb::compat::UpdateWindow(hwnd);
       return 0;
     }
-    if (message == WM_KEYDOWN)
-    {
+    if (message == WM_KEYDOWN) {
       m_parent->WindowProc(WM_KEYDOWN, wParam, lParam);
       return 0;
     }
     return CustomDialogBox::WindowProc(message, wParam, lParam);
   }
 
-  if (message < 0x216)
-  {
-    if (message != 0x215)
-    {
+  if (message < 0x216) {
+    if (message != 0x215) {
       const int pointX = static_cast<int>(lParam & 0xffff);
       const int pointY = static_cast<int>(static_cast<uint32_t>(lParam) >> 16);
-      switch (message)
-      {
+      switch (message) {
         case WM_MOUSEMOVE:
-        {
-          POINT point = {pointX, pointY};
-          if (CoolGameWindow::m_dragging)
           {
-            if ((wParam & MK_LBUTTON) != 0)
-              CoolGameWindow::DragTo(pointX, pointY);
-            else
-              CoolGameWindow::EndDrag();
-            return 0;
-          }
-          if (m_inputBlocked != 0)
-            return 0;
-          if (GetCapture() == hwnd && (wParam & MK_LBUTTON) != 0 && m_dragging == 0 && m_hitItem != nullptr)
-          {
-            m_dragging = 1;
-            UpdateWindow(hwnd);
-            if (m_dragStartX == kNoDragStart || m_dragStartY == kNoDragStart)
-            {
-              m_dragStartX = point.x;
-              m_dragStartY = point.y;
-            }
-            if ((wParam & MK_CONTROL) != 0)
-            {
-              if (ObjectListItem* hit = HitTestMarkers(&m_markers, m_dragStartX, m_dragStartY))
-              {
-                if ((hit->m_state.m_value & kMarkerHighlighted) == 0)
-                {
-                  Highlight(hit);
-                  m_hitItem = hit;
-                }
+            POINT point = {pointX, pointY};
+            if (CoolGameWindow::m_dragging) {
+              if ((wParam & MK_LBUTTON) != 0) {
+                CoolGameWindow::DragTo(pointX, pointY);
+              } else {
+                CoolGameWindow::EndDrag();
               }
-            }
-            if ((m_hitItem->m_state.m_value & kMarkerHighlighted) != 0)
-            {
-              m_dragImage->ClearImage();
-              m_dragImage->SetImage(m_dragLayer);
-              m_dragImage->SetHotspot(m_dragStartX, m_dragStartY);
-              POINT start = {m_dragStartX, m_dragStartY};
-              MapWindowPoints(hwnd, galaxyWindow, &start, 1);
-              m_dragImage->BeginDrag(start);
               return 0;
             }
+            if (m_inputBlocked != 0) {
+              return 0;
+            }
+            if (reb::compat::GetCapture() == hwnd && (wParam & MK_LBUTTON) != 0 && m_dragging == 0 && m_hitItem != nullptr) {
+              m_dragging = 1;
+              reb::compat::UpdateWindow(hwnd);
+              if (m_dragStartX == kNoDragStart || m_dragStartY == kNoDragStart) {
+                m_dragStartX = point.x;
+                m_dragStartY = point.y;
+              }
+              if ((wParam & MK_CONTROL) != 0) {
+                if (ObjectListItem* hit = HitTestMarkers(&m_markers, m_dragStartX, m_dragStartY)) {
+                  if ((hit->m_state.m_value & kMarkerHighlighted) == 0) {
+                    Highlight(hit);
+                    m_hitItem = hit;
+                  }
+                }
+              }
+              if ((m_hitItem->m_state.m_value & kMarkerHighlighted) != 0) {
+                m_dragImage->ClearImage();
+                m_dragImage->SetImage(m_dragLayer);
+                m_dragImage->SetHotspot(m_dragStartX, m_dragStartY);
+                POINT start = {m_dragStartX, m_dragStartY};
+                reb::compat::MapWindowPoints(hwnd, galaxyWindow, &start, 1);
+                m_dragImage->BeginDrag(start);
+                return 0;
+              }
+              m_dragging = 0;
+              return 0;
+            }
+            if (m_dragging == 0) {
+              return 0;
+            }
+            reb::compat::MapWindowPoints(hwnd, galaxyWindow, &point, 1);
+            m_dragImage->MoveTo(&point);
+            return 0;
+          }
+        case WM_LBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+          {
+            if (m_inputBlocked != 0) {
+              return 0;
+            }
+            if (message == WM_LBUTTONDOWN && pointX >= m_titleRect.left && pointX < m_titleRect.right
+                && pointY >= m_titleRect.top && pointY < m_titleRect.bottom
+                && !HitTestMarkers(&m_markers, pointX, pointY) && CoolGameWindow::BeginDrag(pointX, pointY)) {
+              return 0;
+            }
+            if (reb::compat::GetCapture() != hwnd && message == WM_LBUTTONDOWN) {
+              SetCaptureWindow(hwnd);
+              m_dragStartX = pointX;
+              m_dragStartY = pointY;
+            }
+            m_hitItem = HitTestMarkers(&m_markers, pointX, pointY);
+            if (!m_hitItem) {
+              return 0;
+            }
+            if (m_dragging == 0) {
+              if ((m_hitItem->m_state.m_value & kMarkerHighlighted) == 0 && (wParam & MK_CONTROL) == 0) {
+                ClearHighlight(nullptr);
+                Highlight(m_hitItem);
+              }
+            }
+            if (message == WM_LBUTTONDOWN) {
+              return 0;
+            }
+            return CustomDialogBox::WindowProc(message, wParam, lParam);
+          }
+        case WM_LBUTTONUP:
+          {
+            if (CoolGameWindow::m_dragging) {
+              CoolGameWindow::EndDrag();
+              return 0;
+            }
+            if (m_dragging == 0) {
+              if (reb::compat::GetCapture() == hwnd && m_hitItem != nullptr && (wParam & MK_CONTROL) != 0) {
+                if ((m_hitItem->m_state.m_value & kMarkerHighlighted) == 0) {
+                  Highlight(m_hitItem);
+                } else {
+                  ClearHighlight(m_hitItem);
+                  m_hitItem = nullptr;
+                }
+              }
+            } else {
+              const int distanceX = m_dragStartX < pointX ? pointX - m_dragStartX : m_dragStartX - pointX;
+              const int distanceY = m_dragStartY < pointY ? pointY - m_dragStartY : m_dragStartY - pointY;
+              if (distanceX > kDragSlack || distanceY > kDragSlack) {
+                reb::compat::PostMessageA(m_galaxy->m_hwnd, WM_COMMAND, (m_childId & 0xffff) | (kDragNotify << 16),
+                             static_cast<LPARAM>(reb::compat::GetMessagePos()));
+              }
+            }
+            if (reb::compat::GetCapture() != hwnd) {
+              return 0;
+            }
+            reb::compat::ReleaseCapture();
+            if (m_dragging == 0) {
+              return 0;
+            }
+            m_dragImage->EndDrag();
             m_dragging = 0;
             return 0;
           }
-          if (m_dragging == 0)
-            return 0;
-          MapWindowPoints(hwnd, galaxyWindow, &point, 1);
-          m_dragImage->MoveTo(&point);
-          return 0;
-        }
-        case WM_LBUTTONDOWN:
-        case WM_RBUTTONDOWN:
-        {
-          if (m_inputBlocked != 0)
-            return 0;
-          if (message == WM_LBUTTONDOWN && pointX >= m_titleRect.left && pointX < m_titleRect.right &&
-              pointY >= m_titleRect.top && pointY < m_titleRect.bottom &&
-              !HitTestMarkers(&m_markers, pointX, pointY) && CoolGameWindow::BeginDrag(pointX, pointY))
-            return 0;
-          if (GetCapture() != hwnd && message == WM_LBUTTONDOWN)
-          {
-            SetCaptureWindow(hwnd);
-            m_dragStartX = pointX;
-            m_dragStartY = pointY;
-          }
-          m_hitItem = HitTestMarkers(&m_markers, pointX, pointY);
-          if (!m_hitItem)
-            return 0;
-          if (m_dragging == 0)
-          {
-            if ((m_hitItem->m_state.m_value & kMarkerHighlighted) == 0 && (wParam & MK_CONTROL) == 0)
-            {
-              ClearHighlight(nullptr);
-              Highlight(m_hitItem);
-            }
-          }
-          if (message == WM_LBUTTONDOWN)
-            return 0;
-          return CustomDialogBox::WindowProc(message, wParam, lParam);
-        }
-        case WM_LBUTTONUP:
-        {
-          if (CoolGameWindow::m_dragging)
-          {
-            CoolGameWindow::EndDrag();
-            return 0;
-          }
-          if (m_dragging == 0)
-          {
-            if (GetCapture() == hwnd && m_hitItem != nullptr && (wParam & MK_CONTROL) != 0)
-            {
-              if ((m_hitItem->m_state.m_value & kMarkerHighlighted) == 0)
-              {
-                Highlight(m_hitItem);
-              }
-              else
-              {
-                ClearHighlight(m_hitItem);
-                m_hitItem = nullptr;
-              }
-            }
-          }
-          else
-          {
-            const int distanceX = m_dragStartX < pointX ? pointX - m_dragStartX : m_dragStartX - pointX;
-            const int distanceY = m_dragStartY < pointY ? pointY - m_dragStartY : m_dragStartY - pointY;
-            if (distanceX > kDragSlack || distanceY > kDragSlack)
-            {
-              PostMessageA(m_galaxy->m_hwnd, WM_COMMAND, (m_childId & 0xffff) | (kDragNotify << 16),
-                           static_cast<LPARAM>(GetMessagePos()));
-            }
-          }
-          if (GetCapture() != hwnd)
-            return 0;
-          ReleaseCapture();
-          if (m_dragging == 0)
-            return 0;
-          m_dragImage->EndDrag();
-          m_dragging = 0;
-          return 0;
-        }
         case WM_LBUTTONDBLCLK:
-        {
-          if (m_inputBlocked != 0)
-            return 0;
-          ObjectListItem* item = HitTestMarkers(&m_markers, pointX, pointY);
-          if (!item)
-            return 0;
-          if ((item->m_state.m_value & kMarkerVisible) != 0)
           {
-            ClearHighlight(nullptr);
-            Highlight(item);
-            OpenMarkerWindow(item, pointX, pointY);
-          }
-          if (GetCapture() != hwnd)
+            if (m_inputBlocked != 0) {
+              return 0;
+            }
+            ObjectListItem* item = HitTestMarkers(&m_markers, pointX, pointY);
+            if (!item) {
+              return 0;
+            }
+            if ((item->m_state.m_value & kMarkerVisible) != 0) {
+              ClearHighlight(nullptr);
+              Highlight(item);
+              OpenMarkerWindow(item, pointX, pointY);
+            }
+            if (reb::compat::GetCapture() != hwnd) {
+              return 0;
+            }
+            reb::compat::ReleaseCapture();
             return 0;
-          ReleaseCapture();
-          return 0;
-        }
+          }
         default:
           return CustomDialogBox::WindowProc(message, wParam, lParam);
       }
     }
-  }
-  else if (message != 0x40d)
-  {
-    if (message == 0x40e)
+  } else if (message != 0x40d) {
+    if (message == 0x40e) {
       return 0;
+    }
     return CustomDialogBox::WindowProc(message, wParam, lParam);
   }
-  if (m_dragging != 0)
-  {
+  if (m_dragging != 0) {
     m_dragImage->EndDrag();
     m_dragging = 0;
   }
-  if (GetCapture() != hwnd)
+  if (reb::compat::GetCapture() != hwnd) {
     return 0;
-  ReleaseCapture();
+  }
+  reb::compat::ReleaseCapture();
   return 0;
 }
 
@@ -588,8 +554,7 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 void SectorWindow::SaveState(ostream* out)
 {
   ObjectKey key;
-  if (m_sector)
-  {
+  if (m_sector) {
     ObjectKey sectorKey;
     GetObjectKey(m_sector, &sectorKey);
     key = sectorKey;
@@ -619,18 +584,22 @@ ObjectKey SectorWindow::GetKeyAt(int x, int y)
 {
   ObjectListItem* system = FindSystemAt(x, y);
   ObjectKey result;
-  if (!system)
+  if (!system) {
     return result;
+  }
   auto* special = static_cast<ObjectListItem*>(m_markers.FindById(0x10000));
   system->GetKey(&result);
-  if (!special)
+  if (!special) {
     return result;
+  }
   POINT point = {x, y};
-  if (!PtInRect(&special->m_rect, point))
+  if (!reb::compat::PtInRect(&special->m_rect, point)) {
     return result;
+  }
   DibBitmap* image = special->m_image;
-  if (!image || !image->IsPixelOpaque(x - special->m_rect.left, y - special->m_rect.top))
+  if (!image || !image->IsPixelOpaque(x - special->m_rect.left, y - special->m_rect.top)) {
     return result;
+  }
   special->GetKey(&result);
   return result;
 }
@@ -639,8 +608,9 @@ ObjectKey SectorWindow::GetDropKeyAt(int x, int y)
 {
   ObjectListItem* system = FindSystemAt(x, y);
   ObjectKey result;
-  if (system)
+  if (system) {
     system->GetKey(&result);
+  }
   return result;
 }
 

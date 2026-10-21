@@ -12,11 +12,11 @@ class Crc32;
 // that has its own vtable. Role::CreateData builds one; CharacterData derives from it.
 class RoleData : public UnitObjData
 {
-public:
-  RoleData(); // 0x583df0
-  ~RoleData() override; // 0x583e10 (deleting), 0x583e30
-  int Read(istream* in) override; // 0x583e40
-  int Write(ostream* out) override; // 0x583e50
+  public:
+  RoleData();                        // 0x583df0
+  ~RoleData() override;              // 0x583e10 (deleting), 0x583e30
+  int Read(istream* in) override;    // 0x583e40
+  int Write(ostream* out) override;  // 0x583e50
   int Checksum(Crc32* crc) override; // 0x583e60
   // Slot 4 (IsValid) is a jump to the shared "return 1" stub 0x40f340.
 };
@@ -25,16 +25,16 @@ public:
 // events 0x388-0x38a by OnHealingChanged and friends.
 class CharacterData : public RoleData
 {
-public:
-  CharacterData(); // 0x540750
-  ~CharacterData() override; // 0x5407d0 (deleting), 0x5407f0
-  int Read(istream* in) override; // 0x540870
-  int Write(ostream* out) override; // 0x5408e0
+  public:
+  CharacterData();                   // 0x540750
+  ~CharacterData() override;         // 0x5407d0 (deleting), 0x5407f0
+  int Read(istream* in) override;    // 0x540870
+  int Write(ostream* out) override;  // 0x5408e0
   int Checksum(Crc32* crc) override; // 0x540950
 
-  TrackedStat m_healingStat; // +0x18, event 0x388
+  TrackedStat m_healingStat;        // +0x18, event 0x388
   TrackedStat m_forceDiscoveryStat; // +0x20, event 0x389
-  TrackedStat m_escapeStat; // +0x28, event 0x38a
-  ObjectKey m_holderKey; // +0x30, reset whenever the State changes
-  int m_field34; // +0x34
+  TrackedStat m_escapeStat;         // +0x28, event 0x38a
+  ObjectKey m_holderKey;            // +0x30, reset whenever the State changes
+  int m_field34;                    // +0x34
 };

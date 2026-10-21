@@ -15,14 +15,16 @@
 
 // ---- Notice44 (kind 44) ----
 
-Notice44::Notice44() : UiTextNotice()
+Notice44::Notice44()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
   m_unk40 = 0;
 }
 
-Notice44::Notice44(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice44::Notice44(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -52,9 +54,7 @@ UiNotice* Notice44::CreateEmptyNotice()
   return NewOrNull<Notice44>();
 }
 
-void Notice44::OnThreeObjectPayload(int kind, intptr_t a, intptr_t b, intptr_t c)
-{
-}
+void Notice44::OnThreeObjectPayload(int kind, intptr_t a, intptr_t b, intptr_t c) {}
 
 void Notice44::OnMessage(int kind, intptr_t a, intptr_t b)
 {
@@ -66,20 +66,15 @@ void Notice44::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
   m_unk28 = 4;
   m_sound[0] = 0x459;
   m_picture[1] = 0x3f9;
-  if (kind == 0x129)
-  {
+  if (kind == 0x129) {
     m_unk40 = 1;
     ExpandMessageTemplate(&m_text0, 0x7218, nullptr, nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text1, 0x7219, nullptr, nullptr, nullptr, nullptr);
-  }
-  else if (kind == 0x12a)
-  {
+  } else if (kind == 0x12a) {
     m_unk40 = 1;
     ExpandMessageTemplate(&m_text1, 0x721a, nullptr, nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text0, 0x7218, nullptr, nullptr, nullptr, nullptr);
-  }
-  else if (kind == 0x12b)
-  {
+  } else if (kind == 0x12b) {
     m_unk40 = 1;
     ExpandMessageTemplate(&m_text0, 0x7218, nullptr, nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text1, 0x721b, nullptr, nullptr, nullptr, nullptr);
@@ -98,14 +93,16 @@ void Notice44::Write(ostream* out)
 
 // ---- Notice45 (kind 45) ----
 
-Notice45::Notice45() : UiTextNotice()
+Notice45::Notice45()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
   m_unk40 = 0;
 }
 
-Notice45::Notice45(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice45::Notice45(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -132,8 +129,7 @@ UiNotice* Notice45::CreateEmptyNotice()
 
 void Notice45::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind == 300 && m_f64 == 0 && b != 0)
-  {
+  if (kind == 300 && m_f64 == 0 && b != 0) {
     m_picture[1] = (m_owner != 1) + 0x412;
     m_f64 = 1;
     m_unk40 = 1;
@@ -145,13 +141,15 @@ void Notice45::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 
 // ---- Notice43 (kind 43) ----
 
-Notice43::Notice43() : UiTextNotice()
+Notice43::Notice43()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
 }
 
-Notice43::Notice43(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice43::Notice43(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -173,21 +171,19 @@ UiNotice* Notice43::CreateEmptyNotice()
 
 void Notice43::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x306)
+  if (kind != 0x306) {
     return;
+  }
   GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
   GameObjNotifier* second = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(b));
   ObjectKey systemKey;
   GameObjNotifier* system = notice::containingSystem(second, &systemKey);
-  if (system)
-  {
+  if (system) {
     system->GetKey(&systemKey);
     m_key = ObjectKey(systemKey);
   }
-  if (first && second)
-  {
-    if (m_f64 == 0)
-    {
+  if (first && second) {
+    if (m_f64 == 0) {
       m_f64 = 1;
       ExpandMessageTemplate(&m_text0, 0x7208, notice::nameOf(first), notice::nameOf(second), notice::nameOf(system),
                             nullptr);
@@ -215,12 +211,14 @@ void Notice43::Write(ostream* out)
 
 // ---- Notice42 (kind 42) ----
 
-Notice42::Notice42() : UiTextNotice()
+Notice42::Notice42()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
 }
 
-Notice42::Notice42(int owner, int value) : UiTextNotice(owner)
+Notice42::Notice42(int owner, int value)
+    : UiTextNotice(owner)
 {
   m_categories = GetCategories();
   m_unk28 = 0x2a;
@@ -228,15 +226,12 @@ Notice42::Notice42(int owner, int value) : UiTextNotice(owner)
   int group = value >> 4;
   int firstText;
   int secondText;
-  if (m_owner == 1)
-  {
+  if (m_owner == 1) {
     m_picture[1] = 0x42f;
     m_sound[0] = 0x461;
     firstText = group * 3 + 0x6001;
     secondText = group * 3 + 0x6002;
-  }
-  else
-  {
+  } else {
     m_picture[1] = 0x430;
     m_sound[0] = 0x462;
     secondText = group * 3 + 0x6802;
@@ -260,14 +255,16 @@ UiNotice* Notice42::CreateEmptyNotice()
 
 // ---- Notice41 (kind 41) ----
 
-Notice41::Notice41() : UiTextNotice()
+Notice41::Notice41()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
   m_unk40 = 0;
 }
 
-Notice41::Notice41(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice41::Notice41(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -289,25 +286,20 @@ UiNotice* Notice41::CreateEmptyNotice()
 
 void Notice41::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind == 0x231 && m_f64 == 0 && b != 0)
-  {
+  if (kind == 0x231 && m_f64 == 0 && b != 0) {
     m_f64 = 1;
     m_unk40 = 1;
     auto* luke = static_cast<Luke*>(GetObject_32000242(m_owner));
-    if (!luke)
-    {
+    if (!luke) {
       m_unk40 = 0;
       return;
     }
     uint32_t advice;
-    if ((luke->m_storyFlags & Luke::kDagobahCompleted) == 0)
-    {
+    if ((luke->m_storyFlags & Luke::kDagobahCompleted) == 0) {
       m_picture[1] = 0x42a;
       m_sound[0] = 0x479;
       advice = 0x123;
-    }
-    else
-    {
+    } else {
       m_picture[1] = 0x42b;
       m_sound[0] = 0x47a;
       advice = 0x139;
@@ -322,13 +314,15 @@ void Notice41::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 
 // ---- Notice34 (kind 34) ----
 
-Notice34::Notice34() : UiTextNotice()
+Notice34::Notice34()
+    : UiTextNotice()
 {
   m_categories = GetCategories();
   m_f64 = 0;
 }
 
-Notice34::Notice34(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice34::Notice34(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -355,21 +349,19 @@ UiNotice* Notice34::CreateEmptyNotice()
 
 void Notice34::OnMessage(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x305)
+  if (kind != 0x305) {
     return;
+  }
   GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
   GameObjNotifier* second = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(b));
   ObjectKey systemKey;
   GameObjNotifier* system = notice::containingSystem(second, &systemKey);
-  if (system)
-  {
+  if (system) {
     system->GetKey(&systemKey);
     m_key = ObjectKey(systemKey);
   }
-  if (first && second)
-  {
-    if (m_f64 == 0)
-    {
+  if (first && second) {
+    if (m_f64 == 0) {
       m_f64 = 1;
       ExpandMessageTemplate(&m_text0, 0x7083, notice::nameOf(first), notice::nameOf(second), notice::nameOf(system),
                             nullptr);
@@ -382,13 +374,11 @@ void Notice34::OnMessage(int kind, intptr_t a, intptr_t b)
     ExpandMessageTemplate(&m_text1, 0x7085, notice::nameOf(first), notice::nameOf(second), nullptr, nullptr);
     m_unk40 = 1;
     uint32_t controller = first->ControlSide();
-    if (controller == 1)
-    {
-      if (m_owner != 2)
+    if (controller == 1) {
+      if (m_owner != 2) {
         return;
-    }
-    else if (controller == 2 && m_owner != 1)
-    {
+      }
+    } else if (controller == 2 && m_owner != 1) {
       return;
     }
     m_unk40 = 0;
@@ -398,12 +388,10 @@ void Notice34::OnMessage(int kind, intptr_t a, intptr_t b)
 int Notice34::DispatchPayloads(const AiNoticeGroup* payloads)
 {
   int result = ForwardPayloads(this, payloads);
-  if (m_unk40 != 0)
-  {
+  if (m_unk40 != 0) {
     m_unk28 = 0xc;
     m_sound[0] = 0x456;
-    if (m_owner == 1)
-    {
+    if (m_owner == 1) {
       m_picture[1] = 0x3f5;
       return result;
     }
@@ -414,7 +402,8 @@ int Notice34::DispatchPayloads(const AiNoticeGroup* payloads)
 
 // ---- Notice33 (kind 33) ----
 
-Notice33::Notice33() : UiTextNotice()
+Notice33::Notice33()
+    : UiTextNotice()
 {
   m_f64 = 0;
   m_categories = GetCategories();
@@ -422,7 +411,8 @@ Notice33::Notice33() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice33::Notice33(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
+Notice33::Notice33(const AiNoticeGroup* payloads, int owner)
+    : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_f68 = 0;
@@ -445,92 +435,79 @@ UiNotice* Notice33::CreateEmptyNotice()
 
 void Notice33::OnObjectAndValuePayload(int kind, intptr_t a, intptr_t b)
 {
-  if (kind != 0x160)
+  if (kind != 0x160) {
     return;
+  }
   const auto* key = reinterpret_cast<const ObjectKey*>(a);
   ManuMgr* manager = nullptr;
   GameObjNotifier* facility = nullptr;
   GameObjNotifier* host = nullptr;
   FamilyRange wanted(0x2a, 0x2b);
   GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, key);
-  if (object)
-  {
-    if (notice::inFamilies(*key, 0xa0, 0xb0))
-    {
+  if (object) {
+    if (notice::inFamilies(*key, 0xa0, 0xb0)) {
       m_hostKey = ObjectKey(*key);
       manager = static_cast<ManuMgr*>(object);
     }
     host = object->m_parent;
   }
   m_key = ObjectKey(*key);
-  if (!manager)
+  if (!manager) {
     return;
+  }
   m_unk40 = manager->m_remainingGameObjCount == 0 ? 1 : 0;
-  if (m_owner == 1)
-  {
-    if (object->ControlSide() != 1)
+  if (m_owner == 1) {
+    if (object->ControlSide() != 1) {
       m_unk40 = 0;
-  }
-  else if (m_owner != 2 || object->ControlSide() != 2)
-  {
+    }
+  } else if (m_owner != 2 || object->ControlSide() != 2) {
     m_unk40 = 0;
   }
-  if (b != 0)
+  if (b != 0) {
     m_unk40 = 0;
+  }
   int facilityKind = manager->GetFacilityKind();
-  if (facilityKind == 0)
-  {
+  if (facilityKind == 0) {
     m_f64 = 3;
     wanted = FamilyRange(0x28, 0x29);
-  }
-  else if (facilityKind == 1)
-  {
+  } else if (facilityKind == 1) {
     m_f64 = 1;
     wanted = FamilyRange(0x2a, 0x2b);
-  }
-  else if (facilityKind == 2)
-  {
+  } else if (facilityKind == 2) {
     m_f64 = 2;
     wanted = FamilyRange(0x29, 0x2a);
-  }
-  else
-  {
+  } else {
     m_unk40 = 0;
   }
-  if (m_unk40 != 0)
-  {
+  if (m_unk40 != 0) {
     ManufacturingFacilityIterator it(host, 1);
-    for (it.Begin(); it.Current(); it.Advance())
-    {
-      if (facility)
+    for (it.Begin(); it.Current(); it.Advance()) {
+      if (facility) {
         break;
+      }
       ObjectKey facilityKey;
       it.Current()->GetKey(&facilityKey);
-      if (notice::inFamilies(facilityKey, wanted.m_first, wanted.m_second))
+      if (notice::inFamilies(facilityKey, wanted.m_first, wanted.m_second)) {
         facility = it.Current();
+      }
     }
-    if (!facility)
+    if (!facility) {
       m_unk40 = 0;
+    }
   }
-  if (m_unk40 == 0)
+  if (m_unk40 == 0) {
     return;
-  if (m_f64 == 1)
-  {
+  }
+  if (m_f64 == 1) {
     ExpandMessageTemplate(&m_text0, 0x71f8, notice::nameOf(host), nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text1, 0x71f9, notice::nameOf(host), nullptr, nullptr, nullptr);
-  }
-  else if (m_f64 == 2)
-  {
+  } else if (m_f64 == 2) {
     ExpandMessageTemplate(&m_text0, 0x71fa, notice::nameOf(host), nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text1, 0x71fb, notice::nameOf(host), nullptr, nullptr, nullptr);
-  }
-  else if (m_f64 == 3)
-  {
+  } else if (m_f64 == 3) {
     ExpandMessageTemplate(&m_text0, 0x71fc, notice::nameOf(host), nullptr, nullptr, nullptr);
     ExpandMessageTemplate(&m_text1, 0x71fd, notice::nameOf(host), nullptr, nullptr, nullptr);
-  }
-  else
-  {
+  } else {
     m_unk40 = 0;
   }
   ObjectKey facilityKey;
@@ -545,15 +522,14 @@ int Notice33::IsStale()
 {
   int stale = 1;
   GameObjNotifier* manager = GetObjectInFamilies_a0_b0(m_owner, &m_hostKey);
-  if (manager && static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0)
+  if (manager && static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
     stale = 0;
-  if (m_owner == 1)
-  {
-    if (manager->ControlSide() != 1)
-      stale = 1;
   }
-  else if (m_owner == 2 && manager->ControlSide() != 2)
-  {
+  if (m_owner == 1) {
+    if (manager->ControlSide() != 1) {
+      stale = 1;
+    }
+  } else if (m_owner == 2 && manager->ControlSide() != 2) {
     return 1;
   }
   return stale;

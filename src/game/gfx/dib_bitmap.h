@@ -5,12 +5,11 @@
 
 #include "platform/win32.h"
 
-struct Rgb24
-{
+struct Rgb24 {
   Rgb24() = default;
   Rgb24(uint8_t red, uint8_t green, uint8_t blue); // 0x60e5e0
-  explicit Rgb24(uint32_t rgbQuad); // 0x60e600: from an RGBQUAD read as a dword (0x00RRGGBB)
-  int DiffersFrom(uint32_t rgbQuad); // 0x60e620: compares with an RGBQUAD/BGR pixel read as a dword
+  explicit Rgb24(uint32_t rgbQuad);                // 0x60e600: from an RGBQUAD read as a dword (0x00RRGGBB)
+  int DiffersFrom(uint32_t rgbQuad);               // 0x60e620: compares with an RGBQUAD/BGR pixel read as a dword
 
   uint8_t r;
   uint8_t g;
@@ -18,12 +17,11 @@ struct Rgb24
 };
 
 // How a DibBitmap's pixel memory is owned (low byte of m_kind with bit 0x08 masked off).
-enum DibBitmapKind : uint8_t
-{
-  kDibFile = 0x01, // BITMAPINFO + pixels read from a .BMP file into one heap block
+enum DibBitmapKind : uint8_t {
+  kDibFile = 0x01,     // BITMAPINFO + pixels read from a .BMP file into one heap block
   kDibResource = 0x02, // points into a locked RT_BITMAP resource
-  kDibHeap = 0x04, // heap block built from another bitmap's format
-  kDibSection = 0x10, // GDI DIB section
+  kDibHeap = 0x04,     // heap block built from another bitmap's format
+  kDibSection = 0x10,  // GDI DIB section
   kDibKindMask = 0xf7,
 };
 
@@ -31,11 +29,11 @@ enum DibBitmapKind : uint8_t
 // Pixel rows are bottom-up when the header height is positive.
 class DibBitmap
 {
-public:
+  public:
   enum class HighResolutionBlit { Copy, Keyed, RemapDestination, Remapped, RemappedOverlay };
-  DibBitmap(HMODULE module, const char* source, uint32_t kind); // 0x5fbc80: file (kind 1) or resource name (kind 2)
+  DibBitmap(HMODULE module, const char* source, uint32_t kind);  // 0x5fbc80: file (kind 1) or resource name (kind 2)
   DibBitmap(HMODULE module, uint32_t resourceId, uint32_t kind); // 0x5fbd20: RT_BITMAP resource by id
-  DibBitmap(int width, int height, DibBitmap* format); // 0x5fbda0: zeroed heap bitmap in `format`'s layout
+  DibBitmap(int width, int height, DibBitmap* format);           // 0x5fbda0: zeroed heap bitmap in `format`'s layout
   DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc); // 0x5fbea0: DIB section in `format`'s layout
   ~DibBitmap();
   DibBitmap(const DibBitmap&) = delete;
@@ -60,11 +58,11 @@ public:
   void LocateBits();
   void CacheTransparentColor();
   void NotifyPixelsChanged();
-  bool SetHighResolutionPixels(int scale, std::span<const uint8_t> pixels);
+  bool SetHighResolutionPixels(int scale, std::span<const uint8_t> pixels, bool keyedByDetailPixel = false);
+  void PrepareHighResolutionDestination(const DibBitmap* source);
   void SyncHighResolutionFromGdi();
-  void FinishHighResolutionBlit(const DibBitmap* source,
-                                int destX, int destY, int srcX, int srcY, int width, int height,
-                                HighResolutionBlit operation, uint8_t colorKey = 0);
+  void FinishHighResolutionBlit(const DibBitmap* source, int destX, int destY, int srcX, int srcY, int width,
+                                int height, HighResolutionBlit operation, uint8_t colorKey = 0);
   void FinishHighResolutionFill(int x, int y, int width, int height, uint8_t value);
   void FinishHighResolutionRemap(int x, int y, int width, int height);
   int LoadResourceById(uint32_t resourceId);
@@ -93,31 +91,26 @@ public:
 
   // 24-bit-pixel counterparts (0x60e5e0 range, not part of this file).
   uint32_t Blit24(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
-  void BlitKeyed24(DibBitmap* dest,
-                   int destX,
-                   int destY,
-                   uint32_t paletteIndexOrColor,
-                   int srcX,
-                   int srcY,
-                   int width,
+  void BlitKeyed24(DibBitmap* dest, int destX, int destY, uint32_t paletteIndexOrColor, int srcX, int srcY, int width,
                    int height);
   void BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colorKey, int srcX, int srcY, int width, int height);
 
-  BITMAPINFOHEADER* m_info; // +0x00 header followed by the colour table; null when nothing is loaded
-  uint8_t* m_bits; // +0x04
-  uint8_t m_colorKey; // +0x08 first pixel (8-bit): the transparent index
-  Rgb24 m_colorKeyRgb; // +0x09 first pixel (24-bit)
-  uint8_t m_kind; // +0x0c DibBitmapKind, bit 0x08 is carried along but ignored
-  uint8_t m_unk0d[3]; // +0x0d
-  int32_t m_colorCount; // +0x10
-  HGLOBAL m_resource; // +0x14 locked RT_BITMAP resource
-  HMODULE m_module; // +0x18 resource module
-  HBITMAP m_dibSection; // +0x1c
-  HPALETTE m_palette; // +0x20 lazily built by DrawToDc
-  uint8_t* m_remapTable; // +0x24 256-entry colour remap (BuildRemapTable / SetRemapTable)
-  std::vector<uint8_t> m_storage; // owns the header, palette and software pixels when not a DIB section
+  BITMAPINFOHEADER* m_info;        // +0x00 header followed by the colour table; null when nothing is loaded
+  uint8_t* m_bits;                 // +0x04
+  uint8_t m_colorKey;              // +0x08 first pixel (8-bit): the transparent index
+  Rgb24 m_colorKeyRgb;             // +0x09 first pixel (24-bit)
+  uint8_t m_kind;                  // +0x0c DibBitmapKind, bit 0x08 is carried along but ignored
+  uint8_t m_unk0d[3];              // +0x0d
+  int32_t m_colorCount;            // +0x10
+  HGLOBAL m_resource;              // +0x14 locked RT_BITMAP resource
+  HMODULE m_module;                // +0x18 resource module
+  HBITMAP m_dibSection;            // +0x1c
+  HPALETTE m_palette;              // +0x20 lazily built by DrawToDc
+  uint8_t* m_remapTable;           // +0x24 256-entry colour remap (BuildRemapTable / SetRemapTable)
+  std::vector<uint8_t> m_storage;  // owns the header, palette and software pixels when not a DIB section
   std::vector<uint8_t> m_hdPixels; // optional top-down indexed detail for software composition
   int m_hdScale = 1;
+  bool m_hdKeyed = false;
   uint64_t m_hdGdiRevision = 0;
   int m_hdGdiScale = 0;
 };

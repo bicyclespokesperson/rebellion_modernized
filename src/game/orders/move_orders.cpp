@@ -54,8 +54,8 @@ bool inFamilies(const ObjectKey& key, uint32_t first, uint32_t last)
 
 bool isFleetOrCapitalShip(const ObjectKey& key)
 {
-  return inFamilies(key, family::kCapitalShips.m_first, family::kCapitalShips.m_second) ||
-         inFamilies(key, family::kFleets.m_first, family::kFleets.m_second);
+  return inFamilies(key, family::kCapitalShips.m_first, family::kCapitalShips.m_second)
+         || inFamilies(key, family::kFleets.m_first, family::kFleets.m_second);
 }
 
 bool isTroopRegiment(const ObjectKey& key)
@@ -72,7 +72,8 @@ bool isSystem(const ObjectKey& key)
 
 // ---- MoveOrderBase --------------------------------------------------------------------------------------------
 
-MoveOrderBase::MoveOrderBase() : OrderBase()
+MoveOrderBase::MoveOrderBase()
+    : OrderBase()
 {
   m_subOrders = nullptr;
   m_status = nullptr;
@@ -87,11 +88,11 @@ MoveOrderBase::~MoveOrderBase()
 int MoveOrderBase::CreateLists()
 {
   m_subOrders = NewOrNull<MessageTree>();
-  if (m_subOrders != nullptr)
-  {
+  if (m_subOrders != nullptr) {
     m_status = NewOrNull<IntPair>();
-    if (m_status != nullptr)
+    if (m_status != nullptr) {
       return 1;
+    }
   }
   DestroyLists();
   return 0;
@@ -99,13 +100,11 @@ int MoveOrderBase::CreateLists()
 
 int MoveOrderBase::DestroyLists()
 {
-  if (m_subOrders != nullptr)
-  {
+  if (m_subOrders != nullptr) {
     delete m_subOrders;
     m_subOrders = nullptr;
   }
-  if (m_status != nullptr)
-  {
+  if (m_status != nullptr) {
     delete m_status;
     m_status = nullptr;
   }
@@ -115,12 +114,11 @@ int MoveOrderBase::DestroyLists()
 int MoveOrderBase::CheckEnabled(StatusCode* status)
 {
   setOk(status);
-  if (Expand(status))
-  {
-    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
-    {
-      if (!isOk(status))
+  if (Expand(status)) {
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();) {
+      if (!isOk(status)) {
         break;
+      }
       auto current = position++;
       auto* order = static_cast<OrderBase*>((*current).get());
       order->CheckEnabled(status);
@@ -132,12 +130,11 @@ int MoveOrderBase::CheckEnabled(StatusCode* status)
 int MoveOrderBase::CheckValid(StatusCode* status)
 {
   setOk(status);
-  if (Expand(status))
-  {
-    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
-    {
-      if (!isOk(status))
+  if (Expand(status)) {
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();) {
+      if (!isOk(status)) {
         break;
+      }
       auto current = position++;
       auto* order = static_cast<OrderBase*>((*current).get());
       order->CheckValid(status);
@@ -149,16 +146,16 @@ int MoveOrderBase::CheckValid(StatusCode* status)
 int MoveOrderBase::Execute(StatusCode* status)
 {
   setOk(status);
-  if (Expand(status))
-  {
-    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
-    {
-      if (!isOk(status))
+  if (Expand(status)) {
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();) {
+      if (!isOk(status)) {
         break;
+      }
       auto current = position++;
       auto* order = static_cast<OrderBase*>((*current).get());
-      if (order->Execute(status) == 0)
+      if (order->Execute(status) == 0) {
         break;
+      }
     }
   }
   return 1;
@@ -169,31 +166,24 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
   setOk(status);
   out->Clear();
   int result = CheckValid(status);
-  if (result != 0 && isOk(status))
-  {
+  if (result != 0 && isOk(status)) {
     ObjectKeyValueSet days;
-    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
-    {
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();) {
       auto current = position++;
       auto* order = static_cast<OrderBase*>((*current).get());
       days.Clear();
       const int kind = order->GetKind();
       const bool collectable = kind == kObjectMoveKind || kind == kMissionOrderKind;
       result = collectable && result != 0;
-      if (kind == kObjectMoveKind)
-      {
+      if (kind == kObjectMoveKind) {
         int collected = static_cast<ObjectMoveOrder*>(order)->CollectTransitDays(status, &days);
         result = collected != 0 && result != 0;
-      }
-      else if (kind == kMissionOrderKind)
-      {
+      } else if (kind == kMissionOrderKind) {
         int collected = (static_cast<MissionOrder*>(order))->MissionOrder::CollectCandidates(status, &days);
         result = collected != 0 && result != 0;
       }
-      if (isOk(status))
-      {
-        while (ObjectKeyNode* node = days.First())
-        {
+      if (isOk(status)) {
+        while (ObjectKeyNode* node = days.First()) {
           ObjectKey key;
           days.Detach(node->GetKey(&key));
           out->Add(node);
@@ -208,57 +198,58 @@ int MoveOrderBase::Expand(StatusCode* status)
 {
   setOk(status);
   int result = m_subOrders != nullptr && m_status != nullptr;
-  if (!result)
+  if (!result) {
     setStatus(status, kStatusRefused);
-  else if (isOk(status))
+  } else if (isOk(status)) {
     m_subOrders->Clear();
+  }
 
   ObjectKeyValueSet team;
-  if (result != 0)
-  {
-    if (isOk(status))
-    {
+  if (result != 0) {
+    if (isOk(status)) {
       ActivityRequest request;
       BuildRequest(&request);
       result = CollectKeyDependencies(&request, GetTeam(), &team, status);
-      if (result != 0 && isOk(status) && team.Count() == 0)
+      if (result != 0 && isOk(status) && team.Count() == 0) {
         setStatus(status, kStatusNoMembers);
+      }
     }
-    if (result != 0)
-    {
-      if (isOk(status))
-      {
+    if (result != 0) {
+      if (isOk(status)) {
         MissionOrder* mission = nullptr;
-        do
-        {
+        do {
           result = BuildMissionOrder(&team, &mission, status);
-          if (result == 0)
+          if (result == 0) {
             goto failed;
-          if (isOk(status) && mission != nullptr)
+          }
+          if (isOk(status) && mission != nullptr) {
             m_subOrders->Adopt(mission);
+          }
         } while (isOk(status) && mission != nullptr);
       }
-      if (result != 0)
-      {
-        if (isOk(status))
-        {
+      if (result != 0) {
+        if (isOk(status)) {
           ObjectMoveOrder* move = nullptr;
           result = BuildMoveOrder(&team, &move, status);
-          if (result == 0)
+          if (result == 0) {
             goto failed;
-          if (isOk(status) && move != nullptr)
+          }
+          if (isOk(status) && move != nullptr) {
             m_subOrders->Adopt(move);
+          }
         }
-        if (result != 0)
+        if (result != 0) {
           goto done;
+        }
       }
     }
   }
 failed:
   setStatus(status, kStatusRefused);
 done:
-  if (m_status != nullptr)
+  if (m_status != nullptr) {
     *m_status = *status;
+  }
   return result;
 }
 
@@ -274,14 +265,12 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
   *out = nullptr;
   ObjectKeyValueSet characters;
   int result = TakeCharactersAtOneLocation(team, &characters, status);
-  if (result != 0 && isOk(status) && characters.Count() != 0)
-  {
+  if (result != 0 && isOk(status) && characters.Count() != 0) {
     void* memory = ::operator new(sizeof(MissionOrder241));
     MissionOrder241* order = memory ? new (memory) MissionOrder241() : nullptr;
     *out = order;
     result = order != nullptr;
-    if (result != 0)
-    {
+    if (result != 0) {
       order->SetId(m_subOrders->NextId());
       order->m_unk1c = m_unk1c;
       order->m_side = m_side;
@@ -294,10 +283,10 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
       order->m_characters = ObjectKeyValueSet();
     }
   }
-  if (result == 0)
+  if (result == 0) {
     setStatus(status, kStatusRefused);
-  if (!isOk(status) && *out != nullptr)
-  {
+  }
+  if (!isOk(status) && *out != nullptr) {
     delete *out;
     *out = nullptr;
   }
@@ -309,13 +298,11 @@ int MoveOrderBase::BuildMoveOrder(ObjectKeyValueSet* team, ObjectMoveOrder** out
   bool built = true;
   setOk(status);
   *out = nullptr;
-  if (team->Count() != 0)
-  {
+  if (team->Count() != 0) {
     auto* order = NewOrNull<ObjectMoveOrder>();
     built = order != nullptr;
     *out = order;
-    if (built)
-    {
+    if (built) {
       order->SetId(m_subOrders->NextId());
       order->m_unk1c = m_unk1c;
       order->m_side = m_side;
@@ -324,10 +311,10 @@ int MoveOrderBase::BuildMoveOrder(ObjectKeyValueSet* team, ObjectMoveOrder** out
       order->SetTarget(GetTargetInto(&target));
     }
   }
-  if (!built)
+  if (!built) {
     setStatus(status, kStatusRefused);
-  if (!isOk(status) && *out != nullptr)
-  {
+  }
+  if (!isOk(status) && *out != nullptr) {
     delete *out;
     *out = nullptr;
   }
@@ -342,41 +329,36 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
   ObjectKey firstLocation;
   ObjectKey location;
   bool haveFirstLocation = false;
-  for (auto position = team->Entries().begin(); position != team->Entries().end();)
-  {
-    if (!isOk(status) || result == 0)
+  for (auto position = team->Entries().begin(); position != team->Entries().end();) {
+    if (!isOk(status) || result == 0) {
       break;
+    }
     auto current = position++;
     auto* node = static_cast<ObjectKeyNode*>((*current).get());
     ObjectKey key;
     node->GetKey(&key);
-    if (inFamilies(key, family::kCharacters.m_first, family::kSpecialForces.m_second))
-    {
+    if (inFamilies(key, family::kCharacters.m_first, family::kSpecialForces.m_second)) {
       ObjectKey lookupKey;
       node->GetKey(&lookupKey);
       GameObjNotifier* object = GetMasterInFamilies_01_ff(&lookupKey);
-      if (object == nullptr)
+      if (object == nullptr) {
         setStatus(status, kStatusObjectNotFound);
-      if (result != 0)
-      {
-        if (isOk(status))
-        {
+      }
+      if (result != 0) {
+        if (isOk(status)) {
           const uint32_t objectFamily = object->GetFamily();
           result = objectFamily >= family::kCharacters.m_first && objectFamily < family::kSpecialForces.m_second;
         }
-        if (result != 0 && (static_cast<GameObj*>(object)->m_stateFlags & kCompletedFlag) != 0)
-        {
-          if (isOk(status))
+        if (result != 0 && (static_cast<GameObj*>(object)->m_stateFlags & kCompletedFlag) != 0) {
+          if (isOk(status)) {
             result = object->GetOwnerKey(&location);
-          if (result != 0 && isOk(status))
-          {
-            if (!haveFirstLocation)
-            {
+          }
+          if (result != 0 && isOk(status)) {
+            if (!haveFirstLocation) {
               haveFirstLocation = true;
               firstLocation = location;
             }
-            if (firstLocation.m_value == location.m_value)
-            {
+            if (firstLocation.m_value == location.m_value) {
               ObjectKey detachKey;
               node->GetKey(&detachKey);
               team->Detach(&detachKey);
@@ -387,14 +369,16 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
       }
     }
   }
-  if (result == 0)
+  if (result == 0) {
     setStatus(status, kStatusRefused);
+  }
   return result;
 }
 
 // ---- MoveOrder, ConfirmedMoveOrder ----------------------------------------------------------------------------
 
-MoveOrder::MoveOrder() : MoveOrderBase()
+MoveOrder::MoveOrder()
+    : MoveOrderBase()
 {
 }
 MoveOrder::~MoveOrder() = default;
@@ -411,7 +395,8 @@ void* CreateMoveOrder()
   return NewOrNull<MoveOrder>();
 }
 
-ConfirmedMoveOrder::ConfirmedMoveOrder() : MoveOrderBase()
+ConfirmedMoveOrder::ConfirmedMoveOrder()
+    : MoveOrderBase()
 {
 }
 ConfirmedMoveOrder::~ConfirmedMoveOrder() = default;
@@ -426,7 +411,8 @@ void* CreateConfirmedMoveOrder()
 
 // ---- ObjectMoveOrder ------------------------------------------------------------------------------------------
 
-ObjectMoveOrder::ObjectMoveOrder() : OrderBase()
+ObjectMoveOrder::ObjectMoveOrder()
+    : OrderBase()
 {
 }
 ObjectMoveOrder::~ObjectMoveOrder() = default;
@@ -460,12 +446,13 @@ int ObjectMoveOrder::CheckValid(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   OrderBase::CheckValid(status);
-  if (ownsQueue != 0)
-  {
-    if (!isOk(status))
+  if (ownsQueue != 0) {
+    if (!isOk(status)) {
       ownsQueue = RefuseDestinationInTeam(&request, GetTeam(), status);
-    if (ownsQueue != 0)
+    }
+    if (ownsQueue != 0) {
       return isOk(status);
+    }
   }
   setStatus(status, kStatusRefused);
   return isOk(status);
@@ -478,28 +465,27 @@ int ObjectMoveOrder::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* o
   int valid = CheckValid(status);
   GameObjNotifier* galaxy = GetGameRootMember_bc();
   bool ok = galaxy != nullptr && valid != 0;
-  if (ok && galaxy != nullptr && isOk(status))
-  {
+  if (ok && galaxy != nullptr && isOk(status)) {
     ok = CollectTeamDependencies(out) != 0;
-    for (const auto& nodeEntry : out->Entries())
-    {
+    for (const auto& nodeEntry : out->Entries()) {
       auto* node = static_cast<ObjectKeyValueNode*>(nodeEntry.get());
 
       ObjectKey key;
       node->GetKey(&key);
       GameObjNotifier* object = GetMasterInFamilies_01_ff(&key);
-      if (object == nullptr)
+      if (object == nullptr) {
         ok = false;
+      }
       int days = 0;
-      if (object != nullptr)
-      {
+      if (object != nullptr) {
         ObjectKey target;
         ObjectKey* targetKey = GetTarget(&target);
         ObjectKey memberKey;
         node->GetKey(&memberKey);
-        if (GetRulesMgr()->RulesMgr::ComputeUnitTravelDays(static_cast<GameObj*>(object), &memberKey, targetKey,
-                                                           &days) == 0)
+        if (GetRulesMgr()->RulesMgr::ComputeUnitTravelDays(static_cast<GameObj*>(object), &memberKey, targetKey, &days)
+            == 0) {
           ok = false;
+        }
       }
       node->m_value = days;
     }
@@ -514,83 +500,81 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status)
   BuildRequest(&request);
   int result = OrderBase::CheckDestination(status);
   uint32_t side = 0;
-  if (result != 0 && isOk(status))
+  if (result != 0 && isOk(status)) {
     result = GetCommandSide(m_commands, &side);
+  }
 
   GameObjNotifier* destination = nullptr;
   StatusCode resolveStatus(kStatusCategory, kStatusOk);
-  if (result != 0)
-  {
-    if (isOk(status))
-    {
+  if (result != 0) {
+    if (isOk(status)) {
       const StatusCode missing(kStatusCategory, kStatusDestinationNotFound);
       result = ResolveMasterInFamilies_01_ff(&request.m_target, &destination, &missing, &resolveStatus);
-      if (result != 0 && destination == nullptr)
+      if (result != 0 && destination == nullptr) {
         *status = resolveStatus;
+      }
     }
-    if (result != 0 && isOk(status))
-    {
+    if (result != 0 && isOk(status)) {
       int onlyFleetsAndCapitalShips = 1;
       int onlyRegiments = 1;
-      for (const auto& entry : m_commands->Entries())
-      {
-        if (!isOk(status) || onlyFleetsAndCapitalShips == 0)
+      for (const auto& entry : m_commands->Entries()) {
+        if (!isOk(status) || onlyFleetsAndCapitalShips == 0) {
           break;
+        }
         auto* command = static_cast<Command*>(entry.get());
 
-        if (!isFleetOrCapitalShip(command->m_key))
+        if (!isFleetOrCapitalShip(command->m_key)) {
           onlyFleetsAndCapitalShips = 0;
-        if (!isTroopRegiment(command->m_key))
+        }
+        if (!isTroopRegiment(command->m_key)) {
           onlyRegiments = 0;
+        }
       }
       bool unpopulatedSystem = false;
       ObjectKey destinationKey;
       destination->GetKey(&destinationKey);
-      if (isSystem(destinationKey))
-      {
-        unpopulatedSystem = (static_cast<GameObj*>(destination)->m_stateFlags & kObjectExistsFlag) != 0 &&
-                            (static_cast<System*>(destination)->m_flags & system_flag::kPopulated) == 0;
+      if (isSystem(destinationKey)) {
+        unpopulatedSystem = (static_cast<GameObj*>(destination)->m_stateFlags & kObjectExistsFlag) != 0
+                            && (static_cast<System*>(destination)->m_flags & system_flag::kPopulated) == 0;
       }
-      if (destination->ControlSide() != side && onlyFleetsAndCapitalShips == 0 &&
-          (onlyRegiments == 0 || !unpopulatedSystem))
-      {
+      if (destination->ControlSide() != side && onlyFleetsAndCapitalShips == 0
+          && (onlyRegiments == 0 || !unpopulatedSystem)) {
         setStatus(status, kStatusDestinationSideRefused);
       }
     }
   }
 
   RouteContext context;
-  if (result != 0)
-  {
-    if (isOk(status))
-    {
+  if (result != 0) {
+    if (isOk(status)) {
       int mode = kRouteMode;
       int planned = context.InitFromRequest(&request, static_cast<int>(side), &mode);
       result = 0;
-      if (planned == 0)
+      if (planned == 0) {
         goto failed;
+      }
       result = context.AddContainerLegs(&request.m_target);
     }
-    if (result != 0)
-    {
-      if (isOk(status))
-      {
-        for (const auto& entry : m_commands->Entries())
-        {
-          if (result == 0 || !isOk(status))
+    if (result != 0) {
+      if (isOk(status)) {
+        for (const auto& entry : m_commands->Entries()) {
+          if (result == 0 || !isOk(status)) {
             break;
+          }
           auto* command = static_cast<Command*>(entry.get());
 
           ObjectKey leg;
           CapacityScratch plan;
           ObjectKey object = command->m_key;
           result = context.CheckMove(&object, &request.m_target, status, &plan, &leg);
-          if (result != 0 && isOk(status))
+          if (result != 0 && isOk(status)) {
             command->m_request.m_target = leg;
+          }
         }
       }
-      if (result != 0)
+      if (result != 0) {
         goto done;
+      }
     }
   }
 failed:
@@ -601,7 +585,8 @@ done:
 
 // ---- RenameOrder ----------------------------------------------------------------------------------------------
 
-RenameOrder::RenameOrder() : TextMessage()
+RenameOrder::RenameOrder()
+    : TextMessage()
 {
 }
 RenameOrder::~RenameOrder() = default;
@@ -627,10 +612,10 @@ int RenameOrder::CheckEnabled(StatusCode* status)
   int ownsQueue = static_cast<int>(m_unk1c);
   setOk(status);
   TextMessage::CheckEnabled(status);
-  if (ownsQueue != 0 && isOk(status))
-  {
-    if (static_cast<uint16_t>(m_commands->Count()) > 1)
+  if (ownsQueue != 0 && isOk(status)) {
+    if (static_cast<uint16_t>(m_commands->Count()) > 1) {
       setStatus(status, kStatusSingleObjectOnly);
+    }
   }
   return isOk(status);
 }
@@ -647,21 +632,20 @@ int RenameOrder::CheckDestination(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   int result = OrderBase::CheckDestination(status);
-  if (result != 0)
-  {
-    if (isOk(status))
-    {
-      for (const auto& entry : m_commands->Entries())
-      {
-        if (!isOk(status))
+  if (result != 0) {
+    if (isOk(status)) {
+      for (const auto& entry : m_commands->Entries()) {
+        if (!isOk(status)) {
           break;
+        }
         auto* command = static_cast<Command*>(entry.get());
 
         static_cast<RenameCommand*>(command)->m_name = m_text;
       }
     }
-    if (result != 0)
+    if (result != 0) {
       return result;
+    }
   }
   setStatus(status, kStatusRefused);
   return result;
@@ -669,7 +653,8 @@ int RenameOrder::CheckDestination(StatusCode* status)
 
 // ---- ScrapOrder, ReadyForDeleteOrder --------------------------------------------------------------------------
 
-ScrapOrder::ScrapOrder() : OrderBase()
+ScrapOrder::ScrapOrder()
+    : OrderBase()
 {
 }
 ScrapOrder::~ScrapOrder() = default;
@@ -684,7 +669,8 @@ Command* ScrapOrder::CreateCommand()
   return memory ? new (memory) ScrapCommand() : nullptr;
 }
 
-ReadyForDeleteOrder::ReadyForDeleteOrder() : OrderBase()
+ReadyForDeleteOrder::ReadyForDeleteOrder()
+    : OrderBase()
 {
 }
 ReadyForDeleteOrder::~ReadyForDeleteOrder() = default;
@@ -705,7 +691,8 @@ Command* ReadyForDeleteOrder::CreateCommand()
 
 // ---- ObjectKeyIntSet ------------------------------------------------------------------------------------------
 
-ObjectKeyIntSet::ObjectKeyIntSet() : ObjectKeySet()
+ObjectKeyIntSet::ObjectKeyIntSet()
+    : ObjectKeySet()
 {
 }
 ObjectKeyIntSet::ObjectKeyIntSet(const ObjectKeyIntSet& other) = default;

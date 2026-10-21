@@ -1,6 +1,9 @@
 #include "core/file_util.h"
 
+#include <filesystem>
+
 #include "platform/win32.h"
+#include "port/minwin_impl/res/path.h"
 
 #include "core/game_string.h"
 #include "iostream/iostream.h"
@@ -31,8 +34,9 @@ int FilebufDescriptor(Stream* stream)
 
 void SetResourceModule(void* module)
 {
-  if (!module)
-    module = GetModuleHandleA(nullptr);
+  if (!module) {
+    module = reb::compat::GetModuleHandleA(nullptr);
+  }
   g_resourceModule = static_cast<HMODULE>(module);
   g_fileError = kFileOk;
 }
@@ -44,13 +48,12 @@ int GetFileError()
 
 char* LoadRcdataString(unsigned id)
 {
-  HRSRC resource = FindResourceA(g_resourceModule, MAKEINTRESOURCEA(id & 0xffff), RT_RCDATA);
-  if (resource)
-  {
-    HGLOBAL loaded = LoadResource(g_resourceModule, resource);
-    const char* text = static_cast<const char*>(LockResource(loaded));
+  HRSRC resource = reb::compat::FindResourceA(g_resourceModule, MAKEINTRESOURCEA(id & 0xffff), RT_RCDATA);
+  if (resource) {
+    HGLOBAL loaded = reb::compat::LoadResource(g_resourceModule, resource);
+    const char* text = static_cast<const char*>(reb::compat::LockResource(loaded));
     strncpy(g_resourceString, text, 0xff);
-    FreeResource(loaded);
+    reb::compat::FreeResource(loaded);
     g_resourceString[0xff] = 0;
     return g_resourceString;
   }
@@ -63,15 +66,13 @@ void OpenInputFile(ifstream* stream, const char* fileName)
 {
   g_fileError = kFileOk;
   std::string name = StringFromText(fileName);
-  if (name.empty())
-  {
+  if (name.empty()) {
     g_fileError = kFileNoName;
-  }
-  else
-  {
+  } else {
     ifstream_open(stream, name.c_str(), kOpenBinaryInput, g_filebufOpenprot);
-    if (FilebufDescriptor(stream) == kInvalidDescriptor)
+    if (FilebufDescriptor(stream) == kInvalidDescriptor) {
       g_fileError = kFileOpenFailed;
+    }
   }
 }
 
@@ -79,15 +80,13 @@ void OpenOutputFile(ofstream* stream, const char* fileName)
 {
   g_fileError = kFileOk;
   std::string name = StringFromText(fileName);
-  if (name.empty())
-  {
+  if (name.empty()) {
     g_fileError = kFileNoName;
-  }
-  else
-  {
+  } else {
     ofstream_open(stream, name.c_str(), kOpenBinaryOutput, g_filebufOpenprot);
-    if (FilebufDescriptor(stream) == kInvalidDescriptor)
+    if (FilebufDescriptor(stream) == kInvalidDescriptor) {
       g_fileError = kFileOpenFailed;
+    }
   }
 }
 
@@ -104,8 +103,10 @@ int DeleteGameFile(const char* fileName)
 {
   int deleted = 0;
   std::string name = StringFromText(fileName);
-  if (!name.empty())
-    deleted = DeleteFileA(name.c_str());
+  if (!name.empty()) {
+    std::error_code error;
+    deleted = std::filesystem::remove(mw::res::ResolvePath(name), error) && !error;
+  }
   return deleted;
 }
 

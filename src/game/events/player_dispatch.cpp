@@ -34,7 +34,9 @@ constexpr uint32_t kFlagDialogShown = 0x20000000;
 
 // ---- PlayerDispatch -------------------------------------------------------------------------------------------
 
-PlayerDispatch::PlayerDispatch() : m_flags(0), m_defaultState(0)
+PlayerDispatch::PlayerDispatch()
+    : m_flags(0)
+    , m_defaultState(0)
 {
   m_side = 0;
   m_unk50 = 0;
@@ -56,30 +58,28 @@ void PlayerDispatch::Read(istream* in)
   uint16_t stateCount = 0;
   ReadValue16(in, &stateCount);
   uint32_t nextStateKey = 1;
-  for (uint16_t i = 0; i < stateCount && (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) == 0; ++i)
-  {
+  for (uint16_t i = 0; i < stateCount && (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) == 0; ++i) {
     uint32_t key = 0;
     int value = 0;
     ReadValue32(in, &key);
     ReadValue32(in, &value);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
       break;
-    if (key == 0)
-    {
-      if (nextStateKey == 0)
-      {
+    }
+    if (key == 0) {
+      if (nextStateKey == 0) {
         iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
         break;
       }
       key = nextStateKey;
     }
-    if (!m_states.emplace(key, value).second)
-    {
+    if (!m_states.emplace(key, value).second) {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
       break;
     }
-    if (nextStateKey != 0 && nextStateKey <= key)
+    if (nextStateKey != 0 && nextStateKey <= key) {
       nextStateKey = key + 1;
+    }
   }
   m_defaultState.Read(in);
   ReadValue32(in, &m_unk40);
@@ -94,16 +94,12 @@ void PlayerDispatch::Write(ostream* out)
   WriteValuePersistentInt(out, &m_flags);
   m_trees[0].Write(out);
   m_trees[1].Write(out);
-  if (m_states.size() > std::numeric_limits<uint16_t>::max())
-  {
+  if (m_states.size() > std::numeric_limits<uint16_t>::max()) {
     iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
-  }
-  else
-  {
+  } else {
     auto stateCount = static_cast<uint16_t>(m_states.size());
     WriteValue16(out, &stateCount);
-    for (const auto& [key, value] : m_states)
-    {
+    for (const auto& [key, value] : m_states) {
       uint32_t serializedKey = key;
       int serializedValue = value;
       WriteValue32(out, &serializedKey);
@@ -124,11 +120,11 @@ void PlayerDispatch::ClearRecords()
 
 void PlayerDispatch::HandleNotifications(const AiNoticeGroup* payloads)
 {
-  if (!payloads)
+  if (!payloads) {
     return;
+  }
   int kind = ClassifyNotifications(payloads);
-  if (kind != 0)
-  {
+  if (kind != 0) {
     UiNotice* notice = CreateNotice(kind, payloads);
     AddNotice(notice);
     return;
@@ -138,14 +134,11 @@ void PlayerDispatch::HandleNotifications(const AiNoticeGroup* payloads)
 
 void PlayerDispatch::Update()
 {
-  if (m_trees[2].First())
-  {
-    if ((m_flags.m_value & kFlagDialogShown) == 0)
-    {
+  if (m_trees[2].First()) {
+    if ((m_flags.m_value & kFlagDialogShown) == 0) {
       auto* dialog = m_trees[2].First();
-      if (dialog)
-      {
-        UiSetPendingMovie(reinterpret_cast<LPARAM>(dialog));
+      if (dialog) {
+        UiSetPendingMovie(dialog);
         m_flags.m_value |= kFlagDialogShown;
       }
     }
@@ -153,23 +146,19 @@ void PlayerDispatch::Update()
     return;
   }
   int* flags = &m_flags.m_value;
-  if (m_flags.Get() == 0)
+  if (m_flags.Get() == 0) {
     return;
+  }
   uint32_t value = *flags;
-  if ((value & kFlagDialogWaiting) == 0)
-  {
-    if ((value & kFlagReportWaiting) == 0)
-    {
-      if ((value & 4) != 0)
+  if ((value & kFlagDialogWaiting) == 0) {
+    if ((value & kFlagReportWaiting) == 0) {
+      if ((value & 4) != 0) {
         *flags &= ~4u;
-    }
-    else if (m_unk40 != 0)
-    {
-      if (UiIsGalaxyViewShown())
-      {
+      }
+    } else if (m_unk40 != 0) {
+      if (UiIsGalaxyViewShown()) {
         auto* notice = static_cast<UiNotice*>(m_trees[1].First());
-        if (notice && notice->GetKind() == 2)
-        {
+        if (notice && notice->GetKind() == 2) {
           UiOpenType6Window(reinterpret_cast<LPARAM>(notice));
           m_unk40 = 0;
           *flags &= ~kFlagReportWaiting;
@@ -177,14 +166,10 @@ void PlayerDispatch::Update()
         }
       }
     }
-  }
-  else if (m_unk40 != 0)
-  {
-    if (UiIsGalaxyViewShown())
-    {
+  } else if (m_unk40 != 0) {
+    if (UiIsGalaxyViewShown()) {
       auto* notice = static_cast<UiNotice*>(m_trees[1].First());
-      if (notice && notice->GetKind() == 1)
-      {
+      if (notice && notice->GetKind() == 1) {
         UiOpenType8Window(reinterpret_cast<LPARAM>(notice));
         m_unk40 = 0;
         *flags &= ~kFlagDialogWaiting;
@@ -196,21 +181,17 @@ void PlayerDispatch::Update()
 
 void PlayerDispatch::AddMessage(UiNotice* message)
 {
-  if (!message)
+  if (!message) {
     return;
+  }
   int messageClass = message->GetClass();
-  if (messageClass == 1)
-  {
+  if (messageClass == 1) {
     m_trees[1].DetachById(message->m_id);
     delete message;
-  }
-  else if (messageClass == 2)
-  {
+  } else if (messageClass == 2) {
     m_trees[1].DetachById(message->m_id);
     m_trees[3].AddWithId(message);
-  }
-  else if (messageClass == 6)
-  {
+  } else if (messageClass == 6) {
     m_trees[2].DetachById(message->m_id);
     m_flags.m_value &= 0xdfffffff;
     delete message;
@@ -219,26 +200,29 @@ void PlayerDispatch::AddMessage(UiNotice* message)
 
 void PlayerDispatch::AddArrivalNotice(const ObjectKey* key, int attack)
 {
-  if (!inFamilies(*key, 0x90, 0x98))
+  if (!inFamilies(*key, 0x90, 0x98)) {
     return;
+  }
   UiNotice* notice = NewOrNull<Notice2>(key, m_side);
-  if (notice)
+  if (notice) {
     static_cast<Notice2*>(notice)->m_attack = attack;
+  }
   AddNotice(notice);
 }
 
 void PlayerDispatch::DiscardPayloads(const AiNoticeGroup* payloads)
 {
-  for (const auto& node : payloads->Entries())
+  for (const auto& node : payloads->Entries()) {
     node.get()->DispatchToSink(nullptr);
+  }
 }
 
 void PlayerDispatch::AddNotice(UiNotice* notice)
 {
-  if (!notice)
+  if (!notice) {
     return;
-  switch (notice->GetClass())
-  {
+  }
+  switch (notice->GetClass()) {
     case 1:
       m_trees[1].AddWithId(notice);
       m_flags.m_value |= kFlagDialogWaiting;
@@ -251,29 +235,25 @@ void PlayerDispatch::AddNotice(UiNotice* notice)
     case 4:
     case 5:
     case 8:
-    {
-      if (notice->MessageText0().empty())
       {
-        delete notice;
-      }
-      else
-      {
-        unsigned previous = GetStateValue(static_cast<int>(notice->m_categories));
-        m_trees[0].AddWithId(notice);
-        m_unk50 |= notice->m_categories;
-        UiClearButtonHighlights(notice->m_categories);
-        if (notice->m_unk28 != 0 && (previous & 4) == 0)
-        {
-          static_cast<AdvisorBase*>(m_advisor)->ScheduleCue(notice->m_unk28);
-          RefreshRecords();
-          UiRefreshMessageIndex();
-          return;
+        if (notice->MessageText0().empty()) {
+          delete notice;
+        } else {
+          unsigned previous = GetStateValue(static_cast<int>(notice->m_categories));
+          m_trees[0].AddWithId(notice);
+          m_unk50 |= notice->m_categories;
+          UiClearButtonHighlights(notice->m_categories);
+          if (notice->m_unk28 != 0 && (previous & 4) == 0) {
+            static_cast<AdvisorBase*>(m_advisor)->ScheduleCue(notice->m_unk28);
+            RefreshRecords();
+            UiRefreshMessageIndex();
+            return;
+          }
         }
+        RefreshRecords();
+        UiRefreshMessageIndex();
+        return;
       }
-      RefreshRecords();
-      UiRefreshMessageIndex();
-      return;
-    }
     case 6:
       m_trees[2].AddWithId(notice);
       return;
@@ -288,19 +268,20 @@ void PlayerDispatch::AddNotice(UiNotice* notice)
 
 void PlayerDispatch::RemoveRecord(int id)
 {
-  if (m_trees[0].FindById(id))
-  {
+  if (m_trees[0].FindById(id)) {
     IdNode* node = m_trees[0].DetachById(id);
-    if (node)
+    if (node) {
       delete node;
+    }
   }
 }
 
 unsigned PlayerDispatch::GetStateValue(int key)
 {
   auto found = m_states.find(static_cast<uint32_t>(key));
-  if (found != m_states.end())
+  if (found != m_states.end()) {
     return static_cast<unsigned>(found->second);
+  }
   return m_defaultState.Get();
 }
 
@@ -313,10 +294,10 @@ void PlayerDispatch::SetDefaultState(int state)
 void PlayerDispatch::SetStateValue(int key, int value)
 {
   auto stateKey = static_cast<uint32_t>(key);
-  if (stateKey == 0)
-  {
-    if (!m_states.empty() && m_states.rbegin()->first == std::numeric_limits<uint32_t>::max())
+  if (stateKey == 0) {
+    if (!m_states.empty() && m_states.rbegin()->first == std::numeric_limits<uint32_t>::max()) {
       return;
+    }
     stateKey = m_states.empty() ? 1 : m_states.rbegin()->first + 1;
   }
   m_states[stateKey] = value;
@@ -324,28 +305,28 @@ void PlayerDispatch::SetStateValue(int key, int value)
 
 void PlayerDispatch::RefreshRecords()
 {
-  if ((m_flags.m_value & kFlagHeld) != 0)
+  if ((m_flags.m_value & kFlagHeld) != 0) {
     return;
+  }
   auto position = m_trees[0].Entries().begin();
   m_unk50 = 0;
-  while (position != m_trees[0].Entries().end())
-  {
+  while (position != m_trees[0].Entries().end()) {
     UiNotice* notice = static_cast<UiNotice*>((*(position++)).get());
-    if (!notice->IsStale())
-    {
-      if ((notice->m_flags.m_value & 0x10) != 0)
+    if (!notice->IsStale()) {
+      if ((notice->m_flags.m_value & 0x10) != 0) {
         m_unk50 |= notice->m_categories;
-    }
-    else
-    {
+      }
+    } else {
       m_trees[0].DetachById(notice->m_id);
-      if ((notice->m_flags.m_value & 1) == 0)
+      if ((notice->m_flags.m_value & 1) == 0) {
         notice->OnDismiss();
+      }
       delete notice;
     }
   }
-  if (~m_unk50 != 0)
+  if (~m_unk50 != 0) {
     UiSetButtonHighlights(~m_unk50);
+  }
   UiClearButtonHighlights(m_unk50);
 }
 
@@ -358,13 +339,14 @@ void PlayerDispatch::QueueConfirmation(MessageBase* message)
 void PlayerDispatch::OnChatMessage(MessageBase* message)
 {
   TextMessage* chat = nullptr;
-  if (message && message->GetKind() == 0x11)
+  if (message && message->GetKind() == 0x11) {
     chat = static_cast<TextMessage*>(message);
-  if (chat->m_side == m_side)
+  }
+  if (chat->m_side == m_side) {
     return;
+  }
   auto* notice = NewOrNull<Notice10>(chat->m_text.c_str(), m_side, 1);
-  if (notice->m_unk40 != 0)
-  {
+  if (notice->m_unk40 != 0) {
     notice->SetId(UiNextId());
     AddNotice(notice);
   }
@@ -375,15 +357,15 @@ void PlayerDispatch::QueueChat(std::string* text, int)
   auto* message = NewOrNull<MpChatMsg>();
   (message->m_text = *text);
   message->m_side = m_side;
-  UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(message), 0);
+  UiHumanReceiveMessage(static_cast<PlayerMessage*>(message), 0);
 }
 
 int PlayerDispatch::IsIdle()
 {
-  if ((m_flags.m_value & kFlagDialogShown) == 0)
-  {
-    if (!m_trees[2].First())
+  if ((m_flags.m_value & kFlagDialogShown) == 0) {
+    if (!m_trees[2].First()) {
       return 1;
+    }
     m_flags.m_value |= kFlagIdleWait;
   }
   return 0;
@@ -391,33 +373,28 @@ int PlayerDispatch::IsIdle()
 
 void PlayerDispatch::ClearAlerts(unsigned mask)
 {
-  if ((m_unk50 & mask) == 0)
-  {
-    if (mask == 0)
-    {
+  if ((m_unk50 & mask) == 0) {
+    if (mask == 0) {
       m_unk50 = 0;
       UiSetButtonHighlights(mask);
     }
-  }
-  else
-  {
+  } else {
     m_unk50 = ~mask & m_unk50;
     UiSetButtonHighlights(mask);
   }
-  for (const auto& entry : m_trees[0].Entries())
-  {
+  for (const auto& entry : m_trees[0].Entries()) {
     auto* node = entry.get();
     auto* notice = static_cast<UiNotice*>(node);
-    if ((notice->m_categories & mask) != 0 || mask == 0)
+    if ((notice->m_categories & mask) != 0 || mask == 0) {
       notice->m_flags.m_value &= 0xffffffef;
+    }
   }
 }
 
 void PlayerDispatch::AddCharacterNotice(int value)
 {
   auto* notice = NewOrNull<Notice42>(m_side, value);
-  if (notice->m_unk40 != 0)
-  {
+  if (notice->m_unk40 != 0) {
     notice->SetId(UiNextId());
     AddNotice(notice);
   }
@@ -425,8 +402,7 @@ void PlayerDispatch::AddCharacterNotice(int value)
 
 void PlayerDispatch::SetHold(int on)
 {
-  if (on != 0)
-  {
+  if (on != 0) {
     m_flags.m_value |= kFlagHeld;
     return;
   }
@@ -437,19 +413,17 @@ void PlayerDispatch::SetHold(int on)
 UiNotice* PlayerDispatch::CreateNotice(int kind, const AiNoticeGroup* payloads)
 {
   UiNotice* notice = nullptr;
-  switch (kind)
-  {
+  switch (kind) {
     case 1:
-    {
-      auto* vote = static_cast<Notice2*>(m_trees[3].First());
-      if (vote)
       {
-        notice = NewOrNull<Notice1>(payloads, m_side, vote);
-        m_trees[3].DetachById(vote->m_id);
-        delete vote;
+        auto* vote = static_cast<Notice2*>(m_trees[3].First());
+        if (vote) {
+          notice = NewOrNull<Notice1>(payloads, m_side, vote);
+          m_trees[3].DetachById(vote->m_id);
+          delete vote;
+        }
+        break;
       }
-      break;
-    }
     case 0x03:
       notice = NewOrNull<Notice3>(payloads, m_side);
       break;
@@ -567,15 +541,11 @@ UiNotice* PlayerDispatch::CreateNotice(int kind, const AiNoticeGroup* payloads)
     default:
       break;
   }
-  if (notice)
-  {
-    if (notice->m_unk40 == 0)
-    {
+  if (notice) {
+    if (notice->m_unk40 == 0) {
       delete notice;
       notice = nullptr;
-    }
-    else
-    {
+    } else {
       notice->SetId(UiNextId());
     }
   }
@@ -586,45 +556,45 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
 {
   int kind = 0;
   int fallback = 0;
-  if (!payloads)
+  if (!payloads) {
     return kind;
-  for (const auto& node : payloads->Entries())
-  {
-    if (kind != 0)
+  }
+  for (const auto& node : payloads->Entries()) {
+    if (kind != 0) {
       return kind;
+    }
     auto* keyed = static_cast<KeyedNotifPayload*>(node.get());
     auto* ints = dynamic_cast<IntPairPayload*>(keyed);
-    switch (keyed->GetKind())
-    {
+    switch (keyed->GetKind()) {
       case 0x100:
-        if (inFamilies(keyed->m_key, 0x90, 0x98))
+        if (inFamilies(keyed->m_key, 0x90, 0x98)) {
           kind = 4;
-        break;
-      case 0x105:
-      {
-        ObjectKey unset;
-        if (ints->m_valueB == 0)
-        {
-          GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &keyed->m_key);
-          if (object)
-          {
-            kind = 0xd;
-            if ((static_cast<GameObj*>(object)->m_packed & 0xff00) == 0x100)
-            {
-              ObjectKey objectKey;
-              object->GetKey(&objectKey);
-              if (objectKey.m_value != unset.m_value)
-                kind = 0;
-            }
-          }
         }
         break;
-      }
+      case 0x105:
+        {
+          ObjectKey unset;
+          if (ints->m_valueB == 0) {
+            GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &keyed->m_key);
+            if (object) {
+              kind = 0xd;
+              if ((static_cast<GameObj*>(object)->m_packed & 0xff00) == 0x100) {
+                ObjectKey objectKey;
+                object->GetKey(&objectKey);
+                if (objectKey.m_value != unset.m_value) {
+                  kind = 0;
+                }
+              }
+            }
+          }
+          break;
+        }
       case 0x106:
-        if (inFamilies(keyed->m_key, 0x30, 0x3c))
+        if (inFamilies(keyed->m_key, 0x30, 0x3c)) {
           kind = 0x1a;
-        else if (ints->m_valueB == 0)
+        } else if (ints->m_valueB == 0) {
           kind = 6;
+        }
         break;
       case 0x107:
         kind = 0xe;
@@ -635,13 +605,11 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 5;
         break;
       case 0x128:
-        if ((ints->m_valueB & 1) == 0 || (ints->m_valueA & 1) != 0)
-        {
-          if ((ints->m_valueB & 0x100) != 0 && (ints->m_valueA & 0x100) == 0)
+        if ((ints->m_valueB & 1) == 0 || (ints->m_valueA & 1) != 0) {
+          if ((ints->m_valueB & 0x100) != 0 && (ints->m_valueA & 0x100) == 0) {
             kind = 0x1e;
-        }
-        else
-        {
+          }
+        } else {
           kind = 0x1f;
         }
         break;
@@ -669,28 +637,28 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 7;
         break;
       case 0x14f:
-        if (ints->m_valueB == 0)
-        {
+        if (ints->m_valueB == 0) {
           ObjectKey subject(keyed->m_key);
           GameObjNotifier* system = GetObjectInFamilies_90_98(m_side, &subject);
           kind = 0xf;
-          if (system && (static_cast<GameObj*>(system)->m_stateFlags & 8) != 0)
+          if (system && (static_cast<GameObj*>(system)->m_stateFlags & 8) != 0) {
             kind = 0;
+          }
         }
         break;
       case 0x150:
-      {
-        kind = 0xf;
-        if (keyed->m_key.m_value == 0x90000109 && ints->m_valueB != 0 && ints->m_valueA == 2)
         {
-          ObjectKey system;
-          system.m_value = 0x90000109;
-          GameObjNotifier* object = GetObjectInFamilies_90_98(m_side, &system);
-          if (object->ControlSide() == 1)
-            kind = 0;
+          kind = 0xf;
+          if (keyed->m_key.m_value == 0x90000109 && ints->m_valueB != 0 && ints->m_valueA == 2) {
+            ObjectKey system;
+            system.m_value = 0x90000109;
+            GameObjNotifier* object = GetObjectInFamilies_90_98(m_side, &system);
+            if (object->ControlSide() == 1) {
+              kind = 0;
+            }
+          }
+          break;
         }
-        break;
-      }
       case 0x153:
         kind = 0x18;
         break;
@@ -699,8 +667,9 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 0x20;
         break;
       case 0x160:
-        if (ints->m_valueB == 0)
+        if (ints->m_valueB == 0) {
           kind = 0x21;
+        }
         break;
       case 0x1e0:
         kind = 0x19;
@@ -709,55 +678,51 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 0x1d;
         break;
       case 0x1f0:
-      {
-        GameObjNotifier* object = GetObjectInFamilies_40_80(m_side, &keyed->m_key);
-        if (object && static_cast<Mission*>(object)->GetRecordHidden() == 0)
-        {
-          if (!inFamilies(keyed->m_key, 0x40, 0x50) && ints->m_valueB != 0)
-            kind = 0x16;
-          if (keyed->m_key.Family() == 0x6a && ints->m_valueB == 3)
-            kind = 0;
-          if (m_side == 1)
-          {
-            if (object->ControlSide() != 1)
-              kind = 0;
-          }
-          else if (m_side == 2 && object->ControlSide() != 2)
-          {
-            kind = 0;
-          }
-        }
-        break;
-      }
-      case 0x1f1:
-        if (ints->m_valueB != 0 && !inFamilies(keyed->m_key, 0x40, 0x50))
         {
           GameObjNotifier* object = GetObjectInFamilies_40_80(m_side, &keyed->m_key);
-          if (object && static_cast<Mission*>(object)->GetRecordHidden() == 0 &&
-              static_cast<Mission*>(object)->m_taskStatus == 0)
+          if (object && static_cast<Mission*>(object)->GetRecordHidden() == 0) {
+            if (!inFamilies(keyed->m_key, 0x40, 0x50) && ints->m_valueB != 0) {
+              kind = 0x16;
+            }
+            if (keyed->m_key.Family() == 0x6a && ints->m_valueB == 3) {
+              kind = 0;
+            }
+            if (m_side == 1) {
+              if (object->ControlSide() != 1) {
+                kind = 0;
+              }
+            } else if (m_side == 2 && object->ControlSide() != 2) {
+              kind = 0;
+            }
+          }
+          break;
+        }
+      case 0x1f1:
+        if (ints->m_valueB != 0 && !inFamilies(keyed->m_key, 0x40, 0x50)) {
+          GameObjNotifier* object = GetObjectInFamilies_40_80(m_side, &keyed->m_key);
+          if (object && static_cast<Mission*>(object)->GetRecordHidden() == 0
+              && static_cast<Mission*>(object)->m_taskStatus == 0) {
             kind = 0x17;
+          }
         }
         break;
       case 0x200:
-      {
-        auto* mission = static_cast<UiNotif200*>(keyed);
-        if (inFamilies(mission->m_missionKey, 0x40, 0x50))
         {
-          if (ints->m_valueB == 0 && fallback == 0)
-          {
-            ObjectKey subject(keyed->m_key);
-            if (!inFamilies(subject, 0x3c, 0x40))
-              fallback = 0x14;
-            else
-              GetObjectInFamilies_3c_40(m_side, &subject);
+          auto* mission = static_cast<UiNotif200*>(keyed);
+          if (inFamilies(mission->m_missionKey, 0x40, 0x50)) {
+            if (ints->m_valueB == 0 && fallback == 0) {
+              ObjectKey subject(keyed->m_key);
+              if (!inFamilies(subject, 0x3c, 0x40)) {
+                fallback = 0x14;
+              } else {
+                GetObjectInFamilies_3c_40(m_side, &subject);
+              }
+            }
+          } else if (mission->m_missionKey.Family() == 100 && ints->m_valueB != 0) {
+            kind = 0x28;
           }
+          break;
         }
-        else if (mission->m_missionKey.Family() == 100 && ints->m_valueB != 0)
-        {
-          kind = 0x28;
-        }
-        break;
-      }
       case 0x210:
       case 0x221:
         kind = 0x25;
@@ -776,8 +741,9 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 0x29;
         break;
       case 0x302:
-        if (inFamilies(keyed->m_key, 0x90, 0x98))
+        if (inFamilies(keyed->m_key, 0x90, 0x98)) {
           kind = 0x15;
+        }
         break;
       case 0x303:
         kind = 0x10;
@@ -786,10 +752,11 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
         kind = 0xc;
         break;
       case 0x305:
-        if (inFamilies(keyed->m_key, 0x18, 0x1c))
+        if (inFamilies(keyed->m_key, 0x18, 0x1c)) {
           kind = 0x23;
-        else
+        } else {
           fallback = 0x22;
+        }
         break;
       case 0x306:
         kind = 0x2b;

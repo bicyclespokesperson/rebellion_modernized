@@ -19,13 +19,13 @@ bool IsSystemFamily(uint32_t family)
 
 int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to)
 {
-  MapPosition toPosition;
-  MapPosition fromPosition;
-  auto* target = reinterpret_cast<MapPosition*>(
-    static_cast<System*>(to)->System::GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
-  return MapDistance(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->System::GetRecordField4c(
-                       reinterpret_cast<uint32_t*>(&fromPosition))),
-                     target);
+  uint32_t fromPacked = 0;
+  uint32_t toPacked = 0;
+  static_cast<System*>(from)->GetRecordField4c(&fromPacked);
+  static_cast<System*>(to)->GetRecordField4c(&toPacked);
+  const MapPosition fromPosition{static_cast<int16_t>(fromPacked), static_cast<int16_t>(fromPacked >> 16)};
+  const MapPosition toPosition{static_cast<int16_t>(toPacked), static_cast<int16_t>(toPacked >> 16)};
+  return MapDistance(&fromPosition, &toPosition);
 }
 
 int SystemIndex(const GameObjNotifier* system)
@@ -35,7 +35,9 @@ int SystemIndex(const GameObjNotifier* system)
 
 } // namespace
 
-SystemNeighbourCursor::SystemNeighbourCursor() : m_begin(nullptr), m_current(nullptr)
+SystemNeighbourCursor::SystemNeighbourCursor()
+    : m_begin(nullptr)
+    , m_current(nullptr)
 {
 }
 
@@ -53,35 +55,35 @@ int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCur
   out->m_begin = nullptr;
   out->m_current = nullptr;
   const int valid = IsSystemFamily(key->Family());
-  if (valid)
-  {
+  if (valid) {
     const int index = static_cast<int>(key->Id()) - kFirstSystemId;
-    if (index < 0 || index >= kSystemCount)
+    if (index < 0 || index >= kSystemCount) {
       return 0;
+    }
     SystemNeighbours* entry = m_entries + index;
     out->m_begin = entry->m_systems;
-    if (entry)
+    if (entry) {
       out->m_current = entry->m_systems;
+    }
   }
   return valid;
 }
 
 int SystemNeighbourTable::Build()
 {
-  for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = NextSystemMaster(from))
-  {
+  for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = NextSystemMaster(from)) {
     SystemDistance distances[kSystemCount];
     std::memset(distances, 0, sizeof(distances));
-    for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = NextSystemMaster(to))
-    {
+    for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = NextSystemMaster(to)) {
       SystemDistance& slot = distances[SystemIndex(to)];
       slot.m_system = to;
       slot.m_distance = DistanceBetween(from, to);
     }
     std::qsort(distances, kSystemCount, sizeof(SystemDistance), CompareSystemDistance);
     SystemNeighbours& list = m_entries[SystemIndex(from)];
-    for (int i = 0; i < kSystemCount; ++i)
+    for (int i = 0; i < kSystemCount; ++i) {
       list.m_systems[i] = distances[i].m_system;
+    }
   }
   return 1;
 }
@@ -92,11 +94,14 @@ int CompareSystemDistance(const void* a, const void* b)
   const auto* second = static_cast<const SystemDistance*>(b);
   const bool firstListed = first->m_system != nullptr;
   const bool secondListed = second->m_system != nullptr;
-  if (!firstListed)
+  if (!firstListed) {
     return secondListed ? 1 : 0;
-  if (!secondListed)
+  }
+  if (!secondListed) {
     return -1;
-  if (first->m_distance > second->m_distance)
+  }
+  if (first->m_distance > second->m_distance) {
     return 1;
+  }
   return first->m_distance >= second->m_distance ? 0 : -1;
 }

@@ -1,0 +1,23 @@
+# Replay a synthetic snapshot with multiple seeds outside the application.
+set(ENGINE space)
+file(REMOVE_RECURSE "${OUT}")
+execute_process(
+  COMMAND "${RUNNER}" --seeds 2 --out "${OUT}/runner.jsonl" --write-results "${OUT}" --in "${SNAPSHOT}"
+  RESULT_VARIABLE status)
+if(NOT status EQUAL 0)
+  message(FATAL_ERROR "reb_battle_runner exited with ${status}")
+endif()
+file(STRINGS "${OUT}/runner.jsonl" lines)
+list(LENGTH lines count)
+if(NOT count EQUAL 2)
+  message(FATAL_ERROR "expected one line per seed, got ${count}")
+endif()
+foreach(line IN LISTS lines)
+  if(NOT line MATCHES "\"engine\":\"${ENGINE}\"" OR NOT line MATCHES "\"finished\":true")
+    message(FATAL_ERROR "unexpected runner line: ${line}")
+  endif()
+endforeach()
+file(READ "${OUT}/synthetic.${ENGINE}.result" result)
+if(NOT result MATCHES "^rebellion-battle-result 1\nengine name=${ENGINE} ")
+  message(FATAL_ERROR "unexpected result file:\n${result}")
+endif()

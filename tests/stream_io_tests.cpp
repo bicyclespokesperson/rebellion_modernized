@@ -1,9 +1,10 @@
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
-#include <chrono>
 #include <filesystem>
 #include <limits>
 #include <string>
+#include <string_view>
 
 #include "core/iostream_lib.h"
 
@@ -12,30 +13,31 @@ namespace
 
 void Require(bool condition)
 {
-  if (!condition)
+  if (!condition) {
     std::abort();
+  }
 }
 
 void VerifyStringRoundTripAndFreeze()
 {
-  constexpr char kText[] = "typed stream round trip";
+  constexpr std::string_view kText = "typed stream round trip";
   char* detached = nullptr;
   {
     ScopedStrstream stream;
-    ostream_write(stream.get()->Out(), kText, sizeof(kText) - 1);
+    ostream_write(stream.get()->Out(), kText.data(), static_cast<int>(kText.size()));
     Require(istream_seekg_pos(stream.get()->In(), 0) == stream.get()->In());
-    char result[sizeof(kText)]{};
-    istream_read(stream.get()->In(), result, sizeof(kText) - 1);
-    Require(stream.get()->In()->m_gcount == static_cast<int>(sizeof(kText) - 1));
-    Require(std::memcmp(result, kText, sizeof(kText) - 1) == 0);
+    std::string result(kText.size(), '\0');
+    istream_read(stream.get()->In(), result.data(), static_cast<int>(result.size()));
+    Require(stream.get()->In()->m_gcount == static_cast<int>(kText.size()));
+    Require(result == kText);
 
     detached = strstreambuf_str(iostream_access::BufferOf(stream.get()));
     Require(detached != nullptr);
-    Require(std::memcmp(detached, kText, sizeof(kText) - 1) == 0);
+    Require(std::string_view(detached, kText.size()) == kText);
   }
 
   // str() freezes the dynamically allocated buffer: stream cleanup leaves the returned storage owned by the caller.
-  Require(std::memcmp(detached, kText, sizeof(kText) - 1) == 0);
+  Require(std::string_view(detached, kText.size()) == kText);
   ::operator delete(detached);
 }
 
@@ -44,8 +46,8 @@ void VerifyGrowingSeek()
   ScopedStrstream stream;
   ostream_write(stream.get()->Out(), "abc", 3);
   auto* buffer = iostream_access::BufferOf(stream.get());
-  Require(strstreambuf_seekoff(static_cast<strstreambuf*>(buffer), 4096, iostream_flags::kSeekBeg,
-                               iostream_flags::kOut) == 4096);
+  Require(strstreambuf_seekoff(static_cast<strstreambuf*>(buffer), 4096, iostream_flags::kSeekBeg, iostream_flags::kOut)
+          == 4096);
   ostream_write(stream.get()->Out(), "z", 1);
   Require(istream_seekg_pos(stream.get()->In(), 0) == stream.get()->In());
   char prefix[3]{};
@@ -53,14 +55,15 @@ void VerifyGrowingSeek()
   Require(std::memcmp(prefix, "abc", 3) == 0);
   char gap[4093];
   istream_read(stream.get()->In(), gap, sizeof(gap));
-  for (char byte : gap)
+  for (char byte : gap) {
     Require(byte == 0);
+  }
   Require(istream_seekg_pos(stream.get()->In(), 4096) == stream.get()->In());
   char last = 0;
   istream_read(stream.get()->In(), &last, 1);
   Require(last == 'z');
-  Require(
-    strstreambuf_seekoff(static_cast<strstreambuf*>(buffer), -1, iostream_flags::kSeekBeg, iostream_flags::kOut) == -1);
+  Require(strstreambuf_seekoff(static_cast<strstreambuf*>(buffer), -1, iostream_flags::kSeekBeg, iostream_flags::kOut)
+          == -1);
 }
 
 void VerifyZeroedInCapacityGap()
@@ -78,8 +81,9 @@ void VerifyZeroedInCapacityGap()
   Require(std::memcmp(prefix, "abc", sizeof(prefix)) == 0);
   char gap[17];
   istream_read(stream.get()->In(), gap, sizeof(gap));
-  for (char byte : gap)
+  for (char byte : gap) {
     Require(byte == 0);
+  }
   char last = 0;
   istream_read(stream.get()->In(), &last, 1);
   Require(last == 'Z');
@@ -134,12 +138,12 @@ void VerifyFileRoundTripAndFailureState()
   const auto path = directory / "round-trip.bin";
   const std::string filename = path.string();
 
-  constexpr char kText[] = "file stream round trip";
+  constexpr std::string_view kText = "file stream round trip";
   {
     ScopedOfstream output;
     ofstream_open(output.get(), filename.c_str(), 0x82, 0x180);
     Require(output.get()->Ios()->m_state == 0);
-    ostream_write(output.get()->Out(), kText, sizeof(kText) - 1);
+    ostream_write(output.get()->Out(), kText.data(), static_cast<int>(kText.size()));
     fstreambase_close(output.get()->Out());
     Require(output.get()->Ios()->m_state == 0);
   }
@@ -148,10 +152,10 @@ void VerifyFileRoundTripAndFailureState()
     ScopedIfstream input;
     ifstream_open(input.get(), filename.c_str(), 0xa1, 0x180);
     Require(input.get()->Ios()->m_state == 0);
-    char result[sizeof(kText)]{};
-    istream_read(input.get()->In(), result, sizeof(kText) - 1);
-    Require(input.get()->In()->m_gcount == static_cast<int>(sizeof(kText) - 1));
-    Require(std::memcmp(result, kText, sizeof(kText) - 1) == 0);
+    std::string result(kText.size(), '\0');
+    istream_read(input.get()->In(), result.data(), static_cast<int>(result.size()));
+    Require(input.get()->In()->m_gcount == static_cast<int>(kText.size()));
+    Require(result == kText);
     fstreambase_close(input.get()->In());
     Require(input.get()->Ios()->m_state == 0);
   }

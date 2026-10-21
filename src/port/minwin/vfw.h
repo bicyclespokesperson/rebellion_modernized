@@ -1,13 +1,11 @@
 // minwin: AVIFIL32 -- the three AVIFile calls the game uses to read the properties of a movie file.
-// Written from the API surface (names, signatures, layouts, values); tools/minwin_check.sh compares them with the SDK.
-// Missing names: tools/minwin_scaffold.py drafts the declarations; review them before pasting.
+// Written from the API surface (names, signatures, layouts, values) of the Windows SDK.
 #pragma once
 #include "port/minwin/base.h"
 #include "port/minwin/winmm.h"
 
 struct IAVIFile;
-struct _AVIFILEINFOA
-{
+struct _AVIFILEINFOA {
   DWORD dwMaxBytesPerSec;
   DWORD dwFlags;
   DWORD dwCaps;
@@ -25,8 +23,9 @@ using AVIFILEINFOA = struct _AVIFILEINFOA;
 using LPAVIFILEINFOA = struct _AVIFILEINFOA*;
 using PAVIFILE = IAVIFile*;
 
-extern "C" {
-MINWIN_IMPORT ULONG REB_STDCALL AVIFileRelease(PAVIFILE pfile);
-MINWIN_IMPORT HRESULT REB_STDCALL AVIFileOpenA(PAVIFILE* ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);
-MINWIN_IMPORT HRESULT REB_STDCALL AVIFileInfoA(PAVIFILE pfile, LPAVIFILEINFOA pfi, LONG lSize);
+namespace reb::compat
+{
+ULONG REB_STDCALL AVIFileRelease(PAVIFILE pfile);
+HRESULT REB_STDCALL AVIFileOpenA(PAVIFILE* ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);
+HRESULT REB_STDCALL AVIFileInfoA(PAVIFILE pfile, LPAVIFILEINFOA pfi, LONG lSize);
 }

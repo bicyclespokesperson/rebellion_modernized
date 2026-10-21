@@ -1,6 +1,8 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
 #include <string>
+#include <thread>
 
 #include "core/reb_abi.h"
 #include "platform/smacker.h"
@@ -14,8 +16,7 @@
 // The movie windows report to their parent window with private messages: 0x402 = the last frame was shown,
 // 0x403 = the file could not be opened, 0x404 = the movie was skipped (Escape or a mouse click).
 
-enum MovieType : int
-{
+enum MovieType : int {
   kMovieSmacker = 1,
   kMovieAvi = 2,
 };
@@ -26,16 +27,9 @@ constexpr UINT kMovieMessageSkipped = 0x404;
 
 class SmackerWindow : public CoolWindow
 {
-public:
-  SmackerWindow(const char* path,
-                HINSTANCE instance,
-                int x,
-                int y,
-                int width,
-                int height,
-                CoolWindow* parent,
-                int autoStart,
-                uint32_t smackFlags);
+  public:
+  SmackerWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+                int autoStart, uint32_t smackFlags);
   ~SmackerWindow() override;
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
@@ -51,33 +45,30 @@ public:
   void SetVolume(int volume);
 
   static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
-  static DWORD REB_STDCALL PlaybackThreadProc(LPVOID context);
+  static void PlaybackThreadProc(SmackerWindow* window);
 
   std::string m_path;
-  uint32_t m_unk194; // +0x194
-  uint32_t m_unk198; // +0x198
-  uint32_t m_scale; // +0x19c, integer window zoom
-  int m_autoStart; // +0x1a0, WM_CREATE starts playback
-  int m_loop; // +0x1a4
+  uint32_t m_unk194;       // +0x194
+  uint32_t m_unk198;       // +0x198
+  uint32_t m_scale;        // +0x19c, integer window zoom
+  int m_autoStart;         // +0x1a0, WM_CREATE starts playback
+  int m_loop;              // +0x1a4
   SmackBuf* m_smackBuffer; // +0x1a8
-  Smack* m_smack; // +0x1ac
-  DWORD m_threadId; // +0x1b0
-  HANDLE m_thread; // +0x1b4
-  uint32_t m_smackFlags; // +0x1b8, SmackOpen flags
-  int m_savedVolume; // +0x1bc, DirectSound primary volume when the window was created
-  int m_volumeTouched; // +0x1c0, SetVolume was called; the destructor restores m_savedVolume
+  Smack* m_smack;          // +0x1ac
+  std::thread m_thread;
+  uint32_t m_smackFlags;   // +0x1b8, SmackOpen flags
+  int m_savedVolume;       // +0x1bc, DirectSound primary volume when the window was created
+  int m_volumeTouched;     // +0x1c0, SetVolume was called; the destructor restores m_savedVolume
+
+  private:
+  void StopThread();
+  std::atomic<bool> m_stopRequested{false};
 };
 
 class VideoWindow : public CoolWindow
 {
-public:
-  VideoWindow(const char* path,
-              HINSTANCE instance,
-              int x,
-              int y,
-              int width,
-              int height,
-              CoolWindow* parent,
+  public:
+  VideoWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
               int autoStart);
   ~VideoWindow() override;
   LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
@@ -92,14 +83,14 @@ public:
 
   std::string m_path;
   MCIDEVICEID m_device; // +0x194
-  uint32_t m_unk198; // +0x198
-  uint32_t m_unk19c; // +0x19c
-  int m_autoStart; // +0x1a0
+  uint32_t m_unk198;    // +0x198
+  uint32_t m_unk19c;    // +0x19c
+  int m_autoStart;      // +0x1a0
 };
 
 class VideoManager
 {
-public:
+  public:
   explicit VideoManager(CoolWindow* parentWindow);
   virtual ~VideoManager();
 
@@ -116,8 +107,8 @@ public:
   static VideoManager* GetInstance();
   static int GetMovieSize(const char* path, int* width, int* height, int type);
 
-  VideoWindow* m_videoWindow; // +0x04, the MovieType 2 window
+  VideoWindow* m_videoWindow;     // +0x04, the MovieType 2 window
   SmackerWindow* m_smackerWindow; // +0x08, the MovieType 1 window
-  int m_movieType; // +0x0c
-  int m_playing; // +0x10
+  int m_movieType;                // +0x0c
+  int m_playing;                  // +0x10
 };

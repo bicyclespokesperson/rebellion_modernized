@@ -5,7 +5,7 @@
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
 
-extern int g_characterEventKindsBuilt; // 0x6b2938
+extern int g_characterEventKindsBuilt;     // 0x6b2938
 extern EventKindSet g_characterEventKinds; // 0x6b2940
 
 // The kind-name formatter shared with GameObj (0x4f6030).
@@ -46,16 +46,21 @@ bool statusIsOk(const StatusCode* status)
 
 int16_t forceTitleStringId(uint16_t force)
 {
-  if (force < 10)
+  if (force < 10) {
     return static_cast<int16_t>(0x8754);
-  if (force < 20)
+  }
+  if (force < 20) {
     return static_cast<int16_t>(0x8749);
-  if (force < 80)
+  }
+  if (force < 80) {
     return static_cast<int16_t>(0x8750);
-  if (force < 100)
+  }
+  if (force < 100) {
     return static_cast<int16_t>(0x8751);
-  if (force < 120)
+  }
+  if (force < 120) {
     return static_cast<int16_t>(0x8752);
+  }
   return static_cast<int16_t>(0x8753);
 }
 
@@ -64,28 +69,28 @@ int16_t forceTitleStringId(uint16_t force)
 // ---- construction -----------------------------------------------------------------------------------------
 
 Character::Character()
-: Role(),
-  m_enhancedDiplomacy(0),
-  m_enhancedEspionage(0),
-  m_enhancedShipyardRD(0),
-  m_enhancedTrainingFacilRD(0),
-  m_enhancedConstructionYardRD(0),
-  m_enhancedCombat(0),
-  m_enhancedLeadership(0),
-  m_enhancedLoyalty(0),
-  m_force(0),
-  m_forceExperience(0),
-  m_forceTraining(0),
-  m_leadershipAdjustment(0),
-  m_injury(0),
-  m_commandKind(0),
-  m_state(4),
-  m_missionHyperdriveModifier(static_cast<int16_t>(g_gnprtbDefault)),
-  m_encounterKey(),
-  m_traitorDiscoveredKey(),
-  m_forceUserDiscoveredKey(),
-  m_commandingKey(),
-  m_flagsAc(0)
+    : Role()
+    , m_enhancedDiplomacy(0)
+    , m_enhancedEspionage(0)
+    , m_enhancedShipyardRD(0)
+    , m_enhancedTrainingFacilRD(0)
+    , m_enhancedConstructionYardRD(0)
+    , m_enhancedCombat(0)
+    , m_enhancedLeadership(0)
+    , m_enhancedLoyalty(0)
+    , m_force(0)
+    , m_forceExperience(0)
+    , m_forceTraining(0)
+    , m_leadershipAdjustment(0)
+    , m_injury(0)
+    , m_commandKind(0)
+    , m_state(4)
+    , m_missionHyperdriveModifier(static_cast<int16_t>(g_gnprtbDefault))
+    , m_encounterKey()
+    , m_traitorDiscoveredKey()
+    , m_forceUserDiscoveredKey()
+    , m_commandingKey()
+    , m_flagsAc(0)
 {
 }
 
@@ -94,8 +99,7 @@ Character::~Character() = default;
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
 void AppendCharacterName(ObjectBase* base, std::string* out, int kind)
 {
-  if (kind != kNameKindForceTitle)
-  {
+  if (kind != kNameKindForceTitle) {
     AppendGameObjName(base, out, kind);
     return;
   }
@@ -113,11 +117,13 @@ void Character::WriteName(std::string* out, int kind)
 
 int Character::SetRecord(DatRecord* record)
 {
-  if (!record)
+  if (!record) {
     return 0;
+  }
   const int familyMatches = AssignRecord(record);
-  if (familyMatches)
+  if (familyMatches) {
     SetId(record->m_id);
+  }
   return familyMatches;
 }
 
@@ -184,8 +190,7 @@ int Character::GetDataField34()
 
 int Character::CanTrainForce(int* out)
 {
-  if (RecordIsJediTrainer() && HasForcePotentialA15(m_force))
-  {
+  if (RecordIsJediTrainer() && HasForcePotentialA15(m_force)) {
     *out = 1;
     return 1;
   }
@@ -197,19 +202,17 @@ int Character::GetRecordSide()
 {
   const SdRecordExt25* record = GetCharacterRecord();
   int side = 0;
-  if (record)
-  {
-    if (record->m_field40 == 0)
-    {
-      if (record->m_field44 == 0)
+  if (record) {
+    if (record->m_field40 == 0) {
+      if (record->m_field44 == 0) {
         return 0;
-    }
-    else if (record->m_field44 == 0)
-    {
+      }
+    } else if (record->m_field44 == 0) {
       return 1;
     }
-    if (record->m_field40 == 0)
+    if (record->m_field40 == 0) {
       side = 2;
+    }
   }
   return side;
 }
@@ -219,16 +222,18 @@ int Character::GetRecordSide()
 int Character::GetTransitSpeed(int arg)
 {
   int speed = 0;
-  if (m_stateFlags & kExistingFlag)
+  if (m_stateFlags & kExistingFlag) {
     speed = m_missionHyperdriveModifier;
+  }
   return speed;
 }
 
 int Character::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_characterEventKinds;
+  }
   return result;
 }
 
@@ -241,8 +246,9 @@ int Character::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_characterEventKinds.Contains(orderKind))
+  if (result && g_characterEventKinds.Contains(orderKind)) {
     setStatus(out, kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
@@ -250,12 +256,13 @@ int Character::CheckActivity(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   const int result = Role::CheckActivity(request, out);
-  if (result)
-  {
-    if (statusIsOk(out) && m_commandKind != 0)
+  if (result) {
+    if (statusIsOk(out) && m_commandKind != 0) {
       setStatus(out, kStatusCharacterCategory, kStatusCommanding);
-    if (result && statusIsOk(out) && (m_flagsAc & kCapturedFlag))
+    }
+    if (result && statusIsOk(out) && (m_flagsAc & kCapturedFlag)) {
       setStatus(out, kStatusCharacterCategory, kStatusCaptured);
+    }
   }
   return result;
 }
@@ -264,12 +271,13 @@ int Character::CheckActivity2(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   const int result = Role::CheckActivity2(request, out);
-  if (result)
-  {
-    if (statusIsOk(out) && request->m_kind == kActivityKindInjuryBlocked && m_injury != 0)
+  if (result) {
+    if (statusIsOk(out) && request->m_kind == kActivityKindInjuryBlocked && m_injury != 0) {
       setStatus(out, kStatusCharacterCategory, kStatusInjured);
-    if (result && statusIsOk(out) && request->m_kind == kActivityKindInjuryBlocked && (m_flagsAc & kCapturedFlag))
+    }
+    if (result && statusIsOk(out) && request->m_kind == kActivityKindInjuryBlocked && (m_flagsAc & kCapturedFlag)) {
       setStatus(out, kStatusCharacterCategory, kStatusCaptured);
+    }
   }
   return result;
 }
@@ -281,12 +289,12 @@ int Character::MatchesRequestedCommandKind(intptr_t a, int* out)
   *out = 0;
   StatusCode status;
   CheckActivity3(request, &status);
-  if (statusIsOk(&status))
-  {
+  if (statusIsOk(&status)) {
     int index = 0;
     result = MapTypeCodeToIndex(request->m_kind, &index);
-    if (result)
+    if (result) {
       *out = m_commandKind == index && m_commandKind != 0 ? 1 : 0;
+    }
   }
   return result;
 }
@@ -295,27 +303,25 @@ int Character::CheckActivity3(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   int result = CheckActivityRequest(request, out);
-  if (result)
-  {
-    if (statusIsOk(out) && (m_flags78 & kOnMissionFlag))
+  if (result) {
+    if (statusIsOk(out) && (m_flags78 & kOnMissionFlag)) {
       setStatus(out, kStatusCharacterCategory, kStatusCommanding);
-    if (result)
-    {
-      if (statusIsOk(out) && m_injury != 0)
+    }
+    if (result) {
+      if (statusIsOk(out) && m_injury != 0) {
         setStatus(out, kStatusCharacterCategory, kStatusInjured);
-      if (result && statusIsOk(out) && (m_flagsAc & kCapturedFlag))
+      }
+      if (result && statusIsOk(out) && (m_flagsAc & kCapturedFlag)) {
         setStatus(out, kStatusCharacterCategory, kStatusCaptured);
+      }
     }
   }
   int index = 0;
-  if (result)
-  {
+  if (result) {
     result = MapTypeCodeToIndex(request->m_kind, &index);
-    if (result && statusIsOk(out))
-    {
+    if (result && statusIsOk(out)) {
       int qualified = 1;
-      switch (index)
-      {
+      switch (index) {
         case kRecordCommandIndexNone:
           qualified = m_commandKind != 0;
           break;
@@ -332,8 +338,9 @@ int Character::CheckActivity3(const ActivityRequest* request, StatusCode* out)
           result = 0;
           break;
       }
-      if (result && !qualified)
+      if (result && !qualified) {
         setStatus(out, kStatusCharacterCategory, kStatusNotQualified);
+      }
     }
   }
   return result;
@@ -349,20 +356,21 @@ int Character::CheckActivity4(const ActivityRequest* request, StatusCode* out)
 {
   setStatus(out, kStatusCategory, kStatusOk);
   int result = CheckActivityRequest(request, out);
-  if (result)
-  {
-    if (statusIsOk(out) && (m_flags78 & kOnMissionFlag))
+  if (result) {
+    if (statusIsOk(out) && (m_flags78 & kOnMissionFlag)) {
       setStatus(out, kStatusCharacterCategory, kStatusCommanding);
-    if (result)
-    {
-      if (statusIsOk(out) && m_injury != 0)
+    }
+    if (result) {
+      if (statusIsOk(out) && m_injury != 0) {
         setStatus(out, kStatusCharacterCategory, kStatusInjured);
-      if (result)
-      {
-        if (statusIsOk(out) && (m_flagsAc & kCapturedFlag))
+      }
+      if (result) {
+        if (statusIsOk(out) && (m_flagsAc & kCapturedFlag)) {
           setStatus(out, kStatusCharacterCategory, kStatusCaptured);
-        if (result && statusIsOk(out) && !HasForcePotentialA13(m_force))
+        }
+        if (result && statusIsOk(out) && !HasForcePotentialA13(m_force)) {
           setStatus(out, kStatusCharacterCategory, kStatusNoForce);
+        }
       }
     }
   }
@@ -417,12 +425,13 @@ int Character::IsCaptured()
 
 int Character::BuildEventKinds()
 {
-  if (g_characterEventKindsBuilt)
+  if (g_characterEventKindsBuilt) {
     return 1;
+  }
   g_characterEventKindsBuilt = 1;
-  return Role::InitEventKinds(0, &g_characterEventKinds) && g_characterEventKinds.Add(0x260, 1) != nullptr &&
-         g_characterEventKinds.Add(0x261, 1) != nullptr && g_characterEventKinds.Add(0x262, 1) != nullptr &&
-         g_characterEventKinds.Add(0x263, 1) != nullptr && g_characterEventKinds.Add(0x268, 1) != nullptr;
+  return Role::InitEventKinds(0, &g_characterEventKinds) && g_characterEventKinds.Add(0x260, 1) != nullptr
+         && g_characterEventKinds.Add(0x261, 1) != nullptr && g_characterEventKinds.Add(0x262, 1) != nullptr
+         && g_characterEventKinds.Add(0x263, 1) != nullptr && g_characterEventKinds.Add(0x268, 1) != nullptr;
 }
 
 int Character::InitEventKinds(int unused, EventKindSet* out)
@@ -433,12 +442,12 @@ int Character::InitEventKinds(int unused, EventKindSet* out)
 }
 
 CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kCharacters, stateFilter)
+    : ChildIterator(parent, &family::kCharacters, stateFilter)
 {
 }
 
 CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &family::kCharacters, stateFilter)
+    : ChildIterator(parent, side, &family::kCharacters, stateFilter)
 {
 }
 

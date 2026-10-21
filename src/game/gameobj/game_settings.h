@@ -10,7 +10,7 @@ class Crc32;
 
 class GameSettings
 {
-public:
+  public:
   GameSettings();
   virtual ~GameSettings();
   virtual int Read(istream* in);

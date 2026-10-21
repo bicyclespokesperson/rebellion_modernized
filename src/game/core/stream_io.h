@@ -8,9 +8,9 @@
 // Binary I/O of 1, 2 and 4 bytes. Every persistent object in the game saves and loads itself with these.
 //
 // The `void*` functions are the raw primitives (the hooked originals). Use them only when the bytes are not one typed
-// field, with an explicit cast to `void*`. A call with a typed pointer selects the checking templates further down, which
-// require the field to have the width of the file format: a pointer, a `long` or a 64-bit field in a saved structure is a
-// compile error on a 64-bit target instead of a silently different save layout.
+// field, with an explicit cast to `void*`. A call with a typed pointer selects the checking templates further down,
+// which require the field to have the width of the file format: a pointer, a `long` or a 64-bit field in a saved
+// structure is a compile error on a 64-bit target instead of a silently different save layout.
 void StreamRead8(istream* in, void* value);
 void StreamWrite8(ostream* out, const void* value);
 void StreamRead16(istream* in, void* value);

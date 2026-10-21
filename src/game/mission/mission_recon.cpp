@@ -1,6 +1,6 @@
 #include "mission/mission_recon.h"
 
-extern int g_missionReconEventKindsReady; // 0x6bb970
+extern int g_missionReconEventKindsReady;     // 0x6bb970
 extern EventKindSet g_missionReconEventKinds; // 0x6bb978
 
 namespace
@@ -77,30 +77,30 @@ int MissionRecon::ApplyPersonResult(GameObj* person, int roll, int* out, NotifyC
 int MissionRecon::AfterScoringResults(NotifyContext* ctx)
 {
   int ok = 1;
-  if (m_taskStatus == 0)
+  if (m_taskStatus == 0) {
     ok = SetTaskStatus(kTaskStarted, ctx) != 0;
-  if (m_taskStatus == kTaskSucceeded)
-  {
+  }
+  if (m_taskStatus == kTaskSucceeded) {
     GameObj* leader = nullptr;
     ok = GetTargetLocationSystem(&leader) && ok;
     System* system = nullptr;
-    if (leader)
-    {
+    if (leader) {
       const int isSystem = FamilyInRange(leader->GetFamily(), family::kSystems);
       ok = isSystem && ok;
-      if (isSystem)
+      if (isSystem) {
         system = static_cast<System*>(leader);
+      }
     }
-    if (system)
+    if (system) {
       ok = system->SyncViewForEvent(kSystemViewEventMode, ControlSide(), ctx) && ok;
+    }
   }
   return ok;
 }
 
 int MissionRecon::BuildEventKinds()
 {
-  if (!g_missionReconEventKindsReady)
-  {
+  if (!g_missionReconEventKindsReady) {
     g_missionReconEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionReconEventKinds);
   }

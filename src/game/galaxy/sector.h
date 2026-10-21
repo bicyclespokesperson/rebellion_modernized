@@ -12,15 +12,15 @@
 // Character), 16 (returns 1), 37 CreateViews (shared stub 0x5774f0) and 57 CreateViewObject.
 class Sector : public GameObj
 {
-public:
-  Sector(); // 0x5264b0
+  public:
+  Sector();           // 0x5264b0
   ~Sector() override; // 0x526510 (scalar deleting), 0x526530
 
-  uint32_t GetFamily() override; // 1, 0x526670: 0x80
-  int Read(istream* in) override; // 5, shared stub 0x569840
-  int Write(ostream* out) override; // 6, shared stub 0x569850
-  int Checksum(Crc32* crc) override; // 7, shared stub 0x569860
-  int Validate() override; // 8, shared jump stub 0x569870
+  uint32_t GetFamily() override;             // 1, 0x526670: 0x80
+  int Read(istream* in) override;            // 5, shared stub 0x569840
+  int Write(ostream* out) override;          // 6, shared stub 0x569850
+  int Checksum(Crc32* crc) override;         // 7, shared stub 0x569860
+  int Validate() override;                   // 8, shared jump stub 0x569870
   int ApplyAll(NotifyContext* ctx) override; // 9, shared with GameRoot (0x513f20)
   int SetRecord(DatRecord* record) override; // 10, 0x50e1c0 (shared with Character)
   int ShouldRetainWhenDestroyed() override
@@ -28,7 +28,7 @@ public:
     return 1;
   } // 16, shared 0x40f340
   int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, shared stub 0x5774f0
-  GameObj* CreateViewObject() override; // 57, 0x526600
+  GameObj* CreateViewObject() override;                          // 57, 0x526600
 
   // The sector's group number (SectorSD::m_group); 1 without a record.
   int GetGroup(); // 0x526550
@@ -41,7 +41,7 @@ public:
 // Iterator over the children of a game object in the sector families (vtable 0x65f26c).
 class SectorIterator : public ChildIterator
 {
-public:
+  public:
   SectorIterator(GameObjNotifier* parent, uint32_t stateFilter); // 0x5266a0
-  ~SectorIterator() override; // 0x526680 (deleting), 0x526720
+  ~SectorIterator() override;                                    // 0x526680 (deleting), 0x526720
 };

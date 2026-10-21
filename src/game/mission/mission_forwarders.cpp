@@ -6,8 +6,8 @@
 #include "mission/mission_research.h"
 
 // Shared tiny bodies of the mission leaf classes (the linker folded identical forwarders and constant stubs over many
-// classes, so these have no single owner): the Read / Write / Checksum slots that call a base body, the CreateViews chain
-// and the "return 1" stubs of the virtuals no mission overrides.
+// classes, so these have no single owner): the Read / Write / Checksum slots that call a base body, the CreateViews
+// chain and the "return 1" stubs of the virtuals no mission overrides.
 
 int MissionResearchReadForward(void* self, istream* in)
 {

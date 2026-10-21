@@ -10,7 +10,10 @@ namespace
 constexpr FamilyRange kCombatUnitFamilies(0x10, 0x20);
 } // namespace
 
-CapShipData::CapShipData() : m_word20(0), m_word24(0), m_word28(0)
+CapShipData::CapShipData()
+    : m_word20(0)
+    , m_word24(0)
+    , m_word28(0)
 {
 }
 
@@ -19,8 +22,7 @@ CapShipData::~CapShipData() = default;
 int CapShipData::Read(istream* in)
 {
   const int result = CombatUnitData::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_word20);
     ReadValue32(in, &m_word24);
     ReadValue32(in, &m_word28);
@@ -31,8 +33,7 @@ int CapShipData::Read(istream* in)
 int CapShipData::Write(ostream* out)
 {
   const int result = CombatUnitData::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_word20);
     WriteValue32(out, &m_word24);
     WriteValue32(out, &m_word28);
@@ -43,8 +44,7 @@ int CapShipData::Write(ostream* out)
 int CapShipData::Checksum(Crc32* crc)
 {
   const int result = CombatUnitData::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_word20);
     crc->AddInt(m_word24);
     crc->AddInt(m_word28);
@@ -53,7 +53,7 @@ int CapShipData::Checksum(Crc32* crc)
 }
 
 CombatUnitIterator::CombatUnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kCombatUnitFamilies, stateFilter)
+    : ChildIterator(parent, &kCombatUnitFamilies, stateFilter)
 {
 }
 

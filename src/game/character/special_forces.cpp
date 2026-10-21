@@ -5,7 +5,7 @@
 #include "economy/manu_mgr_leaves.h"
 #include "gameobj/object_family.h"
 
-extern int g_specialForcesEventKindsReady; // 0x6b2b50
+extern int g_specialForcesEventKindsReady;     // 0x6b2b50
 extern EventKindSet g_specialForcesEventKinds; // 0x6b2b58
 
 namespace
@@ -59,8 +59,9 @@ int SpecialForces::Validate()
 int SpecialForces::ApplyAll(NotifyContext* ctx)
 {
   const int isSideView = IsSideView();
-  if (isSideView)
+  if (isSideView) {
     return ApplyAllImpl(ctx);
+  }
   return isSideView;
 }
 
@@ -87,8 +88,9 @@ int SpecialForces::ChecksumImpl(Crc32* crc)
 int SpecialForces::GetEventKinds(int unused, EventKindSet* out)
 {
   const int result = BuildEventKinds();
-  if (result)
+  if (result) {
     *out = g_specialForcesEventKinds;
+  }
   return result;
 }
 
@@ -96,32 +98,34 @@ int SpecialForces::CheckOrder(int a, int orderKind, StatusCode* out)
 {
   *out = StatusCode(kStatusCategory, kStatusNotSupported);
   const int result = BuildEventKinds();
-  if (result && g_specialForcesEventKinds.Contains(orderKind))
+  if (result && g_specialForcesEventKinds.Contains(orderKind)) {
     *out = StatusCode(kStatusCategory, kStatusOk);
+  }
   return result;
 }
 
 uint32_t SpecialForces::GetRecordMissionBits()
 {
-  if (!m_record)
+  if (!m_record) {
     return 0;
+  }
   return static_cast<SpecialForceSD*>(m_record)->m_missionId;
 }
 
 int SpecialForces::HandleControlMismatch(NotifyContext* ctx)
 {
   int result = 1;
-  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedFlag))
-  {
+  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedFlag)) {
     GameObjNotifier* parent = nullptr;
     result = GetParent(&parent) != 0;
-    if (parent)
-    {
+    if (parent) {
       const uint32_t side = parent->ControlSide();
-      if (side == 0 || side > 3)
+      if (side == 0 || side > 3) {
         return 0;
-      if (CanBeControlledBy(side))
+      }
+      if (CanBeControlledBy(side)) {
         return SetControlKind(side, ctx);
+      }
       result = ChangeDestroyedReason(kDestroyedReasonSideLost, ctx);
     }
   }
@@ -131,12 +135,10 @@ int SpecialForces::HandleControlMismatch(NotifyContext* ctx)
 int SpecialForces::HandleDestroyedParent(int a, NotifyContext* ctx)
 {
   int result = 1;
-  if (!(m_stateFlags & kEnrouteActiveFlag) && a != 0 && !(m_stateFlags & kDestroyedFlag))
-  {
+  if (!(m_stateFlags & kEnrouteActiveFlag) && a != 0 && !(m_stateFlags & kDestroyedFlag)) {
     result = InheritDestroyedReason(ctx);
   }
-  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedFlag) && a == 0)
-  {
+  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedFlag) && a == 0) {
     result = SetAutorouting(1, ctx);
   }
   return result;
@@ -145,8 +147,9 @@ int SpecialForces::HandleDestroyedParent(int a, NotifyContext* ctx)
 int SpecialForces::HandleLocationConstraintFailure(NotifyContext* ctx)
 {
   int result = 1;
-  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kEnrouteOrDestroyed))
+  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kEnrouteOrDestroyed)) {
     result = SetAutorouting(1, ctx);
+  }
   return result;
 }
 
@@ -212,16 +215,16 @@ int SpecialForces::HandleMissionResignationRequest(NotifyContext* ctx)
 
 int SpecialForces::HandleCaptureByOpponent(const ObjectKey* opponent, NotifyContext* ctx)
 {
-  if (Role::HandleCaptureByOpponent(opponent, ctx))
+  if (Role::HandleCaptureByOpponent(opponent, ctx)) {
     return ChangeDestroyedReason(kDestroyedReasonSpecial, ctx);
+  }
   return 0;
 }
 
 int SpecialForces::BuildEventKinds()
 {
   int result = 1;
-  if (!g_specialForcesEventKindsReady)
-  {
+  if (!g_specialForcesEventKindsReady) {
     g_specialForcesEventKindsReady = 1;
     result = Role::InitEventKinds(0, &g_specialForcesEventKinds);
   }
@@ -229,12 +232,12 @@ int SpecialForces::BuildEventKinds()
 }
 
 SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &family::kSpecialForces, stateFilter)
+    : ChildIterator(parent, &family::kSpecialForces, stateFilter)
 {
 }
 
 SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-: ChildIterator(parent, side, &family::kSpecialForces, stateFilter)
+    : ChildIterator(parent, side, &family::kSpecialForces, stateFilter)
 {
 }
 

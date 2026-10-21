@@ -39,16 +39,16 @@ int Character::InitializeAfterSetup(intptr_t a)
 int Character::HandleControlMismatch(NotifyContext* ctx)
 {
   int result = 1;
-  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedState))
-  {
+  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedState)) {
     GameObjNotifier* parent = nullptr;
     result = GetParent(&parent) != 0;
-    if (parent && ((parent->m_flags ^ m_flags) & kControlKindMask) != 0)
-    {
-      if (m_flagsAc & kCapturedFlag)
+    if (parent && ((parent->m_flags ^ m_flags) & kControlKindMask) != 0) {
+      if (m_flagsAc & kCapturedFlag) {
         result = SetUncapturedState(ctx);
-      if (((parent->m_flags ^ m_flags) & kControlKindMask) != 0)
+      }
+      if (((parent->m_flags ^ m_flags) & kControlKindMask) != 0) {
         result = SetAutorouting(1, ctx);
+      }
     }
   }
   return result;
@@ -57,12 +57,12 @@ int Character::HandleControlMismatch(NotifyContext* ctx)
 int Character::HandleDestroyedParent(int a, NotifyContext* ctx)
 {
   int result = 1;
-  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedState))
-  {
+  if (!(m_flags78 & kOnMissionFlag) && !(m_stateFlags & kDestroyedState)) {
     GameObjNotifier* parent = nullptr;
     GetParent(&parent);
-    if (parent && static_cast<char>(static_cast<GameObj*>(parent)->m_packed) == static_cast<char>(kReasonAdrift))
+    if (parent && static_cast<char>(static_cast<GameObj*>(parent)->m_packed) == static_cast<char>(kReasonAdrift)) {
       return SetAutorouting(1, ctx);
+    }
     result = SetAdrift(1, ctx);
   }
   return result;
@@ -73,19 +73,18 @@ int Character::HandleDestroyedParent(int a, NotifyContext* ctx)
 int Character::HandleMissionResignationRequest(NotifyContext* ctx)
 {
   int result = Role::HandleMissionResignationRequest(ctx);
-  if (result)
+  if (result) {
     result = RollAndApplyInjury(ctx);
+  }
   return result;
 }
 
 int Character::HandleCaptureByOpponent(const ObjectKey* opponent, NotifyContext* ctx)
 {
   int ok = ReturnOneTwoArgs(reinterpret_cast<intptr_t>(opponent), ctx) != 0;
-  if (!(m_stateFlags & kDestroyedState))
-  {
+  if (!(m_stateFlags & kDestroyedState)) {
     ok = RollAndApplyInjury(ctx) && ok;
-    if (!(m_stateFlags & kDestroyedState))
-    {
+    if (!(m_stateFlags & kDestroyedState)) {
       ok = SetState(kStateCaptive, ctx) && ok;
       ok = SetHolderKey(opponent) && ok;
     }
@@ -116,35 +115,36 @@ int Character::SetUncapturedState(NotifyContext* ctx)
 int Character::RollAndApplyInjury(NotifyContext* ctx)
 {
   int duration = 0;
-  if (!RollInjuryDuration(GetCombat(), &duration))
+  if (!RollInjuryDuration(GetCombat(), &duration)) {
     return 0;
+  }
   return ApplyInjury(duration, kSlowInjuryDestroyedReason, ctx);
 }
 
 int Character::RollAndApplyShipLossInjury(NotifyContext* ctx)
 {
   int duration = 0;
-  if (!RollInjuryDurationB(GetCombat(), &duration))
+  if (!RollInjuryDurationB(GetCombat(), &duration)) {
     return 0;
+  }
   return ApplyInjury(duration, kSlowInjuryDestroyedReason, ctx);
 }
 
 int Character::RollAndApplyFatalInjury(NotifyContext* ctx)
 {
   int duration = 0;
-  if (!RollDurationUnconditional(&duration))
+  if (!RollDurationUnconditional(&duration)) {
     return 0;
+  }
   return ApplyInjury(duration, kDeathInjuryDestroyedReason, ctx);
 }
 
 int Character::ApplyInjury(int duration, int destroyedReason, NotifyContext* ctx)
 {
   int result = duration >= 0;
-  if (result && duration != 0)
-  {
+  if (result && duration != 0) {
     result = SetInjury(m_injury + duration, ctx) != 0;
-    if (ShouldDestroyFromInjury())
-    {
+    if (ShouldDestroyFromInjury()) {
       const int reasonChanged = ChangeDestroyedReason(destroyedReason, ctx);
       result = reasonChanged && result ? 1 : 0;
     }
@@ -156,24 +156,26 @@ int Character::ApplyCommandRequest(const ActivityRequest* request, const ObjectK
 {
   StatusCode status(kStatusCategory, kStatusOk);
   int result = CheckActivityStatus3(request, &status);
-  if (result && status.m_second == static_cast<uint32_t>(kStatusOk))
-  {
+  if (result && status.m_second == static_cast<uint32_t>(kStatusOk)) {
     int index = 0;
     const int mapped = MapTypeCodeToIndex(request->m_kind, &index);
     result = 0;
-    if (mapped)
+    if (mapped) {
       result = SetCommandKindForRequest(index, holder, ctx);
+    }
   }
   return result;
 }
 
 int Character::SetCommandKindForRequest(int a, const ObjectKey* holder, NotifyContext* ctx)
 {
-  if (m_commandKind == a)
+  if (m_commandKind == a) {
     return SetCommandKind(0, ctx);
+  }
   int result = SetCommandKind(a, ctx);
-  if (m_commandKind != 0)
+  if (m_commandKind != 0) {
     result = SetCommandingKey(const_cast<ObjectKey*>(holder), ctx);
+  }
   return result;
 }
 
@@ -182,8 +184,7 @@ int Character::SetCommandKindForRequest(int a, const ObjectKey* holder, NotifyCo
 int Character::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 {
   int result = GameObj::CreateViews(controlKind, ctx);
-  if (result)
-  {
+  if (result) {
     auto* data = static_cast<CharacterData*>(m_data);
     data->m_healingStat.SetLevel((m_flagsAc & kFastHealFlag) ? g_gnprtbA01 : g_gnprtbA02);
     data->m_escapeStat.SetLevel(g_gnprtbA18);
@@ -198,8 +199,7 @@ int Character::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 int Character::Read(istream* in)
 {
   const int result = Role::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue16(in, &m_enhancedDiplomacy);
     ReadValue16(in, &m_enhancedEspionage);
     ReadValue16(in, &m_enhancedShipyardRD);
@@ -228,8 +228,7 @@ int Character::Read(istream* in)
 int Character::Write(ostream* out)
 {
   const int result = Role::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue16(out, &m_enhancedDiplomacy);
     WriteValue16(out, &m_enhancedEspionage);
     WriteValue16(out, &m_enhancedShipyardRD);
@@ -258,8 +257,7 @@ int Character::Write(ostream* out)
 int Character::ApplyAll(NotifyContext* ctx)
 {
   const int result = Role::ApplyAll(ctx);
-  if (result && ctx->m_flag04 == 1)
-  {
+  if (result && ctx->m_flag04 == 1) {
     ApplyEnhancedDiplomacy(ctx);
     ApplyEnhancedEspionage(ctx);
     ApplyEnhancedShipyardRD(ctx);
@@ -297,8 +295,7 @@ int Character::ApplyAll(NotifyContext* ctx)
 int Character::Checksum(Crc32* crc)
 {
   int result = Role::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddShort(m_enhancedDiplomacy);
     crc->AddShort(m_enhancedEspionage);
     crc->AddShort(m_enhancedShipyardRD);
@@ -315,10 +312,11 @@ int Character::Checksum(Crc32* crc)
     crc->AddShort(m_commandKind);
     crc->AddShort(m_state);
     crc->AddShort(m_missionHyperdriveModifier);
-    result = m_encounterKey.Checksum(crc) && m_traitorDiscoveredKey.Checksum(crc) &&
-             m_forceUserDiscoveredKey.Checksum(crc) && m_commandingKey.Checksum(crc);
-    if (result)
+    result = m_encounterKey.Checksum(crc) && m_traitorDiscoveredKey.Checksum(crc)
+             && m_forceUserDiscoveredKey.Checksum(crc) && m_commandingKey.Checksum(crc);
+    if (result) {
       crc->AddInt(m_flagsAc);
+    }
   }
   return result;
 }
@@ -326,10 +324,8 @@ int Character::Checksum(Crc32* crc)
 int Character::Validate()
 {
   bool valid = false;
-  if (Role::Validate())
-  {
-    if (!m_encounterKey.IsSet())
-    {
+  if (Role::Validate()) {
+    if (!m_encounterKey.IsSet()) {
       ObjectKey holder;
       GetHolderKey(&holder);
       valid = !holder.IsSet();

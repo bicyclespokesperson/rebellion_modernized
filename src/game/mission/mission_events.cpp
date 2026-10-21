@@ -37,8 +37,7 @@ int Mission::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newPar
 int Mission::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 {
   int ok = GameObj::OnDestroyedChanged(newValue, ctx) != 0;
-  if (newValue != 0)
-  {
+  if (newValue != 0) {
     ObjectKey cleared;
     ok = allOf(SetObjectiveKey(&cleared, ctx), ok);
   }
@@ -47,8 +46,9 @@ int Mission::OnDestroyedChanged(int newValue, NotifyContext* ctx)
 
 int Mission::OnCompletionStatusChanged(int oldValue, int newValue, NotifyContext* ctx)
 {
-  if (newValue == 0)
+  if (newValue == 0) {
     return 1;
+  }
   const int advanced = AdvancePhase(ctx);
   const int scheduled = ScheduleTimerEvent(ctx);
   return scheduled && advanced ? 1 : 0;
@@ -57,16 +57,15 @@ int Mission::OnCompletionStatusChanged(int oldValue, int newValue, NotifyContext
 int Mission::OnObjectiveKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int ok = 1;
-  if (oldKey->OrNull())
-  {
+  if (oldKey->OrNull()) {
     auto* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(oldKey));
     ok = object->DecrementLock(ctx) != 0;
   }
-  if (newKey->OrNull())
-  {
+  if (newKey->OrNull()) {
     auto* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(newKey));
-    if (object->IncrementLock(ctx) && ok)
+    if (object->IncrementLock(ctx) && ok) {
       return 1;
+    }
     ok = 0;
   }
   return ok;
@@ -79,13 +78,13 @@ int Mission::OnReadyForNextPhaseChanged(int newValue, NotifyContext* ctx)
 
 int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
 {
-  if (newPhase != kPhaseFinished)
+  if (newPhase != kPhaseFinished) {
     dataOf(this)->m_unk1c = newPhase;
+  }
   uint32_t allCanAct;
   uint32_t ok = ComputeAllTeamCanAct(&allCanAct) != 0;
 
-  switch (oldPhase)
-  {
+  switch (oldPhase) {
     case 0:
     case 1:
     case 2:
@@ -99,21 +98,20 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
     case kPhaseFinished:
       break;
     case kPhaseOutcome:
-    {
-      const int updated = UpdatePhaseForTeam(ctx);
-      const bool both = updated && ok;
-      const int raised = ArmTimerAfterSetFlag(kEventPhaseStat, 0, this, &dataOf(this)->m_statA, ctx);
-      ok = (raised && both) ? 1 : 0;
-      break;
-    }
+      {
+        const int updated = UpdatePhaseForTeam(ctx);
+        const bool both = updated && ok;
+        const int raised = ArmTimerAfterSetFlag(kEventPhaseStat, 0, this, &dataOf(this)->m_statA, ctx);
+        ok = (raised && both) ? 1 : 0;
+        break;
+      }
     default:
       ok = 0;
   }
 
   int step = 0;
   bool normalise = true;
-  switch (newPhase)
-  {
+  switch (newPhase) {
     case 0:
     case 1:
     case 3:
@@ -126,41 +124,37 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
       step = UpdateLeaderAndTeamKeys(ctx);
       break;
     case kPhaseReadyToStart:
-    {
-      step = UpdatePhaseForTeam(ctx);
-      ok = (step && ok) ? 1 : 0;
-      if (!HasCompletionStatus())
       {
-        RulesMgr* rules = GetRulesMgr();
-        ok = rules != nullptr;
-        if (rules)
-        {
-          MissionPersonIterator members(this);
-          members.Begin();
-          if (members.Current())
-          {
-            do
-            {
-              GameObj* person = members.Current();
-              const int moved = rules->BeginTravel(person, &m_originLocationKey, &m_targetLocationKey, ctx);
-              const bool first = moved && ok;
-              ObjectKey personKey;
-              person->GetKey(&personKey);
-              const int checked = rules->MoveUnitTo(&personKey, &m_targetKey, ctx);
-              ok = (checked && first) ? 1 : 0;
-              if (ok && TargetLocationDiffersFromOrigin())
-                ok = (person->m_stateFlags & 0xff) >> 5 & 1;
-              members.Advance();
-            } while (members.Current());
+        step = UpdatePhaseForTeam(ctx);
+        ok = (step && ok) ? 1 : 0;
+        if (!HasCompletionStatus()) {
+          RulesMgr* rules = GetRulesMgr();
+          ok = rules != nullptr;
+          if (rules) {
+            MissionPersonIterator members(this);
+            members.Begin();
+            if (members.Current()) {
+              do {
+                GameObj* person = members.Current();
+                const int moved = rules->BeginTravel(person, &m_originLocationKey, &m_targetLocationKey, ctx);
+                const bool first = moved && ok;
+                ObjectKey personKey;
+                person->GetKey(&personKey);
+                const int checked = rules->MoveUnitTo(&personKey, &m_targetKey, ctx);
+                ok = (checked && first) ? 1 : 0;
+                if (ok && TargetLocationDiffersFromOrigin()) {
+                  ok = (person->m_stateFlags & 0xff) >> 5 & 1;
+                }
+                members.Advance();
+              } while (members.Current());
+            }
           }
         }
+        step = UpdateTeamAndTarget(ctx);
+        break;
       }
-      step = UpdateTeamAndTarget(ctx);
-      break;
-    }
     case 5:
-      if (HasCompletionStatus() || !TargetLocationDiffersFromOrigin())
-      {
+      if (HasCompletionStatus() || !TargetLocationDiffersFromOrigin()) {
         normalise = false;
         break;
       }
@@ -171,12 +165,10 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
       break;
     case kPhaseTravel:
       normalise = false;
-      if (!HasCompletionStatus() && TargetLocationDiffersFromOrigin())
-      {
+      if (!HasCompletionStatus() && TargetLocationDiffersFromOrigin()) {
         MissionPersonIterator members(this);
         members.Begin();
-        while (members.Current())
-        {
+        while (members.Current()) {
           const int stopped = members.Current()->SetEnrouteActive(0, ctx);
           ok = (stopped && ok) ? 1 : 0;
           members.Advance();
@@ -186,19 +178,20 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
       }
       break;
     case kPhaseOutcome:
-    {
-      const int cleared = SetTaskStatus(0, ctx);
-      ok = (cleared && ok) ? 1 : 0;
-      step = ArmTimerAfterSetFlag(kEventPhaseStat, 1, this, &dataOf(this)->m_statA, ctx);
-      break;
-    }
+      {
+        const int cleared = SetTaskStatus(0, ctx);
+        ok = (cleared && ok) ? 1 : 0;
+        step = ArmTimerAfterSetFlag(kEventPhaseStat, 1, this, &dataOf(this)->m_statA, ctx);
+        break;
+      }
     default:
       ok = 0;
       normalise = false;
       break;
   }
-  if (normalise)
+  if (normalise) {
     ok = (step && ok) ? 1 : 0;
+  }
 
   const int raised = PostSourceEvent(kEventPhaseChanged, this, oldPhase, newPhase, ctx);
   return (raised && ok) ? 1 : 0;
@@ -207,8 +200,7 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx)
 int Mission::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 {
   const int result = GameObj::CreateViews(controlKind, ctx);
-  if (result)
-  {
+  if (result) {
     MissionData* data = dataOf(this);
     data->m_statA.SetLevel(GetRecordTimerMinDays());
     data->m_statA.SetProgress(GetRecordTimerSpreadDays());

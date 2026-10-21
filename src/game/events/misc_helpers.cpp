@@ -10,19 +10,21 @@ constexpr FamilyRange kCharacterRange(0x30, 0x38);
 }
 
 CharacterRangeIterator::CharacterRangeIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kCharacterRange, stateFilter)
+    : ChildIterator(parent, &kCharacterRange, stateFilter)
 {
 }
 
 CharacterRangeIterator::~CharacterRangeIterator() = default;
 
-ObjectKeyPairNode::ObjectKeyPairNode() : ObjectKeyNode(), m_second()
+ObjectKeyPairNode::ObjectKeyPairNode()
+    : ObjectKeyNode()
+    , m_second()
 {
 }
 
 ObjectKeyPairNode::ObjectKeyPairNode(const ObjectKey& first, const ObjectKey& second)
-: ObjectKeyNode(first),
-  m_second(second)
+    : ObjectKeyNode(first)
+    , m_second(second)
 {
 }
 
@@ -50,8 +52,7 @@ void ObjectKeyPairNode::Write(ostream* out)
 int ObjectKeyPairNode::Checksum(Crc32* crc)
 {
   int ok = ObjectKeyNode::Checksum(crc);
-  if (ok)
-  {
+  if (ok) {
     crc->AddInt(m_second.m_value);
     ok = 1;
   }

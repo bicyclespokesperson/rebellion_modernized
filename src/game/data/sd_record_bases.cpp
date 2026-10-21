@@ -6,36 +6,42 @@ namespace
 template <size_t N>
 void readValues(istream* in, uint32_t (&values)[N])
 {
-  for (uint32_t& value : values)
+  for (uint32_t& value : values) {
     ReadValue32(in, &value);
+  }
 }
 
 template <size_t N>
 void writeValues(ostream* out, uint32_t (&values)[N])
 {
-  for (uint32_t& value : values)
+  for (uint32_t& value : values) {
     WriteValue32(out, &value);
+  }
 }
 
 template <size_t N>
 void addValuesToChecksum(Crc32* crc, const uint32_t (&values)[N])
 {
-  for (uint32_t value : values)
+  for (uint32_t value : values) {
     crc->AddInt(value);
+  }
 }
 
 template <size_t N>
 void parseValues(istream* in, strstream* token, int* endOfLine, uint32_t (&values)[N])
 {
-  for (uint32_t& value : values)
+  for (uint32_t& value : values) {
     ParseLongField(in, token, endOfLine, &value);
+  }
 }
 
 } // namespace
 
 // ---- SdRecordExt2 ------------------------------------------------------------------------------------------
 
-SdRecordExt2::SdRecordExt2() : m_field58(0), m_field5c(0)
+SdRecordExt2::SdRecordExt2()
+    : m_field58(0)
+    , m_field5c(0)
 {
 }
 
@@ -77,15 +83,15 @@ int SdRecordExt2::ParseFields(istream* in, int* endOfLine)
 // ---- SdRecordGrid ------------------------------------------------------------------------------------------
 
 SdRecordGrid::SdRecordGrid()
-: m_field60(0),
-  m_field64(0),
-  m_field68(0),
-  m_field6c(0),
-  m_field70(0),
-  m_grid{},
-  m_fieldA4{},
-  m_columnTotals{},
-  m_total(0)
+    : m_field60(0)
+    , m_field64(0)
+    , m_field68(0)
+    , m_field6c(0)
+    , m_field70(0)
+    , m_grid{}
+    , m_fieldA4{}
+    , m_columnTotals{}
+    , m_total(0)
 {
 }
 
@@ -93,22 +99,25 @@ SdRecordGrid::~SdRecordGrid() = default;
 
 uint32_t SdRecordGrid::GetGridValue(int row, int column) const
 {
-  if (row < 0 || row >= kGridRows || column < 0 || column >= kGridColumns)
+  if (row < 0 || row >= kGridRows || column < 0 || column >= kGridColumns) {
     return 0;
+  }
   return m_grid[row][column];
 }
 
 uint32_t SdRecordGrid::GetFieldA4(int index) const
 {
-  if (index < 0 || index >= kGridColumns)
+  if (index < 0 || index >= kGridColumns) {
     return 0;
+  }
   return m_fieldA4[index];
 }
 
 uint32_t SdRecordGrid::GetColumnTotal(int index) const
 {
-  if (index < 0 || index >= kGridColumns)
+  if (index < 0 || index >= kGridColumns) {
     return 0;
+  }
   return m_columnTotals[index];
 }
 
@@ -120,8 +129,9 @@ int SdRecordGrid::Read(istream* in)
   ReadValue32(in, &m_field68);
   ReadValue32(in, &m_field6c);
   ReadValue32(in, &m_field70);
-  for (auto& row : m_grid)
+  for (auto& row : m_grid) {
     readValues(in, row);
+  }
   readValues(in, m_fieldA4);
   readValues(in, m_columnTotals);
   ReadValue32(in, &m_total);
@@ -136,8 +146,9 @@ int SdRecordGrid::Write(ostream* out)
   WriteValue32(out, &m_field68);
   WriteValue32(out, &m_field6c);
   WriteValue32(out, &m_field70);
-  for (auto& row : m_grid)
+  for (auto& row : m_grid) {
     writeValues(out, row);
+  }
   writeValues(out, m_fieldA4);
   writeValues(out, m_columnTotals);
   WriteValue32(out, &m_total);
@@ -152,8 +163,9 @@ int SdRecordGrid::Checksum(Crc32* crc)
   crc->AddInt(m_field68);
   crc->AddInt(m_field6c);
   crc->AddInt(m_field70);
-  for (const auto& row : m_grid)
+  for (const auto& row : m_grid) {
     addValuesToChecksum(crc, row);
+  }
   addValuesToChecksum(crc, m_fieldA4);
   addValuesToChecksum(crc, m_columnTotals);
   crc->AddInt(m_total);
@@ -169,24 +181,31 @@ int SdRecordGrid::ParseFields(istream* in, int* endOfLine)
   ParseLongField(in, token.get(), endOfLine, &m_field68);
   ParseLongField(in, token.get(), endOfLine, &m_field6c);
   ParseLongField(in, token.get(), endOfLine, &m_field70);
-  for (auto& row : m_grid)
+  for (auto& row : m_grid) {
     parseValues(in, token.get(), endOfLine, row);
+  }
   parseValues(in, token.get(), endOfLine, m_fieldA4);
-  for (uint32_t& total : m_columnTotals)
+  for (uint32_t& total : m_columnTotals) {
     total = 0;
+  }
   m_total = 0;
-  for (const auto& row : m_grid)
-    for (int column = 0; column < kGridColumns; ++column)
+  for (const auto& row : m_grid) {
+    for (int column = 0; column < kGridColumns; ++column) {
       m_columnTotals[column] += row[column];
-  for (const auto& row : m_grid)
-    for (uint32_t value : row)
+    }
+  }
+  for (const auto& row : m_grid) {
+    for (uint32_t value : row) {
       m_total += value;
+    }
+  }
   return 1;
 }
 
 // ---- SdRecordExt16 -----------------------------------------------------------------------------------------
 
-SdRecordExt16::SdRecordExt16() : m_fields{}
+SdRecordExt16::SdRecordExt16()
+    : m_fields{}
 {
 }
 
@@ -198,8 +217,7 @@ namespace
 // Pair members are stored interleaved: index 0 at +0x68, 1 at +0x78, 2 at +0x70 (and +4 for the second member).
 int pairFieldOffset(int index)
 {
-  switch (index)
-  {
+  switch (index) {
     case 0:
       return 0x68;
     case 1:
@@ -217,8 +235,9 @@ int SdRecordExt16::GetPairFirst(int index, uint32_t* value) const
 {
   *value = 0;
   const int offset = pairFieldOffset(index);
-  if (offset < 0)
+  if (offset < 0) {
     return 0;
+  }
   *value = m_fields[(offset - 0x58) / 4];
   return 1;
 }
@@ -227,8 +246,9 @@ int SdRecordExt16::GetPairSecond(int index, uint32_t* value) const
 {
   *value = 0;
   const int offset = pairFieldOffset(index);
-  if (offset < 0)
+  if (offset < 0) {
     return 0;
+  }
   *value = m_fields[(offset + 4 - 0x58) / 4];
   return 1;
 }
@@ -264,7 +284,8 @@ int SdRecordExt16::ParseFields(istream* in, int* endOfLine)
 
 // ---- SdRecordExt25 -----------------------------------------------------------------------------------------
 
-SdRecordExt25::SdRecordExt25() : m_moreFields{}
+SdRecordExt25::SdRecordExt25()
+    : m_moreFields{}
 {
 }
 
@@ -301,7 +322,8 @@ int SdRecordExt25::ParseFields(istream* in, int* endOfLine)
 
 // ---- SdRecordExt1 ------------------------------------------------------------------------------------------
 
-SdRecordExt1::SdRecordExt1() : m_field58(0)
+SdRecordExt1::SdRecordExt1()
+    : m_field58(0)
 {
 }
 

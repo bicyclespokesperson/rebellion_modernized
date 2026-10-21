@@ -15,12 +15,13 @@ constexpr int kFieldBytes = 6;
 
 char ReadMarkerByte(HMODULE module, UINT id)
 {
-  HRSRC resourceInfo = module ? FindResourceA(module, MAKEINTRESOURCEA(id & 0xffff), RT_RCDATA) : nullptr;
-  HGLOBAL resource = resourceInfo ? LoadResource(module, resourceInfo) : nullptr;
-  const char* bytes = resource ? static_cast<const char*>(LockResource(resource)) : nullptr;
-  const char marker = bytes && SizeofResource(module, resourceInfo) != 0 ? *bytes : 0;
-  if (resource)
-    FreeResource(resource);
+  HRSRC resourceInfo = module ? reb::compat::FindResourceA(module, MAKEINTRESOURCEA(id & 0xffff), RT_RCDATA) : nullptr;
+  HGLOBAL resource = resourceInfo ? reb::compat::LoadResource(module, resourceInfo) : nullptr;
+  const char* bytes = resource ? static_cast<const char*>(reb::compat::LockResource(resource)) : nullptr;
+  const char marker = bytes && reb::compat::SizeofResource(module, resourceInfo) != 0 ? *bytes : 0;
+  if (resource) {
+    reb::compat::FreeResource(resource);
+  }
   return marker;
 }
 
@@ -43,43 +44,38 @@ MessageTemplate::MessageTemplate(UINT endMarkerId, UINT fieldMarkerId, HMODULE m
 
 MessageTemplate::~MessageTemplate() = default;
 
-void MessageTemplate::Expand(std::string* out,
-                             UINT templateId,
-                             ObjectBase* field1,
-                             ObjectBase* field2,
-                             ObjectBase* field3,
-                             ObjectBase* field4)
+void MessageTemplate::Expand(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2,
+                             ObjectBase* field3, ObjectBase* field4)
 {
-  if (!out || !m_module)
+  if (!out || !m_module) {
     return;
-  HRSRC resourceInfo = FindResourceA(m_module, MAKEINTRESOURCEA(templateId & 0xffff), RT_RCDATA);
-  HGLOBAL resource = resourceInfo ? LoadResource(m_module, resourceInfo) : nullptr;
-  const char* text = resource ? static_cast<const char*>(LockResource(resource)) : nullptr;
-  const size_t size = resource ? SizeofResource(m_module, resourceInfo) : 0;
-  if (!text || size == 0)
-  {
-    if (resource)
-      FreeResource(resource);
+  }
+  HRSRC resourceInfo = reb::compat::FindResourceA(m_module, MAKEINTRESOURCEA(templateId & 0xffff), RT_RCDATA);
+  HGLOBAL resource = resourceInfo ? reb::compat::LoadResource(m_module, resourceInfo) : nullptr;
+  const char* text = resource ? static_cast<const char*>(reb::compat::LockResource(resource)) : nullptr;
+  const size_t size = resource ? reb::compat::SizeofResource(m_module, resourceInfo) : 0;
+  if (!text || size == 0) {
+    if (resource) {
+      reb::compat::FreeResource(resource);
+    }
     return;
   }
   size_t offset = 0;
-  while (offset < size)
-  {
-    if (text[offset] == m_endMarker)
+  while (offset < size) {
+    if (text[offset] == m_endMarker) {
       break;
-    if (text[offset] != m_fieldMarker)
-    {
+    }
+    if (text[offset] != m_fieldMarker) {
       out->push_back(text[offset++]);
       continue;
     }
-    if (size - offset < kFieldBytes)
+    if (size - offset < kFieldBytes) {
       break;
+    }
     const auto code = static_cast<uint8_t>(text[offset + 1]);
     ObjectBase* field = nullptr;
-    if ((code & kIndirectFieldFlag) == 0)
-    {
-      switch (code)
-      {
+    if ((code & kIndirectFieldFlag) == 0) {
+      switch (code) {
         case 1:
           field = field1;
           break;
@@ -96,32 +92,31 @@ void MessageTemplate::Expand(std::string* out,
           break;
       }
     }
-    if (field)
+    if (field) {
       field->WriteName(out, ReadFieldArgument(text + offset + 2));
+    }
     offset += kFieldBytes;
   }
-  if (resource)
-    FreeResource(resource);
+  if (resource) {
+    reb::compat::FreeResource(resource);
+  }
 }
 
 void SetMessageTemplateSource(UINT endMarkerId, UINT fieldMarkerId, HMODULE module)
 {
-  if (MessageTemplate* previous = g_messageTemplate)
-  {
+  if (MessageTemplate* previous = g_messageTemplate) {
     delete previous;
     g_messageTemplate = nullptr;
   }
-  if (module)
+  if (module) {
     g_messageTemplate = NewOrNull<MessageTemplate>(endMarkerId, fieldMarkerId, module);
+  }
 }
 
-void ExpandMessageTemplate(std::string* out,
-                           UINT templateId,
-                           ObjectBase* field1,
-                           ObjectBase* field2,
-                           ObjectBase* field3,
-                           ObjectBase* field4)
+void ExpandMessageTemplate(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2,
+                           ObjectBase* field3, ObjectBase* field4)
 {
-  if (g_messageTemplate)
+  if (g_messageTemplate) {
     g_messageTemplate->Expand(out, templateId, field1, field2, field3, field4);
+  }
 }

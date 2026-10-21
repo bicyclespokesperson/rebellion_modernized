@@ -1,5 +1,5 @@
-// GDI text: CreateFontIndirectA, GetTextMetricsA, GetTextExtentPoint32A, TextOutA, and user32's DrawTextA, on FreeType glyphs.
-#define MINWIN_IMPLEMENTATION 1
+// GDI text: CreateFontIndirectA, GetTextMetricsA, GetTextExtentPoint32A, TextOutA, and user32's DrawTextA, on FreeType
+// glyphs.
 #include "port/minwin/user32.h"
 
 #include <cstdio>
@@ -29,16 +29,16 @@ void FreeInstance(void* p)
 FontInstance* InstanceOf(Font* font, int scale = 1)
 {
   mwgdi::g_fontCacheFree = FreeInstance;
-  if (scale == 1)
-  {
-    if (!font->textCache)
+  if (scale == 1) {
+    if (!font->textCache) {
       font->textCache = FontInstance::Create(font->lf);
+    }
     return static_cast<FontInstance*>(font->textCache);
   }
-  if (scale > 4)
+  if (scale > 4) {
     return nullptr;
-  if (!font->scaledTextCache[scale])
-  {
+  }
+  if (!font->scaledTextCache[scale]) {
     LOGFONTA lf = font->lf;
     lf.lfHeight *= scale;
     lf.lfWidth *= scale;
@@ -47,88 +47,79 @@ FontInstance* InstanceOf(Font* font, int scale = 1)
   return static_cast<FontInstance*>(font->scaledTextCache[scale]);
 }
 
-struct Metrics0
-{
+struct Metrics0 {
   int ascent, descent, height, externalLeading, aveCharWidth;
 };
 
 int TextWidth(FontInstance* f, const unsigned char* s, int n)
 {
   int w = 0;
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < n; ++i) {
     w += f->GetGlyph(s[i]).extentAdvance;
+  }
   return w;
 }
 
-// Draws the glyphs of s[0..n) with the DC's text colour; baseline at `baseline`, pen at x. The clip is the DC's, intersected with `clipRect`.
-void DrawGlyphs(Dc* dc,
-                FontInstance* f,
-                const unsigned char* s,
-                int n,
-                int x,
-                int baseline,
-                uint8_t color,
-                const RECT* clipRect,
-                FontInstance* logicalFont = nullptr,
-                int advanceScale = 1)
+// Draws the glyphs of s[0..n) with the DC's text colour; baseline at `baseline`, pen at x. The clip is the DC's,
+// intersected with `clipRect`.
+void DrawGlyphs(Dc* dc, FontInstance* f, const unsigned char* s, int n, int x, int baseline, uint8_t color,
+                const RECT* clipRect, FontInstance* logicalFont = nullptr, int advanceScale = 1)
 {
-  if (!dc->deviceView && DeviceScale() > 1)
-  {
+  if (!dc->deviceView && DeviceScale() > 1) {
     RefreshDeviceSource(dc);
     (void)DeviceView(dc);
   }
-  if (!dc->surface.bits)
+  if (!dc->surface.bits) {
     return;
-  for (int i = 0; i < n; ++i)
-  {
+  }
+  for (int i = 0; i < n; ++i) {
     const mwtext::Glyph& g = f->GetGlyph(s[i]);
-    if (g.width > 0 && g.height > 0)
-    {
+    if (g.width > 0 && g.height > 0) {
       int left = x + g.left, top = baseline - g.top;
       int l = left, t = top, r = left + g.width, b = top + g.height;
-      if (clipRect)
-      {
-        if (l < clipRect->left)
+      if (clipRect) {
+        if (l < clipRect->left) {
           l = clipRect->left;
-        if (t < clipRect->top)
+        }
+        if (t < clipRect->top) {
           t = clipRect->top;
-        if (r > clipRect->right)
+        }
+        if (r > clipRect->right) {
           r = clipRect->right;
-        if (b > clipRect->bottom)
+        }
+        if (b > clipRect->bottom) {
           b = clipRect->bottom;
+        }
       }
-      ForEachClipped(dc, l, t, r, b,
-                     [&](int x0, int y0, int x1, int y1)
-                     {
-                       for (int py = y0; py < y1; ++py)
-                       {
-                         uint8_t* row = dc->surface.Row(py);
-                         int gy = py - dc->originY - top;
-                         for (int px = x0; px < x1; ++px)
-                           if (g.Pixel(px - dc->originX - left, gy))
-                             row[px] = color;
-                       }
-                     });
+      ForEachClipped(dc, l, t, r, b, [&](int x0, int y0, int x1, int y1) {
+        for (int py = y0; py < y1; ++py) {
+          uint8_t* row = dc->surface.Row(py);
+          int gy = py - dc->originY - top;
+          for (int px = x0; px < x1; ++px) {
+            if (g.Pixel(px - dc->originX - left, gy)) {
+              row[px] = color;
+            }
+          }
+        }
+      });
       RecordDeviceShadow(dc, l, t, r, b);
     }
     x += logicalFont ? logicalFont->GetGlyph(s[i]).advance * advanceScale : g.advance;
   }
-  if (!dc->info && !dc->deviceView && DeviceScale() > 1)
-  {
+  if (!dc->info && !dc->deviceView && DeviceScale() > 1) {
     const int scale = DeviceScale();
-    if (FontInstance* high = InstanceOf(dc->font, scale))
-    {
+    if (FontInstance* high = InstanceOf(dc->font, scale)) {
       Dc view = DeviceView(dc);
       RECT scaledClip;
       const RECT* highClip = nullptr;
-      if (clipRect)
-      {
+      if (clipRect) {
         scaledClip = {clipRect->left * scale, clipRect->top * scale, clipRect->right * scale, clipRect->bottom * scale};
         highClip = &scaledClip;
       }
       int logicalWidth = 0;
-      for (int i = 0; i < n; ++i)
+      for (int i = 0; i < n; ++i) {
         logicalWidth += f->GetGlyph(s[i]).advance;
+      }
       DrawGlyphs(&view, high, s, n, (x - logicalWidth) * scale, baseline * scale, color, highClip, f, scale);
     }
   }
@@ -136,25 +127,28 @@ void DrawGlyphs(Dc* dc,
 
 void FillBackground(Dc* dc, int l, int t, int r, int b, const RECT* clipRect)
 {
-  if (dc->bkMode != 2)
+  if (dc->bkMode != 2) {
     return;
-  if (clipRect)
-  {
-    if (l < clipRect->left)
+  }
+  if (clipRect) {
+    if (l < clipRect->left) {
       l = clipRect->left;
-    if (t < clipRect->top)
+    }
+    if (t < clipRect->top) {
       t = clipRect->top;
-    if (r > clipRect->right)
+    }
+    if (r > clipRect->right) {
       r = clipRect->right;
-    if (b > clipRect->bottom)
+    }
+    if (b > clipRect->bottom) {
       b = clipRect->bottom;
+    }
   }
   FillSurfaceRect(dc, l, t, r, b, ResolveColor(dc, dc->bkColor), 13);
 }
 
 // One output line: text, its width and the index of the underlined character (prefix handling), or -1.
-struct Line
-{
+struct Line {
   std::string text;
   int width = 0;
   int underline = -1;
@@ -162,36 +156,37 @@ struct Line
 
 } // namespace
 
-extern "C" {
-
-HFONT REB_STDCALL CreateFontIndirectA(const LOGFONTA* lplf)
+HFONT REB_STDCALL reb::compat::CreateFontIndirectA(const LOGFONTA* lplf)
 {
-  if (!lplf)
+  if (!lplf) {
     return nullptr;
+  }
   Font* f = new Font;
   f->lf = *lplf;
   f->lf.lfFaceName[31] = 0;
-  if (const char* trace = getenv("MW_TEXT_TRACE"))
-    if (FILE* log = fopen(trace, "a"))
-    {
+  if (const char* trace = getenv("MW_TEXT_TRACE")) {
+    if (FILE* log = fopen(trace, "a")) {
       fprintf(log, "CreateFont h=%d w=%d wt=%d it=%d ul=%d cs=%d q=%d pf=%d face=%s\n",
               static_cast<int>(lplf->lfHeight), static_cast<int>(lplf->lfWidth), static_cast<int>(lplf->lfWeight),
               lplf->lfItalic, lplf->lfUnderline, lplf->lfCharSet, lplf->lfQuality, lplf->lfPitchAndFamily,
               lplf->lfFaceName);
       fclose(log);
     }
+  }
   Register(f);
   return reinterpret_cast<HFONT>(f);
 }
 
-BOOL REB_STDCALL GetTextMetricsA(HDC hdc, LPTEXTMETRICA lptm)
+BOOL REB_STDCALL reb::compat::GetTextMetricsA(HDC hdc, LPTEXTMETRICA lptm)
 {
   Dc* dc = DcOf(hdc);
-  if (!dc || !lptm)
+  if (!dc || !lptm) {
     return FALSE;
+  }
   FontInstance* f = InstanceOf(dc->font);
-  if (!f)
+  if (!f) {
     return FALSE;
+  }
   const mwtext::TextMetrics& m = f->Metrics();
   memset(lptm, 0, sizeof *lptm);
   lptm->tmHeight = m.height;
@@ -217,60 +212,71 @@ BOOL REB_STDCALL GetTextMetricsA(HDC hdc, LPTEXTMETRICA lptm)
   return TRUE;
 }
 
-BOOL REB_STDCALL GetTextExtentPoint32A(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
+BOOL REB_STDCALL reb::compat::GetTextExtentPoint32A(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
 {
   Dc* dc = DcOf(hdc);
-  if (!dc || !psizl || c < 0)
+  if (!dc || !psizl || c < 0) {
     return FALSE;
+  }
   FontInstance* f = InstanceOf(dc->font);
-  if (!f)
+  if (!f) {
     return FALSE;
+  }
   psizl->cx = TextWidth(f, reinterpret_cast<const unsigned char*>(lpString), c);
   psizl->cy = f->Metrics().height;
   return TRUE;
 }
 
-BOOL REB_STDCALL TextOutA(HDC hdc, int x, int y, LPCSTR lpString, int c)
+BOOL REB_STDCALL reb::compat::TextOutA(HDC hdc, int x, int y, LPCSTR lpString, int c)
 {
   Dc* dc = DcOf(hdc);
-  if (!dc || c < 0)
+  if (!dc || c < 0) {
     return FALSE;
+  }
   RefreshDeviceSource(dc);
   FontInstance* f = InstanceOf(dc->font);
-  if (!f)
+  if (!f) {
     return FALSE;
+  }
   const auto* s = reinterpret_cast<const unsigned char*>(lpString);
   const mwtext::TextMetrics& m = f->Metrics();
   int width = TextWidth(f, s, c);
   UINT align = dc->textAlign;
-  if ((align & kTaCenter) == kTaCenter)
+  if ((align & kTaCenter) == kTaCenter) {
     x -= width / 2;
-  else if (align & kTaRight)
+  } else if (align & kTaRight) {
     x -= width;
+  }
   int top = y;
-  if ((align & kTaBaseline) == kTaBaseline)
+  if ((align & kTaBaseline) == kTaBaseline) {
     top = y - m.ascent;
-  else if (align & kTaBottom)
+  } else if (align & kTaBottom) {
     top = y - m.height;
+  }
   FillBackground(dc, x, top, x + width, top + m.height, nullptr);
   DrawGlyphs(dc, f, s, c, x, top + m.ascent, ResolveColor(dc, dc->textColor), nullptr);
   return TRUE;
 }
 
-int REB_STDCALL DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format)
+int REB_STDCALL reb::compat::DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format)
 {
   Dc* dc = DcOf(hdc);
-  if (!dc || !lprc || !lpchText)
+  if (!dc || !lprc || !lpchText) {
     return 0;
-  if (!(format & DT_CALCRECT))
+  }
+  if (!(format & DT_CALCRECT)) {
     RefreshDeviceSource(dc);
+  }
   FontInstance* f = InstanceOf(dc->font);
-  if (!f)
+  if (!f) {
     return 0;
-  if (cchText < 0)
+  }
+  if (cchText < 0) {
     cchText = static_cast<int>(strlen(lpchText));
-  if (cchText == 0)
+  }
+  if (cchText == 0) {
     return 0;
+  }
   const mwtext::TextMetrics& m = f->Metrics();
   const auto* text = reinterpret_cast<const unsigned char*>(lpchText);
   const bool calc = (format & DT_CALCRECT) != 0;
@@ -284,21 +290,18 @@ int REB_STDCALL DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UI
   // 1. prefix handling and line-break characters, leaving plain text plus the underlined positions
   std::string clean;
   std::vector<int> underlined; // indices into `clean`
-  for (int i = 0; i < cchText; ++i)
-  {
+  for (int i = 0; i < cchText; ++i) {
     unsigned char ch = text[i];
-    if (single && (ch == '\r' || ch == '\n'))
+    if (single && (ch == '\r' || ch == '\n')) {
       continue;
-    if (ch == '&' && !(format & DT_NOPREFIX))
-    {
-      if (i + 1 < cchText && text[i + 1] == '&')
-      {
+    }
+    if (ch == '&' && !(format & DT_NOPREFIX)) {
+      if (i + 1 < cchText && text[i + 1] == '&') {
         ++i;
-      }
-      else
-      {
-        if (i + 1 < cchText)
+      } else {
+        if (i + 1 < cchText) {
           underlined.push_back(static_cast<int>(clean.size()));
+        }
         continue;
       }
     }
@@ -306,73 +309,64 @@ int REB_STDCALL DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UI
   }
 
   // 2. lines
-  auto advanceOf = [&](unsigned char ch, int x)
-  {
-    if (ch == '\t' && (format & kDtExpandTabs) && tabWidth > 0)
+  auto advanceOf = [&](unsigned char ch, int x) {
+    if (ch == '\t' && (format & kDtExpandTabs) && tabWidth > 0) {
       return tabWidth - (x % tabWidth);
+    }
     return f->GetGlyph(ch).extentAdvance;
   };
-  auto widthOf = [&](size_t from, size_t to)
-  {
+  auto widthOf = [&](size_t from, size_t to) {
     int w = 0;
-    for (size_t k = from; k < to; ++k)
+    for (size_t k = from; k < to; ++k) {
       w += advanceOf(static_cast<unsigned char>(clean[k]), w);
+    }
     return w;
   };
   std::vector<Line> lines;
   {
     size_t pos = 0;
     const size_t total = clean.size();
-    while (true)
-    {
+    while (true) {
       size_t end = pos;
-      while (end < total && clean[end] != '\r' && clean[end] != '\n')
+      while (end < total && clean[end] != '\r' && clean[end] != '\n') {
         ++end; // this line's segment is [pos, end)
+      }
       size_t lineEnd = end, next = end;
-      if (wordBreak && widthOf(pos, end) > avail)
-      {
+      if (wordBreak && widthOf(pos, end) > avail) {
         size_t fit = 0; // characters of the segment whose right edge is inside the box
-        for (int x = 0; pos + fit < end;)
-        {
+        for (int x = 0; pos + fit < end;) {
           x += advanceOf(static_cast<unsigned char>(clean[pos + fit]), x);
-          if (x > avail)
+          if (x > avail) {
             break;
+          }
           ++fit;
         }
-        if (fit >= 1 && clean[pos + fit - 1] == ' ')
-        {
+        if (fit >= 1 && clean[pos + fit - 1] == ' ') {
           lineEnd = next = pos + fit; // the space is the last character that fits: it stays on the line
-          while (next < end && clean[next] == ' ')
+          while (next < end && clean[next] == ' ') {
             ++next;
-        }
-        else if (pos + fit < end && clean[pos + fit] == ' ')
-        {
+          }
+        } else if (pos + fit < end && clean[pos + fit] == ' ') {
           lineEnd = pos + fit; // the word ends exactly at the box edge: break at the following space
           next = lineEnd + 1;
-        }
-        else
-        {
+        } else {
           size_t p = std::string::npos;
-          for (size_t k = pos + (fit ? fit - 1 : 0); k > pos + 1; --k)
-            if (clean[k - 1] == ' ')
-            {
+          for (size_t k = pos + (fit ? fit - 1 : 0); k > pos + 1; --k) {
+            if (clean[k - 1] == ' ') {
               p = k - 1;
               break;
             }
-          if (p != std::string::npos)
-          {
+          }
+          if (p != std::string::npos) {
             lineEnd = p;
             next = p + 1;
-          }
-          else if (format & kDtEditControl)
-          {
+          } else if (format & kDtEditControl) {
             lineEnd = next = pos + (fit ? fit : 1);
-          }
-          else
-          {
+          } else {
             size_t q = pos + fit;
-            while (q < end && clean[q] != ' ')
+            while (q < end && clean[q] != ' ') {
               ++q; // an over-long word keeps its own line
+            }
             lineEnd = q;
             next = q < end ? q + 1 : q;
           }
@@ -381,24 +375,28 @@ int REB_STDCALL DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UI
       Line line;
       line.text = clean.substr(pos, lineEnd - pos);
       line.width = widthOf(pos, lineEnd);
-      for (int u : underlined)
-        if (u >= static_cast<int>(pos) && u < static_cast<int>(lineEnd))
+      for (int u : underlined) {
+        if (u >= static_cast<int>(pos) && u < static_cast<int>(lineEnd)) {
           line.underline = u - static_cast<int>(pos);
+        }
+      }
       lines.push_back(line);
-      if (next < end)
-      {
+      if (next < end) {
         pos = next;
         continue;
       }
-      if (end >= total)
+      if (end >= total) {
         break;
-      if (clean[end] == '\r' && end + 1 < total && clean[end + 1] == '\n')
+      }
+      if (clean[end] == '\r' && end + 1 < total && clean[end + 1] == '\n') {
         ++end;
-      else if (clean[end] == '\n' && end + 1 < total && clean[end + 1] == '\r')
+      } else if (clean[end] == '\n' && end + 1 < total && clean[end + 1] == '\r') {
         ++end;
+      }
       pos = end + 1;
-      if (pos >= total)
+      if (pos >= total) {
         break;
+      }
     }
   }
 
@@ -407,57 +405,56 @@ int REB_STDCALL DrawTextA(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UI
   RECT clip = *lprc;
   const RECT* clipPtr = noClip ? nullptr : &clip;
   uint8_t color = ResolveColor(dc, dc->textColor);
-  for (const Line& line : lines)
-  {
-    if ((format & kDtEditControl) && !calc && y + lineHeight > lprc->bottom && y > lprc->top)
+  for (const Line& line : lines) {
+    if ((format & kDtEditControl) && !calc && y + lineHeight > lprc->bottom && y > lprc->top) {
       break;
+    }
     int x;
-    if (format & DT_CENTER)
+    if (format & DT_CENTER) {
       x = (lprc->left + lprc->right - line.width) / 2;
-    else if (format & DT_RIGHT)
+    } else if (format & DT_RIGHT) {
       x = lprc->right - line.width;
-    else
+    } else {
       x = lprc->left;
-    if (single)
-    {
-      if (format & DT_VCENTER)
+    }
+    if (single) {
+      if (format & DT_VCENTER) {
         y = lprc->top + (lprc->bottom - lprc->top) / 2 - lineHeight / 2;
-      else if (format & DT_BOTTOM)
+      } else if (format & DT_BOTTOM) {
         y = lprc->bottom - lineHeight;
+      }
     }
     int lineTop = y;
-    if (line.width > maxWidth)
+    if (line.width > maxWidth) {
       maxWidth = line.width;
-    if (!calc)
-    {
+    }
+    if (!calc) {
       const auto* s = reinterpret_cast<const unsigned char*>(line.text.data());
       FillBackground(dc, x, lineTop, x + line.width, lineTop + m.height, clipPtr);
       DrawGlyphs(dc, f, s, static_cast<int>(line.text.size()), x, lineTop + m.ascent, color, clipPtr);
-      if (line.underline >= 0 && line.underline < static_cast<int>(line.text.size()))
-      {
+      if (line.underline >= 0 && line.underline < static_cast<int>(line.text.size())) {
         int ux = x + TextWidth(f, s, line.underline);
         int uw = f->GetGlyph(s[line.underline]).extentAdvance;
         RECT u = {ux, lineTop + m.ascent + 1, ux + uw, lineTop + m.ascent + 2};
-        if (clipPtr)
-        {
-          if (u.left < clip.left)
+        if (clipPtr) {
+          if (u.left < clip.left) {
             u.left = clip.left;
-          if (u.right > clip.right)
+          }
+          if (u.right > clip.right) {
             u.right = clip.right;
-          if (u.top < clip.top || u.bottom > clip.bottom)
+          }
+          if (u.top < clip.top || u.bottom > clip.bottom) {
             u.right = u.left;
+          }
         }
         FillSurfaceRect(dc, u.left, u.top, u.right, u.bottom, color, 13);
       }
     }
     y += lineHeight;
   }
-  if (calc)
-  {
+  if (calc) {
     lprc->right = lprc->left + maxWidth;
     lprc->bottom = y;
   }
   return y - lprc->top;
 }
-
-} // extern "C"

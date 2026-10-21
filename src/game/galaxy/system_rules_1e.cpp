@@ -15,16 +15,14 @@ int rollStartingUnit(int a, int b, int chancePerPoint, int table, int* garrisone
 {
   *garrisoned = 0;
   outKey->m_value = 0;
-  if (PercentChance((a - b) * chancePerPoint))
-  {
+  if (PercentChance((a - b) * chancePerPoint)) {
     *garrisoned = 1;
     outKey->m_value = kFixedUnitKey;
     return 1;
   }
   const int roll = GameRandom(100);
   const TableEntry* record = FindTableRecord(table, roll);
-  if (record)
-  {
+  if (record) {
     outKey->m_value = static_cast<uint32_t>(TableRecordFirstValue(record));
     *garrisoned = outKey->IsSet();
   }
@@ -141,20 +139,19 @@ int RollSystemPopulated()
 
 int RollInitialLoyalty(int side, int kind)
 {
-  if (side == 1)
-  {
-    if (kind == 0)
+  if (side == 1) {
+    if (kind == 0) {
       return GameRandom(g_sdprtb1E03Side1) + g_sdprtb1E02Side1;
+    }
     return GameRandom(g_sdprtb1E05Side1) + g_sdprtb1E04Side1;
   }
-  if (side == 2)
-  {
-    if (kind == 0)
+  if (side == 2) {
+    if (kind == 0) {
       return 100 - (GameRandom(g_sdprtb1E03Side2) + g_sdprtb1E02Side2);
+    }
     return 100 - (GameRandom(g_sdprtb1E05Side2) + g_sdprtb1E04Side2);
   }
-  if (side == 3)
-  {
+  if (side == 3) {
     const int roll = GameRandom(g_gnprtb1E54);
     return roll + (50 - g_gnprtb1E54 / 2);
   }
@@ -163,14 +160,18 @@ int RollInitialLoyalty(int side, int kind)
 
 int SideSharePercent(int side, int kind)
 {
-  if (side == 1)
+  if (side == 1) {
     return kind == 0 ? g_sdprtb1E00Side1 : g_sdprtb1E01Side1;
-  if (side == 2)
+  }
+  if (side == 2) {
     return kind == 0 ? g_sdprtb1E00Side2 : g_sdprtb1E01Side2;
-  if (side != 3)
+  }
+  if (side != 3) {
     return kind;
-  if (kind == 0)
+  }
+  if (kind == 0) {
     return (((100 - g_sdprtb1E00Side1) - g_sdprtb1E00Side2) - g_sdprtb1E01Side1) - g_sdprtb1E01Side2;
+  }
   return 0;
 }
 
@@ -210,8 +211,9 @@ int RollStartingUnitB(int a, int b, int* garrisoned, NullableKey* outKey)
 
 int ScaleForEmpire(int value, int side, int flag)
 {
-  if (flag != 0 && side == 2)
+  if (flag != 0 && side == 2) {
     return value * g_gnprtb1E00;
+  }
   return value;
 }
 
@@ -219,12 +221,12 @@ int SelectRandomChild(ChildIterator* it)
 {
   int ok = 1;
   const int count = it->Count();
-  if (count != 0)
-  {
+  if (count != 0) {
     const int steps = GameRandom(count - 1);
     it->Begin();
-    for (int i = 0; it->m_current != nullptr && i < steps; ++i)
+    for (int i = 0; it->m_current != nullptr && i < steps; ++i) {
       it->Advance();
+    }
     ok = it->m_current != nullptr;
   }
   return ok;
@@ -232,15 +234,17 @@ int SelectRandomChild(ChildIterator* it)
 
 int DampenFavourableShift(int value, int side, int flag)
 {
-  if (flag != 0 && ((side == 1 && value > 0) || (side == 2 && value < 0)))
+  if (flag != 0 && ((side == 1 && value > 0) || (side == 2 && value < 0))) {
     return value / g_gnprtb1E01;
+  }
   return value;
 }
 
 int ScaleByRatio1E53(int value)
 {
-  if (value == 0)
+  if (value == 0) {
     value = 1;
+  }
   return ScaleRatio(g_gnprtb1E53, 100, value);
 }
 
@@ -248,19 +252,19 @@ int ComputeUprisingPercent(int side, int loyalty, int scaleFlag, int a, int b, i
 {
   int percent = 0;
   const int scaled = ScaleForEmpire(c, side, scaleFlag);
-  if (loyalty <= g_gnprtb1E34 && suppressed == 0)
-  {
+  if (loyalty <= g_gnprtb1E34 && suppressed == 0) {
     int base = g_gnprtb1E39;
-    if (g_gnprtb1E38 < loyalty)
-    {
+    if (g_gnprtb1E38 < loyalty) {
       base = g_gnprtb1E35;
-      if (loyalty <= g_gnprtb1E36)
+      if (loyalty <= g_gnprtb1E36) {
         base = g_gnprtb1E37;
+      }
     }
     percent = ClampPercent(((base - a * g_gnprtb1E06) - b * g_gnprtb1E07) - scaled * g_gnprtb1E08);
   }
-  if (side == 2)
+  if (side == 2) {
     percent = -percent;
+  }
   return percent;
 }
 
@@ -274,11 +278,11 @@ void RollUprisingIncident(int side, int shortfallBase, int scaleFlag, int a, int
   const int shortfall = ComputeShortfallUnits(shortfallBase);
   const int total = first + second + (shortfall - multiplier * a) + ((d + c) - b);
   int value;
-  if (LookupTableValue(0x28, total, &value))
-  {
+  if (LookupTableValue(0x28, total, &value)) {
     *outA = value;
-    if (LookupTableValue(0x29, total, &value))
+    if (LookupTableValue(0x29, total, &value)) {
       *outB = value;
+    }
   }
 }
 
@@ -288,8 +292,9 @@ int RollInformantIncident(int* outValue)
   const int roll = GameRandom(g_gnprtb1E1E) + g_gnprtb1E1D;
   int value;
   const int found = LookupTableValue(0x2a, roll, &value);
-  if (found)
+  if (found) {
     *outValue = value;
+  }
   return found;
 }
 
@@ -304,35 +309,32 @@ int ResolveMutualLosses(int* a, int* b)
   const int rounds = MaxInt(*a, *b);
   int lossesA = 0;
   int lossesB = 0;
-  for (int i = 0; i < rounds; ++i)
-  {
-    if (i < *a)
-    {
-      if (PercentChance((((*b - lossesA) - lossesB) + *a) * g_gnprtb1E23))
+  for (int i = 0; i < rounds; ++i) {
+    if (i < *a) {
+      if (PercentChance((((*b - lossesA) - lossesB) + *a) * g_gnprtb1E23)) {
         ++lossesA;
+      }
     }
-    if (i < *b)
-    {
-      if (PercentChance((((*a - lossesA) - lossesB) + *b) * g_gnprtb1E23))
+    if (i < *b) {
+      if (PercentChance((((*a - lossesA) - lossesB) + *b) * g_gnprtb1E23)) {
         ++lossesB;
+      }
     }
   }
-  if (lossesA == 0 && lossesB == 0)
-  {
-    if (*a == 0)
-    {
-      if (*b != 0)
+  if (lossesA == 0 && lossesB == 0) {
+    if (*a == 0) {
+      if (*b != 0) {
         lossesB = 1;
-    }
-    else
-    {
+      }
+    } else {
       lossesA = 1;
     }
   }
   *a = *a - lossesA;
   *b = *b - lossesB;
-  if (*b < *a)
+  if (*b < *a) {
     *a = *b;
+  }
   return 1;
 }
 
@@ -340,25 +342,29 @@ int ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB)
 {
   int outcome;
   const int found = LookupTableValue(0x2b, RollPercent(), &outcome);
-  if (!found)
+  if (!found) {
     return found;
-  switch (outcome)
-  {
+  }
+  switch (outcome) {
     case 1:
-      if (flagA != 0 && g_gnprtb1E1F < *a)
+      if (flagA != 0 && g_gnprtb1E1F < *a) {
         --*a;
+      }
       break;
     case 2:
-      if (flagB != 0 && g_gnprtb1E21 < *b)
+      if (flagB != 0 && g_gnprtb1E21 < *b) {
         --*b;
+      }
       break;
     case 3:
-      if (*a < g_gnprtb1E20 && *a < *b)
+      if (*a < g_gnprtb1E20 && *a < *b) {
         ++*a;
+      }
       break;
     case 4:
-      if (*b < g_gnprtb1E22)
+      if (*b < g_gnprtb1E22) {
         ++*b;
+      }
       break;
   }
   return found;
@@ -378,10 +384,12 @@ int ComputeRemainingSupport(int side, int x, int flag1, int flag2, int flag3, in
 int ComputeSupportCost(int side, int x, int flag1, int flag2, int flag3)
 {
   int cost = ComputeShortfallUnits(x);
-  if (flag1 != 0 && side == 2)
+  if (flag1 != 0 && side == 2) {
     cost = cost / g_gnprtb1E00;
-  if (flag2 != 0 && flag3 != 0)
+  }
+  if (flag2 != 0 && flag3 != 0) {
     cost = cost * g_gnprtb1E02;
+  }
   return cost;
 }
 
@@ -393,15 +401,17 @@ int ComputeResidualPercent(int a, int b)
 int ComputeShortfallUnits(int x)
 {
   int units = 0;
-  if (x < g_gnprtb1E51)
+  if (x < g_gnprtb1E51) {
     units = DivideRoundUp(g_gnprtb1E51 - x, -g_gnprtb1E52);
+  }
   return units;
 }
 
 int ClassifyPercent(int x)
 {
-  if (g_gnprtb1E50 <= x)
+  if (g_gnprtb1E50 <= x) {
     return 1;
+  }
   return (100 - x < g_gnprtb1E50) + 2;
 }
 

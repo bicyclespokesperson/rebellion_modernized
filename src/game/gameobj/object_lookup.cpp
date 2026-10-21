@@ -11,96 +11,108 @@ bool InFamilyRange(uint32_t family, uint32_t first, uint32_t last)
 GameObjNotifier* GetObjectInFamilies_01_ff(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x1, 0xff))
+  if (object && !InFamilyRange(object->GetFamily(), 0x1, 0xff)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_14_1c(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x14, 0x1c))
+  if (object && !InFamilyRange(object->GetFamily(), 0x14, 0x1c)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_30_3c(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x30, 0x3c))
+  if (object && !InFamilyRange(object->GetFamily(), 0x30, 0x3c)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_a0_b0(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0xa0, 0xb0))
+  if (object && !InFamilyRange(object->GetFamily(), 0xa0, 0xb0)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_40_80(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x40, 0x80))
+  if (object && !InFamilyRange(object->GetFamily(), 0x40, 0x80)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_30_40(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x30, 0x40))
+  if (object && !InFamilyRange(object->GetFamily(), 0x30, 0x40)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_90_98(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x90, 0x98))
+  if (object && !InFamilyRange(object->GetFamily(), 0x90, 0x98)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_20_22(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x20, 0x22))
+  if (object && !InFamilyRange(object->GetFamily(), 0x20, 0x22)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_1c_20(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x1c, 0x20))
+  if (object && !InFamilyRange(object->GetFamily(), 0x1c, 0x20)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_08_10(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x8, 0x10))
+  if (object && !InFamilyRange(object->GetFamily(), 0x8, 0x10)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_80_90(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x80, 0x90))
+  if (object && !InFamilyRange(object->GetFamily(), 0x80, 0x90)) {
     object = nullptr;
+  }
   return object;
 }
 
 GameObjNotifier* GetObjectInFamilies_3c_40(int view, const ObjectKey* key)
 {
   GameObjNotifier* object = GetObjectForView(key, view);
-  if (object && !InFamilyRange(object->GetFamily(), 0x3c, 0x40))
+  if (object && !InFamilyRange(object->GetFamily(), 0x3c, 0x40)) {
     object = nullptr;
+  }
   return object;
 }
 

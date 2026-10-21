@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionDiplomacyEventKindsReady; // 0x6bba90
+extern int g_missionDiplomacyEventKindsReady;     // 0x6bba90
 extern EventKindSet g_missionDiplomacyEventKinds; // 0x6bba88
 
 namespace
@@ -18,8 +18,9 @@ constexpr int kOutBlockedByLoyalty = 0xf;
 
 int ControlSideIndex(uint32_t controlSide)
 {
-  if (controlSide == 3)
+  if (controlSide == 3) {
     return 3;
+  }
   return controlSide == 1 ? 2 : 1;
 }
 
@@ -72,14 +73,13 @@ int MissionDiplomacy::CheckTarget(MissionCheckArgs* check, StatusCode* status, i
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
   int result = MissionSystemTargetBase::CheckTarget(check, status, out);
-  if (check->m_flag0c == 0 || result == 0 || status->m_second != static_cast<uint32_t>(mission_status::kOk))
+  if (check->m_flag0c == 0 || result == 0 || status->m_second != static_cast<uint32_t>(mission_status::kOk)) {
     return result;
+  }
   const int side = CheckedSideOf(check->m_controlSide);
   result = side != 0;
-  if (result)
-  {
-    if (static_cast<System*>(check->m_objective)->GetLoyaltyFor(side) == kLoyaltyFullyWon)
-    {
+  if (result) {
+    if (static_cast<System*>(check->m_objective)->GetLoyaltyFor(side) == kLoyaltyFullyWon) {
       *status = StatusCode(kStatusCategoryBlocked, kStatusCodeLoyaltyMaxed);
       *out = kOutBlockedByLoyalty;
     }
@@ -91,10 +91,11 @@ int MissionDiplomacy::GetPersonSuccessChance(GameObj* person, int* out)
 {
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   const bool ok = found != 0;
-  if (!system)
+  if (!system) {
     return ok;
+  }
   const int side = ControlSideIndex(ControlSide());
   const int regiments = system->CountEmpireRegimentsOfKey6();
   const int loyalty = system->GetLoyaltyFor(side);
@@ -109,13 +110,15 @@ int MissionDiplomacy::BeforeScoringResults(NotifyContext* ctx)
 
 int MissionDiplomacy::ApplyPersonResult(GameObj* person, int roll, int* out, NotifyContext* ctx)
 {
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return 1;
+  }
   *out = 1;
   const bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
   Role* role = static_cast<Role*>(person);
-  if (!role->IsCharacter())
+  if (!role->IsCharacter()) {
     return ok;
+  }
   const int updated = role->SetBaseDiplomacy(role->m_baseDiplomacy + g_gnprtb180C, ctx);
   return updated != 0 && ok ? 1 : 0;
 }
@@ -123,16 +126,19 @@ int MissionDiplomacy::ApplyPersonResult(GameObj* person, int roll, int* out, Not
 int MissionDiplomacy::AfterScoringResults(NotifyContext* ctx)
 {
   bool ok = true;
-  if (m_taskStatus == kTaskIdle)
+  if (m_taskStatus == kTaskIdle) {
     ok = SetTaskStatus(kTaskStarted, ctx) != 0;
-  if (m_taskStatus != kTaskSucceeded)
+  }
+  if (m_taskStatus != kTaskSucceeded) {
     return ok;
+  }
   System* system = nullptr;
   const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(
-    reinterpret_cast<GameObj**>(&system));
+      &system);
   ok = found != 0 && ok;
-  if (!system)
+  if (!system) {
     return ok;
+  }
   const int bonus = ComputeDiplomacyBonus(ControlSide(), system->ControlSide());
   const int adjusted = system->AdjustLoyalty(bonus, ControlSide(), ctx);
   return adjusted != 0 && ok ? 1 : 0;
@@ -140,8 +146,7 @@ int MissionDiplomacy::AfterScoringResults(NotifyContext* ctx)
 
 int MissionDiplomacy::BuildEventKinds()
 {
-  if (!g_missionDiplomacyEventKindsReady)
-  {
+  if (!g_missionDiplomacyEventKindsReady) {
     g_missionDiplomacyEventKindsReady = 1;
     return MissionSystemTargetBase::InitEventKinds(0, &g_missionDiplomacyEventKinds);
   }

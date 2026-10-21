@@ -37,8 +37,7 @@ ObjectKey recordKey(DatRecord* record)
 
 void MissionMemberSummary::CopyAllButFirst(const MissionMemberSummary& other)
 {
-  if (this != &other)
-  {
+  if (this != &other) {
     m_characterAbilityMask = other.m_characterAbilityMask;
     m_hasAlliance = other.m_hasAlliance;
     m_hasEmpire = other.m_hasEmpire;
@@ -55,30 +54,34 @@ ManuMgrData::~ManuMgrData() = default;
 int ManuMgrData::Read(istream* in)
 {
   const int result = GameObjData::Read(in);
-  if (result)
+  if (result) {
     m_queue.Read(in);
+  }
   return result;
 }
 
 int ManuMgrData::Write(ostream* out)
 {
   const int result = GameObjData::Write(out);
-  if (result)
+  if (result) {
     m_queue.Write(out);
+  }
   return result;
 }
 
 int ManuMgrData::Checksum(Crc32* crc)
 {
   int result = GameObjData::Checksum(crc);
-  if (result)
+  if (result) {
     result = m_queue.Checksum(crc);
+  }
   return result;
 }
 
 // ---- MissionPhaseLevels -----------------------------------------------------------------------------------
 
-MissionPhaseLevels::MissionPhaseLevels() : m_levels(0)
+MissionPhaseLevels::MissionPhaseLevels()
+    : m_levels(0)
 {
 }
 
@@ -86,8 +89,9 @@ MissionPhaseLevels::~MissionPhaseLevels() = default;
 
 MissionPhaseLevels& MissionPhaseLevels::operator=(const MissionPhaseLevels& other)
 {
-  if (this != &other)
+  if (this != &other) {
     m_levels = other.m_levels;
+  }
   return *this;
 }
 
@@ -114,7 +118,9 @@ int MissionPhaseLevels::Checksum(Crc32* crc)
 
 // ---- MissionData ------------------------------------------------------------------------------------------
 
-MissionData::MissionData() : m_unk18(1), m_unk1c(0)
+MissionData::MissionData()
+    : m_unk18(1)
+    , m_unk1c(0)
 {
 }
 
@@ -123,16 +129,15 @@ MissionData::~MissionData() = default;
 int MissionData::Read(istream* in)
 {
   int result = GameObjData::Read(in);
-  if (result)
-  {
+  if (result) {
     ReadValue32(in, &m_unk18);
     ReadValue32(in, &m_unk1c);
     result = m_statA.Read(in);
-    if (result)
-    {
+    if (result) {
       result = m_statB.Read(in);
-      if (result)
+      if (result) {
         result = m_levels.Read(in);
+      }
     }
   }
   return result;
@@ -141,16 +146,15 @@ int MissionData::Read(istream* in)
 int MissionData::Write(ostream* out)
 {
   int result = GameObjData::Write(out);
-  if (result)
-  {
+  if (result) {
     WriteValue32(out, &m_unk18);
     WriteValue32(out, &m_unk1c);
     result = m_statA.Write(out);
-    if (result)
-    {
+    if (result) {
       result = m_statB.Write(out);
-      if (result)
+      if (result) {
         result = m_levels.Write(out);
+      }
     }
   }
   return result;
@@ -159,16 +163,15 @@ int MissionData::Write(ostream* out)
 int MissionData::Checksum(Crc32* crc)
 {
   int result = GameObjData::Checksum(crc);
-  if (result)
-  {
+  if (result) {
     crc->AddInt(m_unk18);
     crc->AddInt(m_unk1c);
     result = m_statA.Checksum(crc);
-    if (result)
-    {
+    if (result) {
       result = m_statB.Checksum(crc);
-      if (result)
+      if (result) {
         result = m_levels.Checksum(crc);
+      }
     }
   }
   return result;
@@ -182,32 +185,22 @@ GameObjData* Mission::CreateData()
 
 // ---- MissionCheckArgs -------------------------------------------------------------------------------------
 
-MissionCheckArgs::MissionCheckArgs(int a04,
-                                   int a08,
-                                   int a0c,
-                                   int controlSide,
-                                   DatRecord* record,
-                                   void* refs1,
-                                   void* refs2,
-                                   void* refs3,
-                                   ObjectKeyValueSet* team,
-                                   ObjectKeyValueSet* decoys,
-                                   ObjectKeyValueSet* captured,
-                                   MissionMemberSummary* summary,
-                                   GameObj* target,
+MissionCheckArgs::MissionCheckArgs(int a04, int a08, int a0c, int controlSide, DatRecord* record, void* refs1,
+                                   void* refs2, void* refs3, ObjectKeyValueSet* team, ObjectKeyValueSet* decoys,
+                                   ObjectKeyValueSet* captured, MissionMemberSummary* summary, GameObj* target,
                                    GameObj* objective)
-: m_flag04(a04),
-  m_flag08(a08),
-  m_flag0c(a0c),
-  m_controlSide(controlSide),
-  m_record(record),
-  m_refs{refs1, refs2, refs3},
-  m_team(team),
-  m_decoys(decoys),
-  m_captured(captured),
-  m_summary(summary),
-  m_target(target),
-  m_objective(objective)
+    : m_flag04(a04)
+    , m_flag08(a08)
+    , m_flag0c(a0c)
+    , m_controlSide(controlSide)
+    , m_record(record)
+    , m_refs{refs1, refs2, refs3}
+    , m_team(team)
+    , m_decoys(decoys)
+    , m_captured(captured)
+    , m_summary(summary)
+    , m_target(target)
+    , m_objective(objective)
 {
 }
 
@@ -220,11 +213,11 @@ int ResolveRoleFromKey(ObjectKey* key, GameObj** out)
   *out = nullptr;
   GameObjNotifier* object = GetMasterInFamilies_01_ff(key);
   int found = 0;
-  if (object)
-  {
+  if (object) {
     found = isPersonFamily(object->GetFamily());
-    if (found)
+    if (found) {
       *out = static_cast<GameObj*>(object);
+    }
   }
   return found;
 }
@@ -235,19 +228,13 @@ int SplitRoleFromKey(ObjectKey* key, GameObj** person, GameObj** specialForces, 
   *specialForces = nullptr;
   *character = nullptr;
   int found = ResolveRoleFromKey(key, person);
-  if (found)
-  {
+  if (found) {
     const uint32_t family = (*person)->GetFamily();
-    if (family >= 0x3c && family < 0x40)
-    {
+    if (family >= 0x3c && family < 0x40) {
       *specialForces = *person;
-    }
-    else if (family >= 0x30 && family < 0x3c)
-    {
+    } else if (family >= 0x30 && family < 0x3c) {
       *character = *person;
-    }
-    else
-    {
+    } else {
       found = 0;
     }
   }
@@ -259,11 +246,11 @@ int ResolvePersonRecord(ObjectKey* key, DatRecord** out)
   *out = nullptr;
   DatRecord* record = FindDataRecord(AsLookupKey(key));
   int found = 0;
-  if (record)
-  {
+  if (record) {
     found = isPersonFamily(recordKey(record).Family());
-    if (found)
+    if (found) {
       *out = record;
+    }
   }
   return found;
 }
@@ -274,19 +261,13 @@ int SplitPersonRecord(ObjectKey* key, DatRecord** person, DatRecord** specialFor
   *specialForces = nullptr;
   *character = nullptr;
   int found = ResolvePersonRecord(key, person);
-  if (found)
-  {
+  if (found) {
     const uint32_t family = recordKey(*person).Family();
-    if (family >= 0x3c && family < 0x40)
-    {
+    if (family >= 0x3c && family < 0x40) {
       *specialForces = *person;
-    }
-    else if (family >= 0x30 && family < 0x3c)
-    {
+    } else if (family >= 0x30 && family < 0x3c) {
       *character = *person;
-    }
-    else
-    {
+    } else {
       found = 0;
     }
   }
@@ -300,27 +281,18 @@ int AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary
   int result = 1;
   *status = StatusCode(kStatusCategory, kStatusOk);
   const uint32_t control = person->m_flags & kSideControlBits;
-  if (control == kAllianceControl)
-  {
+  if (control == kAllianceControl) {
     summary->m_hasAlliance = 1;
-  }
-  else if (control == kEmpireControl)
-  {
+  } else if (control == kEmpireControl) {
     summary->m_hasEmpire = 1;
-  }
-  else
-  {
+  } else {
     result = 0;
   }
-  if (result)
-  {
+  if (result) {
     const uint32_t family = person->GetFamily();
-    if (family >= 0x3c && family < 0x40)
-    {
+    if (family >= 0x3c && family < 0x40) {
       summary->m_specialForceMissionBits |= static_cast<SpecialForces*>(person)->GetRecordMissionBits();
-    }
-    else
-    {
+    } else {
       summary->m_characterAbilityMask |= GetCharacterMemberMask();
     }
   }
@@ -332,65 +304,62 @@ namespace
 
 int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summary, StatusCode* status, int ok)
 {
-  for (const auto& nodeEntry : set->Entries())
-  {
+  for (const auto& nodeEntry : set->Entries()) {
     auto* node = nodeEntry.get();
-    if (!(ok && status->m_second == static_cast<uint32_t>(kStatusOk)))
+    if (!(ok && status->m_second == static_cast<uint32_t>(kStatusOk))) {
       break;
+    }
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* person = nullptr;
     ok = 0;
-    if (ResolveRoleFromKey(&key, &person))
+    if (ResolveRoleFromKey(&key, &person)) {
       ok = AddPersonToMemberSummary(person, a, 0, summary, status);
+    }
   }
   return ok;
 }
 
 } // namespace
 
-int FillMemberSummaryForMission(ObjectKeyValueSet* team,
-                                ObjectKeyValueSet* decoys,
-                                ObjectKeyValueSet* captured,
-                                MissionMemberSummary* summary,
-                                StatusCode* status)
+int FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
+                                MissionMemberSummary* summary, StatusCode* status)
 {
   summary->CopyAllButFirst(MissionMemberSummary{});
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = addKeysToSummary(team, 0, summary, status, 1);
   ok = addKeysToSummary(decoys, 1, summary, status, ok);
-  for (const auto& nodeEntry : captured->Entries())
-  {
+  for (const auto& nodeEntry : captured->Entries()) {
     auto* node = nodeEntry.get();
 
-    if (!ok)
+    if (!ok) {
       return 0;
-    if (status->m_second != static_cast<uint32_t>(kStatusOk))
+    }
+    if (status->m_second != static_cast<uint32_t>(kStatusOk)) {
       break;
+    }
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* person = nullptr;
     ok = 0;
-    if (ResolveRoleFromKey(&key, &person))
+    if (ResolveRoleFromKey(&key, &person)) {
       ok = AddPersonToMemberSummary(person, 1, 0, summary, status);
+    }
   }
-  if (!ok)
+  if (!ok) {
     return 0;
-  if (status->m_second != static_cast<uint32_t>(kStatusOk))
+  }
+  if (status->m_second != static_cast<uint32_t>(kStatusOk)) {
     return ok;
+  }
   const uint32_t alliance = summary->m_hasAlliance;
   const uint32_t empire = summary->m_hasEmpire;
-  if (alliance && empire)
-  {
+  if (alliance && empire) {
     *status = StatusCode(kStatusCategory, 0x14);
-  }
-  else if (!alliance && !empire)
-  {
+  } else if (!alliance && !empire) {
     *status = StatusCode(kStatusCategory, 0x16);
-  }
-  else
-  {
+  } else {
     summary->m_kind = alliance ? 1 : 2;
   }
   return ok;
@@ -400,37 +369,34 @@ int CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, 
 {
   auto* mission = static_cast<MissionSD*>(record);
   *status = StatusCode(kStatusCategory, kStatusOk);
-  if (summary->m_specialForceMissionBits != (mission->m_specialForceEligibility & summary->m_specialForceMissionBits) ||
-      summary->m_characterAbilityMask != (mission->m_targetFlags & summary->m_characterAbilityMask))
-  {
+  if (summary->m_specialForceMissionBits != (mission->m_specialForceEligibility & summary->m_specialForceMissionBits)
+      || summary->m_characterAbilityMask != (mission->m_targetFlags & summary->m_characterAbilityMask)) {
     *status = StatusCode(kStatusMissionCategory, 1);
   }
-  if (status->m_second != static_cast<uint32_t>(kStatusOk))
+  if (status->m_second != static_cast<uint32_t>(kStatusOk)) {
     return 1;
+  }
   const uint32_t alliance = summary->m_hasAlliance;
   const uint32_t empire = summary->m_hasEmpire;
-  if (alliance)
-  {
-    if (empire)
-    {
+  if (alliance) {
+    if (empire) {
       *status = StatusCode(kStatusCategory, 0x14);
       return 1;
     }
-    if (mission->m_isAlliance == 0)
-    {
+    if (mission->m_isAlliance == 0) {
       *status = StatusCode(kStatusMissionCategory, 1);
       return 1;
     }
-  }
-  else if (!empire)
-  {
+  } else if (!empire) {
     *status = StatusCode(kStatusCategory, 0x16);
     return 1;
   }
-  if (empire == 0)
+  if (empire == 0) {
     return 1;
-  if (mission->m_isEmpire != 0)
+  }
+  if (mission->m_isEmpire != 0) {
     return 1;
+  }
   *status = StatusCode(kStatusMissionCategory, 1);
   return 1;
 }

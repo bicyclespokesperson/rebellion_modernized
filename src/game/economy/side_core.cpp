@@ -63,7 +63,8 @@ ProductionFacility* asFacility(GameObjNotifier* object)
 
 // ---- ObjectNameList -----------------------------------------------------------------------------------------
 
-ObjectNameList::ObjectNameList() : m_ok(1)
+ObjectNameList::ObjectNameList()
+    : m_ok(1)
 {
 }
 
@@ -74,7 +75,13 @@ ObjectNameList::~ObjectNameList()
 
 // ---- construction -------------------------------------------------------------------------------------------
 
-Side::Side() : GameObj(), m_maintState(), m_mineState(), m_refineryState(), m_statCc(), m_statD4()
+Side::Side()
+    : GameObj()
+    , m_maintState()
+    , m_mineState()
+    , m_refineryState()
+    , m_statCc()
+    , m_statD4()
 {
   SetFlag31(GetFlag31() ? InitState() : 0);
 }
@@ -132,14 +139,13 @@ int Side::InitState()
 
   m_refineryQueue = new KeyQueue();
   int ok = 0;
-  if (m_refineryQueue && m_refineryQueue->m_ok)
-  {
+  if (m_refineryQueue && m_refineryQueue->m_ok) {
     m_manufacturerQueue = new KeyQueue();
-    if (m_manufacturerQueue && m_manufacturerQueue->m_ok)
-    {
+    if (m_manufacturerQueue && m_manufacturerQueue->m_ok) {
       m_objectRefs = new ObjectRefList();
-      if (m_objectRefs)
+      if (m_objectRefs) {
         ok = m_objectRefs->m_ok;
+      }
     }
   }
   return ok;
@@ -147,18 +153,15 @@ int Side::InitState()
 
 int Side::FreeState()
 {
-  if (m_refineryQueue)
-  {
+  if (m_refineryQueue) {
     delete m_refineryQueue;
     m_refineryQueue = nullptr;
   }
-  if (m_manufacturerQueue)
-  {
+  if (m_manufacturerQueue) {
     delete m_manufacturerQueue;
     m_manufacturerQueue = nullptr;
   }
-  if (m_objectRefs)
-  {
+  if (m_objectRefs) {
     delete m_objectRefs;
     m_objectRefs = nullptr;
   }
@@ -180,32 +183,34 @@ int Side::CreateViews(int controlKind, NotifyContext* ctx)
 int Side::CreateViewsImpl(int controlKind, NotifyContext* ctx)
 {
   const bool valid = controlKind >= 1 && controlKind <= 3;
-  if (valid)
+  if (valid) {
     SetId(controlKind == 1 ? kAllianceSideKeyId : kEmpireSideKeyId);
+  }
   int result = 0;
-  if (valid)
+  if (valid) {
     result = GameObj::CreateViews(controlKind, ctx);
-  if (result)
+  }
+  if (result) {
     SetControlKind(controlKind, ctx);
+  }
   return result;
 }
 
 int Side::ApplyAll(NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
+  if (result) {
     result = ApplyAllImpl(ctx);
+  }
   return result;
 }
 
 int Side::ApplyAllImpl(NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     GameObj::ApplyAll(ctx);
-    if (ctx->m_flag04 == 1)
-    {
+    if (ctx->m_flag04 == 1) {
       ApplyMaintState(ctx);
       ApplyMineState(ctx);
       ApplyRefineryState(ctx);
@@ -227,9 +232,7 @@ int Side::ApplyAllImpl(NotifyContext* ctx)
       ApplyConstructionYardRdDone(ctx);
       ApplyRecruitmentDone(ctx);
       ApplyVictoryConditions(ctx);
-    }
-    else if (ctx->m_flag04 == 2)
-    {
+    } else if (ctx->m_flag04 == 2) {
       ApplyParent(ctx);
       ApplyControlKind(ctx);
     }
@@ -261,32 +264,42 @@ int Side::Validate()
 
 int Side::ReadImpl(istream* in)
 {
-  if (!GameObj::Read(in))
+  if (!GameObj::Read(in)) {
     return 0;
-  if (!FreeState())
+  }
+  if (!FreeState()) {
     return 0;
-  if (!InitState())
+  }
+  if (!InitState()) {
     return 0;
-  if (!readPair(in, &m_maintState))
+  }
+  if (!readPair(in, &m_maintState)) {
     return 0;
-  if (!readPair(in, &m_mineState))
+  }
+  if (!readPair(in, &m_mineState)) {
     return 0;
-  if (!readPair(in, &m_refineryState))
+  }
+  if (!readPair(in, &m_refineryState)) {
     return 0;
+  }
   ReadValue32(in, &m_maintRequired);
   ReadValue32(in, &m_maintRequiredB);
   ReadValue32(in, &m_rawMaterials);
   ReadValue32(in, &m_refinedMaterials);
   ReadValue32(in, &m_waitingRefineries);
   ReadValue32(in, &m_waitingManufacturers);
-  if (!m_refineryQueue->Read(in))
+  if (!m_refineryQueue->Read(in)) {
     return 0;
-  if (m_refineryQueue->m_ok == 0)
+  }
+  if (m_refineryQueue->m_ok == 0) {
     return 0;
-  if (!m_manufacturerQueue->Read(in))
+  }
+  if (!m_manufacturerQueue->Read(in)) {
     return 0;
-  if (m_manufacturerQueue->m_ok == 0)
+  }
+  if (m_manufacturerQueue->m_ok == 0) {
     return 0;
+  }
   ReadValue32(in, &m_shipyardRdProgress);
   ReadValue32(in, &m_trainingFacilRdProgress);
   ReadValue32(in, &m_constructionYardRdProgress);
@@ -301,37 +314,47 @@ int Side::ReadImpl(istream* in)
   ReadValue32(in, &m_victoryConditions);
   ReadValue32(in, &m_rdScalePercent);
   ReadValue32(in, &m_unkC4);
-  if (!m_objectRefs->Read(in))
+  if (!m_objectRefs->Read(in)) {
     return 0;
-  if (m_objectRefs->m_ok == 0)
+  }
+  if (m_objectRefs->m_ok == 0) {
     return 0;
-  if (!m_statCc.Read(in))
+  }
+  if (!m_statCc.Read(in)) {
     return 0;
+  }
   return m_statD4.Read(in);
 }
 
 int Side::WriteImpl(ostream* out)
 {
-  if (!GameObj::Write(out))
+  if (!GameObj::Write(out)) {
     return 0;
-  if (!HasContainers())
+  }
+  if (!HasContainers()) {
     return 0;
-  if (!writePair(out, &m_maintState))
+  }
+  if (!writePair(out, &m_maintState)) {
     return 0;
-  if (!writePair(out, &m_mineState))
+  }
+  if (!writePair(out, &m_mineState)) {
     return 0;
-  if (!writePair(out, &m_refineryState))
+  }
+  if (!writePair(out, &m_refineryState)) {
     return 0;
+  }
   WriteValue32(out, &m_maintRequired);
   WriteValue32(out, &m_maintRequiredB);
   WriteValue32(out, &m_rawMaterials);
   WriteValue32(out, &m_refinedMaterials);
   WriteValue32(out, &m_waitingRefineries);
   WriteValue32(out, &m_waitingManufacturers);
-  if (!m_refineryQueue->Write(out))
+  if (!m_refineryQueue->Write(out)) {
     return 0;
-  if (!m_manufacturerQueue->Write(out))
+  }
+  if (!m_manufacturerQueue->Write(out)) {
     return 0;
+  }
   WriteValue32(out, &m_shipyardRdProgress);
   WriteValue32(out, &m_trainingFacilRdProgress);
   WriteValue32(out, &m_constructionYardRdProgress);
@@ -346,35 +369,44 @@ int Side::WriteImpl(ostream* out)
   WriteValue32(out, &m_victoryConditions);
   WriteValue32(out, &m_rdScalePercent);
   WriteValue32(out, &m_unkC4);
-  if (!m_objectRefs->Write(out))
+  if (!m_objectRefs->Write(out)) {
     return 0;
-  if (!m_statCc.Write(out))
+  }
+  if (!m_statCc.Write(out)) {
     return 0;
+  }
   return m_statD4.Write(out);
 }
 
 int Side::ChecksumImpl(Crc32* crc)
 {
-  if (!GameObj::Checksum(crc))
+  if (!GameObj::Checksum(crc)) {
     return 0;
-  if (!HasContainers())
+  }
+  if (!HasContainers()) {
     return 0;
-  if (!checksumPair(crc, &m_maintState))
+  }
+  if (!checksumPair(crc, &m_maintState)) {
     return 0;
-  if (!checksumPair(crc, &m_mineState))
+  }
+  if (!checksumPair(crc, &m_mineState)) {
     return 0;
-  if (!checksumPair(crc, &m_refineryState))
+  }
+  if (!checksumPair(crc, &m_refineryState)) {
     return 0;
+  }
   crc->AddInt(m_maintRequired);
   crc->AddInt(m_maintRequiredB);
   crc->AddInt(m_rawMaterials);
   crc->AddInt(m_refinedMaterials);
   crc->AddInt(m_waitingRefineries);
   crc->AddInt(m_waitingManufacturers);
-  if (!m_refineryQueue->Checksum(crc))
+  if (!m_refineryQueue->Checksum(crc)) {
     return 0;
-  if (!m_manufacturerQueue->Checksum(crc))
+  }
+  if (!m_manufacturerQueue->Checksum(crc)) {
     return 0;
+  }
   crc->AddInt(m_shipyardRdProgress);
   crc->AddInt(m_trainingFacilRdProgress);
   crc->AddInt(m_constructionYardRdProgress);
@@ -389,28 +421,36 @@ int Side::ChecksumImpl(Crc32* crc)
   crc->AddInt(m_victoryConditions);
   crc->AddInt(m_rdScalePercent);
   crc->AddInt(m_unkC4);
-  if (!m_objectRefs->Checksum(crc))
+  if (!m_objectRefs->Checksum(crc)) {
     return 0;
-  if (!m_statCc.Checksum(crc))
+  }
+  if (!m_statCc.Checksum(crc)) {
     return 0;
+  }
   return m_statD4.Checksum(crc);
 }
 
 int Side::ValidateImpl()
 {
   int result = GameObj::Validate();
-  if (result)
+  if (result) {
     result = HasContainers();
-  if (result)
+  }
+  if (result) {
     result = MineStateMatches();
-  if (result)
+  }
+  if (result) {
     result = RefineryStateMatches();
-  if (result)
+  }
+  if (result) {
     result = MaintRequiredMatches();
-  if (result)
+  }
+  if (result) {
     result = MaintRequiredBMatches();
-  if (result)
+  }
+  if (result) {
     result = QueuesMatchFacilities();
+  }
   return result;
 }
 
@@ -432,12 +472,10 @@ namespace
 int stateMatchesSum(Side* side, GameObjNotifier* first, const FamilyRange& range, const IntPair& state)
 {
   IntPair sum;
-  for (GameObjNotifier* object = first; object; object = static_cast<GameObj*>(object)->FindNextSibling(&range, 1))
-  {
+  for (GameObjNotifier* object = first; object; object = static_cast<GameObj*>(object)->FindNextSibling(&range, 1)) {
     ProductionFacility* facility = asFacility(object);
-    if ((facility->m_stateFlags & kUsableFlag) && !(facility->m_procFlags & kProcFacilExcludedFlag) &&
-        sameControlSide(facility, side))
-    {
+    if ((facility->m_stateFlags & kUsableFlag) && !(facility->m_procFlags & kProcFacilExcludedFlag)
+        && sameControlSide(facility, side)) {
       IntPair pair;
       facility->GetWork(&pair);
       addPair(&sum, pair);
@@ -470,11 +508,9 @@ namespace
 int maintSumEquals(Side* side, int expected)
 {
   int total = 0;
-  for (GameObjNotifier* object = GetFirstMasterInFamilies_10_40(); object; object = FindNextUnit(object))
-  {
+  for (GameObjNotifier* object = GetFirstMasterInFamilies_10_40(); object; object = FindNextUnit(object)) {
     auto* unit = static_cast<GameObj*>(object);
-    if ((unit->m_stateFlags & kExistingFlag) && sameControlSide(unit, side))
-    {
+    if ((unit->m_stateFlags & kExistingFlag) && sameControlSide(unit, side)) {
       total += static_cast<UnitObjBase*>(unit)->GetRecordField4c();
     }
   }
@@ -498,8 +534,7 @@ int Side::QueuesMatchFacilities()
   bool ok = true;
   const FamilyRange refineries(0x2d, 0x2e);
   for (GameObjNotifier* object = GetFirstMasterInFamilies_2d_2e(); object && ok;
-       object = static_cast<GameObj*>(object)->FindNextSibling(&refineries, 1))
-  {
+       object = static_cast<GameObj*>(object)->FindNextSibling(&refineries, 1)) {
     ProductionFacility* facility = asFacility(object);
     int queued;
     int waiting;
@@ -514,8 +549,7 @@ int Side::QueuesMatchFacilities()
   }
   const FamilyRange manufacturers(0x28, 0x2c);
   for (GameObjNotifier* object = GetFirstMasterInFamilies_28_2c(); object && ok;
-       object = static_cast<GameObj*>(object)->FindNextSibling(&manufacturers, 1))
-  {
+       object = static_cast<GameObj*>(object)->FindNextSibling(&manufacturers, 1)) {
     auto* facility = static_cast<ProcFacil*>(static_cast<GameObj*>(object));
     int queued;
     int waiting;
@@ -535,26 +569,26 @@ int Side::QueuesMatchFacilities()
 
 int SideNumberFromKey(const ObjectKey* key)
 {
-  if ((key->m_value & 0xffffff) == kAllianceSideKeyId)
+  if ((key->m_value & 0xffffff) == kAllianceSideKeyId) {
     return 1;
-  if ((key->m_value & 0xffffff) != kEmpireSideKeyId)
+  }
+  if ((key->m_value & 0xffffff) != kEmpireSideKeyId) {
     return 0;
+  }
   return 2;
 }
 
 int FormatVictoryConditions(uint32_t conditions, std::string* out)
 {
-  struct Entry
-  {
+  struct Entry {
     uint32_t bit;
     const char* name;
   };
-  static const Entry entries[] = {{0x1, "AD "},       {0x10, "LC "},      {0x20, "MC "},   {0x100, "CA "},
-                                  {0x200, "CD "},     {0x1000, "DC "},    {0x2000, "EC "}, {0x100000, "EW "},
-                                  {0x1000000, "AW "}, {0x10000000, "GO "}};
+  static const Entry entries[]
+      = {{0x1, "AD "},    {0x10, "LC "},   {0x20, "MC "},     {0x100, "CA "},     {0x200, "CD "},
+         {0x1000, "DC "}, {0x2000, "EC "}, {0x100000, "EW "}, {0x1000000, "AW "}, {0x10000000, "GO "}};
   out->clear();
-  for (const Entry& entry : entries)
-  {
+  for (const Entry& entry : entries) {
     const std::string text((conditions & entry.bit) ? entry.name : "   ");
     *out += text;
   }
@@ -570,8 +604,7 @@ namespace
 // The resource ids come in pairs (Alliance, Empire) per kind.
 int nameResourceFor(int kind)
 {
-  switch (kind)
-  {
+  switch (kind) {
     case 1:
     case 0x20:
       return 0x4d50;
@@ -611,7 +644,8 @@ constexpr int kArticleAResource = 0x4da2;
 
 } // namespace
 
-// The standalone's own vtables reach the free function through the override; the hybrid's original vtables point at it directly.
+// The standalone's own vtables reach the free function through the override; the hybrid's original vtables point at it
+// directly.
 void Side::WriteName(std::string* out, int kind)
 {
   AppendSideName(this, out, kind);
@@ -620,13 +654,13 @@ void Side::WriteName(std::string* out, int kind)
 void AppendSideName(ObjectBase* base, std::string* out, int kind)
 {
   const int baseResource = nameResourceFor(kind);
-  if (baseResource == 0)
+  if (baseResource == 0) {
     return;
+  }
   const uint32_t flags = static_cast<GameObj*>(base)->m_flags;
   const int resource = baseResource + ((flags & kControlSideMask) == kAllianceControl ? 0 : 1);
   std::string name;
-  if (kind != 0x20 && kind != 0x21)
-  {
+  if (kind != 0x20 && kind != 0x21) {
     ResourceStringId id{static_cast<int16_t>(resource), 2};
     *out += LoadStringResource(&id);
     return;

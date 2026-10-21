@@ -21,8 +21,9 @@ TrackedStat::TrackedStat(const TrackedStat& other)
 
 TrackedStat& TrackedStat::operator=(const TrackedStat& other)
 {
-  if (this != &other)
+  if (this != &other) {
     CopyFrom(other);
+  }
   return *this;
 }
 
@@ -40,8 +41,7 @@ void TrackedStat::CopyFrom(const TrackedStat& other)
 
 void TrackedStat::SetFlag(uint32_t on)
 {
-  if ((m_packed & 1) != on)
-  {
+  if ((m_packed & 1) != on) {
     m_packed = ((on ^ m_packed) & 1) ^ m_packed;
     ++m_changeCount;
   }
@@ -49,23 +49,24 @@ void TrackedStat::SetFlag(uint32_t on)
 
 void TrackedStat::SetLevel(uint32_t level)
 {
-  if (static_cast<int>(level) > static_cast<int>(kMaxLevel))
+  if (static_cast<int>(level) > static_cast<int>(kMaxLevel)) {
     level = kMaxLevel;
-  if ((m_packed >> 16) != level)
-  {
+  }
+  if ((m_packed >> 16) != level) {
     m_packed = (m_packed & 0xffff) | (level << 16);
     ++m_changeCount;
-    if (static_cast<int>(level) < 0)
+    if (static_cast<int>(level) < 0) {
       SetFlag(0);
+    }
   }
 }
 
 void TrackedStat::SetProgress(uint32_t progress)
 {
-  if (static_cast<int>(progress) > static_cast<int>(kMaxProgress))
+  if (static_cast<int>(progress) > static_cast<int>(kMaxProgress)) {
     progress = kMaxProgress;
-  if (((m_packed >> 1) & 0x7fff) != progress)
-  {
+  }
+  if (((m_packed >> 1) & 0x7fff) != progress) {
     m_packed = (m_packed & 0xffff0001) | ((progress & 0x7fff) << 1);
     ++m_changeCount;
   }

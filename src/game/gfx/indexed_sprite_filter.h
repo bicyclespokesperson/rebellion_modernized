@@ -8,10 +8,10 @@ class DibBitmap;
 // Builds indexed, transparent-aware 4x detail for a decoded animation frame.
 class IndexedSpriteFilter
 {
-public:
+  public:
   bool EnsureDetail(DibBitmap& bitmap);
 
-private:
+  private:
   void UpdatePalette(const DibBitmap& bitmap);
 
   std::array<uint8_t, 256 * 4> m_palette{};

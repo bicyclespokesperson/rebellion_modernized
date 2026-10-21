@@ -12,13 +12,13 @@ class ostream;
 // shown while the opponent in a multiplayer game fights a battle; its text is drawn in the side's colour.
 class BattleInProgressWindow : public CoolGameWindow
 {
-public:
+  public:
   BattleInProgressWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId); // 0x49ee20
   ~BattleInProgressWindow() override; // 0x49ee90 (scalar deleting destructor 0x49ee70)
 
   void SaveState(ostream* out) override; // slot 9, 0x49f0f0: the child id
-  void LoadState(istream* in) override; // slot 10, 0x49f110
-  void OnCreate1() override; // slot 14, 0x49eea0
+  void LoadState(istream* in) override;  // slot 10, 0x49f110
+  void OnCreate1() override;             // slot 14, 0x49eea0
 
   GalaxyWindow* m_galaxy; // +0x114
 };

@@ -4,7 +4,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionAbductionEventKindsReady; // 0x6bbb30
+extern int g_missionAbductionEventKindsReady;     // 0x6bbb30
 extern EventKindSet g_missionAbductionEventKinds; // 0x6bbb28
 
 namespace
@@ -62,10 +62,11 @@ int MissionAbduction::GetPersonSuccessChance(GameObj* person, int* out)
 {
   Character* target = nullptr;
   const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
-    reinterpret_cast<GameObj**>(&target));
+      &target);
   bool ok = found != 0;
-  if (!target)
+  if (!target) {
     return ok;
+  }
   const int targetCombat = target->GetCombat();
   const int personCombat = static_cast<Role*>(person)->GetCombat();
   return LookupMissionTable19(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
@@ -84,19 +85,20 @@ int MissionAbduction::AfterScoringResults(NotifyContext* ctx)
 int MissionAbduction::ApplyPersonResult(GameObj* personObject, int roll, int* out, NotifyContext* ctx)
 {
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return 1;
+  }
   *out = 1;
   Role* person = static_cast<Role*>(personObject);
   bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
-  if (person->IsCharacter())
+  if (person->IsCharacter()) {
     ok = person->SetBaseCombat(person->m_baseCombat + g_gnprtb1813, ctx) && ok;
+  }
   Character* target = nullptr;
   ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
-         reinterpret_cast<GameObj**>(&target)) &&
-       ok;
-  if (target)
-  {
+           &target)
+       && ok;
+  if (target) {
     ObjectKey key;
     person->GetKey(&key);
     ok = target->HandleCaptureByOpponent(&key, ctx) && ok;
@@ -107,8 +109,7 @@ int MissionAbduction::ApplyPersonResult(GameObj* personObject, int roll, int* ou
 int MissionAbduction::BuildEventKinds()
 {
   int result = 1;
-  if (!g_missionAbductionEventKindsReady)
-  {
+  if (!g_missionAbductionEventKindsReady) {
     g_missionAbductionEventKindsReady = 1;
     result = MissionCharacterTargetBase::InitEventKinds(0, &g_missionAbductionEventKinds) != 0;
   }

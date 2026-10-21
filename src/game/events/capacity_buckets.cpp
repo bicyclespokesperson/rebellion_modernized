@@ -3,7 +3,7 @@
 // The nine family ranges the capacity buckets stand for (orders/route_capacity.h). The original rebuilds the whole
 // table on every call, and clears a word at 0x6aafec first (nothing else reads it).
 extern FamilyRange g_capacityBucketRanges[9]; // 0x6bb2f0
-extern int g_capacityBucketWord; // 0x6aafec
+extern int g_capacityBucketWord;              // 0x6aafec
 
 const FamilyRange* GetCapacityBucketRange(int index)
 {

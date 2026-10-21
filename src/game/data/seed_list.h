@@ -19,15 +19,14 @@ class DatRecord;
 // systems, facilities, ...). The file has a version, the number of records and the range [low, high) of record
 // families it holds; each record is created from the family range through the SD record factory registry
 // (RegisterRecordFactories) and then Read() from the file. The records are DatRecords keyed by their ids.
-struct RecordFamilyRange
-{
+struct RecordFamilyRange {
   uint32_t m_low;
   uint32_t m_high;
 };
 
 class SeedList : public TableBase
 {
-public:
+  public:
   SeedList();
   virtual ~SeedList();
   int Read(istream* in) override;
@@ -44,28 +43,28 @@ public:
   }
   DatRecord* FindRecord(uint32_t id) const;
 
-  RecordFamilyRange m_range; // +0x08
+  RecordFamilyRange m_range;       // +0x08
   IdRegistry<DatRecord> m_records; // +0x10
 };
 
 // A SeedList loaded from a file, keyed by the id the SD record registry gives it.
 class SeedListFile : public IdNode
 {
-public:
+  public:
   SeedListFile();
   ~SeedListFile() override;
 
   // Reads the list from the file `<resource string firstId><resource string secondId>`; see TableBase::Open.
   int Load(uint16_t firstId, uint16_t secondId);
 
-  int m_version; // +0x1c
+  int m_version;   // +0x1c
   SeedList m_list; // +0x20
 };
 
 // All loaded SeedListFiles.
 class SeedListFileTree
 {
-public:
+  public:
   void Clear()
   {
     m_registry.Clear();
@@ -121,29 +120,29 @@ public:
   SeedListFile* FindByFamily(uint32_t family);
 
   int m_ready; // +0x0c, 1
-private:
+  private:
   IdRegistry<SeedListFile> m_registry;
 };
 
 // Display data cached for one record: its key and its localized name.
 class RecordNameNode : public IdNode
 {
-public:
+  public:
   RecordNameNode();
   ~RecordNameNode() override;
 
   // Takes the key and the name (resource string id at +0x30) of `record`. Returns whether the name is valid.
   int SetFromRecord(DatRecord* record);
 
-  int m_ready; // +0x1c, the validity of m_name after construction
-  uint32_t m_key; // +0x20
+  int m_ready;        // +0x1c, the validity of m_name after construction
+  uint32_t m_key;     // +0x20
   std::string m_name; // +0x24
 };
 
 // A seed key with a quantity, saved with the seed key's five values followed by the count.
 class SeedKeyCountNode : public AvlNode
 {
-public:
+  public:
   SeedKeyCountNode();
   explicit SeedKeyCountNode(const SeedKey& key);
   SeedKeyCountNode(const SeedKeyCountNode& other);
@@ -159,7 +158,7 @@ public:
   SeedKey* GetKey(SeedKey* out) const; // 0x568ec0
 
   SeedKey m_key; // +0x18
-  int m_count; // +0x2c
+  int m_count;   // +0x2c
 };
 
 // Registers the "SeedList" class with the table class registry (a static initializer of the original).

@@ -8,7 +8,7 @@
 
 class DirectDrawHost
 {
-public:
+  public:
   // `directory` (may be null; deleted afterwards when `ownsDirectory`) is the folder searched for the
   // DirectDraw error-text library "cdderr.dll".
   DirectDrawHost(const char* directory, int ownsDirectory);
@@ -33,7 +33,7 @@ public:
     reportErrors_ = enabled;
   }
 
-private:
+  private:
   void ReportError(HRESULT result, HWND parent);
   static BOOL FindAdapterWith3dCallback(GUID* driverGuid, char* description, char* name, void* context);
 

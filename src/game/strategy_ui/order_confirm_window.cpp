@@ -24,19 +24,12 @@ constexpr uint32_t kAllianceBackdrop = 0x2b75;
 constexpr uint32_t kEmpireBackdrop = 0x2b76;
 constexpr int kFontSlot = 4;
 
-CoolStrobeButton* AddConfirmButton(OrderConfirmWindow* window,
-                                   HMODULE module,
-                                   int x,
-                                   int y,
-                                   uint32_t childId,
-                                   uint32_t normalId,
-                                   uint32_t pressedId,
-                                   int16_t tooltipId)
+CoolStrobeButton* AddConfirmButton(OrderConfirmWindow* window, HMODULE module, int x, int y, uint32_t childId,
+                                   uint32_t normalId, uint32_t pressedId, int16_t tooltipId)
 {
   auto* button = NewOrNull<CoolStrobeButton>(module, x, y, 0x33, 0x23, window, childId, normalId, pressedId,
-                                                         window->GetPaintBackgroundIfOwned(), 0, 0);
-  if (button)
-  {
+                                             window->GetPaintBackgroundIfOwned(), 0, 0);
+  if (button) {
     button->Create(0);
     const ResourceStringId tooltip = {tooltipId, 2};
     window->AddToolFromString(button, &tooltip);
@@ -48,7 +41,7 @@ CoolStrobeButton* AddConfirmButton(OrderConfirmWindow* window,
 } // namespace
 
 OrderConfirmWindow::OrderConfirmWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, Notice8* request)
-: CoolGameWindow(instance, 0, 0, kWidth, kHeight, parent, 0, kSpriteSlot, 0, childId, 0, 1, 0, 0)
+    : CoolGameWindow(instance, 0, 0, kWidth, kHeight, parent, 0, kSpriteSlot, 0, childId, 0, 1, 0, 0)
 {
   m_galaxy = parent;
   m_style = kStyle;
@@ -59,15 +52,16 @@ OrderConfirmWindow::OrderConfirmWindow(HINSTANCE instance, GalaxyWindow* parent,
 
 OrderConfirmWindow::~OrderConfirmWindow()
 {
-  if (m_titleLabel)
-  {
+  if (m_titleLabel) {
     m_titleLabel->~CoolLabel();
     operator delete(m_titleLabel);
   }
-  if (m_textField)
+  if (m_textField) {
     delete m_textField;
-  if (m_request)
+  }
+  if (m_request) {
     delete m_request;
+  }
 }
 
 void OrderConfirmWindow::OnCreate1()
@@ -76,15 +70,14 @@ void OrderConfirmWindow::OnCreate1()
   CoolAppGetResourceModule(2);
   GalaxyWindow* galaxy = m_galaxy;
   CenterIn(galaxy->m_panelArea.left, galaxy->m_panelArea.top, galaxy->m_panelArea.right, galaxy->m_panelArea.bottom);
-  auto* backdrop =
-    NewOrNull<DibBitmap>(module, m_galaxy->m_side == 1 ? kAllianceBackdrop : kEmpireBackdrop, kBitmapKind);
-  HDC dc = GetDC(m_hwnd);
+  auto* backdrop
+      = NewOrNull<DibBitmap>(module, m_galaxy->m_side == 1 ? kAllianceBackdrop : kEmpireBackdrop, kBitmapKind);
+  HDC dc = reb::compat::GetDC(m_hwnd);
   const int height = backdrop->Height();
   const int width = backdrop->Width();
   auto* surface = NewOrNull<DibBitmap>(width, height, backdrop);
   backdrop->Blit(surface, 0, 0, 0, 0, 0, 0);
-  if (backdrop)
-  {
+  if (backdrop) {
     backdrop->~DibBitmap();
     operator delete(backdrop);
   }
@@ -103,38 +96,34 @@ void OrderConfirmWindow::OnCreate1()
   m_titleLabel->SetFont(kFontSlot);
   m_titleLabel->m_drawFlags = 1;
   m_titleLabel->SetText(m_request->m_text0.c_str());
-  HGDIOBJ previous = SelectObject(dc, surface->DibSectionHandle());
+  HGDIOBJ previous = reb::compat::SelectObject(dc, surface->DibSectionHandle());
   m_titleLabel->Draw(dc);
-  SelectObject(dc, previous);
-  ReleaseDC(m_hwnd, dc);
+  reb::compat::SelectObject(dc, previous);
+  reb::compat::ReleaseDC(m_hwnd, dc);
 
   AddConfirmButton(this, module, 0x163, 0xf4, kYesButton, 0x2aae, 0x2aaf, 0x1300);
   AddConfirmButton(this, module, 0x163, 0x119, kNoButton, 0x2ab1, 0x2ab2, 0x1301);
 
   auto* picture = NewOrNull<DibBitmap>(module, static_cast<uint32_t>(m_request->m_picture[1]), kBitmapKind);
-  if (picture)
-  {
+  if (picture) {
     picture->Blit(GetPaintBackgroundIfOwned(), 0xc, 0x1e, 0, 0, 0, 0);
     picture->~DibBitmap();
     operator delete(picture);
   }
-  SetFocus(m_hwnd);
+  reb::compat::SetFocus(m_hwnd);
 }
 
 void OrderConfirmWindow::OnCommand(int a, int b, int c)
 {
   const auto command = static_cast<int16_t>(a);
-  if (command == kYesButton)
-  {
+  if (command == kYesButton) {
     UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_request->m_subject), 1);
-  }
-  else
-  {
-    if (command != kNoButton)
+  } else {
+    if (command != kNoButton) {
       return;
+    }
     auto* order = reinterpret_cast<PlayerMessage*>(m_request->m_subject);
-    if (order)
-    {
+    if (order) {
       delete order;
       PostCloseRequest();
       return;
@@ -145,12 +134,9 @@ void OrderConfirmWindow::OnCommand(int a, int b, int c)
 
 void OrderConfirmWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
-  if (key == VK_RETURN)
-  {
+  if (key == VK_RETURN) {
     OnCommand(kYesButton, 0, 0);
-  }
-  else if (key == VK_ESCAPE)
-  {
+  } else if (key == VK_ESCAPE) {
     OnCommand(kNoButton, 0, 0);
   }
 }

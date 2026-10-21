@@ -10,8 +10,8 @@
 //   16 ShouldRetainWhenDestroyed returns 1 (GameObj's returns 0)   57 CreateViewObject: a new SideRoot.
 class SideRoot : public GameObj
 {
-public:
-  SideRoot(); // 0x5696b0
+  public:
+  SideRoot();           // 0x5696b0
   ~SideRoot() override; // 0x569740 (scalar deleting 0x569720)
 
   uint32_t GetFamily() override; // 0x569880

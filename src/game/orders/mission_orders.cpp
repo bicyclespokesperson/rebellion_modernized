@@ -1,9 +1,11 @@
 #include "orders/mission_orders.h"
 #include "economy/side.h"
+#include "character/character.h"
 
 #include "core/checked_new.h"
 #include "events/person_events.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 #include "gameobj/object_type_db.h"
 #include "orders/route_context.h"
@@ -31,6 +33,7 @@ constexpr uint32_t kMissionTypeFamilyFirst = 0x40;
 constexpr uint32_t kMissionTypeFamilyEnd = 0x50;
 constexpr uint32_t kMissionManagerKey = 0xf8000006;
 constexpr int kRouteMode = 3;
+constexpr uint32_t kStateEnroute = 0x10;
 
 bool isOk(const StatusCode* status)
 {
@@ -49,7 +52,7 @@ void setStatus(StatusCode* status, int code)
 
 MissionMgr* getMissionMgr()
 {
-  return reinterpret_cast<MissionMgr*>(GetGameRootMember_b8());
+  return static_cast<MissionMgr*>(static_cast<GameObj*>(GetGameRootMember_b8()));
 }
 
 void initRequest(ActivityRequest* request)
@@ -73,9 +76,11 @@ uint32_t controlSideOf(const GameObjNotifier* object)
 
 } // namespace
 
-// ---- Order242 --------------------------------------------------------------------------------------------------------
+// ---- Order242
+// --------------------------------------------------------------------------------------------------------
 
-Order242::Order242() : OrderBase()
+Order242::Order242()
+    : OrderBase()
 {
 }
 
@@ -92,9 +97,13 @@ Order242* CreateOrder242()
   return NewOrNull<Order242>();
 }
 
-// ---- MissionOrder ----------------------------------------------------------------------------------------------------
+// ---- MissionOrder
+// ----------------------------------------------------------------------------------------------------
 
-MissionOrder::MissionOrder() : OrderBase(), m_unk44(0), m_unk48(0)
+MissionOrder::MissionOrder()
+    : OrderBase()
+    , m_unk44(0)
+    , m_unk48(0)
 {
   m_missionKey.m_value = 0;
 }
@@ -104,8 +113,7 @@ MissionOrder::~MissionOrder() = default;
 int MissionOrder::Read(istream* in)
 {
   int ok = OrderBase::Read(in);
-  if (ok)
-  {
+  if (ok) {
     StreamRead32(in, &m_unk44);
     StreamRead32(in, &m_unk48);
     StreamRead32(in, &m_missionKey);
@@ -118,8 +126,7 @@ int MissionOrder::Read(istream* in)
 int MissionOrder::Write(ostream* out)
 {
   int ok = OrderBase::Write(out);
-  if (ok)
-  {
+  if (ok) {
     StreamWrite32(out, &m_unk44);
     StreamWrite32(out, &m_unk48);
     StreamWrite32(out, &m_missionKey);
@@ -135,8 +142,7 @@ int MissionOrder::CollectCandidates(StatusCode* status, ObjectKeyValueSet* out)
   out->Clear();
   int ok = CheckValid(status);
   Command* command = nullptr;
-  if (ok && isOk(status))
-  {
+  if (ok && isOk(status)) {
     command = m_commands->FirstCommand();
     ok = command != nullptr;
   }
@@ -146,8 +152,7 @@ int MissionOrder::CollectCandidates(StatusCode* status, ObjectKeyValueSet* out)
   ActivityRequest request;
   initRequest(&request);
   BuildRequest(&request);
-  if (ok && manager && usable && isOk(status))
-  {
+  if (ok && manager && usable && isOk(status)) {
     ObjectKey* resultKey = &static_cast<MissionOrderCommand*>(usable)->m_resultKey;
     ok = manager->MissionMgr::ResolveMissionTravel(&request, resultKey, GetTeam(), &m_characters, out, status);
   }
@@ -164,10 +169,8 @@ int MissionOrder::CheckCommand(StatusCode* status)
   setStatus(status, kStatusOk);
   Command* created = CreateCommand();
   const bool made = created != nullptr;
-  if (made)
-  {
-    if (isOk(status))
-    {
+  if (made) {
+    if (isOk(status)) {
       auto* command = static_cast<MissionOrderCommand*>(created);
       m_commands->Clear();
       ActivityRequest request;
@@ -181,9 +184,7 @@ int MissionOrder::CheckCommand(StatusCode* status)
       command->m_key.m_value = kMissionManagerKey;
       m_commands->Insert(command);
     }
-  }
-  else
-  {
+  } else {
     setStatus(status, kStatusRefused);
   }
   return made;
@@ -198,30 +199,27 @@ int MissionOrder::CheckDestination(StatusCode* status)
   BuildRequest(&request);
 
   uint32_t side = 0;
-  if (ok)
-  {
+  if (ok) {
     ObjectKeyNode* first = GetTeam()->First();
-    if (!first)
+    if (!first) {
       first = m_characters.First();
-    if (!first)
+    }
+    if (!first) {
       setStatus(status, kStatusNoMembers);
-    if (isOk(status))
-    {
+    }
+    if (isOk(status)) {
       GameObjNotifier* firstObject = nullptr;
       ObjectKey firstKey;
       const StatusCode missing(kStatusCategory, kStatusObjectNotFound);
       ok = ResolveMasterInFamilies_01_ff(first->GetKey(&firstKey), &firstObject, &missing, status);
-      if (ok && isOk(status))
+      if (ok && isOk(status)) {
         side = controlSideOf(firstObject);
-    }
-    if (ok && isOk(status))
-    {
-      if (m_missionKey.m_value == 0)
-      {
-        setStatus(status, kMissionCategory, kStatusNoMissionKey);
       }
-      else if (FindDataRecord(AsLookupKey(&m_missionKey)) == nullptr)
-      {
+    }
+    if (ok && isOk(status)) {
+      if (m_missionKey.m_value == 0) {
+        setStatus(status, kMissionCategory, kStatusNoMissionKey);
+      } else if (FindDataRecord(AsLookupKey(&m_missionKey)) == nullptr) {
         setStatus(status, kMissionCategory, kStatusBadMissionKey);
         ok = 0;
       }
@@ -229,63 +227,51 @@ int MissionOrder::CheckDestination(StatusCode* status)
   }
 
   int view = 0;
-  if (ok && isOk(status))
-  {
-    if (side == 1)
-    {
+  if (ok && isOk(status)) {
+    if (side == 1) {
       view = 1;
-    }
-    else if (side == 2)
-    {
+    } else if (side == 2) {
       view = 2;
-    }
-    else
-    {
+    } else {
       setStatus(status, kStatusUnknownSide);
     }
   }
 
   GameObjNotifier* target = nullptr;
-  if (ok && isOk(status))
-  {
+  if (ok && isOk(status)) {
     ObjectKey targetKey;
     target = GetObjectInFamilies_01_ff(view, GetTarget(&targetKey));
-    if (!target)
+    if (!target) {
       setStatus(status, kMissionCategory, kStatusTargetNotFound);
+    }
   }
 
   GameObjNotifier* mission = nullptr;
-  if (ok)
-  {
-    if (isOk(status))
-    {
+  if (ok) {
+    if (isOk(status)) {
       MissionMgr* manager = getMissionMgr();
       ok = manager != nullptr;
-      if (ok)
+      if (ok) {
         ok = manager->MissionMgr::FindMissionForTarget(side, &m_missionKey, target, &mission, status);
+      }
     }
-    if (ok && isOk(status) && isMissionTypeKey(m_missionKey) && controlSideOf(mission) != side)
-    {
+    if (ok && isOk(status) && isMissionTypeKey(m_missionKey) && controlSideOf(mission) != side) {
       setStatus(status, kStatusWrongSide);
     }
   }
 
   ObjectKey capacityKey;
   RouteContext route;
-  if (ok)
-  {
-    if (isOk(status))
-    {
+  if (ok) {
+    if (isOk(status)) {
       const int filter = kRouteMode;
       ok = route.InitFromRequest(&request, static_cast<int>(side), &filter);
-      if (ok)
-      {
+      if (ok) {
         ObjectKey missionKeyOfObject;
         ok = route.AddContainerLegs(mission->GetKey(&missionKeyOfObject));
       }
     }
-    if (ok && isOk(status))
-    {
+    if (ok && isOk(status)) {
       CapacityScratch scratch;
       ObjectKey missionKeyOfObject;
       ok = route.CheckMoveSets(GetTeam(), &m_characters, mission->GetKey(&missionKeyOfObject), status, &scratch,
@@ -294,46 +280,99 @@ int MissionOrder::CheckDestination(StatusCode* status)
   }
 
   ObjectKey resultKey;
-  if (ok && isOk(status))
-  {
+  if (ok && isOk(status)) {
     ObjectKey missionKeyOfObject;
-    if (mission->GetKey(&missionKeyOfObject)->m_value == capacityKey.m_value)
-    {
+    if (mission->GetKey(&missionKeyOfObject)->m_value == capacityKey.m_value) {
       ObjectKey targetKey;
       resultKey = *GetTarget(&targetKey);
-    }
-    else
-    {
+    } else {
       resultKey = capacityKey;
     }
   }
 
   MissionOrderCommand* command = nullptr;
-  if (ok)
-  {
-    if (isOk(status))
-    {
+  if (ok) {
+    if (isOk(status)) {
       command = static_cast<MissionOrderCommand*>(m_commands->FirstCommand());
       ok = command != nullptr;
     }
-    if (ok && isOk(status))
-    {
+    if (ok && isOk(status)) {
       command->m_side = static_cast<int>(side);
       command->m_missionKey.m_value = m_missionKey.m_value;
       command->m_request.m_target.m_value = resultKey.m_value;
       command->m_resultKey = capacityKey;
     }
   }
-  if (!ok)
+  if (!ok) {
     setStatus(status, kStatusRefused);
+  }
   return ok;
 }
 
-MissionOrder240::MissionOrder240() : MissionOrder()
+MissionOrder240::MissionOrder240()
+    : MissionOrder()
 {
 }
 
 MissionOrder240::~MissionOrder240() = default;
+
+namespace
+{
+
+GameObjNotifier* CharacterMissionLocation(Character* character)
+{
+  for (auto* parent = character->m_parent; parent; parent = parent->m_parent) {
+    const auto* object = dynamic_cast<GameObj*>(parent);
+    if (!object || (object->m_stateFlags & kStateEnroute) != 0) {
+      return nullptr;
+    }
+    const uint32_t kind = parent->GetFamily();
+    if ((kind >= family::kFleets.m_first && kind < family::kFleets.m_second)
+        || (kind >= family::kSystems.m_first && kind < family::kSystems.m_second)) {
+      return parent;
+    }
+  }
+  return nullptr;
+}
+
+bool CanStartCharacterMission(Character* character, const ActivityRequest& request)
+{
+  StatusCode status;
+  return character && character->m_commandKind == 0
+         && character->CheckActivityStatus2(&request, 1, &status) && isOk(&status);
+}
+
+} // namespace
+
+bool MissionOrder240::PopulateCharacterDecoys()
+{
+  m_characters.Clear();
+  if (GetTeam()->Count() != 1) {
+    return false;
+  }
+  const ObjectKey agentKey = GetTeam()->First()->m_key;
+  auto* agent = static_cast<Character*>(GetObjectInFamilies_30_3c(m_side, &agentKey));
+  ActivityRequest request;
+  BuildRequest(&request);
+  if (!CanStartCharacterMission(agent, request)) {
+    return false;
+  }
+  GameObjNotifier* location = CharacterMissionLocation(agent);
+  if (!location) {
+    return false;
+  }
+  for (auto* object = GetFirstObjectInRangeForSide(m_side, &family::kCharacters, 0); object;
+       object = static_cast<GameObj*>(object)->FindNextSibling(&family::kCharacters, 0)) {
+    auto* candidate = static_cast<Character*>(object);
+    if (candidate == agent || !CanStartCharacterMission(candidate, request)
+        || CharacterMissionLocation(candidate) != location) {
+      continue;
+    }
+    ObjectKey key;
+    m_characters.AddKeyValue(candidate->GetKey(&key), 0);
+  }
+  return true;
+}
 
 int MissionOrder240::CollectCandidatesA(ObjectRefList* out)
 {
@@ -344,8 +383,9 @@ int MissionOrder240::CollectCandidatesA(ObjectRefList* out)
   ActivityRequest request;
   initRequest(&request);
   BuildRequest(&request);
-  if (ok)
+  if (ok) {
     ok = manager->MissionMgr::CollectMissionTypesForTeam(&request, GetTeam(), &m_characters, out, &status);
+  }
   return ok;
 }
 
@@ -358,12 +398,14 @@ int MissionOrder240::CollectCandidatesB(ObjectNameList* out)
   ActivityRequest request;
   initRequest(&request);
   BuildRequest(&request);
-  if (ok)
+  if (ok) {
     ok = manager->MissionMgr::CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters, out, &status);
+  }
   return ok;
 }
 
-MissionOrder241::MissionOrder241() : MissionOrder()
+MissionOrder241::MissionOrder241()
+    : MissionOrder()
 {
 }
 

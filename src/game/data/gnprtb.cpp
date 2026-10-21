@@ -10,14 +10,12 @@
 namespace
 {
 
-struct GnprtbBinding
-{
+struct GnprtbBinding {
   int id;
   int* target;
 };
 
-struct SdprtbBinding
-{
+struct SdprtbBinding {
   int id;
   int side;
   int* target;
@@ -28,8 +26,9 @@ template <size_t N>
 int bindAll(const GnprtbBinding (&bindings)[N])
 {
   int allBound = 1;
-  for (const GnprtbBinding& binding : bindings)
+  for (const GnprtbBinding& binding : bindings) {
     allBound = BindGnprtbParameter(binding.id, binding.target) && allBound;
+  }
   return allBound;
 }
 
@@ -37,8 +36,9 @@ template <size_t N>
 int bindAll(const SdprtbBinding (&bindings)[N])
 {
   int allBound = 1;
-  for (const SdprtbBinding& binding : bindings)
+  for (const SdprtbBinding& binding : bindings) {
     allBound = BindSdprtbParameter(binding.id, binding.side, binding.target) && allBound;
+  }
   return allBound;
 }
 
@@ -55,8 +55,9 @@ int isSideInRange(int side)
 // Rolls the chance, then draws `rand(chance) + rand(spread) + base`; 0 if the chance roll fails.
 int rollDuration(int chance, int spread, int base)
 {
-  if (!PercentChance(chance))
+  if (!PercentChance(chance)) {
     return 0;
+  }
   const int first = GameRandom(chance);
   const int second = GameRandom(spread);
   return second + first + base;
@@ -80,8 +81,9 @@ int BindGnprtbParameter(int id, int* value)
   *value = 0;
   const TableEntry* record = FindTableRecord(kTableGnprtb, id);
   const int found = recordHasId(record, id);
-  if (found)
-    *value = reinterpret_cast<const GeneralParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty);
+  if (found) {
+    *value = static_cast<const GeneralParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty);
+  }
   return found;
 }
 
@@ -90,26 +92,28 @@ int BindSdprtbParameter(int id, int side, int* value)
   *value = 0;
   const TableEntry* record = FindTableRecord(kTableSdprtb, id);
   int usable = recordHasId(record, id);
-  if (usable)
+  if (usable) {
     usable = isSideInRange(side);
-  if (usable)
-    *value = reinterpret_cast<const SideParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty, side);
+  }
+  if (usable) {
+    *value = static_cast<const SideParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty, side);
+  }
   return usable;
 }
 
 int BindGeneralParameters()
 {
   static const GnprtbBinding kGeneral[] = {
-    {0xa00, &g_gnprtbA00}, {0xa01, &g_gnprtbA01}, {0xa02, &g_gnprtbA02}, {0xa03, &g_gnprtbA03}, {0xa04, &g_gnprtbA04},
-    {0xa05, &g_gnprtbA05}, {0xa06, &g_gnprtbA06}, {0xa07, &g_gnprtbA07}, {0xa08, &g_gnprtbA08}, {0xa09, &g_gnprtbA09},
-    {0xa0a, &g_gnprtbA0A}, {0xa0b, &g_gnprtbA0B}, {0xa0c, &g_gnprtbA0C}, {0xa0d, &g_gnprtbA0D}, {0xa0e, &g_gnprtbA0E},
-    {0xa0f, &g_gnprtbA0F}, {0xa10, &g_gnprtbA10}, {0xa11, &g_gnprtbA11}, {0xa12, &g_gnprtbA12}, {0xa13, &g_gnprtbA13},
-    {0xa14, &g_gnprtbA14}, {0xa15, &g_gnprtbA15}, {0xa16, &g_gnprtbA16}, {0xa17, &g_gnprtbA17}, {0xa18, &g_gnprtbA18},
-    {0xa19, &g_gnprtbA19}, {0xa20, &g_gnprtbA20}, {0xa21, &g_gnprtbA21},
+      {0xa00, &g_gnprtbA00}, {0xa01, &g_gnprtbA01}, {0xa02, &g_gnprtbA02}, {0xa03, &g_gnprtbA03}, {0xa04, &g_gnprtbA04},
+      {0xa05, &g_gnprtbA05}, {0xa06, &g_gnprtbA06}, {0xa07, &g_gnprtbA07}, {0xa08, &g_gnprtbA08}, {0xa09, &g_gnprtbA09},
+      {0xa0a, &g_gnprtbA0A}, {0xa0b, &g_gnprtbA0B}, {0xa0c, &g_gnprtbA0C}, {0xa0d, &g_gnprtbA0D}, {0xa0e, &g_gnprtbA0E},
+      {0xa0f, &g_gnprtbA0F}, {0xa10, &g_gnprtbA10}, {0xa11, &g_gnprtbA11}, {0xa12, &g_gnprtbA12}, {0xa13, &g_gnprtbA13},
+      {0xa14, &g_gnprtbA14}, {0xa15, &g_gnprtbA15}, {0xa16, &g_gnprtbA16}, {0xa17, &g_gnprtbA17}, {0xa18, &g_gnprtbA18},
+      {0xa19, &g_gnprtbA19}, {0xa20, &g_gnprtbA20}, {0xa21, &g_gnprtbA21},
   };
   static const SdprtbBinding kPerSide[] = {
-    {0xa00, 1, &g_sdprtbA00Side1}, {0xa00, 2, &g_sdprtbA00Side2}, {0xa01, 1, &g_sdprtbA01Side1},
-    {0xa01, 2, &g_sdprtbA01Side2}, {0xa02, 1, &g_sdprtbA02Side1}, {0xa02, 2, &g_sdprtbA02Side2},
+      {0xa00, 1, &g_sdprtbA00Side1}, {0xa00, 2, &g_sdprtbA00Side2}, {0xa01, 1, &g_sdprtbA01Side1},
+      {0xa01, 2, &g_sdprtbA01Side2}, {0xa02, 1, &g_sdprtbA02Side1}, {0xa02, 2, &g_sdprtbA02Side2},
   };
   const int generalBound = bindAll(kGeneral);
   const int perSideBound = bindAll(kPerSide);
@@ -119,9 +123,9 @@ int BindGeneralParameters()
 int BindGnprtb1C()
 {
   static const GnprtbBinding kBindings[] = {
-    {0x1c00, &g_gnprtb1C00},
-    {0x1c01, &g_gnprtb1C01},
-    {0x1c02, &g_gnprtb1C02},
+      {0x1c00, &g_gnprtb1C00},
+      {0x1c01, &g_gnprtb1C01},
+      {0x1c02, &g_gnprtb1C02},
   };
   return bindAll(kBindings);
 }
@@ -204,8 +208,7 @@ int RollChanceA11(int* result)
 int MapTypeCodeToIndex(int typeCode, int* index)
 {
   *index = 0;
-  switch (typeCode)
-  {
+  switch (typeCode) {
     case 0x260:
       *index = 0;
       return 1;
@@ -225,13 +228,11 @@ int MapTypeCodeToIndex(int typeCode, int* index)
 
 int ComputeSideShare(int side, int a, int b)
 {
-  if (side == 1)
-  {
+  if (side == 1) {
     const int divisor = g_sdprtbA00Side1;
     return (b - a) / divisor + b / divisor;
   }
-  if (side == 2)
-  {
+  if (side == 2) {
     const int divisor = g_sdprtbA00Side2;
     return (a - b) / divisor + a / divisor;
   }
@@ -240,12 +241,15 @@ int ComputeSideShare(int side, int a, int b)
 
 int RollSideBonus(int side, int enabled)
 {
-  if (!enabled)
+  if (!enabled) {
     return 0;
-  if (side == 1)
+  }
+  if (side == 1) {
     return GameRandom(g_sdprtbA01Side1) + g_sdprtbA02Side1;
-  if (side == 2)
+  }
+  if (side == 2) {
     return GameRandom(g_sdprtbA01Side2) + g_sdprtbA02Side2;
+  }
   return 0;
 }
 

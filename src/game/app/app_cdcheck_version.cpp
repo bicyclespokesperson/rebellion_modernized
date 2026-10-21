@@ -9,13 +9,13 @@
 
 #include "platform/win32.h"
 
-extern char g_languageName[0x100]; // 0x6b06f8
-extern char g_versionOlderText[0x200]; // 0x6b07f8
-extern char g_versionNewerText[0x200]; // 0x6b09f8
-extern char g_cdErrorTitle[0x200]; // 0x6b0bf8
-extern int g_versionCheckResult; // 0x6b0df8
+extern char g_languageName[0x100];      // 0x6b06f8
+extern char g_versionOlderText[0x200];  // 0x6b07f8
+extern char g_versionNewerText[0x200];  // 0x6b09f8
+extern char g_cdErrorTitle[0x200];      // 0x6b0bf8
+extern int g_versionCheckResult;        // 0x6b0df8
 extern char g_versionErrorTitle[0x200]; // 0x6b0e00
-extern char g_cdErrorText[0x200]; // 0x6b1000
+extern char g_cdErrorText[0x200];       // 0x6b1000
 
 namespace
 {
@@ -23,8 +23,7 @@ namespace
 constexpr UINT kErrorBoxStyle = MB_ICONHAND | MB_SETFOREGROUND | MB_TOPMOST;
 constexpr unsigned char kTextXorKey = 0xdd;
 
-struct ErrorTexts
-{
+struct ErrorTexts {
   char* cdErrorTitle;
   char* cdErrorText;
   char* versionErrorTitle;
@@ -51,43 +50,47 @@ void UseBuiltInTexts()
 // overwritten with a NUL); a backslash becomes a space followed by a newline.
 bool DecodeTexts(char* text, size_t size, ErrorTexts* out)
 {
-  if (!text || size == 0 || !out)
+  if (!text || size == 0 || !out) {
     return false;
+  }
   const bool encrypted = text[0] != '#';
   unsigned quotes = 0;
   *out = ErrorTexts{};
-  for (size_t index = 0; index < size; ++index)
-  {
-    if (encrypted)
+  for (size_t index = 0; index < size; ++index) {
+    if (encrypted) {
       text[index] ^= kTextXorKey;
-    if (text[index] == '"')
-    {
-      ++quotes;
-      if (quotes == 1)
-        out->cdErrorTitle = text + index + 1;
-      if (quotes == 3)
-        out->cdErrorText = text + index + 1;
-      if (quotes == 5)
-        out->versionErrorTitle = text + index + 1;
-      if (quotes == 7)
-        out->versionOlderText = text + index + 1;
-      if (quotes == 9)
-        out->versionNewerText = text + index + 1;
-      if ((quotes & 1) == 0)
-        text[index] = '\0';
     }
-    if (text[index] == '\\')
-    {
+    if (text[index] == '"') {
+      ++quotes;
+      if (quotes == 1) {
+        out->cdErrorTitle = text + index + 1;
+      }
+      if (quotes == 3) {
+        out->cdErrorText = text + index + 1;
+      }
+      if (quotes == 5) {
+        out->versionErrorTitle = text + index + 1;
+      }
+      if (quotes == 7) {
+        out->versionOlderText = text + index + 1;
+      }
+      if (quotes == 9) {
+        out->versionNewerText = text + index + 1;
+      }
+      if ((quotes & 1) == 0) {
+        text[index] = '\0';
+      }
+    }
+    if (text[index] == '\\') {
       text[index] = ' ';
-      if (index + 1 < size)
-      {
+      if (index + 1 < size) {
         text[index + 1] = '\n';
         ++index;
       }
     }
   }
-  return out->cdErrorTitle && out->cdErrorText && out->versionErrorTitle && out->versionOlderText &&
-         out->versionNewerText && (quotes >= 10) && (quotes % 2 == 0);
+  return out->cdErrorTitle && out->cdErrorText && out->versionErrorTitle && out->versionOlderText
+         && out->versionNewerText && (quotes >= 10) && (quotes % 2 == 0);
 }
 
 } // namespace
@@ -95,23 +98,20 @@ bool DecodeTexts(char* text, size_t size, ErrorTexts* out)
 void InitCdAndVersionCheck()
 {
   FILE* file = OpenGameFile(g_textsFileName, "rb");
-  if (!file)
-  {
+  if (!file) {
     UseBuiltInTexts();
     g_versionCheckResult = 1;
     g_versionCheckResult = CheckTextstraVersion();
     return;
   }
-  if (fseek(file, 0, SEEK_END) != 0)
-  {
+  if (fseek(file, 0, SEEK_END) != 0) {
     fclose(file);
     UseBuiltInTexts();
     g_versionCheckResult = CheckTextstraVersion();
     return;
   }
   const long fileSize = ftell(file);
-  if (fileSize <= 0 || static_cast<unsigned long>(fileSize) > 1024 * 1024 || fseek(file, 0, SEEK_SET) != 0)
-  {
+  if (fileSize <= 0 || static_cast<unsigned long>(fileSize) > 1024 * 1024 || fseek(file, 0, SEEK_SET) != 0) {
     fclose(file);
     UseBuiltInTexts();
     g_versionCheckResult = CheckTextstraVersion();
@@ -119,8 +119,7 @@ void InitCdAndVersionCheck()
   }
   const auto size = static_cast<size_t>(fileSize);
   char* text = static_cast<char*>(malloc(size + 1));
-  if (!text)
-  {
+  if (!text) {
     fclose(file);
     UseBuiltInTexts();
     g_versionCheckResult = CheckTextstraVersion();
@@ -131,8 +130,7 @@ void InitCdAndVersionCheck()
   text[size] = '\0';
 
   ErrorTexts texts;
-  if (bytesRead != size || !DecodeTexts(text, size, &texts))
-  {
+  if (bytesRead != size || !DecodeTexts(text, size, &texts)) {
     free(text);
     UseBuiltInTexts();
     g_versionCheckResult = CheckTextstraVersion();
@@ -154,17 +152,17 @@ int GetVersionCheckResult()
 
 void ShowCdNotFoundError()
 {
-  MessageBoxA(nullptr, g_cdErrorText, g_cdErrorTitle, kErrorBoxStyle);
+  reb::compat::MessageBoxA(nullptr, g_cdErrorText, g_cdErrorTitle, kErrorBoxStyle);
 }
 
 void ShowGameVersionOlderError()
 {
-  MessageBoxA(GetActiveWindow(), g_versionOlderText, g_versionErrorTitle, kErrorBoxStyle);
+  reb::compat::MessageBoxA(reb::compat::GetActiveWindow(), g_versionOlderText, g_versionErrorTitle, kErrorBoxStyle);
 }
 
 void ShowOpponentVersionOlderError()
 {
-  MessageBoxA(GetActiveWindow(), g_versionNewerText, g_versionErrorTitle, kErrorBoxStyle);
+  reb::compat::MessageBoxA(reb::compat::GetActiveWindow(), g_versionNewerText, g_versionErrorTitle, kErrorBoxStyle);
 }
 
 const char* GetLanguageName()
@@ -176,22 +174,18 @@ int CheckTextstraVersion()
 {
   bool compatible = true;
   DWORD handle;
-  const DWORD size = GetFileVersionInfoSizeA(g_textstraDllName, &handle);
-  if (size != 0)
-  {
+  const DWORD size = reb::compat::GetFileVersionInfoSizeA(g_textstraDllName, &handle);
+  if (size != 0) {
     void* data = operator new(size);
-    if (GetFileVersionInfoA(g_textstraDllName, 0, size, data))
-    {
+    if (reb::compat::GetFileVersionInfoA(g_textstraDllName, 0, size, data)) {
       WORD* translation;
       UINT length;
-      if (VerQueryValueA(data, g_translationQuery, reinterpret_cast<LPVOID*>(&translation), &length))
-      {
-        VerLanguageNameA(translation[0], g_languageName, 0xff);
+      if (reb::compat::VerQueryValueA(data, g_translationQuery, reinterpret_cast<LPVOID*>(&translation), &length)) {
+        reb::compat::VerLanguageNameA(translation[0], g_languageName, 0xff);
         char subBlock[256];
-        wsprintfA(subBlock, g_fileVersionQueryFormat, translation[0], translation[1]);
+        reb::compat::wsprintfA(subBlock, g_fileVersionQueryFormat, translation[0], translation[1]);
         char* version;
-        if (VerQueryValueA(data, subBlock, reinterpret_cast<LPVOID*>(&version), &length))
-        {
+        if (reb::compat::VerQueryValueA(data, subBlock, reinterpret_cast<LPVOID*>(&version), &length)) {
           version[1] = '\0';
           version[4] = '\0';
           const int major = atoi(version + 2);

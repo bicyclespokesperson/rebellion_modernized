@@ -20,7 +20,7 @@
 // id and the flag.
 class MessageBase : public IdNode
 {
-public:
+  public:
   MessageBase();
   ~MessageBase() override;
   virtual int Read(istream* in) = 0;
@@ -34,7 +34,7 @@ public:
 // Read/Write have bodies (0x4f5e00/0x4f5e50) that derived classes call.
 class SidedMessage : public MessageBase
 {
-public:
+  public:
   SidedMessage(); // 0x4f5c70
   ~SidedMessage() override;
   int Read(istream* in) override = 0;
@@ -49,10 +49,10 @@ public:
     return 0;
   } // 5: 0x6158b0
   virtual int CheckEnabled(StatusCode* status) = 0; // 6
-  virtual int CheckValid(StatusCode* status) = 0; // 7
-  virtual int Execute(StatusCode* status) = 0; // 8
+  virtual int CheckValid(StatusCode* status) = 0;   // 7
+  virtual int Execute(StatusCode* status) = 0;      // 8
 
-  int m_side; // +0x20
+  int m_side;  // +0x20
   int m_unk24; // +0x24, 1
   int m_unk28; // +0x28
 };
@@ -60,29 +60,29 @@ public:
 // 0x51fa20, VT 0x65ed28.
 class OrderBase : public SidedMessage
 {
-public:
+  public:
   OrderBase(); // 0x51fa20
   ~OrderBase() override;
-  int Read(istream* in) override = 0; // body 0x520120
+  int Read(istream* in) override = 0;   // body 0x520120
   int Write(ostream* out) override = 0; // body 0x520170
 
-  int IsChecked() override; // 5: 0x51fd30
+  int IsChecked() override;                      // 5: 0x51fd30
   int CheckEnabled(StatusCode* status) override; // 6: 0x51fe20
-  int CheckValid(StatusCode* status) override; // 7: 0x51ff30
-  int Execute(StatusCode* status) override; // 8: 0x520040
+  int CheckValid(StatusCode* status) override;   // 7: 0x51ff30
+  int Execute(StatusCode* status) override;      // 8: 0x520040
 
-  virtual void SetTeam(const ObjectKeyValueSet* team); // 9: 0x51fb70
-  virtual ObjectKeyValueSet* GetTeam(); // 10: 0x51fb80
-  virtual void SetTarget(const ObjectKey* target); // 11: 0x51fbb0
-  virtual ObjectKey* GetTarget(ObjectKey* out); // 12: 0x51fbc0
-  virtual ObjectKey* TargetRef(); // 13: 0x51fbe0
-  virtual void CopyTarget(ObjectKey* out); // 14: 0x51fbf0
+  virtual void SetTeam(const ObjectKeyValueSet* team);         // 9: 0x51fb70
+  virtual ObjectKeyValueSet* GetTeam();                        // 10: 0x51fb80
+  virtual void SetTarget(const ObjectKey* target);             // 11: 0x51fbb0
+  virtual ObjectKey* GetTarget(ObjectKey* out);                // 12: 0x51fbc0
+  virtual ObjectKey* TargetRef();                              // 13: 0x51fbe0
+  virtual void CopyTarget(ObjectKey* out);                     // 14: 0x51fbf0
   virtual int CollectTeamDependencies(ObjectKeyValueSet* out); // 15: 0x51fc00
-  virtual int GetArg(); // 16: 0x51fba0
-  virtual void SetArg(int arg); // 17: 0x51fb90
-  virtual Command* CreateCommand() = 0; // 18: the command that carries this order out
-  virtual int CheckCommand(StatusCode* status); // 19: 0x5201c0
-  virtual int CheckDestination(StatusCode* status); // 20: 0x5202d0
+  virtual int GetArg();                                        // 16: 0x51fba0
+  virtual void SetArg(int arg);                                // 17: 0x51fb90
+  virtual Command* CreateCommand() = 0;                        // 18: the command that carries this order out
+  virtual int CheckCommand(StatusCode* status);                // 19: 0x5201c0
+  virtual int CheckDestination(StatusCode* status);            // 20: 0x5202d0
   virtual int RequiresAllCommandsChecked()
   {
     return 1;
@@ -92,29 +92,29 @@ public:
   void BuildRequest(ActivityRequest* request); // 0x51fcb0
 
   ObjectKeyValueSet m_team; // +0x2c
-  ObjectKey m_target; // +0x34
-  int m_arg; // +0x38, set to the game clock when the order executes
-  int m_unk3c; // +0x3c
+  ObjectKey m_target;       // +0x34
+  int m_arg;                // +0x38, set to the game clock when the order executes
+  int m_unk3c;              // +0x3c
   CommandQueue* m_commands; // +0x40
 };
 
 // 0x5203a0, VT 0x65ed80: an order with a text (the multiplayer chat line).
 class TextMessage : public OrderBase
 {
-public:
+  public:
   TextMessage(); // 0x5203a0
   ~TextMessage() override;
-  int Read(istream* in) override = 0; // body 0x5204f0
+  int Read(istream* in) override = 0;   // body 0x5204f0
   int Write(ostream* out) override = 0; // body 0x520520
 
   int CheckEnabled(StatusCode* status) override; // 0x520460
-  int CheckValid(StatusCode* status) override; // 0x520470
-  int Execute(StatusCode* status) override; // 0x520480
+  int CheckValid(StatusCode* status) override;   // 0x520470
+  int Execute(StatusCode* status) override;      // 0x520480
   Command* CreateCommand() override
   {
     return nullptr;
   }
-  int CheckCommand(StatusCode* status) override; // 0x520550
+  int CheckCommand(StatusCode* status) override;     // 0x520550
   int CheckDestination(StatusCode* status) override; // 0x520560
 
   std::string m_text; // +0x44

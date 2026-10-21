@@ -17,18 +17,12 @@ constexpr int kEventDeploymentKey = 0x321;
 constexpr int kEventSeedKey = 0x400;
 constexpr int kEventProductName = 0x520;
 
-ObjectKey* asKey(NullableKey* key)
-{
-  return reinterpret_cast<ObjectKey*>(key);
-}
-
 } // namespace
 
 int ManuMgr::OnRemainingGameObjCountNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("ManuMgrRemainingGameObjCountNotif", "RemainingGameObjCount", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(kEventRemainingCount, this, oldValue, newValue, ctx);
   }
@@ -38,8 +32,7 @@ int ManuMgr::OnRemainingGameObjCountNotified(int oldValue, int newValue, NotifyC
 int ManuMgr::OnCompletedPointCountNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("ManuMgrCompletedPointCountNotif", "CompletedPointCount", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(kEventCompletedPoints, this, oldValue, newValue, ctx);
   }
@@ -49,18 +42,22 @@ int ManuMgr::OnCompletedPointCountNotified(int oldValue, int newValue, NotifyCon
 int ManuMgr::OnOverflowPointCountNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogInt("(ManuMgrOverflowPointCountNotif)", "OverflowPointCount", newValue, oldValue, 0, ctx);
+  }
   return result;
 }
 
 int ManuMgr::OnSeedKeyNotified(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
-    LogTypeKey("ManuMgrSeedKeyNotif", "SeedKey", asKey(newKey), asKey(oldKey), 0, ctx);
-    result = PostPayloadKeysB(kEventSeedKey, this, asKey(oldKey), asKey(newKey), ctx);
+  if (result) {
+    ObjectKey oldObjectKey;
+    ObjectKey newObjectKey;
+    oldObjectKey.m_value = oldKey->m_value;
+    newObjectKey.m_value = newKey->m_value;
+    LogTypeKey("ManuMgrSeedKeyNotif", "SeedKey", &newObjectKey, &oldObjectKey, 0, ctx);
+    result = PostPayloadKeysB(kEventSeedKey, this, &oldObjectKey, &newObjectKey, ctx);
   }
   return result;
 }
@@ -68,8 +65,7 @@ int ManuMgr::OnSeedKeyNotified(NullableKey* oldKey, NullableKey* newKey, NotifyC
 int ManuMgr::OnRequiredPointCountNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("ManuMgrRequiredPointCountNotif", "RequiredPointCount", newValue, oldValue, 0, ctx);
     result = PostPayloadInts(kEventRequiredPoints, this, oldValue, newValue, ctx);
   }
@@ -79,8 +75,7 @@ int ManuMgr::OnRequiredPointCountNotified(int oldValue, int newValue, NotifyCont
 int ManuMgr::OnTotalRequiredPointCountNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogInt("(ManuMgrTotalRequiredPointCountNotif)", "TotalRequiredPointCount", newValue, oldValue, 0, ctx);
   }
   return result;
@@ -89,8 +84,7 @@ int ManuMgr::OnTotalRequiredPointCountNotified(int oldValue, int newValue, Notif
 int ManuMgr::OnReservedNotified(int oldValue, int newValue, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogFlag("ManuMgrReservedNotif", "Reserved", newValue, 0, ctx);
     result = PostPayloadFlag(kEventReserved, this, newValue, ctx);
   }
@@ -100,8 +94,7 @@ int ManuMgr::OnReservedNotified(int oldValue, int newValue, NotifyContext* ctx)
 int ManuMgr::OnProductKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogKey("ManuMgrProductKeyNotif", "ProductKey", newKey, oldKey, 0, ctx);
     result = PostPayloadKeysA(kEventProductKey, this, oldKey, newKey, ctx);
   }
@@ -111,8 +104,7 @@ int ManuMgr::OnProductKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyCo
 int ManuMgr::OnDeploymentKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogKey("ManuMgrDeploymentKeyNotif", "DeploymentKey", newKey, oldKey, 0, ctx);
     result = PostPayloadKeysA(kEventDeploymentKey, this, oldKey, newKey, ctx);
   }
@@ -122,16 +114,16 @@ int ManuMgr::OnDeploymentKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, Notif
 int ManuMgr::OnTargetKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx)
 {
   const int result = IsSideView();
-  if (result)
+  if (result) {
     LogKey("ManuMgrTargetKeyNotif", "TargetKey", newKey, oldKey, 0, ctx);
+  }
   return result;
 }
 
 int ManuMgr::OnProductNameNotified(std::string* oldName, std::string* newName, NotifyContext* ctx)
 {
   int result = IsSideView();
-  if (result)
-  {
+  if (result) {
     LogString("ManuMgrProductNameNotif", "ProductName", newName, oldName, 0, ctx);
     result = PostPayloadStrings(kEventProductName, this, oldName, newName, ctx);
   }

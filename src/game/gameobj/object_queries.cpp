@@ -29,18 +29,15 @@ GameObjNotifier* FirstMasterIn(uint32_t first, uint32_t last)
   return GetFirstMasterObjectInRange(&range);
 }
 
-int ResolveMasterIn(uint32_t first,
-                    uint32_t last,
-                    const ObjectKey* key,
-                    GameObjNotifier** out,
-                    const StatusCode* missing,
-                    StatusCode* status)
+int ResolveMasterIn(uint32_t first, uint32_t last, const ObjectKey* key, GameObjNotifier** out,
+                    const StatusCode* missing, StatusCode* status)
 {
   *out = nullptr;
   *status = StatusCode(kStatusCategory, kStatusOk);
   GameObjNotifier* object = GetMasterObject(key);
-  if (object && !InFamilyRange(object->GetFamily(), first, last))
+  if (object && !InFamilyRange(object->GetFamily(), first, last)) {
     return 0;
+  }
   *out = object;
   const StatusCode found(kStatusCategory, kStatusOk);
   const bool alive = object && !(static_cast<GameObj*>(object)->m_stateFlags & kDestroyedFlag);
@@ -69,9 +66,7 @@ GameObjNotifier* GetMasterInFamilies_01_ff(const ObjectKey* key)
   return GetMasterIn(0x1, 0xff, key);
 }
 
-int ResolveMasterInFamilies_01_ff(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_01_ff(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x1, 0xff, key, out, missing, status);
@@ -82,9 +77,7 @@ GameObjNotifier* GetMasterInFamilies_14_1c(const ObjectKey* key)
   return GetMasterIn(0x14, 0x1c, key);
 }
 
-int ResolveMasterInFamilies_14_1c(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_14_1c(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x14, 0x1c, key, out, missing, status);
@@ -100,9 +93,7 @@ GameObjNotifier* GetMasterInFamilies_30_3c(const ObjectKey* key)
   return GetMasterIn(0x30, 0x3c, key);
 }
 
-int ResolveMasterInFamilies_30_3c(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_30_3c(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x30, 0x3c, key, out, missing, status);
@@ -113,9 +104,7 @@ GameObjNotifier* GetFirstMasterInFamilies_10_40()
   return FirstMasterIn(0x10, 0x40);
 }
 
-int ResolveMasterInFamilies_14_20(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_14_20(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x14, 0x20, key, out, missing, status);
@@ -131,9 +120,7 @@ GameObjNotifier* GetMasterInFamilies_20_30(const ObjectKey* key)
   return GetMasterIn(0x20, 0x30, key);
 }
 
-int ResolveMasterInFamilies_20_30(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_20_30(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x20, 0x30, key, out, missing, status);
@@ -149,9 +136,7 @@ GameObjNotifier* GetMasterInFamilies_a0_b0(const ObjectKey* key)
   return GetMasterIn(0xa0, 0xb0, key);
 }
 
-int ResolveMasterInFamilies_a0_b0(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_a0_b0(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0xa0, 0xb0, key, out, missing, status);
@@ -167,9 +152,7 @@ GameObjNotifier* GetMasterInFamilies_40_80(const ObjectKey* key)
   return GetMasterIn(0x40, 0x80, key);
 }
 
-int ResolveMasterInFamilies_40_80(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_40_80(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x40, 0x80, key, out, missing, status);
@@ -180,9 +163,7 @@ GameObjNotifier* GetMasterInFamilies_28_30(const ObjectKey* key)
   return GetMasterIn(0x28, 0x30, key);
 }
 
-int ResolveMasterInFamilies_28_30(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_28_30(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x28, 0x30, key, out, missing, status);
@@ -198,9 +179,7 @@ GameObjNotifier* GetMasterInFamilies_30_40(const ObjectKey* key)
   return GetMasterIn(0x30, 0x40, key);
 }
 
-int ResolveMasterInFamilies_30_40(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_30_40(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x30, 0x40, key, out, missing, status);
@@ -216,9 +195,7 @@ GameObjNotifier* GetMasterInFamilies_90_98(const ObjectKey* key)
   return GetMasterIn(0x90, 0x98, key);
 }
 
-int ResolveMasterInFamilies_90_98(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_90_98(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x90, 0x98, key, out, missing, status);
@@ -244,9 +221,7 @@ GameObjNotifier* GetMasterInFamilies_18_1c(const ObjectKey* key)
   return GetMasterIn(0x18, 0x1c, key);
 }
 
-int ResolveMasterInFamilies_18_1c(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_18_1c(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x18, 0x1c, key, out, missing, status);
@@ -262,9 +237,7 @@ GameObjNotifier* GetMasterInFamilies_08_10(const ObjectKey* key)
   return GetMasterIn(0x8, 0x10, key);
 }
 
-int ResolveMasterInFamilies_08_10(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_08_10(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x8, 0x10, key, out, missing, status);
@@ -280,17 +253,13 @@ GameObjNotifier* GetMasterInFamilies_38_3c(const ObjectKey* key)
   return GetMasterIn(0x38, 0x3c, key);
 }
 
-int ResolveMasterInFamilies_38_3c(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_38_3c(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x38, 0x3c, key, out, missing, status);
 }
 
-int ResolveMasterInFamilies_f8_f9(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_f8_f9(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0xf8, 0xf9, key, out, missing, status);
@@ -311,25 +280,19 @@ GameObjNotifier* GetMasterInFamilies_80_90(const ObjectKey* key)
   return GetMasterIn(0x80, 0x90, key);
 }
 
-int ResolveMasterInFamilies_80_90(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_80_90(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0x80, 0x90, key, out, missing, status);
 }
 
-int ResolveMasterInFamilies_f3_f4(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_f3_f4(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0xf3, 0xf4, key, out, missing, status);
 }
 
-int ResolveMasterInFamilies_f9_fa(const ObjectKey* key,
-                                  GameObjNotifier** out,
-                                  const StatusCode* missing,
+int ResolveMasterInFamilies_f9_fa(const ObjectKey* key, GameObjNotifier** out, const StatusCode* missing,
                                   StatusCode* status)
 {
   return ResolveMasterIn(0xf9, 0xfa, key, out, missing, status);
@@ -380,8 +343,9 @@ GameObjNotifier* GetGameRootMember_c0()
 GameObjNotifier* GetGameRootSideMember(int side)
 {
   GameRoot* root = currentGameRoot();
-  if (side < 1 || side > 2 || !root)
+  if (side < 1 || side > 2 || !root) {
     return nullptr;
+  }
   return side == 1 ? root->m_master_f300000f : root->m_master_f3000010;
 }
 

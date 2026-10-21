@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern int g_missionRescueEventKindsReady; // 0x6bb94c
+extern int g_missionRescueEventKindsReady;     // 0x6bb94c
 extern EventKindSet g_missionRescueEventKinds; // 0x6bb950
 
 namespace
@@ -75,18 +75,19 @@ int MissionRescue::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 {
   int ok = 1;
   *out = 0;
-  if (!PercentChance(roll))
+  if (!PercentChance(roll)) {
     return ok;
+  }
   *out = 1;
   SetTaskStatus(kTaskSucceeded, ctx);
   Role* role = static_cast<Role*>(person);
-  if (role->IsCharacter())
+  if (role->IsCharacter()) {
     role->SetBaseCombat(role->m_baseCombat + g_gnprtb1812, ctx);
+  }
   Role* target = nullptr;
   ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
-    reinterpret_cast<GameObj**>(&target));
-  if (target)
-  {
+      &target);
+  if (target) {
     ObjectKey key;
     role->GetKey(&key);
     const int moved = target->AssignHolderAndState(&key, ctx);
@@ -97,8 +98,7 @@ int MissionRescue::ApplyPersonResult(GameObj* person, int roll, int* out, Notify
 
 int MissionRescue::BuildEventKinds()
 {
-  if (!g_missionRescueEventKindsReady)
-  {
+  if (!g_missionRescueEventKindsReady) {
     g_missionRescueEventKindsReady = 1;
     return MissionCharacterTargetBase::InitEventKinds(0, &g_missionRescueEventKinds);
   }

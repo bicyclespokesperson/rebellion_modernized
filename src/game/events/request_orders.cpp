@@ -71,7 +71,8 @@ CommandQueue* newCommandQueue()
 
 // ---- Order250 -----------------------------------------------------------------------------------------------------
 
-Order250::Order250() : OrderBase()
+Order250::Order250()
+    : OrderBase()
 {
 }
 
@@ -89,7 +90,11 @@ void* CreateOrder250()
 
 // ---- PayloadMessage -----------------------------------------------------------------------------------------------
 
-PayloadMessage::PayloadMessage() : SidedMessage(), m_delay(0), m_valueA(0), m_valueB(0)
+PayloadMessage::PayloadMessage()
+    : SidedMessage()
+    , m_delay(0)
+    , m_valueA(0)
+    , m_valueB(0)
 {
 }
 
@@ -98,8 +103,7 @@ PayloadMessage::~PayloadMessage() = default;
 int PayloadMessage::Read(istream* in)
 {
   int result = SidedMessage::Read(in);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamRead32(in, &m_delay);
     StreamRead32(in, &m_valueA);
     StreamRead32(in, &m_valueB);
@@ -110,8 +114,7 @@ int PayloadMessage::Read(istream* in)
 int PayloadMessage::Write(ostream* out)
 {
   int result = SidedMessage::Write(out);
-  if (result != 0)
-  {
+  if (result != 0) {
     StreamWrite32(out, &m_delay);
     StreamWrite32(out, &m_valueA);
     StreamWrite32(out, &m_valueB);
@@ -133,8 +136,7 @@ int PayloadMessage::Execute(StatusCode* status)
 {
   *status = StatusCode(kStatusCategory, kStatusOk);
   auto* event = NewOrNull<PayloadEvent3f0>(m_valueA, m_valueB, m_side);
-  if (event)
-  {
+  if (event) {
     ObjectKey sideKey;
     sideKey.m_value = m_side == 1 ? 0xf300000fu : 0xf3000010u;
     event->m_key = sideKey;
@@ -150,7 +152,8 @@ void* CreatePayloadMessage()
 
 // ---- Order270 -----------------------------------------------------------------------------------------------------
 
-Order270::Order270() : OrderBase()
+Order270::Order270()
+    : OrderBase()
 {
 }
 
@@ -173,41 +176,40 @@ int Order270::CheckDestination(StatusCode* status)
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
   uint32_t side = 0;
-  if (ok != 0 && isOk(status))
+  if (ok != 0 && isOk(status)) {
     ok = GetCommandSide(m_commands, &side);
+  }
 
   RouteContext route;
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       int mode = 3;
       ok = route.InitFromRequest(&request, static_cast<int>(side), &mode);
     }
-    if (ok != 0)
-    {
-      if (isOk(status))
+    if (ok != 0) {
+      if (isOk(status)) {
         ok = route.AddContainerLegs(&request.m_target);
-      if (ok != 0)
-      {
-        if (isOk(status))
-        {
-          for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
-          {
+      }
+      if (ok != 0) {
+        if (isOk(status)) {
+          for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();) {
             Command* command = static_cast<Command*>((*(commandPosition++)).get());
-            if (!(true && ok != 0 && isOk(status)))
+            if (!(true && ok != 0 && isOk(status))) {
               break;
+            }
 
             ObjectKey tightest;
             CapacityScratch slot;
             ObjectKey unit = command->m_key;
             ok = route.CheckMove(&unit, &request.m_target, status, &slot, &tightest);
-            if (ok != 0 && isOk(status))
+            if (ok != 0 && isOk(status)) {
               command->m_request.m_target = tightest;
+            }
           }
         }
-        if (ok != 0)
+        if (ok != 0) {
           return ok;
+        }
       }
     }
   }
@@ -222,7 +224,8 @@ void* CreateOrder270()
 
 // ---- RootCommandOrder and its leaves ------------------------------------------------------------------------------
 
-RootCommandOrder::RootCommandOrder() : OrderBase()
+RootCommandOrder::RootCommandOrder()
+    : OrderBase()
 {
 }
 
@@ -232,10 +235,10 @@ int RootCommandOrder::IsChecked()
 {
   const int ownsQueue = static_cast<int>(m_unk1c);
   int checked = OrderBase::IsChecked();
-  if (ownsQueue != 0 && checked != 0)
-  {
-    if (static_cast<uint16_t>(m_commands->Count()) > 1)
+  if (ownsQueue != 0 && checked != 0) {
+    if (static_cast<uint16_t>(m_commands->Count()) > 1) {
       checked = 0;
+    }
   }
   return checked;
 }
@@ -245,10 +248,10 @@ int RootCommandOrder::CheckEnabled(StatusCode* status)
   const int ownsQueue = static_cast<int>(m_unk1c);
   *status = StatusCode(kStatusCategory, kStatusOk);
   OrderBase::CheckEnabled(status);
-  if (ownsQueue != 0 && isOk(status))
-  {
-    if (static_cast<uint16_t>(m_commands->Count()) > 1)
+  if (ownsQueue != 0 && isOk(status)) {
+    if (static_cast<uint16_t>(m_commands->Count()) > 1) {
       setStatus(status, kStatusCategory, kStatusTooManyCommands);
+    }
   }
   return isOk(status);
 }
@@ -258,7 +261,8 @@ Command* RootCommandOrder::CreateCommand()
   return NewOrNull<RootCommand240>();
 }
 
-RootOrder260::RootOrder260() : RootCommandOrder()
+RootOrder260::RootOrder260()
+    : RootCommandOrder()
 {
 }
 RootOrder260::~RootOrder260() = default;
@@ -275,7 +279,8 @@ void* CreateRootOrder260()
   return NewOrNull<RootOrder260>();
 }
 
-RootOrder261::RootOrder261() : RootCommandOrder()
+RootOrder261::RootOrder261()
+    : RootCommandOrder()
 {
 }
 RootOrder261::~RootOrder261() = default;
@@ -292,7 +297,8 @@ void* CreateRootOrder261()
   return NewOrNull<RootOrder261>();
 }
 
-RootOrder262::RootOrder262() : RootCommandOrder()
+RootOrder262::RootOrder262()
+    : RootCommandOrder()
 {
 }
 RootOrder262::~RootOrder262() = default;
@@ -309,7 +315,8 @@ void* CreateRootOrder262()
   return NewOrNull<RootOrder262>();
 }
 
-RootOrder263::RootOrder263() : RootCommandOrder()
+RootOrder263::RootOrder263()
+    : RootCommandOrder()
 {
 }
 RootOrder263::~RootOrder263() = default;
@@ -328,7 +335,8 @@ void* CreateRootOrder263()
 
 // ---- Order268 -----------------------------------------------------------------------------------------------------
 
-Order268::Order268() : OrderBase()
+Order268::Order268()
+    : OrderBase()
 {
 }
 
@@ -346,11 +354,12 @@ void* CreateOrder268()
 
 // ---- Order234 -----------------------------------------------------------------------------------------------------
 
-Order234::Order234() : OrderBase(), m_queue(nullptr)
+Order234::Order234()
+    : OrderBase()
+    , m_queue(nullptr)
 {
   int owns = 0;
-  if (m_unk1c != 0)
-  {
+  if (m_unk1c != 0) {
     m_queue = newCommandQueue();
     owns = m_queue != nullptr;
   }
@@ -359,8 +368,7 @@ Order234::Order234() : OrderBase(), m_queue(nullptr)
 
 Order234::~Order234()
 {
-  if (m_queue)
-  {
+  if (m_queue) {
     delete m_queue;
     m_queue = nullptr;
   }
@@ -373,16 +381,17 @@ int Order234::CheckEnabled(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   OrderBase::CheckEnabled(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckCommandsEnabled(&request, m_queue, status);
-    if (ownsQueue != 0)
-    {
-      if (isOk(status))
+    }
+    if (ownsQueue != 0) {
+      if (isOk(status)) {
         ownsQueue = CheckFleetsCanInvade(&request, GetTeam(), status);
-      if (ownsQueue != 0)
+      }
+      if (ownsQueue != 0) {
         return isOk(status);
+      }
     }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
@@ -396,12 +405,13 @@ int Order234::CheckValid(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   OrderBase::CheckValid(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckCommandsValid(&request, m_queue, status);
-    if (ownsQueue != 0)
+    }
+    if (ownsQueue != 0) {
       return isOk(status);
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return isOk(status);
@@ -411,16 +421,15 @@ int Order234::Execute(StatusCode* status)
 {
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = OrderBase::Execute(status);
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       ActivityRequest request;
       BuildRequest(&request);
       ok = ExecuteCommands(&request, m_queue);
     }
-    if (ok != 0)
+    if (ok != 0) {
       return ok;
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return 0;
@@ -437,21 +446,21 @@ int Order234::CheckCommand(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   int ok = OrderBase::CheckCommand(status);
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       SystemCommand225 prototype;
       ActivityRequest commandRequest;
       BuildRequest(&commandRequest);
       prototype.SetRequest(&commandRequest);
       ObjectKeyValueSet dependencies;
       ok = CollectTeamSystems(&commandRequest, GetTeam(), &dependencies, status);
-      if (ok != 0 && isOk(status))
+      if (ok != 0 && isOk(status)) {
         ok = CheckCommandForTeam(&prototype, &dependencies, m_queue, status);
+      }
     }
-    if (ok != 0)
+    if (ok != 0) {
       return ok;
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return ok;
@@ -463,8 +472,9 @@ int Order234::CheckDestination(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   int ok = OrderBase::CheckDestination(status);
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusCategory, kStatusRefused);
+  }
   return ok;
 }
 
@@ -475,11 +485,12 @@ void* CreateOrder234()
 
 // ---- FleetCommandOrder and its leaves -----------------------------------------------------------------------------
 
-FleetCommandOrder::FleetCommandOrder() : OrderBase(), m_queue(nullptr)
+FleetCommandOrder::FleetCommandOrder()
+    : OrderBase()
+    , m_queue(nullptr)
 {
   int owns = 0;
-  if (m_unk1c != 0)
-  {
+  if (m_unk1c != 0) {
     m_queue = newCommandQueue();
     owns = m_queue != nullptr;
   }
@@ -488,8 +499,7 @@ FleetCommandOrder::FleetCommandOrder() : OrderBase(), m_queue(nullptr)
 
 FleetCommandOrder::~FleetCommandOrder()
 {
-  if (m_queue)
-  {
+  if (m_queue) {
     delete m_queue;
     m_queue = nullptr;
   }
@@ -502,16 +512,17 @@ int FleetCommandOrder::CheckEnabled(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   OrderBase::CheckEnabled(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckCommandsEnabled(&request, m_queue, status);
-    if (ownsQueue != 0)
-    {
-      if (isOk(status))
+    }
+    if (ownsQueue != 0) {
+      if (isOk(status)) {
         ownsQueue = CheckFleetsCanBeUsed(&request, GetTeam(), status);
-      if (ownsQueue != 0)
+      }
+      if (ownsQueue != 0) {
         return isOk(status);
+      }
     }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
@@ -525,12 +536,13 @@ int FleetCommandOrder::CheckValid(StatusCode* status)
   ActivityRequest request;
   BuildRequest(&request);
   OrderBase::CheckValid(status);
-  if (ownsQueue != 0)
-  {
-    if (isOk(status))
+  if (ownsQueue != 0) {
+    if (isOk(status)) {
       ownsQueue = CheckCommandsValid(&request, m_queue, status);
-    if (ownsQueue != 0)
+    }
+    if (ownsQueue != 0) {
       return isOk(status);
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return isOk(status);
@@ -540,16 +552,15 @@ int FleetCommandOrder::Execute(StatusCode* status)
 {
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = OrderBase::Execute(status);
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       ActivityRequest request;
       BuildRequest(&request);
       ok = ExecuteCommands(&request, m_queue);
     }
-    if (ok != 0)
+    if (ok != 0) {
       return ok;
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return 0;
@@ -564,21 +575,21 @@ int FleetCommandOrder::CheckCommand(StatusCode* status)
 {
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = OrderBase::CheckCommand(status);
-  if (ok != 0)
-  {
-    if (isOk(status))
-    {
+  if (ok != 0) {
+    if (isOk(status)) {
       SystemCommand224 prototype;
       ActivityRequest commandRequest;
       BuildRequest(&commandRequest);
       prototype.SetRequest(&commandRequest);
       ObjectKeyValueSet dependencies;
       ok = CollectTeamSystems(&commandRequest, GetTeam(), &dependencies, status);
-      if (ok != 0 && isOk(status))
+      if (ok != 0 && isOk(status)) {
         ok = CheckCommandForTeam(&prototype, &dependencies, m_queue, status);
+      }
     }
-    if (ok != 0)
+    if (ok != 0) {
       return ok;
+    }
   }
   setStatus(status, kStatusCategory, kStatusRefused);
   return ok;
@@ -588,12 +599,14 @@ int FleetCommandOrder::CheckDestination(StatusCode* status)
 {
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = OrderBase::CheckDestination(status);
-  if (ok == 0)
+  if (ok == 0) {
     setStatus(status, kStatusCategory, kStatusRefused);
+  }
   return ok;
 }
 
-Order221::Order221() : FleetCommandOrder()
+Order221::Order221()
+    : FleetCommandOrder()
 {
 }
 Order221::~Order221() = default;
@@ -610,7 +623,8 @@ void* CreateOrder221()
   return NewOrNull<Order221>();
 }
 
-Order223::Order223() : FleetCommandOrder()
+Order223::Order223()
+    : FleetCommandOrder()
 {
 }
 Order223::~Order223() = default;
@@ -627,7 +641,8 @@ void* CreateOrder223()
   return NewOrNull<Order223>();
 }
 
-Order222::Order222() : FleetCommandOrder()
+Order222::Order222()
+    : FleetCommandOrder()
 {
 }
 Order222::~Order222() = default;
@@ -644,7 +659,8 @@ void* CreateOrder222()
   return NewOrNull<Order222>();
 }
 
-Order220::Order220() : FleetCommandOrder()
+Order220::Order220()
+    : FleetCommandOrder()
 {
 }
 Order220::~Order220() = default;
@@ -670,36 +686,34 @@ int CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, Stat
   const int ok = CollectKeyDependencies(request, team, &dependencies, status);
   bool anyUsableFleet = false;
   int regimentsAboard = 0;
-  if (ok != 0 && isOk(status))
-  {
+  if (ok != 0 && isOk(status)) {
     for (auto position = dependencies.Entries().begin();
-         position != dependencies.Entries().end() && (regimentsAboard == 0); ++position)
-    {
+         position != dependencies.Entries().end() && (regimentsAboard == 0); ++position) {
       auto* node = (*position).get();
       ObjectKey fleetKey = keyOfNode(node);
-      if (!isFleetKey(fleetKey))
+      if (!isFleetKey(fleetKey)) {
         continue;
+      }
       ObjectKey lookupKey = keyOfNode(node);
       GameObjNotifier* fleet = GetMasterInFamilies_08_10(&lookupKey);
-      if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0 &&
-          (static_cast<Fleet*>(fleet)->m_fleetFlags & kFleetFlagState58Bit5) != 0)
-      {
+      if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0
+          && (static_cast<Fleet*>(fleet)->m_fleetFlags & kFleetFlagState58Bit5) != 0) {
         anyUsableFleet = true;
         CapShipIterator ships(fleet, kCreatedStateFilter);
-        for (ships.Begin(); regimentsAboard == 0 && ships.Current(); ships.Advance())
-        {
+        for (ships.Begin(); regimentsAboard == 0 && ships.Current(); ships.Advance()) {
           TroopRegIterator regiments(ships.Current(), kCreatedStateFilter);
           regimentsAboard = regiments.HasCurrent();
         }
       }
     }
   }
-  if (ok != 0)
-  {
-    if (isOk(status) && !anyUsableFleet)
+  if (ok != 0) {
+    if (isOk(status) && !anyUsableFleet) {
       setStatus(status, kFleetStatusCategory, kNoUsableFleet);
-    if (ok != 0 && isOk(status) && regimentsAboard == 0)
+    }
+    if (ok != 0 && isOk(status) && regimentsAboard == 0) {
       setStatus(status, kFleetStatusCategory, kNoRegiments);
+    }
   }
   return ok;
 }
@@ -713,38 +727,34 @@ int CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, Stat
   const bool needsDeathStar = request->m_kind == kRequestKindDeathStar;
   ObjectKeyValueSet dependencies;
   const int ok = CollectKeyDependencies(request, team, &dependencies, status);
-  if (ok != 0 && isOk(status))
-  {
-    for (const auto& entry : dependencies.Entries())
-    {
-      if (stop)
+  if (ok != 0 && isOk(status)) {
+    for (const auto& entry : dependencies.Entries()) {
+      if (stop) {
         break;
+      }
       auto* node = entry.get();
       ObjectKey fleetKey = keyOfNode(node);
-      if (isFleetKey(fleetKey))
-      {
+      if (isFleetKey(fleetKey)) {
         ObjectKey lookupKey = keyOfNode(node);
         GameObjNotifier* fleet = GetMasterInFamilies_08_10(&lookupKey);
-        if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0)
-        {
+        if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0) {
           anyShips = static_cast<Fleet*>(fleet)->SumUnitStat119() != 0;
           DeathStarIterator deathStars(fleet, kCreatedStateFilter);
           deathStarAboard = deathStars.HasCurrent();
-          if (!anyShips || (needsDeathStar && deathStarAboard == 0))
-          {
+          if (!anyShips || (needsDeathStar && deathStarAboard == 0)) {
             stop = false;
-          }
-          else
-          {
+          } else {
             stop = true;
           }
         }
       }
     }
   }
-  if (ok != 0 && isOk(status) && !anyShips)
+  if (ok != 0 && isOk(status) && !anyShips) {
     setStatus(status, kFleetStatusCategory, kNoShips);
-  if (ok != 0 && isOk(status) && needsDeathStar && deathStarAboard == 0)
+  }
+  if (ok != 0 && isOk(status) && needsDeathStar && deathStarAboard == 0) {
     setStatus(status, kFleetStatusCategory, kNoDeathStar);
+  }
   return ok;
 }

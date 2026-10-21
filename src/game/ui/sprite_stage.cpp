@@ -31,23 +31,21 @@ bool SpriteTree::SpriteDepthLess::operator()(const std::unique_ptr<Sprite>& firs
 
 void SpriteTree::Add(Sprite* sprite)
 {
-  if (!sprite || std::ranges::any_of(m_sprites,
-                                     [sprite](const auto& owned)
-                                     {
-                                       return owned.get() == sprite;
-                                     }))
+  if (!sprite || std::ranges::any_of(m_sprites, [sprite](const auto& owned) {
+        return owned.get() == sprite;
+      })) {
     return;
-  if (sprite->m_id == 0)
-    sprite->m_id = ++m_nextId;
-  if (m_nextId < sprite->m_id)
-    m_nextId = sprite->m_id;
-  std::unique_ptr<Sprite> pending(sprite);
-  try
-  {
-    m_sprites.insert(std::move(pending));
   }
-  catch (...)
-  {
+  if (sprite->m_id == 0) {
+    sprite->m_id = ++m_nextId;
+  }
+  if (m_nextId < sprite->m_id) {
+    m_nextId = sprite->m_id;
+  }
+  std::unique_ptr<Sprite> pending(sprite);
+  try {
+    m_sprites.insert(std::move(pending));
+  } catch (...) {
     pending.release();
     throw;
   }
@@ -55,24 +53,21 @@ void SpriteTree::Add(Sprite* sprite)
 
 Sprite* SpriteTree::FindById(uint32_t id)
 {
-  for (const auto& entry : m_sprites)
-  {
+  for (const auto& entry : m_sprites) {
     auto* sprite = entry.get();
-    if (sprite->m_id == id)
+    if (sprite->m_id == id) {
       return sprite;
+    }
   }
   return nullptr;
 }
 
 void SpriteTree::Remove(Sprite* sprite)
 {
-  const auto found = std::find_if(m_sprites.begin(), m_sprites.end(),
-                                  [sprite](const auto& owned)
-                                  {
-                                    return owned.get() == sprite;
-                                  });
-  if (found != m_sprites.end())
-  {
+  const auto found = std::find_if(m_sprites.begin(), m_sprites.end(), [sprite](const auto& owned) {
+    return owned.get() == sprite;
+  });
+  if (found != m_sprites.end()) {
     auto detached = m_sprites.extract(found);
     detached.value().release();
   }
@@ -127,24 +122,26 @@ SpriteStage::SpriteStage(CoolWindow* window, DibBitmap* format, int x, int y, in
   m_hwnd = window->m_hwnd;
   m_x = x;
   m_y = y;
-  if (width < 1)
+  if (width < 1) {
     width = window->m_clientWidth - x;
-  if (height < 1)
+  }
+  if (height < 1) {
     height = window->m_clientHeight - y;
+  }
   m_rect.left = x;
   m_rect.top = y;
   m_rect.right = width + x;
   m_rect.bottom = height + y;
-  HDC dc = GetDC(m_hwnd);
+  HDC dc = reb::compat::GetDC(m_hwnd);
   m_buffers[0] = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), format, dc);
   m_buffers[1] = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), format, dc);
   ClearBitmap(m_buffers[0]);
   ClearBitmap(m_buffers[1]);
   m_front = 0;
-  ReleaseDC(m_hwnd, dc);
+  reb::compat::ReleaseDC(m_hwnd, dc);
   m_frame = -2;
   m_frameMs = frameMs;
-  m_startTime = timeGetTime();
+  m_startTime = reb::compat::timeGetTime();
   m_paused = 0;
   m_disabled = 1;
   m_alive = 1;
@@ -155,13 +152,11 @@ SpriteStage::SpriteStage(CoolWindow* window, DibBitmap* format, int x, int y, in
 SpriteStage::~SpriteStage()
 {
   m_alive = 0;
-  if (DibBitmap* buffer = m_buffers[0])
-  {
+  if (DibBitmap* buffer = m_buffers[0]) {
     delete buffer;
     m_buffers[0] = nullptr;
   }
-  if (DibBitmap* buffer = m_buffers[1])
-  {
+  if (DibBitmap* buffer = m_buffers[1]) {
     delete buffer;
     m_buffers[1] = nullptr;
   }
@@ -179,13 +174,14 @@ void SpriteStage::DrawAt(DibBitmap* dest, int x, int y)
 
 int SpriteStage::Tick()
 {
-  if (m_paused || m_disabled)
+  if (m_paused || m_disabled) {
     return 0;
-  const int frame = static_cast<int>((timeGetTime() - m_startTime) / m_frameMs);
-  if (frame == m_frame)
+  }
+  const int frame = static_cast<int>((reb::compat::timeGetTime() - m_startTime) / m_frameMs);
+  if (frame == m_frame) {
     return 0;
-  if (frame < m_frame)
-  {
+  }
+  if (frame < m_frame) {
     m_frame = frame;
     return 0;
   }
@@ -198,18 +194,18 @@ void SpriteStage::Render(int frame)
   RECT area;
   int changed = 0;
   int anyChanged = 0;
-  if (!m_alive)
+  if (!m_alive) {
     return;
+  }
   ClearBitmap(BackBuffer());
   m_resynced = 0;
-  for (const auto& entry : m_animators.Entries())
-  {
+  for (const auto& entry : m_animators.Entries()) {
     SpriteAnimator* animator = entry.get();
     changed = 0;
-    for (int step = m_frame; step < frame && !m_resynced; ++step)
+    for (int step = m_frame; step < frame && !m_resynced; ++step) {
       animator->Step(&area, &changed);
-    if (changed)
-    {
+    }
+    if (changed) {
       const int dx = m_x - m_originX;
       area.left += dx;
       area.right += dx;
@@ -217,23 +213,25 @@ void SpriteStage::Render(int frame)
       area.top += dy;
       area.bottom += dy;
       anyChanged = 1;
-      InvalidateRect(m_hwnd, &m_rect, FALSE);
+      reb::compat::InvalidateRect(m_hwnd, &m_rect, FALSE);
     }
   }
-  if (!m_resynced)
+  if (!m_resynced) {
     m_frame = frame;
+  }
   m_resynced = 0;
-  for (const auto& entry : m_sprites.Entries())
-  {
+  for (const auto& entry : m_sprites.Entries()) {
 #if defined(REB_MINWIN)
-    if (m_indexedSpriteFilter && minwin_gdi::DeviceScale() > 1 && entry->m_drawMode == kSpriteKeyed &&
-        entry->GetBitmap())
+    if (m_indexedSpriteFilter && minwin_gdi::DeviceScale() > 1 && entry->m_drawMode == kSpriteKeyed
+        && entry->GetBitmap()) {
       m_indexedSpriteFilter->EnsureDetail(*entry->GetBitmap());
+    }
 #endif
     entry->DrawOnto(BackBuffer(), m_originX, m_originY, &area);
   }
-  if (anyChanged)
+  if (anyChanged) {
     m_front = 1 - m_front;
+  }
 }
 
 void SpriteStage::EnableIndexedSpriteFiltering()
@@ -248,9 +246,10 @@ void SpriteStage::Pause()
 
 void SpriteStage::Resume()
 {
-  if (!m_paused)
+  if (!m_paused) {
     return;
-  const DWORD now = timeGetTime();
+  }
+  const DWORD now = reb::compat::timeGetTime();
   m_paused = 0;
   m_frame = static_cast<int>((now - m_startTime) / m_frameMs);
 }
@@ -267,10 +266,10 @@ void SpriteStage::Enable()
 
 void SpriteStage::Resync()
 {
-  const DWORD now = timeGetTime();
+  const DWORD now = reb::compat::timeGetTime();
   m_resynced = 1;
   m_frame = static_cast<int>((now - m_startTime) / m_frameMs);
-  InvalidateRect(m_hwnd, &m_rect, FALSE);
+  reb::compat::InvalidateRect(m_hwnd, &m_rect, FALSE);
 }
 
 uint32_t SpriteStage::AddAnimator(SpriteAnimator* animator)
@@ -282,11 +281,9 @@ uint32_t SpriteStage::AddAnimator(SpriteAnimator* animator)
 int SpriteStage::RemoveAnimator(SpriteAnimator* animator)
 {
   int removed = 0;
-  if (animator)
-  {
+  if (animator) {
     SpriteAnimator* found = m_animators.FindById(animator->m_id);
-    if (found && found == animator)
-    {
+    if (found && found == animator) {
       removed = 1;
       m_animators.Remove(animator);
     }
@@ -303,8 +300,7 @@ uint32_t SpriteStage::AddSprite(Sprite* sprite)
 int SpriteStage::RemoveSprite(uint32_t id)
 {
   Sprite* sprite = m_sprites.FindById(id);
-  if (sprite)
-  {
+  if (sprite) {
     m_sprites.Remove(sprite);
     delete sprite;
   }
@@ -320,21 +316,23 @@ void SpriteStage::Scroll(int dx, int dy)
   area.right = BackBuffer()->Width() + m_x;
   area.top = m_y;
   area.bottom = BackBuffer()->Height() + m_y;
-  InvalidateRect(m_hwnd, &area, FALSE);
+  reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
 }
 
 void SpriteStage::StartAnimator(uint32_t id, void* sequence, int a, int b, int c)
 {
   auto* animator = static_cast<SpriteAnimator*>(m_animators.FindById(id));
-  if (animator)
+  if (animator) {
     animator->Start(a, static_cast<const uint32_t*>(sequence), this, b, c, 0);
+  }
 }
 
 void SpriteStage::StopAnimator(uint32_t id)
 {
   auto* animator = static_cast<SpriteAnimator*>(m_animators.FindById(id));
-  if (animator)
+  if (animator) {
     animator->Stop();
+  }
 }
 
 uint32_t SpriteStage::HitTest(int x, int y)
@@ -342,11 +340,9 @@ uint32_t SpriteStage::HitTest(int x, int y)
   const int dx = m_originX - m_x;
   const int dy = m_originY - m_y;
   uint32_t id = 0;
-  for (const auto& entry : m_animators.Entries())
-  {
+  for (const auto& entry : m_animators.Entries()) {
     SpriteAnimator* animator = entry.get();
-    if (animator->HitTest(x + dx, y + dy))
-    {
+    if (animator->HitTest(x + dx, y + dy)) {
       id = animator->m_id;
       break;
     }

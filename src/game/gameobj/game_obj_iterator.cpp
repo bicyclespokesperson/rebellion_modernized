@@ -6,7 +6,7 @@ constexpr FamilyRange kAllFamilies(1, 0xff);
 }
 
 GameObjIterator::GameObjIterator(GameObjNotifier* parent, uint32_t stateFilter)
-: ChildIterator(parent, &kAllFamilies, stateFilter)
+    : ChildIterator(parent, &kAllFamilies, stateFilter)
 {
 }
 

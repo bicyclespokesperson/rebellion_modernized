@@ -9,21 +9,24 @@ namespace
 
 void readValues(istream* in, int* values, size_t count)
 {
-  for (size_t i = 0; i < count; ++i)
+  for (size_t i = 0; i < count; ++i) {
     ReadValue32(in, &values[i]);
+  }
 }
 
 void writeValues(ostream* out, const int* values, size_t count)
 {
-  for (size_t i = 0; i < count; ++i)
+  for (size_t i = 0; i < count; ++i) {
     WriteValue32(out, &values[i]);
+  }
 }
 
 int checksumValues(Crc32* crc, TableEntry* entry, const int* values, size_t count)
 {
   const int result = entry->TableEntry::Checksum(crc);
-  for (size_t i = 0; i < count; ++i)
+  for (size_t i = 0; i < count; ++i) {
     crc->AddInt(values[i]);
+  }
   return result;
 }
 
@@ -33,10 +36,10 @@ int parseTextValues(TableEntry* entry, istream* in, int* values, size_t count)
   int endOfLine = 0;
   ReadCsvField(in, token.get(), &endOfLine);
   const int ok = entry->ParseHeader(in, &endOfLine);
-  if (ok)
-  {
-    for (size_t i = 0; i < count; ++i)
+  if (ok) {
+    for (size_t i = 0; i < count; ++i) {
       ParseLongField(in, token.get(), &endOfLine, &values[i]);
+    }
   }
   SkipRestOfLine(in, &endOfLine);
   return ok;
@@ -46,7 +49,8 @@ int parseTextValues(TableEntry* entry, istream* in, int* values, size_t count)
 
 // ---- GeneralParamTableEntry --------------------------------------------------------------------------------
 
-GeneralParamTableEntry::GeneralParamTableEntry() : m_values{}
+GeneralParamTableEntry::GeneralParamTableEntry()
+    : m_values{}
 {
 }
 
@@ -78,8 +82,9 @@ int GeneralParamTableEntry::ParseText(istream* in)
 
 int GeneralParamTableEntry::GetValue(int index) const
 {
-  if (index < 0 || index >= kValueCount)
+  if (index < 0 || index >= kValueCount) {
     return 0;
+  }
   return m_values[index];
 }
 
@@ -90,7 +95,8 @@ void* CreateGeneralParamTableEntry()
 
 // ---- SideParamTableEntry -----------------------------------------------------------------------------------
 
-SideParamTableEntry::SideParamTableEntry() : m_values{}
+SideParamTableEntry::SideParamTableEntry()
+    : m_values{}
 {
 }
 
@@ -122,8 +128,9 @@ int SideParamTableEntry::ParseText(istream* in)
 
 int SideParamTableEntry::GetValue(int pair, int member) const
 {
-  if (pair < 0 || pair >= kPairCount || member < 1 || member > 2)
+  if (pair < 0 || pair >= kPairCount || member < 1 || member > 2) {
     return 0;
+  }
   return m_values[pair][member - 1];
 }
 

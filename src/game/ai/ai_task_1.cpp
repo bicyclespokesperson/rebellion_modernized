@@ -47,13 +47,13 @@ constexpr uint32_t kIonClassKey = 0x2c000001;
 } // namespace
 
 AiTask1::AiTask1(int view)
-: AiStagedTask(1, view),
-  m_system(),
-  m_manager(),
-  m_classKey(),
-  m_targets(),
-  m_dropped(),
-  m_selector()
+    : AiStagedTask(1, view)
+    , m_system()
+    , m_manager()
+    , m_classKey()
+    , m_targets()
+    , m_dropped()
+    , m_selector()
 {
   m_classKey.m_value = 0;
   m_stage = 0;
@@ -108,33 +108,31 @@ void AiTask1::Write(ostream* out)
 
 OrderBase* AiTask1::Step()
 {
-  if (m_flags.Get() != 1)
-  {
+  if (m_flags.Get() != 1) {
     m_stage = 0;
     m_step = 0;
     m_finished = 1;
     return nullptr;
   }
-  if (m_stage != 0)
-  {
-    if (m_stage == kStageBuild)
+  if (m_stage != 0) {
+    if (m_stage == kStageBuild) {
       return StepBuild();
+    }
     m_stage = 0;
     return nullptr;
   }
-  if (ChooseTarget() != 0)
-  {
+  if (ChooseTarget() != 0) {
     m_stage = kStageBuild;
     return nullptr;
   }
-  if (PickSystem() != 0)
-  {
+  if (PickSystem() != 0) {
     m_stage = kStageBuild;
     m_step = 0;
     return nullptr;
   }
-  if (!(m_owner->m_bitB == 0x80 && (m_owner->m_flags.Get() & 0x40) == 0))
+  if (!(m_owner->m_bitB == 0x80 && (m_owner->m_flags.Get() & 0x40) == 0)) {
     AddTargetSystem();
+  }
   RefreshTargets();
   m_stage = 0;
   m_step = 0;
@@ -148,31 +146,24 @@ int AiTask1::ChooseTarget()
   bool found = false;
   m_cap = 0;
   auto position = m_targets.Entries().begin();
-  while (position != m_targets.Entries().end() && !found)
-  {
+  while (position != m_targets.Entries().end() && !found) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     ObjectKey key = KeyOfNode(node);
     AiSystemEval* eval = m_owner->m_systems.FindEval(key);
-    if (!eval)
-    {
+    if (!eval) {
       m_targets.RemoveKey(&key);
       continue;
     }
-    if ((eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0)
-    {
-      if ((eval->m_flags28.m_value & 0x800) == 0)
-      {
-        if (m_targets.Count() == 1 && eval->Stat(0x60) == 0)
-        {
+    if ((eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0) {
+      if ((eval->m_flags28.m_value & 0x800) == 0) {
+        if (m_targets.Count() == 1 && eval->Stat(0x60) == 0) {
           eval->m_flags28.m_value &= ~kSystemClaimed;
           eval->MarkChanged();
           m_targets.RemoveKey(&key);
           continue;
         }
-      }
-      else if ((eval->m_flags28.m_value & 3) == 0)
-      {
+      } else if ((eval->m_flags28.m_value & 3) == 0) {
         m_cap = eval->Stat(0x60);
         m_manager = KeyOfNode(node);
         found = true;
@@ -183,14 +174,11 @@ int AiTask1::ChooseTarget()
     eval->MarkChanged();
     m_targets.RemoveKey(&key);
   }
-  if (IsSystemKey(m_manager))
-  {
+  if (IsSystemKey(m_manager)) {
     auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_manager));
-    if (system)
-    {
+    if (system) {
       GameObjNotifier* manager = system->FindManufacturingManagerByKind(1);
-      if (manager)
-      {
+      if (manager) {
         ObjectKey key;
         GetObjectKey(manager, &key);
         m_manager = key;
@@ -206,8 +194,9 @@ int AiTask1::PickSystem()
   int result = 0;
   ObjectKey scratch;
   m_cap = 0;
-  if (m_targets.Count() != 0)
+  if (m_targets.Count() != 0) {
     return result;
+  }
   m_selector.Add(m_owner->RankSectors(0x2000, 0, 0, 0, 0, 0, 4, 2));
   m_selector.Add(m_owner->RankSectors(0x2000, 0, 0, 0, 0, 0, 0x15, 1));
   m_selector.Add(m_owner->RankSectors(0x2000, 0, 0, 0, 0, 0, 8, 1));
@@ -218,8 +207,7 @@ int AiTask1::PickSystem()
   m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0x800, 0, 1, 0x3800000, 0, 0, 0x33, 1));
   m_system = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!IsSystemKey(m_system))
-  {
+  if (!IsSystemKey(m_system)) {
     m_selector.Add(m_owner->RankSectors(0, 0, 4, 0, 0, 0, 0x14, 1));
     m_system = *m_selector.PickBest(&scratch);
     m_selector.Reset();
@@ -227,28 +215,23 @@ int AiTask1::PickSystem()
     m_system = *m_selector.PickBest(&scratch);
     m_selector.Reset();
   }
-  if (!IsSystemKey(m_system))
+  if (!IsSystemKey(m_system)) {
     m_owner->m_flags.m_value |= 0x40;
-  if (IsSystemKey(m_system))
-  {
+  }
+  if (IsSystemKey(m_system)) {
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-    if (eval)
-    {
+    if (eval) {
       auto* node = NewOrNull<ObjectKeyNode>(m_system);
-      if (node)
-      {
+      if (node) {
         m_targets.Add(node);
         eval->m_flags28.m_value = (eval->m_flags28.m_value & 0xfc7fffff) | kSystemClaimed;
         eval->MarkChanged();
-        if ((eval->m_flags28.m_value & 0x800) != 0)
-        {
+        if ((eval->m_flags28.m_value & 0x800) != 0) {
           result = 1;
           auto* system = static_cast<System*>(GetObjectInFamilies_90_98(m_view, &m_system));
-          if (system)
-          {
+          if (system) {
             GameObjNotifier* manager = system->FindManufacturingManagerByKind(1);
-            if (manager)
-            {
+            if (manager) {
               m_cap = eval->Stat(0x60);
               ObjectKey key;
               GetObjectKey(manager, &key);
@@ -264,19 +247,16 @@ int AiTask1::PickSystem()
 
 OrderBase* AiTask1::StepBuild()
 {
-  auto finish = [this](OrderBase* order)
-  {
+  auto finish = [this](OrderBase* order) {
     m_step = 0;
     m_stage = 0;
     m_finished = 1;
     return order;
   };
-  switch (m_step)
-  {
+  switch (m_step) {
     case 1:
       m_owner->m_bitsA &= ~0x80u;
-      if (m_owner->m_bitB != 0x80)
-      {
+      if (m_owner->m_bitB != 0x80) {
         m_step = 10;
         return nullptr;
       }
@@ -284,8 +264,7 @@ OrderBase* AiTask1::StepBuild()
       m_step = 2;
       return nullptr;
     case 2:
-      if (SelectTarget() == 0)
-      {
+      if (SelectTarget() == 0) {
         m_stage = 0;
         m_step = 0;
         m_finished = 1;
@@ -294,20 +273,18 @@ OrderBase* AiTask1::StepBuild()
       m_step = 3;
       return nullptr;
     case 3:
-    {
-      OrderBase* order = BuildScrapOrder();
-      if (order)
       {
-        m_finished = 1;
-        ++m_priority;
+        OrderBase* order = BuildScrapOrder();
+        if (order) {
+          m_finished = 1;
+          ++m_priority;
+        }
+        m_step = 4;
+        return order;
       }
-      m_step = 4;
-      return order;
-    }
     case 4:
       m_step = ComputeFacilityCount();
-      if (m_step == 0)
-      {
+      if (m_step == 0) {
         m_stage = 0;
         m_finished = 1;
       }
@@ -315,54 +292,46 @@ OrderBase* AiTask1::StepBuild()
     case 5:
       return finish(BuildCapitalOrder());
     case 6:
-    {
-      int picked;
-      if (m_owner->Stat(0x1d4) < m_owner->Stat(0x1d0))
       {
-        m_classKey.m_value = kShieldClassKey;
-        picked = PickIonTarget();
+        int picked;
+        if (m_owner->Stat(0x1d4) < m_owner->Stat(0x1d0)) {
+          m_classKey.m_value = kShieldClassKey;
+          picked = PickIonTarget();
+        } else {
+          m_classKey.m_value = kIonClassKey;
+          picked = PickShieldTarget();
+        }
+        if (picked == 0) {
+          m_step = 0;
+          m_stage = 0;
+        } else {
+          m_count = 1;
+          m_step = 7;
+        }
       }
-      else
-      {
-        m_classKey.m_value = kIonClassKey;
-        picked = PickShieldTarget();
-      }
-      if (picked == 0)
-      {
-        m_step = 0;
-        m_stage = 0;
-      }
-      else
-      {
-        m_count = 1;
-        m_step = 7;
-      }
-    }
       [[fallthrough]];
     case 7:
-    {
-      OrderBase* order = BuildAllScrapOrder();
-      if (order)
       {
-        m_finished = 1;
-        ++m_priority;
-      }
-      m_step = 8;
-      return order;
-    }
-    case 8:
-    {
-      OrderBase* order = BuildDestinationOrder();
-      if (order)
-      {
-        m_step = 9;
-        m_finished = 1;
-        ++m_priority;
+        OrderBase* order = BuildAllScrapOrder();
+        if (order) {
+          m_finished = 1;
+          ++m_priority;
+        }
+        m_step = 8;
         return order;
       }
-      finish(nullptr);
-      return nullptr;
-    }
+    case 8:
+      {
+        OrderBase* order = BuildDestinationOrder();
+        if (order) {
+          m_step = 9;
+          m_finished = 1;
+          ++m_priority;
+          return order;
+        }
+        finish(nullptr);
+        return nullptr;
+      }
     case 9:
       return finish(BuildManufactureOrder210());
     case 10:
@@ -382,21 +351,18 @@ int AiTask1::SelectTarget()
   ObjectKey scratch;
   m_system.Reset();
   m_limit = 0;
-  for (auto position = m_targets.Entries().begin(); position != m_targets.Entries().end(); ++position)
-  {
+  for (auto position = m_targets.Entries().begin(); position != m_targets.Entries().end(); ++position) {
     auto* node = static_cast<ObjectKeyNode*>((*position).get());
     AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-    if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114) &&
-        eval->Stat(0x60) < best)
-    {
+    if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114)
+        && eval->Stat(0x60) < best) {
       m_limit = eval->Stat(0x114);
       best = eval->Stat(0x60);
       m_system = KeyOfNode(eval);
       result = 1;
     }
   }
-  if (result == 0)
-  {
+  if (result == 0) {
     m_selector.Add(m_owner->RankSectors(0x80, 0, 0, 0, 0, 0, 4, 2));
     m_selector.Add(m_owner->RankSectors(0x80, 0, 0, 0, 0, 0, 0x15, 1));
     m_selector.Add(m_owner->RankSectors(0x80, 0, 0, 0, 0, 0, 8, 1));
@@ -407,15 +373,12 @@ int AiTask1::SelectTarget()
     m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0, 0, 1, 0x3800003, 0, 0x40000000, 0x33, 1));
     m_system = *m_selector.PickBest(&scratch);
     m_selector.Reset();
-    if (IsSystemKey(m_system))
-    {
+    if (IsSystemKey(m_system)) {
       result = 1;
       AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-      if (eval)
-      {
+      if (eval) {
         auto* node = NewOrNull<ObjectKeyNode>(m_system);
-        if (node)
-        {
+        if (node) {
           m_targets.Add(node);
           eval->m_flags28.m_value |= kSystemClaimed;
           eval->MarkChanged();
@@ -435,36 +398,37 @@ int AiTask1::ComputeFacilityCount()
 {
   int result = 0;
   m_count = 0;
-  if (!IsSystemKey(m_system))
+  if (!IsSystemKey(m_system)) {
     return 0;
+  }
   const int need = NeedForTargets();
-  if (0 < need)
-  {
+  if (0 < need) {
     const int classes = m_owner->ChooseClass(&m_classKey, 0x2a, 0x10000, 0x4000, 2);
-    if ((m_classKey.m_value & 0xff000000) != 0 && classes != 0)
+    if ((m_classKey.m_value & 0xff000000) != 0 && classes != 0) {
       m_count = need / classes;
-    if (0 < m_count)
-    {
+    }
+    if (0 < m_count) {
       AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-      if (eval)
-      {
+      if (eval) {
         int limit = eval->Stat(0x84);
-        if (m_limit < limit)
+        if (m_limit < limit) {
           limit = m_limit;
-        if (limit < m_count)
+        }
+        if (limit < m_count) {
           m_count = limit;
-        if (m_cap < m_count)
+        }
+        if (m_cap < m_count) {
           m_count = m_cap;
+        }
         result = 8;
       }
     }
-  }
-  else if (need < 0)
-  {
+  } else if (need < 0) {
     result = 5;
   }
-  if (m_count == 0)
+  if (m_count == 0) {
     result = 6;
+  }
   return result;
 }
 
@@ -486,8 +450,7 @@ int AiTask1::PickShieldTarget()
   m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0x80, 0, 0, 0, 0, 0, 0xf, 1));
   m_system = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!IsSystemKey(m_system))
-  {
+  if (!IsSystemKey(m_system)) {
     m_selector.Add(m_owner->RankSectorsByDistance(&m_manager, 0x800, 0, 0, 0, 0, 0, 2));
     m_system = *m_selector.PickBest(&scratch);
     m_selector.Reset();
@@ -509,8 +472,7 @@ int AiTask1::PickIonTarget()
   m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0x100, 0, 1, 0x3e00003, 0, 0, 0, 1));
   m_system = *m_selector.PickBest(&scratch);
   m_selector.Reset();
-  if (!IsSystemKey(m_system))
-  {
+  if (!IsSystemKey(m_system)) {
     m_selector.Add(m_owner->RankSectorsByDistance(&m_manager, 0x400, 0, 0, 0, 0, 0, 2));
     m_system = *m_selector.PickBest(&scratch);
     m_selector.Reset();
@@ -526,20 +488,18 @@ OrderBase* AiTask1::BuildAllScrapOrder()
   ObjectKeyValueSet team;
   OrderBase* order = nullptr;
   ObjectKeyValueNode* last = nullptr;
-  if (IsSystemKey(m_system))
-  {
+  if (IsSystemKey(m_system)) {
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-    if (eval && (eval->m_flags28.m_value & 0x3e00000) == 0)
-    {
+    if (eval && (eval->m_flags28.m_value & 0x3e00000) == 0) {
       GameObjNotifier* system = GetObjectInFamilies_90_98(m_view, &m_system);
-      if (system)
-      {
+      if (system) {
         last = AddAllOfKind<ManufacturingFacility28Iterator>(&team, system, last);
         last = AddAllOfKind<ManufacturingFacility29Iterator>(&team, system, last);
         last = AddAllOfKind<ManufacturingFacility2AIterator>(&team, system, last);
       }
-      if (team.First())
+      if (team.First()) {
         order = NewTeamOrder(kScrapOrder, m_view, &team);
+      }
     }
   }
   return order;
@@ -552,8 +512,9 @@ OrderBase* AiTask1::BuildDestinationOrder()
 
 OrderBase* AiTask1::BuildManufactureOrder210()
 {
-  if ((m_classKey.m_value & 0xff000000) == 0)
+  if ((m_classKey.m_value & 0xff000000) == 0) {
     return nullptr;
+  }
   return aitask::BuildManufactureOrder(Fields(), 0x210, 0xa0);
 }
 

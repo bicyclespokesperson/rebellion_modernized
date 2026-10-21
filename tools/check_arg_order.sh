@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Guard against argument-evaluation-order dependence in src/game (docs/agent_brief.md, "Argument evaluation order").
+# Guard against argument-evaluation-order dependence in src/game: clang-cl (MSVC ABI)
+# evaluates call arguments right to left, Clang on macOS and Linux left to right.
 # MSVC and clang-cl evaluate call arguments right to left, clang for the Itanium ABI (the native build) left to right; an argument list with
 # two or more calls where any of them has a side effect behaves differently. tools/find_arg_order.py classifies every such list: all calls
 # read-only (fine), listed in tools/arg_order_allow.txt with a reason (reviewed), or unclassified (this check fails).

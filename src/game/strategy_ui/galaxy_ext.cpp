@@ -15,22 +15,22 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "strategy_ui/battle_in_progress_window.h"
+#include "strategy_ui/developer_menu.h"
 #include "strategy_ui/fleet_window.h"
 #include "strategy_ui/galaxy_window.h"
-#include "strategy_ui/developer_menu.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/sector_window.h"
 #include "strategy_ui/system_forces_window.h"
 #include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
+#include "ui/cool_app.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
-#include "ui/cool_app.h"
 #include "ui/object_list_item.h"
 
-extern const char* g_newlineString; // 0x6a8170 "\n"
-extern const int16_t g_mapGridWidth; // 0x659b48
-extern const int16_t g_mapGridHeight; // 0x659b4a
+extern const char* g_newlineString;       // 0x6a8170 "\n"
+extern const int16_t g_mapGridWidth;      // 0x659b48
+extern const int16_t g_mapGridHeight;     // 0x659b4a
 extern const int16_t g_stringGroup65d424; // 0x65d424 group of the localised sector name suffix
 
 namespace
@@ -43,8 +43,7 @@ constexpr uint32_t kWindowTypeMask = 0x3f;
 constexpr uint32_t kSectorWindowType = 1;
 constexpr uint32_t kDisplayModeMask = 0xff;
 
-enum SavedWindowType : uint32_t
-{
+enum SavedWindowType : uint32_t {
   kTypeSector = 1,
   kTypeFleetFinderAlt = 4,
   kTypeSide = 7,
@@ -60,13 +59,10 @@ int GridScaled(int value, int gridSize, double scale)
 
 void AddSideOffset(int side, int* x, int* y)
 {
-  if (side == 1)
-  {
+  if (side == 1) {
     *x += 0x15;
     *y += 0x19;
-  }
-  else
-  {
+  } else {
     *x += 0x54;
     *y += 0x1b;
   }
@@ -80,20 +76,19 @@ void GalaxyWindow::SaveState(ostream* out)
   WriteValue16(out, reinterpret_cast<const uint16_t*>(&packed));
   uint32_t count = m_children.Count();
   WriteValue16(out, reinterpret_cast<const uint16_t*>(&count));
-  for (HWND hwnd = LastChildWindow(); hwnd; hwnd = GetWindow(hwnd, GW_HWNDPREV))
-  {
-    if (CoolWindow* child = FindChildByHwnd(hwnd))
+  for (HWND hwnd = LastChildWindow(); hwnd; hwnd = reb::compat::GetWindow(hwnd, GW_HWNDPREV)) {
+    if (CoolWindow* child = FindChildByHwnd(hwnd)) {
       SaveChildWindow(out, child);
+    }
   }
 }
 
 HWND GalaxyWindow::LastChildWindow()
 {
-  HWND window = GetTopWindow(m_hwnd);
+  HWND window = reb::compat::GetTopWindow(m_hwnd);
   HWND last = nullptr;
-  while (window)
-  {
-    HWND next = GetWindow(window, GW_HWNDNEXT);
+  while (window) {
+    HWND next = reb::compat::GetWindow(window, GW_HWNDNEXT);
     last = window;
     window = next;
   }
@@ -103,12 +98,12 @@ HWND GalaxyWindow::LastChildWindow()
 CoolWindow* GalaxyWindow::FindChildByHwnd(HWND hwnd)
 {
   CoolWindow* found = nullptr;
-  for (const auto& ownedNode : m_children.Entries())
-  {
+  for (const auto& ownedNode : m_children.Entries()) {
     auto* node = ownedNode.get();
     found = static_cast<CoolWindow*>(node);
-    if (found->m_hwnd == hwnd)
+    if (found->m_hwnd == hwnd) {
       return found;
+    }
   }
   return nullptr;
 }
@@ -123,23 +118,24 @@ void GalaxyWindow::LoadState(istream* in)
   m_alternateDisplayMode = modeBits >> 8;
   uint32_t count = 0;
   ReadValue16(in, reinterpret_cast<uint16_t*>(&count));
-  for (uint16_t i = 0; i < static_cast<uint16_t>(count); ++i)
+  for (uint16_t i = 0; i < static_cast<uint16_t>(count); ++i) {
     LoadChildWindow(in);
+  }
   InitializeGameDisplay();
-  if (static_cast<int16_t>(packed) != static_cast<int16_t>(m_displayMode))
-  {
-    SendMessageA(m_hwnd, WM_COMMAND, (static_cast<int>(packed) << 16) | kDisplayModeCommand, 0);
+  if (static_cast<int16_t>(packed) != static_cast<int16_t>(m_displayMode)) {
+    reb::compat::SendMessageA(m_hwnd, WM_COMMAND, (static_cast<int>(packed) << 16) | kDisplayModeCommand, 0);
   }
   m_previousActiveChild = nullptr;
-  for (const auto& ownedNode : m_children.Entries())
-  {
+  for (const auto& ownedNode : m_children.Entries()) {
     auto* node = ownedNode.get();
     auto* child = static_cast<CoolWindow*>(node);
-    if ((child->m_childId & kWindowTypeMask) == kSectorWindowType)
-      SetWindowPos(child->m_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    if ((child->m_childId & kWindowTypeMask) == kSectorWindowType) {
+      reb::compat::SetWindowPos(child->m_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    }
   }
-  if (m_gidLegendIcon)
-    SetWindowPos(m_gidLegendIcon->m_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+  if (m_gidLegendIcon) {
+    reb::compat::SetWindowPos(m_gidLegendIcon->m_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+  }
   m_mouseMode &= ~static_cast<uint32_t>(kMouseModeRestoring);
   UiSetHumanDispatchFlag(0);
 }
@@ -147,8 +143,7 @@ void GalaxyWindow::LoadState(istream* in)
 void GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window)
 {
   ChildWindowState state(window);
-  if (state.m_valid)
-  {
+  if (state.m_valid) {
     state.Write(out);
     static_cast<CoolGameWindow*>(window)->SaveState(out);
   }
@@ -166,85 +161,82 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state)
   CoolWindow* window = nullptr;
   bool tracked = false;
   bool minimizable = true;
-  if (state)
-  {
-    switch (state->m_type)
-    {
+  if (state) {
+    switch (state->m_type) {
       case kTypeSector:
-      {
-        void* memory = ::operator new(sizeof(SectorWindow));
-        window = memory ? static_cast<CoolWindow*>(new (memory)
-                                                     SectorWindow(m_instance, state->m_x, state->m_y, state->m_width,
-                                                                  state->m_height, this, GetBackground(), 0, nullptr)) :
-                          nullptr;
-        tracked = true;
-        minimizable = false;
-        break;
-      }
-      case kTypeFleetFinderAlt:
-      {
-        void* memory = ::operator new(sizeof(FleetWindow));
-        if (memory)
-          window =
-            static_cast<CoolWindow*>(new (memory) FleetWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
-        tracked = true;
-        break;
-      }
-      case kTypeSide:
-      {
-        void* memory = ::operator new(sizeof(BattleInProgressWindow));
-        window = memory ? static_cast<CoolWindow*>(new (memory) BattleInProgressWindow(m_instance, this, 0)) : nullptr;
-        minimizable = false;
-        break;
-      }
-      case kTypeSystem:
-      {
-        void* memory = ::operator new(sizeof(SystemWindow));
-        tracked = true;
-        window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(
-                            m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr)) :
-                          nullptr;
-        break;
-      }
-      case kTypeTen:
-      {
-        void* memory = ::operator new(sizeof(SystemForcesWindow));
-        if (memory)
         {
-          window = static_cast<CoolWindow*>(new (memory) SystemForcesWindow(
-            m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr));
+          void* memory = ::operator new(sizeof(SectorWindow));
+          window = memory ? static_cast<CoolWindow*>(new (memory) SectorWindow(m_instance, state->m_x, state->m_y,
+                                                                               state->m_width, state->m_height, this,
+                                                                               GetBackground(), 0, nullptr))
+                          : nullptr;
+          tracked = true;
+          minimizable = false;
+          break;
         }
-        tracked = true;
-        break;
-      }
+      case kTypeFleetFinderAlt:
+        {
+          void* memory = ::operator new(sizeof(FleetWindow));
+          if (memory) {
+            window = static_cast<CoolWindow*>(new (memory)
+                                                  FleetWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
+          }
+          tracked = true;
+          break;
+        }
+      case kTypeSide:
+        {
+          void* memory = ::operator new(sizeof(BattleInProgressWindow));
+          window
+              = memory ? static_cast<CoolWindow*>(new (memory) BattleInProgressWindow(m_instance, this, 0)) : nullptr;
+          minimizable = false;
+          break;
+        }
+      case kTypeSystem:
+        {
+          void* memory = ::operator new(sizeof(SystemWindow));
+          tracked = true;
+          window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(
+                                m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr))
+                          : nullptr;
+          break;
+        }
+      case kTypeTen:
+        {
+          void* memory = ::operator new(sizeof(SystemForcesWindow));
+          if (memory) {
+            window = static_cast<CoolWindow*>(new (memory) SystemForcesWindow(
+                m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr));
+          }
+          tracked = true;
+          break;
+        }
       case kTypeEleven:
-      {
-        void* memory = ::operator new(sizeof(SystemMissionsWindow));
-        if (memory)
-          window = static_cast<CoolWindow*>(
-            new (memory) SystemMissionsWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
-        tracked = true;
-        break;
-      }
+        {
+          void* memory = ::operator new(sizeof(SystemMissionsWindow));
+          if (memory) {
+            window = static_cast<CoolWindow*>(
+                new (memory) SystemMissionsWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
+          }
+          tracked = true;
+          break;
+        }
       default:
         break;
     }
   }
-  if (window)
-  {
+  if (window) {
     static_cast<CoolGameWindow*>(window)->LoadState(in);
     window->m_style &= ~kStyleVisible;
     window->Create(0);
     m_children.Insert(window);
-    if (tracked)
+    if (tracked) {
       TrackChildWindow(window);
-    if (state->m_shown == 0 && minimizable)
-    {
+    }
+    if (state->m_shown == 0 && minimizable) {
       window->Hide();
       MinimizeChildWindow(window);
-    }
-    else
-    {
+    } else {
       static_cast<CoolGameWindow*>(window)->ShowAndTrack(5);
     }
   }
@@ -253,12 +245,13 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state)
 
 void GalaxyWindow::OnMenuCommand(int command, int unused1, int unused2)
 {
-  if (HandleAiDeveloperMenuCommand(command))
+  if (HandleAiDeveloperMenuCommand(command)) {
     return;
-  if (command == kGalaxyDevSwitchSides)
-  {
-    if (g_app)
+  }
+  if (command == kGalaxyDevSwitchSides) {
+    if (g_app) {
       static_cast<RebellionApplication*>(g_app)->RequestSwitchSides();
+    }
     return;
   }
   ObjectKey none;
@@ -274,26 +267,21 @@ void GalaxyWindow::BuildSectorItems(HMODULE module)
   m_sectorLabel.SetFont(5);
   m_sectorLabel.m_drawFlags = 0;
   m_sectorLabel.SetColor(0x200f0f0, nullptr);
-  for (GameObjNotifier* sector = GetFirstObjectInFamilies_80_90(m_side); sector;)
-  {
+  for (GameObjNotifier* sector = GetFirstObjectInFamilies_80_90(m_side); sector;) {
     auto* sectorObject = static_cast<Sector*>(sector);
     uint32_t position;
     sectorObject->GetPosition(&position);
-    if (GetVersionCheckResult() == 0)
-    {
+    if (GetVersionCheckResult() == 0) {
       const ResourceStringId groupId = {0x4da0, g_stringGroup65d424};
       std::string check = LoadStringResource(&groupId);
-      if (check.empty())
-      {
+      if (check.empty()) {
         std::string name;
         static_cast<GameObj*>(sector)->GetNameCopy(&name);
         text = name;
         std::string newline = StringFromText(g_newlineString);
         text += newline;
         text += suffix;
-      }
-      else
-      {
+      } else {
         text = suffix;
         std::string newline = StringFromText(g_newlineString);
         text += newline;
@@ -301,9 +289,7 @@ void GalaxyWindow::BuildSectorItems(HMODULE module)
         static_cast<GameObj*>(sector)->GetNameCopy(&name);
         text += name;
       }
-    }
-    else
-    {
+    } else {
       std::string name;
       static_cast<GameObj*>(sector)->GetNameCopy(&name);
       text = name;
@@ -324,21 +310,22 @@ void GalaxyWindow::BuildSectorItems(HMODULE module)
     int maxY = y;
     {
       SystemIterator systems(sector, 4);
-      for (systems.Begin(); systems.Current(); systems.Advance())
-      {
+      for (systems.Begin(); systems.Current(); systems.Advance()) {
         uint32_t systemPosition;
         static_cast<System*>(systems.Current())->GetRecordField4c(&systemPosition);
         int sx = GridScaled(static_cast<int16_t>(systemPosition), g_mapGridWidth, 607.0);
         int sy = GridScaled(static_cast<int16_t>(systemPosition >> 16), g_mapGridHeight, 437.0);
         AddSideOffset(m_side, &sx, &sy);
         sx += MapOffsetX();
-        if (sx > maxX)
+        if (sx > maxX) {
           maxX = sx;
-        if (sy > maxY)
+        }
+        if (sy > maxY) {
           maxY = sy;
+        }
       }
       RECT area;
-      SetRect(&area, x, top, maxX + 8, maxY + 8);
+      reb::compat::SetRect(&area, x, top, maxX + 8, maxY + 8);
       item->m_rect = area;
       m_sectorItems.Insert(item);
     }

@@ -4,7 +4,7 @@
 
 class Stopwatch
 {
-public:
+  public:
   Stopwatch() = default;
 
   // Restarts the clock.
@@ -12,6 +12,6 @@ public:
   // Seconds since construction or the last Reset().
   double ElapsedSeconds() const;
 
-private:
+  private:
   std::chrono::steady_clock::time_point m_start = std::chrono::steady_clock::now();
 };

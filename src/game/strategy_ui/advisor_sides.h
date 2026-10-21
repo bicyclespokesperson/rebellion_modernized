@@ -41,19 +41,15 @@ constexpr uint32_t kLongCue = 0x32;
 constexpr uint32_t kNeverTicks = 40000;
 
 // The cue offsets that differ between the sides in the "refused order" handlers.
-struct RefusalOffsets
-{
-  unsigned otherTarget; // refused move to a system / mission target (Alliance 0x5c, Empire 0x60)
-  unsigned fleetWork; // 0x58 / 0x5c
+struct RefusalOffsets {
+  unsigned otherTarget;  // refused move to a system / mission target (Alliance 0x5c, Empire 0x60)
+  unsigned fleetWork;    // 0x58 / 0x5c
   unsigned missionOrder; // 0x50 / 0x54
 };
 
 using ScheduleFallbackFn = void (*)(AdvisorBase*);
 
-void RefusedGeneric(AdvisorBase* advisor,
-                    OrderBase* order,
-                    IntPair* status,
-                    const RefusalOffsets& offsets,
+void RefusedGeneric(AdvisorBase* advisor, OrderBase* order, IntPair* status, const RefusalOffsets& offsets,
                     ScheduleFallbackFn fallback);
 void RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair* status, int view, ScheduleFallbackFn fallback);
 

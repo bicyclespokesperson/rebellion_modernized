@@ -29,25 +29,24 @@ void Notice8::BuildText()
 {
   m_text0 = g_emptyText;
   auto* order = static_cast<OrderBase*>(m_subject);
-  switch (m_subject->GetKind())
-  {
+  switch (m_subject->GetKind()) {
     case 0x200:
-    {
-      m_sound[0] = sideVariant(m_owner, 0x461);
-      ExpandMessageTemplate(&m_text1, 0x7050, nullptr, nullptr, nullptr, nullptr);
-      ObjectKeyValueSet dependencies;
-      order->CollectTeamDependencies(&dependencies);
-      for (const auto& entry : dependencies.Entries())
       {
-        auto* node = static_cast<ObjectKeyNode*>(entry.get());
-        ObjectKey key(node->m_key);
-        GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
-        if (object)
-          AppendName(object);
+        m_sound[0] = sideVariant(m_owner, 0x461);
+        ExpandMessageTemplate(&m_text1, 0x7050, nullptr, nullptr, nullptr, nullptr);
+        ObjectKeyValueSet dependencies;
+        order->CollectTeamDependencies(&dependencies);
+        for (const auto& entry : dependencies.Entries()) {
+          auto* node = static_cast<ObjectKeyNode*>(entry.get());
+          ObjectKey key(node->m_key);
+          GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
+          if (object) {
+            AppendName(object);
+          }
+        }
+        m_picture[1] = sideVariant(m_owner, 0x408);
+        return;
       }
-      m_picture[1] = sideVariant(m_owner, 0x408);
-      return;
-    }
     case kMoveOrderMessage:
     case kSecondMoveOrderMessage:
       break;
@@ -56,38 +55,37 @@ void Notice8::BuildText()
       m_text1 = g_emptyText;
       return;
     case 0x213:
-    {
-      m_sound[0] = 0x465;
-      ExpandMessageTemplate(&m_text1, 0x7053, nullptr, nullptr, nullptr, nullptr);
-      ObjectKeyValueSet* team = order->GetTeam();
-      for (const auto& nodeEntry : team->Entries())
       {
-        auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+        m_sound[0] = 0x465;
+        ExpandMessageTemplate(&m_text1, 0x7053, nullptr, nullptr, nullptr, nullptr);
+        ObjectKeyValueSet* team = order->GetTeam();
+        for (const auto& nodeEntry : team->Entries()) {
+          auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
 
-        ObjectKey key(node->m_key);
-        GameObjNotifier* object = GetObjectInFamilies_a0_b0(m_owner, &key);
-        ExpandMessageTemplate(&m_text1, 0x7055, notice::nameOf(object), nullptr, nullptr, nullptr);
+          ObjectKey key(node->m_key);
+          GameObjNotifier* object = GetObjectInFamilies_a0_b0(m_owner, &key);
+          ExpandMessageTemplate(&m_text1, 0x7055, notice::nameOf(object), nullptr, nullptr, nullptr);
+        }
+        m_picture[1] = sideVariant(m_owner, 0x40e);
+        return;
       }
-      m_picture[1] = sideVariant(m_owner, 0x40e);
-      return;
-    }
     case 0x242:
-    {
-      m_sound[0] = sideVariant(m_owner, 0x461);
-      ExpandMessageTemplate(&m_text1, 0x7051, nullptr, nullptr, nullptr, nullptr);
-      ObjectKeyValueSet* team = order->GetTeam();
-      for (const auto& nodeEntry : team->Entries())
       {
-        auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+        m_sound[0] = sideVariant(m_owner, 0x461);
+        ExpandMessageTemplate(&m_text1, 0x7051, nullptr, nullptr, nullptr, nullptr);
+        ObjectKeyValueSet* team = order->GetTeam();
+        for (const auto& nodeEntry : team->Entries()) {
+          auto* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
 
-        ObjectKey key(node->m_key);
-        GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
-        if (object)
-          ExpandMessageTemplate(&m_text1, 0x7054, notice::nameOf(object), nullptr, nullptr, nullptr);
+          ObjectKey key(node->m_key);
+          GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
+          if (object) {
+            ExpandMessageTemplate(&m_text1, 0x7054, notice::nameOf(object), nullptr, nullptr, nullptr);
+          }
+        }
+        m_picture[1] = sideVariant(m_owner, 0x40a);
+        return;
       }
-      m_picture[1] = sideVariant(m_owner, 0x40a);
-      return;
-    }
     case 0x250:
       ExpandMessageTemplate(&m_text1, 0x7052, nullptr, nullptr, nullptr, nullptr);
       m_sound[0] = sideVariant(m_owner, 0x463);
@@ -98,31 +96,27 @@ void Notice8::BuildText()
   GameObjNotifier* system = nullptr;
   bool blockaded = false;
   ObjectKeyNode* firstNode = order->GetTeam()->First();
-  if (firstNode)
-  {
+  if (firstNode) {
     ObjectKey key(firstNode->m_key);
     first = GetObjectInFamilies_01_ff(m_owner, &key);
   }
-  if (first)
-  {
+  if (first) {
     const uint32_t family = first->GetFamily();
-    if (family < 8 || family >= 0x10)
-    {
+    if (family < 8 || family >= 0x10) {
       GameObjNotifier* parent = first->m_parent;
       const uint32_t parentFamily = parent->GetFamily();
-      if (parentFamily >= 0x90 && parentFamily < 0x98)
+      if (parentFamily >= 0x90 && parentFamily < 0x98) {
         system = parent;
+      }
     }
   }
-  if (system && (static_cast<System*>(system)->m_flags & system_flag::kBlockade) != 0)
+  if (system && (static_cast<System*>(system)->m_flags & system_flag::kBlockade) != 0) {
     blockaded = true;
-  if (!blockaded)
-  {
+  }
+  if (!blockaded) {
     ExpandMessageTemplate(&m_text1, 0x7057, nullptr, nullptr, nullptr, nullptr);
     m_picture[1] = sideVariant(m_owner, 0x3fa);
-  }
-  else
-  {
+  } else {
     ExpandMessageTemplate(&m_text1, 0x7056, nullptr, nullptr, nullptr, nullptr);
     m_picture[1] = static_cast<uint16_t>(0x407 - (m_owner != 1));
   }
@@ -138,13 +132,13 @@ void Notice8::AppendOrderLines()
     ObjectKeyValueSet transitDays;
     StatusCode status;
     static_cast<MoveOrderBase*>(m_subject)->CollectTransitDays(&status, &transitDays);
-    for (const auto& entry : transitDays.Entries())
-    {
+    for (const auto& entry : transitDays.Entries()) {
       auto* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey key(node->m_key);
       GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
-      if (!object)
+      if (!object) {
         continue;
+      }
       const int days = static_cast<ObjectKeyValueNode*>(node)->m_value;
       std::string name;
       static_cast<GameObj*>(object)->GetNameCopy(&name);

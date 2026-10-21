@@ -14,31 +14,31 @@
 // and budgets. Parameter meanings are inferred from the callers where noted.
 
 // ---- parameters ----
-extern int g_gnprtb1400; // 0x006bb6e8
-extern int g_gnprtb1401; // 0x006bb630
-extern int g_gnprtb1402; // 0x006bb5fc
-extern int g_gnprtb1403; // 0x006bb694
-extern int g_gnprtb1404; // 0x006bb628
-extern int g_gnprtb1405; // 0x006bb63c
-extern int g_gnprtb1406; // 0x006bb638
-extern int g_gnprtb1407; // 0x006bb5d0
-extern int g_gnprtb1408; // 0x006bb6b8
-extern int g_gnprtb1409; // 0x006bb648
-extern int g_gnprtb140A; // 0x006bb6dc
-extern int g_gnprtb140B; // 0x006bb6a0
-extern int g_gnprtb140C; // 0x006bb6b4
-extern int g_gnprtb140D; // 0x006bb618
-extern int g_gnprtb140E; // 0x006bb6ac
-extern int g_gnprtb140F; // 0x006bb644
-extern int g_gnprtb1410; // 0x006bb6b0
-extern int g_gnprtb1411; // 0x006bb5cc
-extern int g_gnprtb1412; // 0x006bb5ec
-extern int g_gnprtb1413; // 0x006bb640
-extern int g_gnprtb1414; // 0x006bb674
-extern int g_gnprtb1415; // 0x006bb6cc
-extern int g_gnprtb1416; // 0x006bb6a4
-extern int g_gnprtb1417; // 0x006bb658
-extern int g_gnprtb1420; // 0x006bb5f0
+extern int g_gnprtb1400;      // 0x006bb6e8
+extern int g_gnprtb1401;      // 0x006bb630
+extern int g_gnprtb1402;      // 0x006bb5fc
+extern int g_gnprtb1403;      // 0x006bb694
+extern int g_gnprtb1404;      // 0x006bb628
+extern int g_gnprtb1405;      // 0x006bb63c
+extern int g_gnprtb1406;      // 0x006bb638
+extern int g_gnprtb1407;      // 0x006bb5d0
+extern int g_gnprtb1408;      // 0x006bb6b8
+extern int g_gnprtb1409;      // 0x006bb648
+extern int g_gnprtb140A;      // 0x006bb6dc
+extern int g_gnprtb140B;      // 0x006bb6a0
+extern int g_gnprtb140C;      // 0x006bb6b4
+extern int g_gnprtb140D;      // 0x006bb618
+extern int g_gnprtb140E;      // 0x006bb6ac
+extern int g_gnprtb140F;      // 0x006bb644
+extern int g_gnprtb1410;      // 0x006bb6b0
+extern int g_gnprtb1411;      // 0x006bb5cc
+extern int g_gnprtb1412;      // 0x006bb5ec
+extern int g_gnprtb1413;      // 0x006bb640
+extern int g_gnprtb1414;      // 0x006bb674
+extern int g_gnprtb1415;      // 0x006bb6cc
+extern int g_gnprtb1416;      // 0x006bb6a4
+extern int g_gnprtb1417;      // 0x006bb658
+extern int g_gnprtb1420;      // 0x006bb5f0
 extern int g_sdprtb1400Side1; // 0x006bb5f8
 extern int g_sdprtb1400Side2; // 0x006bb6bc
 extern int g_sdprtb1401Side1; // 0x006bb5e8
@@ -101,21 +101,21 @@ void BindGnprtb14(); // 0x55cb60
 // *atYavin = PercentChance(GNPRTB 0x1409): whether the starting fleet is placed at Yavin. Returns 1.
 int RollStartingFleetAtYavin(int* atYavin); // 0x55d500
 // Each stores the table type of the initial-force rows for one place and the first and last row. Return 1.
-int GetYavinForceRows(int* tableType, int* first, int* last); // 0x55d520, type 0x50
-int GetKey154ForceRows(int* tableType, int* first, int* last); // 0x55d550, 0x51
-int GetCoruscantForceRows(int* tableType, int* first, int* last); // 0x55d580, 0x52
-int GetStartingFleetRows(int* tableType, int* first, int* last); // 0x55d5b0, 0x53
-int GetCoruscantFleetRows(int* tableType, int* first, int* last); // 0x55d5e0, 0x54
-int GetCoreSystemRows(int* tableType, int* first, int* last); // 0x55d610, 0x55
+int GetYavinForceRows(int* tableType, int* first, int* last);      // 0x55d520, type 0x50
+int GetKey154ForceRows(int* tableType, int* first, int* last);     // 0x55d550, 0x51
+int GetCoruscantForceRows(int* tableType, int* first, int* last);  // 0x55d580, 0x52
+int GetStartingFleetRows(int* tableType, int* first, int* last);   // 0x55d5b0, 0x53
+int GetCoruscantFleetRows(int* tableType, int* first, int* last);  // 0x55d5e0, 0x54
+int GetCoreSystemRows(int* tableType, int* first, int* last);      // 0x55d610, 0x55
 int GetCoruscantSystemRows(int* tableType, int* first, int* last); // 0x55d640, 0x56
 // *out = ScalePercent(value, SDPRTB 0x1430 + galaxy size - 1, side 1 / side 2). Returns whether the galaxy size
 // (1-3) is valid; *out is 0 otherwise.
 int ScaleAllianceReserveBudget(int value, int galaxySize, int* out); // 0x55d670
-int ScaleEmpireReserveBudget(int value, int galaxySize, int* out); // 0x55d6d0
+int ScaleEmpireReserveBudget(int value, int galaxySize, int* out);   // 0x55d6d0
 // Picks a random row (percent roll 1-100) of reserve table 3 / 4: *count = its first value, *list = its unit list.
 // Returns the list's ok flag, 0 if there is no such row.
 int PickAllianceReserveUnits(int* count, ObjectRefList* list); // 0x55d730
-int PickEmpireReserveUnits(int* count, ObjectRefList* list); // 0x55d780
+int PickEmpireReserveUnits(int* count, ObjectRefList* list);   // 0x55d780
 
 // ---- distances and travel time ----
 
@@ -126,7 +126,7 @@ int GetStartingCharacterCount(int side, int galaxySize, int* count); // 0x55d7d0
 int MapDistance(const MapPosition* from, const MapPosition* to); // 0x55d860
 // Days to travel between two points at the default speed (GNPRTB 1) / at `speedPercent`; at least 1 unless the
 // points coincide.
-int TravelDays(const MapPosition* from, const MapPosition* to); // 0x55d8a0
+int TravelDays(const MapPosition* from, const MapPosition* to);                   // 0x55d8a0
 int TravelDaysAtSpeed(const MapPosition* from, const MapPosition* to, int speed); // 0x55d8c0
 
 // ---- loyalty rules ----
@@ -134,17 +134,13 @@ int TravelDaysAtSpeed(const MapPosition* from, const MapPosition* to, int speed)
 
 // Loyalty fallout of a system being captured by `side` (1 or 2): `inner` picks the core-system family range
 // (0x90-0x92) over the outer one (0x92-0x94). Two variants (callers: the planet assault resolver).
-int BuildCaptureRule(int side, int inner, LoyaltyRule* rule); // 0x55d900
+int BuildCaptureRule(int side, int inner, LoyaltyRule* rule);    // 0x55d900
 int BuildCaptureRuleAlt(int side, int inner, LoyaltyRule* rule); // 0x55da90
 // Loyalty pull of a strength imbalance between the two sides' forces. Returns whether `side` was 1 or 2.
-int BuildStrengthImbalanceRule(int totalSide1,
-                               int totalSide2,
-                               int side,
-                               int valueSide1,
-                               int valueSide2,
+int BuildStrengthImbalanceRule(int totalSide1, int totalSide2, int side, int valueSide1, int valueSide2,
                                LoyaltyRule* rule); // 0x55dbf0
 // Rules for a system whose side bits change from *from to *to. Return 1.
-int BuildControlChangeRule(SideBits* from, SideBits* to, LoyaltyRule* rule); // 0x55de50
+int BuildControlChangeRule(SideBits* from, SideBits* to, LoyaltyRule* rule);       // 0x55de50
 int BuildControlChangeRuleSimple(SideBits* from, SideBits* to, LoyaltyRule* rule); // 0x55e010
-int BuildEnrouteRule(LoyaltyRule* rule); // 0x55e150
-int BuildDepartureRule(LoyaltyRule* rule); // 0x55e1f0
+int BuildEnrouteRule(LoyaltyRule* rule);                                           // 0x55e150
+int BuildDepartureRule(LoyaltyRule* rule);                                         // 0x55e1f0

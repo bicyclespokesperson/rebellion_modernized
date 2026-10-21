@@ -27,13 +27,10 @@ CommMgr* TraceTarget()
 
 // ---- ServiceProviderInfo / SessionInfo ------------------------------------------------------------------------
 
-ServiceProviderInfo::ServiceProviderInfo(const GUID* guid,
-                                         const char* name,
-                                         DWORD majorVersion,
-                                         DWORD minorVersion,
+ServiceProviderInfo::ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
                                          DWORD_PTR context)
-: IdNode(),
-  m_name()
+    : IdNode()
+    , m_name()
 {
   m_guid = guid ? *guid : GUID{};
   m_name = StringFromText(name);
@@ -42,7 +39,9 @@ ServiceProviderInfo::ServiceProviderInfo(const GUID* guid,
   m_majorVersion = majorVersion;
 }
 
-ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other) : IdNode(), m_name()
+ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other)
+    : IdNode()
+    , m_name()
 {
   m_guid = other.m_guid;
   m_name = other.m_name.c_str();
@@ -53,16 +52,19 @@ ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other) : IdN
 
 ServiceProviderInfo::~ServiceProviderInfo() = default;
 
-SessionInfo::SessionInfo(const DPSESSIONDESC2* description) : IdNode(), m_name()
+SessionInfo::SessionInfo(const DPSESSIONDESC2* description)
+    : IdNode()
+    , m_name()
 {
-  if (description)
-  {
+  if (description) {
     m_instance = description->guidInstance;
     m_name = StringFromText(description->lpszSessionNameA);
   }
 }
 
-SessionInfo::SessionInfo(const SessionInfo& other) : IdNode(), m_name()
+SessionInfo::SessionInfo(const SessionInfo& other)
+    : IdNode()
+    , m_name()
 {
   m_instance = other.m_instance;
   (m_name = other.m_name);
@@ -83,32 +85,34 @@ void ServiceProviderList::Clear()
 
 uint32_t ServiceProviderList::AddWithId(ServiceProviderInfo* info)
 {
-  if (!info)
+  if (!info) {
     return 0;
+  }
   const uint32_t oldId = info->m_id;
   const uint32_t id = oldId == 0 ? m_nextId : oldId;
-  if (id == 0 || m_entries.contains(id))
+  if (id == 0 || m_entries.contains(id)) {
     return 0;
-  if (oldId == 0)
+  }
+  if (oldId == 0) {
     info->SetId(id);
-  try
-  {
+  }
+  try {
     const bool inserted = m_entries.try_emplace(id, info).second;
-    if (!inserted)
-    {
-      if (oldId == 0)
+    if (!inserted) {
+      if (oldId == 0) {
         info->SetId(0);
+      }
       return 0;
     }
-  }
-  catch (...)
-  {
-    if (oldId == 0)
+  } catch (...) {
+    if (oldId == 0) {
       info->SetId(0);
+    }
     throw;
   }
-  if (m_nextId != 0 && m_nextId <= id)
+  if (m_nextId != 0 && m_nextId <= id) {
     m_nextId = id + 1;
+  }
   return id;
 }
 
@@ -125,36 +129,41 @@ void SessionList::Clear()
 
 uint32_t SessionList::AddWithId(SessionInfo* info)
 {
-  if (!info)
+  if (!info) {
     return 0;
+  }
   const uint32_t oldId = info->m_id;
   const uint32_t id = oldId == 0 ? m_nextId : oldId;
-  if (id == 0 || m_entries.contains(id))
+  if (id == 0 || m_entries.contains(id)) {
     return 0;
-  if (oldId == 0)
+  }
+  if (oldId == 0) {
     info->SetId(id);
-  try
-  {
+  }
+  try {
     const bool inserted = m_entries.try_emplace(id, info).second;
-    if (!inserted)
-    {
-      if (oldId == 0)
+    if (!inserted) {
+      if (oldId == 0) {
         info->SetId(0);
+      }
       return 0;
     }
-  }
-  catch (...)
-  {
-    if (oldId == 0)
+  } catch (...) {
+    if (oldId == 0) {
       info->SetId(0);
+    }
     throw;
   }
-  if (m_nextId != 0 && m_nextId <= id)
+  if (m_nextId != 0 && m_nextId <= id) {
     m_nextId = id + 1;
+  }
   return id;
 }
 
-LobbyConnection::LobbyConnection() : m_launched(0), m_host(0), m_dplay(nullptr)
+LobbyConnection::LobbyConnection()
+    : m_launched(0)
+    , m_host(0)
+    , m_dplay(nullptr)
 {
 }
 
@@ -162,11 +171,18 @@ LobbyConnection::~LobbyConnection() = default;
 
 // ---- CommMessage -----------------------------------------------------------------------------------------------
 
-CommMessage::CommMessage(const char* buffer) : m_magic(0), m_kind(0), m_arg(0), m_a(0), m_b(0), m_c(0)
+CommMessage::CommMessage(const char* buffer)
+    : m_magic(0)
+    , m_kind(0)
+    , m_arg(0)
+    , m_a(0)
+    , m_b(0)
+    , m_c(0)
 {
   ostrstream_ctor(&m_stream, 1);
-  if (!buffer)
+  if (!buffer) {
     return;
+  }
   IStrStream in;
   istrstream_ctor_str(&in, const_cast<char*>(buffer), 1);
   StreamRead32(in.In(), &m_magic);
@@ -215,8 +231,7 @@ char* CommMessage::Serialize()
 CommAckRecord::CommAckRecord(uint32_t packetId)
 {
   m_packetId = packetId;
-  for (int player = 0; player < kCommMaxPlayers; ++player)
-  {
+  for (int player = 0; player < kCommMaxPlayers; ++player) {
     m_sendTime[player] = 0;
     m_state[player] = 0;
   }
@@ -224,16 +239,18 @@ CommAckRecord::CommAckRecord(uint32_t packetId)
 
 int CommAckRecord::Acknowledge(int player)
 {
-  if (m_state[player] != 1)
+  if (m_state[player] != 1) {
     return 0;
+  }
   m_state[player] = 3;
   return 1;
 }
 
 int CommAckRecord::SetState(uint32_t player, int state)
 {
-  if (player >= kCommMaxPlayers)
+  if (player >= kCommMaxPlayers) {
     return 0;
+  }
   m_state[player] = state;
   return 1;
 }
@@ -242,15 +259,17 @@ int CommAckRecord::IsSettled()
 {
   int settled = 0;
   CommMgr* comm = GetCommMgr();
-  for (uint32_t player = 0; player < 15; ++player)
-  {
-    if (comm && static_cast<uint32_t>(comm->GetLocalIndex()) == player)
+  for (uint32_t player = 0; player < 15; ++player) {
+    if (comm && static_cast<uint32_t>(comm->GetLocalIndex()) == player) {
       continue;
+    }
     const int state = m_state[player];
-    if (state == 1)
+    if (state == 1) {
       return 0;
-    if (state == 3 || state == 2)
+    }
+    if (state == 3 || state == 2) {
       settled = 1;
+    }
   }
   return settled;
 }
@@ -268,14 +287,14 @@ uint32_t CommAckRecord::GetSendTime(int player) const
 void CommAckRecord::MarkSent(int player)
 {
   GetCommMgr();
-  m_sendTime[player] = timeGetTime();
+  m_sendTime[player] = reb::compat::timeGetTime();
   m_state[player] = 1;
 }
 
 // ---- CommPacket ------------------------------------------------------------------------------------------------
 
 CommPacket::CommPacket(const void* data, uint32_t size, uint8_t category, char part, char partCount, int reliable)
-: IdNode()
+    : IdNode()
 {
   CommMgr* comm = GetCommMgr();
   m_ack = nullptr;
@@ -288,12 +307,14 @@ CommPacket::CommPacket(const void* data, uint32_t size, uint8_t category, char p
   const uint32_t id = (g_commPacketCounter & 0xf0ffffff) | (static_cast<uint32_t>(category & 0xf) << 24);
   m_ack = NewOrNull<CommAckRecord>(id);
   SetId(id);
-  if (reliable && id != 0)
+  if (reliable && id != 0) {
     comm->m_pending.try_emplace(id, this);
+  }
   m_wire.m_id = id;
 }
 
-CommPacket::CommPacket(const void* data, uint32_t size, uint32_t id, char part, char partCount, int reliable) : IdNode()
+CommPacket::CommPacket(const void* data, uint32_t size, uint32_t id, char part, char partCount, int reliable)
+    : IdNode()
 {
   CommMgr* comm = GetCommMgr();
   m_ack = nullptr;
@@ -304,8 +325,9 @@ CommPacket::CommPacket(const void* data, uint32_t size, uint32_t id, char part, 
   m_wire.m_reliable = static_cast<uint8_t>(reliable);
   m_ack = NewOrNull<CommAckRecord>(id);
   SetId(id);
-  if (reliable && id != 0)
+  if (reliable && id != 0) {
     comm->m_pending.try_emplace(id, this);
+  }
   m_wire.m_id = id;
 }
 
@@ -316,25 +338,29 @@ CommPacket::~CommPacket()
 
 int CommPacket::FirstFragmentId()
 {
-  if (m_ack)
+  if (m_ack) {
     return static_cast<int>(m_ack->m_packetId) - m_wire.m_part + 1;
+  }
   return 1 - m_wire.m_part;
 }
 
 int CommPacket::Pack(void* out, uint16_t capacity)
 {
-  if (capacity < 4)
+  if (capacity < 4) {
     return 0;
+  }
   const uint32_t total = m_wire.m_length + kCommPacketHeaderSize;
-  if (total > capacity)
+  if (total > capacity) {
     return 0;
+  }
   memcpy(out, &m_wire, total);
   return m_wire.m_length + kCommPacketHeaderSize;
 }
 
 // ---- ReceivedPacket --------------------------------------------------------------------------------------------
 
-ReceivedPacket::ReceivedPacket(const void* wire, uint32_t size) : IdNode()
+ReceivedPacket::ReceivedPacket(const void* wire, uint32_t size)
+    : IdNode()
 {
   memcpy(&m_wire, wire, size & 0xffff);
   SetId(m_wire.m_id);
@@ -344,15 +370,17 @@ ReceivedPacket::~ReceivedPacket() = default;
 
 uint16_t ReceivedPacket::CopyPayload(void* out, uint16_t capacity) const
 {
-  if (m_wire.m_length > capacity)
+  if (m_wire.m_length > capacity) {
     return 0;
+  }
   memcpy(out, m_wire.m_payload, m_wire.m_length);
   return m_wire.m_length;
 }
 
 // ---- CommOutgoing ----------------------------------------------------------------------------------------------
 
-CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, int reliable) : IdNode()
+CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, int reliable)
+    : IdNode()
 {
   CommMgr* comm = GetCommMgr();
   m_firstPacketId = 0;
@@ -360,22 +388,19 @@ CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, i
   m_partCount = static_cast<int8_t>((size + 0x1f5) / 0x1f6);
   char part = 1;
   const auto* bytes = static_cast<const uint8_t*>(data);
-  while (size > 0)
-  {
+  while (size > 0) {
     const bool lastPart = size <= kCommMaxPayload;
     const uint32_t length = lastPart ? size : kCommMaxPayload;
-    auto* packet =
-      NewOrNull<CommPacket>(bytes, length, static_cast<uint8_t>(category), part, m_partCount, reliable);
-    if (m_firstPacketId == 0)
+    auto* packet = NewOrNull<CommPacket>(bytes, length, static_cast<uint8_t>(category), part, m_partCount, reliable);
+    if (m_firstPacketId == 0) {
       m_firstPacketId = packet->m_ack ? packet->m_ack->m_packetId : 0;
-    if (!packet->m_wire.m_reliable && packet->m_id != 0)
-      comm->m_pending.try_emplace(packet->m_id, packet);
-    if (lastPart)
-    {
-      size = 0;
     }
-    else
-    {
+    if (!packet->m_wire.m_reliable && packet->m_id != 0) {
+      comm->m_pending.try_emplace(packet->m_id, packet);
+    }
+    if (lastPart) {
+      size = 0;
+    } else {
       bytes += kCommMaxPayload;
       size -= kCommMaxPayload;
       ++part;
@@ -388,7 +413,8 @@ CommOutgoing::~CommOutgoing() = default;
 
 // ---- PartialMessage --------------------------------------------------------------------------------------------
 
-PartialMessage::PartialMessage(uint32_t firstPacketId) : IdNode()
+PartialMessage::PartialMessage(uint32_t firstPacketId)
+    : IdNode()
 {
   m_partsSeen = 0;
   m_partCount = 0;
@@ -412,10 +438,8 @@ uint32_t PartialMessage::GetCategory() const
 int PartialMessage::AddFragment(ReceivedPacket* packet)
 {
   CommMgr* comm = GetCommMgr();
-  if (comm && packet)
-  {
-    if (packet->m_wire.m_id != 0 && !comm->m_received.contains(packet->m_wire.m_id))
-    {
+  if (comm && packet) {
+    if (packet->m_wire.m_id != 0 && !comm->m_received.contains(packet->m_wire.m_id)) {
       m_partCount = packet->m_wire.m_partCount;
       ++m_partsSeen;
       m_length += packet->m_wire.m_length;
@@ -429,29 +453,26 @@ CommBuffer* PartialMessage::Assemble()
 {
   CommMgr* comm = GetCommMgr();
   uint32_t total = 0;
-  for (int8_t part = 1; part <= m_partsSeen; ++part)
-  {
+  for (int8_t part = 1; part <= m_partsSeen; ++part) {
     auto* packet = comm->m_received.at(part + m_firstId - 1).get();
     total += packet->m_wire.m_length;
   }
-  if (total >= kLongMessageLength)
-  {
+  if (total >= kLongMessageLength) {
     char text[100];
     sprintf(text, kLongMessageFormat, total);
     IgnoreOneArgument(TraceTarget(), reinterpret_cast<uintptr_t>(text));
   }
   auto* buffer = static_cast<CommBuffer*>(::operator new(sizeof(CommBuffer)));
-  if (buffer)
-  {
+  if (buffer) {
     buffer->m_size = total;
     void* data = nullptr;
-    if (total != 0)
+    if (total != 0) {
       data = ::operator new(total);
+    }
     buffer->m_data = data;
   }
   auto* out = static_cast<uint8_t*>(buffer->m_data);
-  for (int8_t part = 1; part <= m_partsSeen; ++part)
-  {
+  for (int8_t part = 1; part <= m_partsSeen; ++part) {
     auto* packet = comm->m_received.at(part + m_firstId - 1).get();
     const uint16_t copied = packet->CopyPayload(out, static_cast<uint16_t>(total));
     out += copied;
@@ -463,18 +484,20 @@ CommBuffer* PartialMessage::Assemble()
 int PartialMessage::ReleaseFragments()
 {
   CommMgr* comm = GetCommMgr();
-  for (int8_t part = 0; part < m_partsSeen; ++part)
-  {
+  for (int8_t part = 0; part < m_partsSeen; ++part) {
     auto removed = comm->m_received.extract(m_firstId + part);
-    if (!removed.empty())
+    if (!removed.empty()) {
       removed.mapped().reset();
+    }
   }
   return 1;
 }
 
 // ---- PacketBuffer ----------------------------------------------------------------------------------------------
 
-PacketBuffer::PacketBuffer() : m_count(0), m_used(1)
+PacketBuffer::PacketBuffer()
+    : m_count(0)
+    , m_used(1)
 {
   m_write = m_data;
 }
@@ -493,11 +516,11 @@ uint8_t* PacketBuffer::GetWritePointer() const
 
 ReceivedPacket* PacketBuffer::PopPacket()
 {
-  if (GetCount() <= 0)
+  if (GetCount() <= 0) {
     return nullptr;
+  }
   const uint32_t length = *reinterpret_cast<uint16_t*>(m_data + 4) + kCommPacketHeaderSize;
-  if (length > kCommPacketBufferSize - 1)
-  {
+  if (length > kCommPacketBufferSize - 1) {
     Reset();
     return nullptr;
   }
@@ -510,8 +533,9 @@ ReceivedPacket* PacketBuffer::PopPacket()
 int PacketBuffer::Append(CommPacket* packet)
 {
   const int added = packet->Pack(m_write, static_cast<uint16_t>(kCommPacketBufferSize - m_used));
-  if (added == 0)
+  if (added == 0) {
     return 0;
+  }
   m_used = static_cast<uint16_t>(m_used + added);
   ++m_count;
   m_write += added;
@@ -520,7 +544,8 @@ int PacketBuffer::Append(CommPacket* packet)
 
 // ---- SendBuffer / ReceiveBuffer --------------------------------------------------------------------------------
 
-SendBuffer::SendBuffer() : PacketBuffer()
+SendBuffer::SendBuffer()
+    : PacketBuffer()
 {
 }
 
@@ -533,7 +558,8 @@ void SendBuffer::Reset()
 
 SendBuffer::~SendBuffer() = default;
 
-ReceiveBuffer::ReceiveBuffer() : PacketBuffer()
+ReceiveBuffer::ReceiveBuffer()
+    : PacketBuffer()
 {
   m_write = reinterpret_cast<uint8_t*>(&m_count);
   m_used = 0;

@@ -17,9 +17,7 @@ int CheckCommandsValid(ActivityRequest* request, CommandQueue* commands, StatusC
 // Takes every command out of the queue, gives it the request's argument and hands it to the game (hook 0x2b00).
 int ExecuteCommands(ActivityRequest* request, CommandQueue* commands); // 0x5539f0
 // Empties `commands`, then queues one copy of `prototype` for every object `team` depends on.
-int CheckCommandForTeam(Command* prototype,
-                        ObjectKeyValueSet* team,
-                        CommandQueue* commands,
+int CheckCommandForTeam(Command* prototype, ObjectKeyValueSet* team, CommandQueue* commands,
                         StatusCode* status); // 0x5535b0
 
 // {1, 0x25} and {1, 0x27} become {1, 0x26} when the request's target is one of the team.
@@ -29,14 +27,10 @@ int GetCommandSide(CommandQueue* commands, uint32_t* side); // 0x553b80
 
 // {1, 0x24} unless `object` is controlled by `side`; with `checkOtherSide` also {1, 0x28} unless by `otherSide`; then
 // {1, 0x20} (only with `requireCompleted`), {1, 0x22} or {1, 0x21} for an uncompleted, destroyed or travelling object.
-int CheckControlAndState(GameObj* object,
-                         uint32_t side,
-                         uint32_t otherSide,
-                         int requireCompleted,
-                         int checkOtherSide,
+int CheckControlAndState(GameObj* object, uint32_t side, uint32_t otherSide, int requireCompleted, int checkOtherSide,
                          StatusCode* status); // 0x553410
 // Adds the key of every child the iterator walks (only those of `side` with `onlySide`) to `out`.
 int AddChildKeys(ChildIterator* children, ObjectKeyValueSet* out, int onlySide, uint32_t side); // 0x553350
-GameObjNotifier* GetMasterObjectForKey(const ObjectKey* key); // 0x553400
+GameObjNotifier* GetMasterObjectForKey(const ObjectKey* key);                                   // 0x553400
 // "<name> (ID=n)", or a description of what is missing, replacing the contents of *out.
 void AppendObjectDescription(ObjectKey* key, std::string* out); // 0x553c80

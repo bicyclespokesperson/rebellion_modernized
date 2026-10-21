@@ -1,5 +1,5 @@
 # Load the saved game "RebelsFastStart" (Alliance) from the main menu and let game time run ~60 s at Fast.
-# See docs/ui_navigation.md. Runtime ~105 s. Loaded games start PAUSED (no agent-droid intro).
+# Runtime ~105 s. Loaded games start PAUSED (no agent-droid intro).
 12 key Escape
 16 key Escape
 20 key Escape

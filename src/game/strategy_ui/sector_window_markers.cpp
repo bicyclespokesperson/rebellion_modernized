@@ -19,6 +19,7 @@
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/sector_window.h"
+#include "strategy_ui/sector_marker_art.h"
 #include "strategy_ui/system_forces_window.h"
 #include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
@@ -47,8 +48,9 @@ bool InFamilies(uint32_t family, uint32_t first, uint32_t end)
 
 void DeleteBitmap(DibBitmap* bitmap)
 {
-  if (!bitmap)
+  if (!bitmap) {
     return;
+  }
   bitmap->~DibBitmap();
   ::operator delete(bitmap);
 }
@@ -66,10 +68,12 @@ int ViewSide(int side)
 int SideOfMarkerState(uint32_t state)
 {
   const uint32_t bits = state & kStateMarkedSide;
-  if (bits == 4)
+  if (bits == 4) {
     return 1;
-  if (bits == 8)
+  }
+  if (bits == 8) {
     return 2;
+  }
   return bits != 0x10 ? 0 : 3;
 }
 
@@ -79,10 +83,10 @@ int SideOfMarkerState(uint32_t state)
 
 int SectorSystemPictureId(int index)
 {
-  if (index >= 1 && index <= 23)
+  if (index >= 1 && index <= 23) {
     return 0x27e3 + index;
-  switch (index)
-  {
+  }
+  switch (index) {
     case 24:
       return 0x27ff;
     case 25:
@@ -102,8 +106,7 @@ uint32_t SectorMarkerImageId(uint32_t kind, int state, int selected)
   uint32_t hoveredPicked = 0;
   uint32_t idle = 0;
   uint32_t idlePicked = 0;
-  switch (kind)
-  {
+  switch (kind) {
     case 4:
       normal = 0x2a13;
       picked = 0x2a14;
@@ -133,8 +136,7 @@ uint32_t SectorMarkerImageId(uint32_t kind, int state, int selected)
       hoveredPicked = 0x2a22;
       break;
   }
-  switch (state)
-  {
+  switch (state) {
     case 0:
     case 3:
       return (selected != 0 ? idlePicked : idle) & 0xffff;
@@ -151,12 +153,9 @@ RECT* SectorMarkerLabelRect(RECT* out, ObjectListItem* item)
 {
   int x = item->m_x;
   int y = item->m_y;
-  if (item->m_selectedImage == nullptr)
-  {
+  if (item->m_selectedImage == nullptr) {
     x += 0x14;
-  }
-  else
-  {
+  } else {
     x += item->m_selectedImage->Width() / 2;
   }
   y += item->m_textOffsetY;
@@ -171,31 +170,30 @@ RECT* SectorMarkerLabelRect(RECT* out, ObjectListItem* item)
 
 ObjectListItem* SectorWindow::FindSystemAt(int x, int y)
 {
-  for (const auto& ownedItem : m_systems.Entries())
-  {
+  for (const auto& ownedItem : m_systems.Entries()) {
     auto* item = static_cast<CoolListItem*>(ownedItem.get());
     POINT point = {x, y};
-    if (PtInRect(&item->m_rect, point))
+    if (reb::compat::PtInRect(&item->m_rect, point)) {
       return static_cast<ObjectListItem*>(item);
+    }
   }
   return nullptr;
 }
 
 ObjectListItem* SectorWindow::HitTestMarkers(CoolListItemList* markers, int x, int y)
 {
-  for (const auto& ownedItem : markers->Entries())
-  {
+  for (const auto& ownedItem : markers->Entries()) {
     auto* item = static_cast<CoolListItem*>(ownedItem.get());
     const RECT area = item->m_rect;
     POINT point = {x, y};
-    bool found = PtInRect(&area, point) != 0;
-    if (found && item->m_id == kSpecialMarkerId && item->m_image &&
-        item->m_image->IsPixelOpaque(x - area.left, y - area.top) == 0)
-    {
+    bool found = reb::compat::PtInRect(&area, point) != 0;
+    if (found && item->m_id == kSpecialMarkerId && item->m_image
+        && item->m_image->IsPixelOpaque(x - area.left, y - area.top) == 0) {
       found = false;
     }
-    if (!found)
+    if (!found) {
       continue;
+    }
     return static_cast<ObjectListItem*>(item);
   }
   return nullptr;
@@ -204,8 +202,7 @@ ObjectListItem* SectorWindow::HitTestMarkers(CoolListItemList* markers, int x, i
 CoolWindow* SectorWindow::OpenWindowOfType(const ObjectKey* system, int windowType)
 {
   uint32_t markerKind;
-  switch (windowType)
-  {
+  switch (windowType) {
     case 4:
       markerKind = 0x10;
       break;
@@ -221,10 +218,11 @@ CoolWindow* SectorWindow::OpenWindowOfType(const ObjectKey* system, int windowTy
     default:
       return nullptr;
   }
-  auto* item =
-    static_cast<ObjectListItem*>(m_markers.FindById((markerKind << 16) | static_cast<uint16_t>(system->m_value)));
-  if (!item)
+  auto* item
+      = static_cast<ObjectListItem*>(m_markers.FindById((markerKind << 16) | static_cast<uint16_t>(system->m_value)));
+  if (!item) {
     return nullptr;
+  }
   return OpenMarkerWindow(item, item->m_rect.left, item->m_rect.top);
 }
 
@@ -236,8 +234,7 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y)
   item->GetKey(&key);
   const uint32_t kind = item->m_id >> 16;
   uint32_t childId;
-  switch (kind)
-  {
+  switch (kind) {
     case 4:
       childId = ((key.m_value & 0x3ff) << 6) | 9;
       break;
@@ -254,93 +251,91 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y)
       childId = 0;
   }
   CoolWindow* window = m_galaxy->m_children.FindById(childId);
-  if (!window)
-  {
+  if (!window) {
     POINT position = {x, y};
-    MapWindowPoints(hwnd, m_galaxy->m_hwnd, &position, 1);
+    reb::compat::MapWindowPoints(hwnd, m_galaxy->m_hwnd, &position, 1);
     const RECT limits = m_galaxy->m_panelArea;
     ObjectKey systemKey;
     item->GetKey(&systemKey);
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
     int advisorMask = 0;
-    switch (kind)
-    {
+    switch (kind) {
       case 4:
-      {
-        void* memory = ::operator new(sizeof(SystemWindow));
-        window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(instance, position.x, position.y, 0xe2,
-                                                                             0x130, m_galaxy, childId, system)) :
-                          nullptr;
-        advisorMask = 2;
-        break;
-      }
+        {
+          void* memory = ::operator new(sizeof(SystemWindow));
+          window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(instance, position.x, position.y, 0xe2,
+                                                                               0x130, m_galaxy, childId, system))
+                          : nullptr;
+          advisorMask = 2;
+          break;
+        }
       case 8:
-      {
-        void* memory = ::operator new(sizeof(SystemForcesWindow));
-        window = memory ? static_cast<CoolWindow*>(new (memory) SystemForcesWindow(
-                            instance, position.x, position.y, 0xeb, 0x130, m_galaxy, childId, system)) :
-                          nullptr;
-        advisorMask = 8;
-        break;
-      }
+        {
+          void* memory = ::operator new(sizeof(SystemForcesWindow));
+          window = memory ? static_cast<CoolWindow*>(new (memory) SystemForcesWindow(
+                                instance, position.x, position.y, 0xeb, 0x130, m_galaxy, childId, system))
+                          : nullptr;
+          advisorMask = 8;
+          break;
+        }
       case 0x10:
-      {
-        void* memory = ::operator new(sizeof(FleetWindow));
-        window = memory ? static_cast<CoolWindow*>(
-                            new (memory) FleetWindow(instance, position.x, position.y, m_galaxy, childId, system)) :
-                          nullptr;
-        advisorMask = 4;
-        break;
-      }
+        {
+          void* memory = ::operator new(sizeof(FleetWindow));
+          window = memory ? static_cast<CoolWindow*>(
+                                new (memory) FleetWindow(instance, position.x, position.y, m_galaxy, childId, system))
+                          : nullptr;
+          advisorMask = 4;
+          break;
+        }
       case 0x40:
-      {
-        void* memory = ::operator new(sizeof(SystemMissionsWindow));
-        window = memory ? static_cast<CoolWindow*>(new (memory) SystemMissionsWindow(instance, position.x, position.y,
-                                                                                     m_galaxy, childId, system)) :
-                          nullptr;
-        advisorMask = 0x10;
-        break;
-      }
+        {
+          void* memory = ::operator new(sizeof(SystemMissionsWindow));
+          window = memory ? static_cast<CoolWindow*>(new (memory) SystemMissionsWindow(instance, position.x, position.y,
+                                                                                       m_galaxy, childId, system))
+                          : nullptr;
+          advisorMask = 0x10;
+          break;
+        }
     }
-    if (!window)
+    if (!window) {
       return nullptr;
+    }
     auto* gameWindow = static_cast<CoolGameWindow*>(window);
     gameWindow->SetDragLimits(limits, nullptr);
     window->m_style &= ~kStyleVisible;
     gameWindow->SetDragMode(2);
     window->Create(0);
     int left = limits.left;
-    if (limits.left <= position.x)
-    {
+    if (limits.left <= position.x) {
       left = position.x;
-      if (limits.right < position.x + window->m_width)
+      if (limits.right < position.x + window->m_width) {
         left = limits.right - window->m_width;
+      }
     }
     int top = limits.top;
-    if (limits.top <= position.y)
-    {
+    if (limits.top <= position.y) {
       top = position.y;
-      if (limits.bottom < position.y + window->m_height)
+      if (limits.bottom < position.y + window->m_height) {
         top = limits.bottom - window->m_height;
+      }
     }
-    SetWindowPos(window->m_hwnd, nullptr, left, top, 0, 0, 5);
+    reb::compat::SetWindowPos(window->m_hwnd, nullptr, left, top, 0, 0, 5);
     static_cast<CoolGameWindow*>(window)->ShowAndTrack(5);
-    if (advisorMask != 0)
+    if (advisorMask != 0) {
       UiHumanSetAdvisorMask(advisorMask);
+    }
     m_galaxy->TrackChildWindow(window);
     m_galaxy->m_children.Insert(window);
   }
   const int slot = m_galaxy->FindMinimizedSlot(window->m_childId);
-  if (slot == 0)
-  {
-    if (!IsWindowVisible(window->m_hwnd))
+  if (slot == 0) {
+    if (!reb::compat::IsWindowVisible(window->m_hwnd)) {
       static_cast<CoolGameWindow*>(window)->ShowAndTrack(5);
-  }
-  else
-  {
+    }
+  } else {
     m_galaxy->RestoreMinimizedWindow(slot);
   }
-  SetWindowPos(window->m_hwnd, nullptr, 0, 0, 0, 0, 3);
+  reb::compat::SetWindowPos(window->m_hwnd, nullptr, 0, 0, 0, 0, 3);
   return window;
 }
 
@@ -349,37 +344,36 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y)
 void SectorWindow::ClearHighlight(ObjectListItem* item)
 {
   HWND hwnd = m_hwnd;
-  if (!item)
-  {
+  if (!item) {
     const uint8_t color = m_markerColorKey;
     const int height = m_dragLayer->Height();
     const int width = m_dragLayer->Width();
     m_dragLayer->FillRect(0, 0, width, height, color);
-    for (const auto& ownedNode : m_markers.Entries())
-    {
+    for (const auto& ownedNode : m_markers.Entries()) {
       auto* marker = static_cast<CoolListItem*>(ownedNode.get());
       const uint32_t state = marker->m_state.m_value;
-      if ((state & kMarkerHighlighted) != 0)
-      {
+      if ((state & kMarkerHighlighted) != 0) {
         RECT area = marker->m_rect;
         marker->m_state.m_value = state & ~static_cast<uint32_t>(kMarkerHighlighted);
-        InvalidateRect(hwnd, &area, TRUE);
+        reb::compat::InvalidateRect(hwnd, &area, TRUE);
       }
     }
     m_marked.Clear();
     return;
   }
   const uint32_t state = item->m_state.m_value;
-  if ((state & kMarkerHighlighted) == 0)
+  if ((state & kMarkerHighlighted) == 0) {
     return;
+  }
   RECT area = item->m_rect;
   item->m_state.m_value = state & ~static_cast<uint32_t>(kMarkerHighlighted);
   m_dragLayer->FillRect(area.left, area.top, area.right - area.left, area.bottom - area.top, m_markerColorKey);
-  InvalidateRect(hwnd, &area, TRUE);
+  reb::compat::InvalidateRect(hwnd, &area, TRUE);
   ObjectKey key;
   item->GetKey(&key);
-  if (ObjectKeyNode* node = m_marked.Detach(&key))
+  if (ObjectKeyNode* node = m_marked.Detach(&key)) {
     delete node;
+  }
 }
 
 void SectorWindow::Highlight(ObjectListItem* item)
@@ -389,21 +383,22 @@ void SectorWindow::Highlight(ObjectListItem* item)
   item->GetKey(&key);
   GetObjectInFamilies_90_98(m_galaxy->m_side, &key);
   auto* state = reinterpret_cast<uint32_t*>(&item->m_state.m_value);
-  if ((item->m_state.m_value & kMarkerVisible) == 0)
+  if ((item->m_state.m_value & kMarkerVisible) == 0) {
     return;
+  }
   RECT area = item->m_rect;
   *state |= kMarkerHighlighted;
-  InvalidateRect(hwnd, &area, FALSE);
+  reb::compat::InvalidateRect(hwnd, &area, FALSE);
   const int side = ViewSide(m_galaxy->m_side);
   const int markerSide = SideOfMarkerState(*state);
   DibBitmap* image = nullptr;
-  if (side == markerSide && item->m_userData != 0)
-  {
+  if (side == markerSide && item->m_userData != 0) {
     area = item->m_rect;
     image = item->m_image;
   }
-  if (image)
+  if (image) {
     image->DrawKeyed(m_dragLayer, area.left, area.top);
+  }
   ObjectKey nodeKey;
   item->GetKey(&nodeKey);
   auto* node = NewOrNull<ObjectKeyValueNode>(nodeKey, static_cast<int>(item->m_id >> 16));
@@ -416,63 +411,58 @@ void SectorWindow::UpdateLoyaltyBar(const ObjectKey* system, int range, int posi
 {
   const int id = (static_cast<int16_t>(system->m_value) << 6) | 3;
   auto* bar = static_cast<CoolwinStatusBar*>(m_children.FindById(id));
-  if (!bar)
+  if (!bar) {
     return;
+  }
   auto* object = static_cast<System*>(GetObjectInFamilies_90_98(m_galaxy->m_side, system));
-  if ((object->m_stateFlags & 8) != 0)
-  {
+  if ((object->m_stateFlags & 8) != 0) {
     bar->Hide();
     return;
   }
-  if (position >= 0 && static_cast<int>(bar->m_position) != position)
+  if (position >= 0 && static_cast<int>(bar->m_position) != position) {
     bar->SetPosition(position);
-  if (static_cast<int>(bar->m_range) != range && range > 0)
+  }
+  if (static_cast<int>(bar->m_range) != range && range > 0) {
     bar->SetRange(range, 0);
-  if (!IsWindowVisible(bar->m_hwnd) && (ControlBits(object) & 0xc0) != 0 && (object->m_flags & 1) != 0)
+  }
+  if (!reb::compat::IsWindowVisible(bar->m_hwnd) && (ControlBits(object) & 0xc0) != 0 && (object->m_flags & 1) != 0) {
     bar->Show(5);
+  }
 }
 
 void SectorWindow::UpdateEnergyBar(const ObjectKey* system, int range, int position)
 {
   const int id = (static_cast<int16_t>(system->m_value) << 6) | 1;
   auto* bar = static_cast<CoolwinStatusBar*>(m_children.FindById(id));
-  if (!bar)
+  if (!bar) {
     return;
+  }
   auto* object = static_cast<System*>(GetObjectInFamilies_90_98(m_galaxy->m_side, system));
-  if ((object->m_stateFlags & 8) != 0)
-  {
+  if ((object->m_stateFlags & 8) != 0) {
     bar->Hide();
     return;
   }
   bool changed = false;
   int shownRange = range;
-  if (static_cast<int>(bar->m_range) == range || range < 1)
-  {
+  if (static_cast<int>(bar->m_range) == range || range < 1) {
     shownRange = object->m_energy;
-  }
-  else
-  {
-    SetWindowPos(bar->m_hwnd, nullptr, 0, 0, range * 3, 3, 6);
+  } else {
+    reb::compat::SetWindowPos(bar->m_hwnd, nullptr, 0, 0, range * 3, 3, 6);
     bar->SetRange(range, 1);
     changed = true;
   }
   int shownPosition = position;
-  if (position < 0 || static_cast<int>(bar->m_position) == position)
-  {
+  if (position < 0 || static_cast<int>(bar->m_position) == position) {
     shownPosition = static_cast<int>(bar->m_position);
-  }
-  else
-  {
+  } else {
     bar->SetPosition(position);
     changed = true;
   }
-  if (!IsWindowVisible(bar->m_hwnd) && (object->m_flags & 2) != 0)
-  {
+  if (!reb::compat::IsWindowVisible(bar->m_hwnd) && (object->m_flags & 2) != 0) {
     bar->Show(5);
     changed = true;
   }
-  if (changed)
-  {
+  if (changed) {
     const ResourceStringId titleId = StringId(0x1822);
     std::string tip = LoadStringResource(&titleId);
     const ResourceStringId separatorId = StringId(0x1824);
@@ -491,43 +481,35 @@ void SectorWindow::UpdateRawMaterialBar(const ObjectKey* system, int range, int 
 {
   const int id = (static_cast<int16_t>(system->m_value) << 6) | 2;
   auto* bar = static_cast<CoolwinStatusBar*>(m_children.FindById(id));
-  if (!bar)
+  if (!bar) {
     return;
+  }
   auto* object = static_cast<System*>(GetObjectInFamilies_90_98(m_galaxy->m_side, system));
-  if ((object->m_stateFlags & 8) != 0)
-  {
+  if ((object->m_stateFlags & 8) != 0) {
     bar->Hide();
     return;
   }
   bool changed = false;
   int shownRange = range;
-  if (static_cast<int>(bar->m_range) == range || range < 1)
-  {
+  if (static_cast<int>(bar->m_range) == range || range < 1) {
     shownRange = object->m_rawMaterial;
-  }
-  else
-  {
-    SetWindowPos(bar->m_hwnd, nullptr, 0, 0, range * 3, 3, 6);
+  } else {
+    reb::compat::SetWindowPos(bar->m_hwnd, nullptr, 0, 0, range * 3, 3, 6);
     bar->SetRange(range, 1);
     changed = true;
   }
   int shownPosition = position;
-  if (position < 0 || static_cast<int>(bar->m_position) == position)
-  {
+  if (position < 0 || static_cast<int>(bar->m_position) == position) {
     shownPosition = static_cast<int>(bar->m_position);
-  }
-  else
-  {
+  } else {
     bar->SetPosition(position);
     changed = true;
   }
-  if (!IsWindowVisible(bar->m_hwnd) && (object->m_flags & 2) != 0)
-  {
+  if (!reb::compat::IsWindowVisible(bar->m_hwnd) && (object->m_flags & 2) != 0) {
     bar->Show(5);
     changed = true;
   }
-  if (changed)
-  {
+  if (changed) {
     const ResourceStringId titleId = StringId(0x1823);
     std::string tip = LoadStringResource(&titleId);
     const ResourceStringId separatorId = StringId(0x1824);
@@ -552,85 +534,67 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side)
   auto* icon = static_cast<ObjectListItem*>(m_systems.FindById(systemKey->m_value & 0xffffff));
   AllFacilityIterator facilities(system, 3);
   uint32_t flags;
-  if ((system->m_stateFlags & 8) == 0)
-  {
+  if ((system->m_stateFlags & 8) == 0) {
     flags = side == 1 ? 2 : (side == 2 ? 4 : 1);
-    if ((system->m_flags & 4) != 0)
-    {
-      if (side == 1)
-      {
+    if ((system->m_flags & 4) != 0) {
+      if (side == 1) {
         flags |= 0x10;
-      }
-      else if (side == 2)
-      {
+      } else if (side == 2) {
         flags |= 0x20;
       }
     }
     facilities.Begin();
-    if (facilities.Current() != nullptr)
+    if (facilities.Current() != nullptr) {
       flags |= 8;
-  }
-  else
-  {
+    }
+  } else {
     flags = 0x40;
   }
   RECT area = icon->m_rect;
   RECT captionArea;
   SectorMarkerLabelRect(&captionArea, icon);
   RECT combined;
-  UnionRect(&combined, &area, &captionArea);
+  reb::compat::UnionRect(&combined, &area, &captionArea);
   area = combined;
-  if ((flags & 0x40) != 0)
-  {
+  if ((flags & 0x40) != 0) {
     icon->SetImageIds(0, 0x2800, art);
     icon->m_userData = 0x40;
     icon->m_ownColors = 1;
     icon->m_color = 0x2ffff00;
-    InvalidateRect(m_hwnd, &area, FALSE);
+    reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
     return;
   }
-  if (((flags ^ icon->m_userData) & 7) != 0)
-  {
-    if ((flags & 7) == 2)
-    {
+  if (((flags ^ icon->m_userData) & 7) != 0) {
+    if ((flags & 7) == 2) {
       icon->m_ownColors = 1;
       icon->m_color = 0x20000ff;
-    }
-    else
-    {
+    } else {
       icon->m_ownColors = 1;
       icon->m_color = (flags & 7) == 4 ? 0x200ff00 : 0x2ffff00;
     }
     changed = true;
   }
   DibBitmap* overlay = nullptr;
-  if ((flags & 0x30) == 0x10)
-  {
+  if ((flags & 0x30) == 0x10) {
     overlay = NewOrNull<DibBitmap>(art, 0x389u, 2u);
-  }
-  else if ((flags & 0x30) == 0x20)
-  {
+  } else if ((flags & 0x30) == 0x20) {
     overlay = NewOrNull<DibBitmap>(art, 0x38au, 2u);
   }
   const uint32_t difference = flags ^ icon->m_userData;
-  if ((difference & 0x30) != 0)
+  if ((difference & 0x30) != 0) {
     changed = true;
-  if ((difference & 8) != 0)
-  {
+  }
+  if ((difference & 8) != 0) {
     auto* special = static_cast<ObjectListItem*>(m_markers.FindById(kSpecialMarkerId));
-    if ((flags & 8) == 0)
-    {
-      if (special)
-      {
+    if ((flags & 8) == 0) {
+      if (special) {
         ObjectKey specialKey;
         special->GetKey(&specialKey);
         GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &specialKey);
         uint32_t sameSector = 0;
-        if (object)
-        {
+        if (object) {
           GameObjNotifier* sector = object->m_parent ? object->m_parent->m_parent : nullptr;
-          if (sector)
-          {
+          if (sector) {
             ObjectKey windowSectorKey;
             ObjectKey objectSectorKey;
             GetObjectKey(m_sector, &windowSectorKey);
@@ -639,15 +603,13 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side)
           }
         }
         const uint32_t alive = object ? (~static_cast<GameObj*>(object)->m_stateFlags >> 3) & 1 : 0;
-        if ((alive & sameSector) == 0 && m_markers.Remove(special))
+        if ((alive & sameSector) == 0 && m_markers.Remove(special)) {
           delete special;
+        }
       }
-    }
-    else
-    {
+    } else {
       GameObjNotifier* facility = facilities.Current();
-      if (!special)
-      {
+      if (!special) {
         ObjectKey facilityKey;
         GetObjectKey(facility, &facilityKey);
         special = NewOrNull<ObjectListItem>(kSpecialMarkerId, &facilityKey);
@@ -661,13 +623,11 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side)
     changed = true;
   }
   DibBitmap* markerImage = m_galaxy->GetMarkerImage(system);
-  if (markerImage != icon->m_markerImage)
-  {
+  if (markerImage != icon->m_markerImage) {
     changed = true;
     icon->m_markerImage = markerImage;
   }
-  if (changed)
-  {
+  if (changed) {
     DibBitmap picture(art, static_cast<uint32_t>(SectorSystemPictureId(static_cast<int>(system->GetRecordField44()))),
                       2u);
     auto* surface = NewOrNull<DibBitmap>(picture.Width(), picture.Height() + 4, &picture);
@@ -676,70 +636,67 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side)
     const int surfaceWidth = surface->Width();
     surface->FillRect(0, 0, surfaceWidth, surfaceHeight, picture.m_colorKey);
     picture.Blit(surface, 0, 0, 0, 0, 0, 0);
-    if (overlay)
+    if (overlay) {
       overlay->DrawKeyed(surface, 0, 0);
-    if (DibBitmap* marker = icon->m_markerImage)
-    {
+    }
+    if (DibBitmap* marker = icon->m_markerImage) {
       const int top = surface->Height() - marker->Height();
       marker->DrawKeyed(surface, 0, top);
     }
     icon->SetImages(nullptr, surface);
     icon->m_userData = flags;
-    InvalidateRect(m_hwnd, &area, FALSE);
+    reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
   }
   DeleteBitmap(overlay);
 }
 
 void SectorWindow::SetMarkerState(ObjectListItem* marker, int side, int count)
 {
-  if (!marker)
+  if (!marker) {
     return;
+  }
   HMODULE art = CoolAppGetResourceModule(kArtSlot);
   ClearHighlight(marker);
   auto* state = reinterpret_cast<uint32_t*>(&marker->m_state.m_value);
   bool changed = false;
-  if (side != SideOfMarkerState(*state))
-  {
+  if (side != SideOfMarkerState(*state)) {
     *state = marker->m_state.Get() & 0xffffffe3;
-    if (side == 1)
-    {
+    if (side == 1) {
       *state |= 4;
-    }
-    else if (side == 2)
-    {
+    } else if (side == 2) {
       *state |= 8;
-    }
-    else if (side == 3)
-    {
+    } else if (side == 3) {
       *state |= 0x10;
     }
-    if (marker->m_userData != 0)
-    {
+    if (marker->m_userData != 0) {
       const uint32_t kind = marker->m_id >> 16;
       marker->SetImageIds(static_cast<uint16_t>(SectorMarkerImageId(kind, side, 0)),
                           static_cast<uint16_t>(SectorMarkerImageId(kind, side, 1)), art);
     }
     changed = true;
   }
-  if (static_cast<int>(marker->m_userData) != count)
-  {
+  if (static_cast<int>(marker->m_userData) != count) {
     changed = true;
     marker->m_userData = static_cast<uint32_t>(count);
-    if (count == 0)
-    {
+    if (count == 0) {
       RemoveRectTool(marker->m_id);
       *state = marker->m_state.Get() & 0xfffffffd;
-    }
-    else
-    {
+    } else {
       *state |= 2;
       const uint32_t kind = marker->m_id >> 16;
       marker->SetImageIds(static_cast<uint16_t>(SectorMarkerImageId(kind, side, 0)),
                           static_cast<uint16_t>(SectorMarkerImageId(kind, side, 1)), art);
     }
   }
-  if (changed)
-    InvalidateRect(m_hwnd, &marker->m_rect, FALSE);
+  if (changed) {
+    if (marker->m_image) {
+      AddSectorMarkerDetail(*marker->m_image, marker->m_imageId);
+    }
+    if (marker->m_selectedImage) {
+      AddSectorMarkerDetail(*marker->m_selectedImage, marker->m_selectedImageId);
+    }
+    reb::compat::InvalidateRect(m_hwnd, &marker->m_rect, FALSE);
+  }
 }
 
 void SectorWindow::UpdateFleetMarker(GameObjNotifier* system, GameObjNotifier*)
@@ -747,16 +704,15 @@ void SectorWindow::UpdateFleetMarker(GameObjNotifier* system, GameObjNotifier*)
   ObjectKey key;
   GetObjectKey(system, &key);
   auto* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x100000));
-  if (!marker)
+  if (!marker) {
     return;
+  }
   int side = ViewSide(m_galaxy->m_side);
   int count = CountFleets(static_cast<GameObj*>(system), side, 3);
-  if (count == 0)
-  {
+  if (count == 0) {
     side = m_galaxy->m_side == 1 ? 2 : (m_galaxy->m_side == 2 ? 1 : 0);
     count = CountFleets(static_cast<GameObj*>(system), side, 3);
-    if (count == 0)
-    {
+    if (count == 0) {
       side = (static_cast<GameObjRoot*>(system)->m_flags >> 6) & 3;
       count = CountFleets(static_cast<GameObj*>(system), side, 3);
     }
@@ -775,8 +731,9 @@ void SectorWindow::UpdateFacilityMarker(GameObjNotifier* system, GameObjNotifier
     ProcFacilIterator facilities(system, 3);
     count = facilities.Count();
   }
-  if (count == 0)
+  if (count == 0) {
     side = 0;
+  }
   SetMarkerState(marker, side, count);
 }
 
@@ -785,8 +742,9 @@ void SectorWindow::UpdateDefenseMarker(GameObjNotifier* system, GameObjNotifier*
   ObjectKey key;
   GetObjectKey(system, &key);
   auto* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x80000));
-  if (!marker)
+  if (!marker) {
     return;
+  }
   const uint32_t systemFlags = static_cast<GameObjRoot*>(system)->m_flags;
   int count;
   {
@@ -799,21 +757,22 @@ void SectorWindow::UpdateDefenseMarker(GameObjNotifier* system, GameObjNotifier*
     count = defenseCount + troopCount + squadronCount;
   }
   RoleIterator roles(system, 3);
-  for (roles.Begin(); roles.Current(); roles.Advance())
-  {
+  for (roles.Begin(); roles.Current(); roles.Advance()) {
     Role* role = static_cast<Role*>(roles.Current());
     ObjectKey missionKey;
     role->GetMissionKey(&missionKey);
-    if (!missionKey.IsSet() || ((role->m_flags78 >> 8) & 1) != 0)
+    if (!missionKey.IsSet() || ((role->m_flags78 >> 8) & 1) != 0) {
       ++count;
+    }
   }
   SetMarkerState(marker, (systemFlags >> 6) & 3, count);
 }
 
 void SectorWindow::UpdateMissionMarker(GameObjNotifier* system, GameObjNotifier*)
 {
-  if (!system)
+  if (!system) {
     return;
+  }
   ObjectKey key;
   GetObjectKey(system, &key);
   auto* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x400000));
@@ -830,14 +789,15 @@ void SectorWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object)
   GetObjectKey(object->m_parent, &parentKey);
   const uint32_t family = key->Family();
   const bool fleetOrFacility = InFamilies(family, 8, 0x10) || InFamilies(family, 0x28, 0x30);
-  const bool unit = InFamilies(family, 0x1c, 0x20) || InFamilies(family, 0x22, 0x28) ||
-                    InFamilies(family, 0x10, 0x14) || InFamilies(family, 0x20, 0x22) || InFamilies(family, 0x30, 0x40);
-  if (!unit && !fleetOrFacility)
+  const bool unit = InFamilies(family, 0x1c, 0x20) || InFamilies(family, 0x22, 0x28) || InFamilies(family, 0x10, 0x14)
+                    || InFamilies(family, 0x20, 0x22) || InFamilies(family, 0x30, 0x40);
+  if (!unit && !fleetOrFacility) {
     return;
-  if (m_objects.Find(key))
+  }
+  if (m_objects.Find(key)) {
     return;
-  if (InFamilies(key->Family(), 0x20, 0x22))
-  {
+  }
+  if (InFamilies(key->Family(), 0x20, 0x22)) {
     GameObjNotifier* parent = object->m_parent;
     ObjectKey updatedKey;
     GetObjectKey(parent, &updatedKey);
@@ -850,20 +810,21 @@ void SectorWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object)
   OnObjectUpdated(key, object);
 }
 
-void SectorWindow::OnChildMoved(const ObjectKey* key,
-                                GameObjNotifier* object,
-                                const ObjectKey* otherKey,
+void SectorWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                                 GameObjNotifier* otherObject)
 {
   GameObjNotifier* target = otherObject;
-  if (!target)
+  if (!target) {
     target = GetObjectInFamilies_01_ff(m_galaxy->m_side, otherKey);
-  if (!InFamilies(otherKey->Family(), 0x90, 0x98))
+  }
+  if (!InFamilies(otherKey->Family(), 0x90, 0x98)) {
     return;
+  }
   ObjectKey copy(*otherKey);
   OnObjectUpdated(&copy, target);
-  if (ObjectKeyNode* node = m_objects.Find(key))
+  if (ObjectKeyNode* node = m_objects.Find(key)) {
     m_objects.Remove(static_cast<ObjectKeyIdNode*>(node));
+  }
 }
 
 void SectorWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object)
@@ -872,8 +833,7 @@ void SectorWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object
   const uint32_t family = key->Family();
   ObjectKey parentKey;
   GetObjectKey(parent, &parentKey);
-  if (InFamilies(family, 0x90, 0x98))
-  {
+  if (InFamilies(family, 0x90, 0x98)) {
     const int side = m_galaxy->m_side;
     auto* system = static_cast<System*>(object ? object : GetObjectInFamilies_90_98(side, key));
     const int loyalty = system->GetLoyaltyFor(side);
@@ -888,27 +848,24 @@ void SectorWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object
     return;
   }
   const bool parentIsSystem = InFamilies(parentKey.Family(), 0x90, 0x98);
-  if (InFamilies(family, 0x28, 0x30) && parentIsSystem)
-  {
+  if (InFamilies(family, 0x28, 0x30) && parentIsSystem) {
     UpdateFacilityMarker(parent, object);
     return;
   }
-  if (InFamilies(family, 0x1c, 0x20) || InFamilies(family, 0x22, 0x28) || InFamilies(family, 0x10, 0x14))
-  {
+  if (InFamilies(family, 0x1c, 0x20) || InFamilies(family, 0x22, 0x28) || InFamilies(family, 0x10, 0x14)) {
     UpdateDefenseMarker(parent, object);
     return;
   }
-  if (InFamilies(family, 0x30, 0x40))
-  {
+  if (InFamilies(family, 0x30, 0x40)) {
     UpdateDefenseMarker(parent, object);
     UpdateMissionMarker(parent, object);
     return;
   }
-  if (InFamilies(family, 8, 0x10) && parentIsSystem)
-  {
+  if (InFamilies(family, 8, 0x10) && parentIsSystem) {
     UpdateFleetMarker(parent, object);
     return;
   }
-  if (InFamilies(family, 0x40, 0x80))
+  if (InFamilies(family, 0x40, 0x80)) {
     UpdateMissionMarker(parent, object);
+  }
 }
