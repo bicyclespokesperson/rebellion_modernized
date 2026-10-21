@@ -76,3 +76,9 @@ Linux and `%APPDATA%\Rebellion\` on Windows (`$REBELLION_CONFIG` overrides). The
 ```ini
 install_dir=/path/to/Star Wars - Rebellion
 ```
+
+## Screenshots
+
+![Strategic view](gameplay.png)
+
+![Space battle](battle.png)
