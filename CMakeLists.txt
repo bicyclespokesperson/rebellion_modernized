@@ -6,6 +6,16 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "Minimum macOS version")
 endif()
 
+# Windows: CMake <= 3.24 hands rc.exe the -clang: dependency flags that clang-cl's rc rule generates, and it rejects them
+# (FreeType's ftver.rc fails). llvm-rc, shipped with LLVM, accepts them. Set before project() so RC picks it up.
+if(WIN32 AND NOT CMAKE_RC_COMPILER)
+  get_filename_component(REB_LLVM_BIN "${CMAKE_C_COMPILER}" DIRECTORY)
+  find_program(REB_LLVM_RC llvm-rc HINTS "${REB_LLVM_BIN}")
+  if(REB_LLVM_RC)
+    set(CMAKE_RC_COMPILER "${REB_LLVM_RC}")
+  endif()
+endif()
+
 project(rebellion LANGUAGES C CXX)
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   message(FATAL_ERROR "Rebellion requires a Clang-family C++ compiler (Apple Clang or LLVM Clang)")
