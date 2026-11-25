@@ -241,8 +241,7 @@ void PlanGroups(const Battle& battle, Side side, CommanderParams params, bool ob
         doctrine.mission = FlightMission::Strike;
         doctrine.priorities = MakePriorities({TargetTag::Withdrawing, TargetTag::Damaged, TargetTag::Nearest}, true);
       }
-      doctrine.rearm = params.temperament == Temperament::Cautious ? RearmRule::AtHalfLosses
-                                                                  : RearmRule::WhenTorpedoesSpent;
+      doctrine.rearm = RearmRule::Never;
       SetDoctrine(battle, group, doctrine, out);
       continue;
     }

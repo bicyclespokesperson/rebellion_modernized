@@ -95,7 +95,7 @@ struct FlightDoctrine {
   FlightMission mission = FlightMission::Intercept;
   TargetPriorities priorities;
   DogfightRule dogfight = DogfightRule::Engage;
-  RearmRule rearm = RearmRule::WhenTorpedoesSpent;
+  RearmRule rearm = RearmRule::Never;
   LaunchRule launch = LaunchRule::Immediately;
   UnitIndex escortTarget = kNoUnit; // Escort: a ship or a squadron of another flight
   Vec2 patrolCenter;

@@ -239,6 +239,7 @@ void DestroyedCarrierTakesDockedSquadrons()
   builder.Add(Broadside(Side::Alliance));
   Battle battle(builder.Snapshot(), Uncommanded());
   BattleState& state = Mutable(battle);
+  sim::DockSquadron(state, docked, carrier, false);
   SB_CHECK(state.Squadron(docked)->place == SquadronPlace::Docked);
   state.Ship(carrier)->shield = 0.0f;
   sim::DamageShip(state, carrier, 5000.0f, ShotKind::Turbolaser, Subsystem::Hull);

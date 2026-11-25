@@ -104,10 +104,30 @@ Vec2 Centroid(const BattleState& state, const std::vector<UnitIndex>& units)
   return count > 0 ? sum * (1.0f / static_cast<float>(count)) : sum;
 }
 
+void CancelWithdrawal(BattleState& state, UnitIndex unit)
+{
+  if (ShipState* ship = state.Ship(unit); ship && ship->withdrawing) {
+    ship->withdrawing = false;
+    ship->spoolTicks = 0;
+    ship->spoolTotal = 0;
+  } else if (SquadronState* squadron = state.Squadron(unit); squadron && squadron->withdrawing) {
+    squadron->withdrawing = false;
+    squadron->spoolTicks = 0;
+    squadron->spoolTotal = 0;
+  }
+}
+
+bool CancelsWithdrawal(OrderKind kind)
+{
+  return kind == OrderKind::Attack || kind == OrderKind::Move || kind == OrderKind::Approach || kind == OrderKind::Hold
+         || kind == OrderKind::Escort || kind == OrderKind::Strike;
+}
+
 // Movement-type orders go to the groups named (members follow in formation) and to the units named (which then act
 // on their own until their orders run out).
 void QueueOrder(BattleState& state, const Command& command, UnitOrder order, auto&& applies)
 {
+  const bool cancelWithdraw = !command.queue && CancelsWithdrawal(order.kind);
   for (GroupId id : command.target.groups) {
     GroupState& group = state.groups[id];
     if (!AnyUnit(state, group.members, applies)) {
@@ -121,6 +141,9 @@ void QueueOrder(BattleState& state, const Command& command, UnitOrder order, aut
       group.orders.clear();
       for (UnitIndex member : group.members) {
         state.units[member].orders.clear();
+        if (cancelWithdraw) {
+          CancelWithdrawal(state, member);
+        }
       }
     }
     group.orders.push_back(groupOrder);
@@ -136,6 +159,9 @@ void QueueOrder(BattleState& state, const Command& command, UnitOrder order, aut
     }
     if (!command.queue) {
       state.units[unit].orders.clear();
+      if (cancelWithdraw) {
+        CancelWithdrawal(state, unit);
+      }
     }
     state.units[unit].orders.push_back(unitOrder);
   }
@@ -179,6 +205,7 @@ void MoveSelection(BattleState& state, const Command& command, const UnitOrder& 
     own.position = Clamped(order.position + Rotated(state.units[unit].position - centroid, turn), kBattleHalfExtent);
     if (!command.queue) {
       state.units[unit].orders.clear();
+      CancelWithdrawal(state, unit);
     }
     state.units[unit].orders.push_back(own);
   }

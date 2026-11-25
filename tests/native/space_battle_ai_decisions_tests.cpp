@@ -193,10 +193,11 @@ void HigherDifficultiesUseSignals()
                                         CommanderDifficulty::High}) {
     SnapshotBuilder builder;
     const UnitIndex carrier = builder.Add(CarrierShip(Side::Alliance));
-    builder.Add(TieLike(Side::Alliance, carrier));
+    const UnitIndex squadron = builder.Add(TieLike(Side::Alliance, carrier));
     builder.AddCharacter(Side::Alliance, carrier, true, false, 90, 10);
     builder.Add(Wedge(Side::Empire));
     Battle battle(builder.Snapshot(), Uncommanded());
+    sim::DockSquadron(Mutable(battle), squadron, carrier, false);
     auto commander = MakeBattleCommander({Temperament::Balanced, difficulty});
     const auto commands = Think(*commander, battle, 0);
     SB_CHECK(Contains<OrderSignal>(commands) == (difficulty != CommanderDifficulty::Low));

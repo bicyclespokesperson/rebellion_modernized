@@ -248,7 +248,7 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
   } else {
     add(OrderButton::Launch, Icon::Launch, "Launch", "Launch the flight from its carrier.");
     add(OrderButton::Recover, Icon::Recover, "Dock",
-        "Dock with the carrier, or any ship with free hangar space, to rearm or to leave with it.");
+        "Return to the carrier, or any ship with free hangar space, and stay docked until ordered to launch.");
   }
   add(OrderButton::Withdraw, Icon::Withdraw, "Withdraw",
       "Spool hyperdrives and jump out as soon as possible; these ships leave the battle.");

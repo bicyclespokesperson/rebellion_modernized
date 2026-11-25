@@ -54,7 +54,7 @@ struct LiveBattleSession::Impl {
         screen(source, presenter::Text(), presenter::Sprites(),
                {.playerSide = player,
                 .startPaused = true,
-                .aiUntilFirstOrder = true,
+                .aiUntilFirstOrder = false,
                 .preserveAiControl = restoring,
                 .systemPicture = simulator.Snapshot().params.systemPictureId})
   {

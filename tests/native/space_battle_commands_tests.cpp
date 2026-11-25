@@ -218,7 +218,7 @@ void CoordinatedJumpSpeedsSpooling()
   SnapshotBuilder builder;
   const UnitIndex ship = builder.Add(Wedge(Side::Alliance));
   builder.AddCharacter(Side::Alliance, ship, true, false, 50, 40);
-  builder.Add(Hulk(Side::Empire));
+  const UnitIndex enemy = builder.Add(Hulk(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderWithdraw{}, {ship})));
   const int32_t plain = battle.State().Ship(ship)->spoolTotal;
@@ -226,6 +226,9 @@ void CoordinatedJumpSpeedsSpooling()
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderSignal{SignalKind::CoordinatedJump, kNoUnit})));
   SB_CHECK(battle.State().Ship(ship)->spoolTotal < plain);
   SB_CHECK_NEAR(static_cast<float>(battle.State().Ship(ship)->spoolTotal), 0.6f * static_cast<float>(plain), 2.0f);
+  // Ordering a withdrawing ship back into combat cancels its hyperdrive spool.
+  SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderAttack{{enemy}}, {ship})));
+  SB_CHECK(!battle.State().Ship(ship)->withdrawing && battle.State().Ship(ship)->spoolTotal == 0);
 }
 
 void HoldAndQueuedOrders()
@@ -323,6 +326,7 @@ void NativeNamesAppearInBattleText()
   SB_CHECK(NameUnit(snapshot, enemy).name == "Imperial Star Destroyer 1");
   SB_CHECK(NameUnit(snapshot, fighter).name == "X-wing Squadron 1");
   Battle battle(snapshot, Uncommanded());
+  sim::DockSquadron(Mutable(battle), fighter, first, false);
   SB_CHECK(sim::UnitName(battle.State(), numbered) == "Imperial Star Destroyer 4");
   Place(battle, first, {-3000.0f, 0.0f}, 0.0f);
   Place(battle, enemy, {9000.0f, 0.0f}, kPi);

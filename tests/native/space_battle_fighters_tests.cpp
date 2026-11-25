@@ -39,7 +39,52 @@ std::vector<int64_t> LaunchTicks(Battle& battle, const std::vector<UnitIndex>& s
   return ticks;
 }
 
-// One squadron per 5 s + 0-7 s from each hangar; Scramble triples the rate (§6.8, §5.6).
+// Fighters begin launched in space, stay out even after spending torpedoes, and only dock when ordered.
+void FightersStartLaunchedAndOnlyDockOnRequest()
+{
+  SnapshotBuilder builder;
+  CapitalShipEntry hulk = TransportShip(Side::Alliance, "Hulk");
+  hulk.shieldMax = 0;
+  hulk.hullMax = hulk.hull = 20000;
+  hulk.sublight = 0;
+  const UnitIndex target = builder.Add(hulk);
+  const UnitIndex carrier = builder.Add(CarrierShip(Side::Empire));
+  const UnitIndex bombers = builder.Add(BomberLike(Side::Empire, carrier));
+  Battle battle(builder.Snapshot(), Uncommanded());
+  Place(battle, target, {2000.0f, 0.0f}, 0.0f);
+  Place(battle, carrier, {6000.0f, 0.0f}, kPi);
+  SB_CHECK(battle.State().Squadron(bombers)->place == SquadronPlace::InSpace);
+  SB_CHECK(battle.State().units[bombers].inSpace);
+  bool spent = false;
+  while (!battle.Finished() && battle.Tick() < 120 * kTicksPerSecond && !spent) {
+    battle.Step();
+    const SquadronState& squadron = *battle.State().Squadron(bombers);
+    SB_CHECK(squadron.place == SquadronPlace::InSpace);
+    SB_CHECK(squadron.task != SquadronTask::Return);
+    if (Torpedoes(battle.State(), bombers) == 0) {
+      spent = true;
+    }
+  }
+  SB_CHECK(spent);
+  // Keep fighting for 20 s after torpedoes are spent: never returns to dock on its own.
+  for (int tick = 0; tick < 20 * kTicksPerSecond && !battle.Finished(); ++tick) {
+    battle.Step();
+    SB_CHECK(battle.State().Squadron(bombers)->place == SquadronPlace::InSpace);
+    SB_CHECK(battle.State().Squadron(bombers)->task != SquadronTask::Return);
+  }
+  // Explicit Dock sends them back to the carrier and keeps them docked until Launch is ordered.
+  SB_CHECK(battle.Submit(MakeCommand(Side::Empire, OrderRecover{}, {bombers})));
+  battle.RunHeadless(40 * kTicksPerSecond);
+  SB_CHECK(battle.State().Squadron(bombers)->place == SquadronPlace::Docked);
+  SB_CHECK(battle.State().Squadron(bombers)->stayDocked);
+  battle.RunHeadless(25 * kTicksPerSecond);
+  SB_CHECK(battle.State().Squadron(bombers)->place == SquadronPlace::Docked);
+  SB_CHECK(battle.Submit(MakeCommand(Side::Empire, OrderLaunch{}, {bombers})));
+  battle.RunHeadless(15 * kTicksPerSecond);
+  SB_CHECK(battle.State().Squadron(bombers)->place == SquadronPlace::InSpace);
+}
+
+// One squadron per 5 s + 0-7 s from each hangar when docked; Scramble triples the rate (§6.8, §5.6).
 void CarriersLaunchOnTheOriginalCadence()
 {
   for (const bool scramble : {false, true}) {
@@ -53,6 +98,9 @@ void CarriersLaunchOnTheOriginalCadence()
     const UnitIndex enemy = builder.Add(Picket(Side::Empire));
     Battle battle(builder.Snapshot(), Uncommanded());
     Place(battle, enemy, {25000.0f, 0.0f}, kPi);
+    for (UnitIndex squadron : squadrons) {
+      sim::DockSquadron(Mutable(battle), squadron, carrier, false);
+    }
     if (scramble) {
       SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderSignal{SignalKind::Scramble, kNoUnit})));
       SB_CHECK(battle.State().sides[0].signalsReady == battle.State().sides[0].signalsMax - 1);
@@ -83,6 +131,7 @@ void LaunchOnOrderWaitsForTheOrder()
   const UnitIndex squadron = builder.Add(XwingLike(Side::Alliance, carrier));
   builder.Add(Picket(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
+  sim::DockSquadron(Mutable(battle), squadron, carrier, false);
   const GroupId flight = battle.State().units[squadron].group;
   OrderSetFlightDoctrine doctrine;
   doctrine.doctrine.launch = LaunchRule::OnOrder;
@@ -96,7 +145,7 @@ void LaunchOnOrderWaitsForTheOrder()
   SB_CHECK(battle.State().Squadron(squadron)->place == SquadronPlace::InSpace);
 }
 
-// Bombers strip a shieldless target with per-craft torpedoes, go home when they are spent, rearm and come back.
+// Bombers with RearmRule::WhenTorpedoesSpent strip a shieldless target, go home to rearm, and come back.
 void TorpedoesAreAmmunitionAndRearm()
 {
   SnapshotBuilder builder;
@@ -110,6 +159,10 @@ void TorpedoesAreAmmunitionAndRearm()
   Battle battle(builder.Snapshot(), Uncommanded());
   Place(battle, target, {2000.0f, 0.0f}, 0.0f);
   Place(battle, carrier, {6000.0f, 0.0f}, kPi);
+  OrderSetFlightDoctrine rearmDoctrine;
+  rearmDoctrine.doctrine.rearm = RearmRule::WhenTorpedoesSpent;
+  rearmDoctrine.fields = kFlightRearm;
+  SB_CHECK(battle.Submit(MakeCommand(Side::Empire, rearmDoctrine, {bombers})));
   const int full = Torpedoes(battle.State(), bombers);
   SB_CHECK(full == 12 * 8);
   bool spent = false;
@@ -159,7 +212,7 @@ void PointDefenceCoversNeighbours()
     }
     Place(battle, carrier, {7000.0f, 0.0f}, kPi);
     bool torpedoesFired = false;
-    while (!battle.Finished() && battle.Tick() < 45 * kTicksPerSecond) {
+    while (!battle.Finished() && battle.Tick() < 30 * kTicksPerSecond) {
       battle.Step();
       torpedoesFired = torpedoesFired || std::ranges::any_of(battle.State().shots, [&](const PendingShot& shot) {
         return shot.shooter == bombers && shot.kind == ShotKind::Torpedo;
@@ -168,15 +221,15 @@ void PointDefenceCoversNeighbours()
     SB_CHECK(torpedoesFired);
     survivors[escorted ? 1 : 0] = CraftAlive(battle.State(), bombers);
     if (escorted) {
-      battle.RunHeadless(55 * kTicksPerSecond);
-      const int after100 = CraftAlive(battle.State(), bombers);
-      std::printf("escorted strike after 100 s: %d bombers left\n", after100);
-      SB_CHECK(after100 > 0 && after100 < survivors[1]);
+      battle.RunHeadless(15 * kTicksPerSecond);
+      const int after45 = CraftAlive(battle.State(), bombers);
+      std::printf("escorted strike after 45 s: %d bombers left\n", after45);
+      SB_CHECK(after45 > 0 && after45 < survivors[1]);
       // The picket's lasers fired at the bombers even though they never attacked it.
       SB_CHECK(battle.State().Ship(picket)->hull == battle.State().Profile(picket).hullMax);
     }
   }
-  std::printf("bombers left after 45 s: %d unescorted, %d with a picket alongside\n", survivors[0], survivors[1]);
+  std::printf("bombers left after 30 s: %d unescorted, %d with a picket alongside\n", survivors[0], survivors[1]);
   SB_CHECK(survivors[1] >= 3 && survivors[1] + 2 <= survivors[0]);
 }
 
@@ -199,7 +252,7 @@ void CarrierLossRules()
     Battle battle(builder.Snapshot(), Uncommanded());
     Place(battle, enemy, {25000.0f, 0.0f}, kPi);
     BattleState& state = Mutable(battle);
-    sim::LaunchSquadron(state, flying);
+    sim::DockSquadron(state, docked, carrier, false);
     state.Ship(carrier)->shield = 0.0f;
     sim::DamageShip(state, carrier, 10000.0f, ShotKind::Turbolaser, Subsystem::Hull);
     SB_CHECK(state.units[docked].fate == UnitFate::Destroyed);
@@ -236,6 +289,7 @@ void FightersWithoutHyperdriveNeedAHangar()
     options.tickLimit = 200 * kTicksPerSecond;
     Battle battle(builder.Snapshot(), options);
     for (UnitIndex squadron : aboard) {
+      sim::DockSquadron(Mutable(battle), squadron, carrier, false);
       Mutable(battle).Squadron(squadron)->stayDocked = true; // the hangar stays full
     }
     SB_CHECK(battle.State().Squadron(tie)->place == SquadronPlace::InSpace);
@@ -285,6 +339,8 @@ void GarrisonWithdrawsOnlyWithAHyperdrive()
   const UnitIndex ties = builder.Add(TieLike(Side::Alliance, kNoUnit, "Garrison Tie"));
   builder.Add(Wedge(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
+  sim::DockSquadron(Mutable(battle), xwings, kNoUnit, false);
+  sim::DockSquadron(Mutable(battle), ties, kNoUnit, false);
   SB_CHECK(battle.Submit(HoldInPlanetHangar(Side::Alliance, {xwings, ties})));
   SB_CHECK(battle.State().Squadron(xwings)->place == SquadronPlace::Docked);
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderWithdraw{}, {xwings, ties})));
@@ -306,6 +362,8 @@ void AttackerClosesOnADockedGarrison()
   const UnitIndex garrison = builder.Add(TieLike(Side::Alliance, kNoUnit, "Garrison"));
   const UnitIndex wedge = builder.Add(Wedge(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
+  sim::DockSquadron(Mutable(battle), garrison, kNoUnit, false);
+  Mutable(battle).Squadron(garrison)->launched = false;
   SB_CHECK(battle.Submit(HoldInPlanetHangar(Side::Alliance, {garrison})));
   const BattleState& state = battle.State();
   const float start = Distance(state.units[wedge].position, state.planetCenter);
@@ -396,7 +454,8 @@ void InterceptorsDogfightBombers()
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, intercept, {red})));
   SB_CHECK(battle.State().units[red].overrides == (kFlightMission | kFlightPriorities));
   bool intercepted = false;
-  while (!battle.Finished() && battle.Tick() < 150 * kTicksPerSecond) {
+  while (!battle.Finished() && battle.Tick() < 150 * kTicksPerSecond
+         && !(intercepted && 12 - CraftAlive(battle.State(), bombers) >= 4)) {
     battle.Step();
     const SquadronState& squadron = *battle.State().Squadron(red);
     intercepted = intercepted || (squadron.task == SquadronTask::Intercept && squadron.target == bombers);
@@ -472,6 +531,7 @@ void BoltsAtFightersEndAtTheCraft()
 
 int main()
 {
+  FightersStartLaunchedAndOnlyDockOnRequest();
   CarriersLaunchOnTheOriginalCadence();
   LaunchOnOrderWaitsForTheOrder();
   TorpedoesAreAmmunitionAndRearm();

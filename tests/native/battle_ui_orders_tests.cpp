@@ -23,7 +23,7 @@ const T& Order(const Command& command)
 void AttackMoveEscort()
 {
   ScreenDriver d;
-  REQUIRE(d.source.aiControlled[0] && d.source.aiControlled[1]); // both sides under the AI until the first order
+  REQUIRE(!d.source.aiControlled[0] && d.source.aiControlled[1]); // player commands their side from tick 0
   d.Click(d.At(0));
   d.source.steps = 7;
   d.Click(d.At(2), MouseButton::Right);
@@ -32,7 +32,7 @@ void AttackMoveEscort()
   REQUIRE(attack.side == Side::Alliance && attack.tick == 7 && !attack.queue);
   REQUIRE((attack.target.units == std::vector<reb::battle::UnitIndex>{0}));
   REQUIRE((Order<reb::battle::OrderAttack>(attack).targets == std::vector<reb::battle::UnitIndex>{2}));
-  REQUIRE(!d.source.aiControlled[0] && d.source.aiControlled[1]); // the player took command
+  REQUIRE(!d.source.aiControlled[0] && d.source.aiControlled[1]);
 
   d.Click(d.At(2), MouseButton::Right, kModCtrl); // Ctrl adds a further target after the current ones
   REQUIRE(d.source.commands.back().queue);
@@ -74,7 +74,10 @@ void DragOrders()
 
 void WhoCanBeOrdered()
 {
-  ScreenDriver d;
+  BattleScreenOptions options;
+  options.aiUntilFirstOrder = true;
+  ScreenDriver d(options);
+  REQUIRE(d.source.aiControlled[0] && d.source.aiControlled[1]);
   d.Click(d.At(2), MouseButton::Right); // nothing selected
   REQUIRE(d.source.commands.empty());
   d.Click(d.At(2)); // an enemy, selected for inspection
@@ -86,6 +89,7 @@ void WhoCanBeOrdered()
   d.Press(DigitKey(2), kModShift);
   d.Press(Key::H);
   REQUIRE(d.source.commands.size() == 1);
+  REQUIRE(!d.source.aiControlled[0] && d.source.aiControlled[1]); // first order takes command when opted in
   REQUIRE(std::holds_alternative<reb::battle::OrderHold>(d.source.commands.back().order));
   REQUIRE((d.source.commands.back().target.units == std::vector<reb::battle::UnitIndex>{0, 1, 3}));
 }

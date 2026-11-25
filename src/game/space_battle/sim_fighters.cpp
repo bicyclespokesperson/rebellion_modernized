@@ -270,7 +270,7 @@ void ThinkSquadronInSpace(BattleState& state, SquadronState& squadron)
   bool stay = false;
   if (hasOrder && (order == OrderKind::Recall || order == OrderKind::Recover)) {
     wantReturn = true;
-    stay = order == OrderKind::Recall || squadron.withdrawing;
+    stay = true;
   } else if (!hasOrder && doctrine.mission == FlightMission::HoldInHangar) {
     wantReturn = true;
     stay = true;
@@ -520,8 +520,9 @@ void CraftShot(BattleState& state, const SquadronState& squadron, const CraftSta
 bool WantsLaunch(const BattleState& state, const SquadronState& squadron)
 {
   const UnitState& unit = state.units[squadron.unit];
-  if (squadron.place != SquadronPlace::Docked || squadron.stayDocked || squadron.withdrawing || squadron.rearmTicks > 0
-      || unit.fate != UnitFate::Active || squadron.alive <= 0) {
+  if (squadron.place != SquadronPlace::Docked || squadron.stayDocked || squadron.withdrawing
+      || (squadron.rearmTicks > 0 && !squadron.launchOrdered) || unit.fate != UnitFate::Active
+      || squadron.alive <= 0) {
     return false;
   }
   const FlightDoctrine doctrine = state.EffectiveFlightDoctrine(squadron.unit);
@@ -897,8 +898,11 @@ void UpdateHangars(BattleState& state)
     const float reach = kDockDistance + HangarRadius(state, carrier) + squadron.spread;
     if (DistanceSq(squadron.centroid, HangarPosition(state, carrier, side)) <= reach * reach) {
       const bool stay = squadron.stayAfterDock || squadron.withdrawing;
-      DockSquadron(state, squadron.unit, carrier, !stay);
+      DockSquadron(state, squadron.unit, carrier, true);
       squadron.stayDocked = stay;
+      if (stay) {
+        state.units[squadron.unit].intent.kind = IntentKind::Docked;
+      }
       ClearReturnOrders(state, squadron.unit);
       LogEvent(state, side, UnitName(state, squadron.unit) + (stay ? " docked" : " docked to rearm"), squadron.unit);
     }

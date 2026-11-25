@@ -253,9 +253,10 @@ void ViewModelDescribesTheBattle()
   SnapshotBuilder builder(12);
   const UnitIndex alliance = builder.Add(Broadside(Side::Alliance, "Liberty"));
   const UnitIndex carrier = builder.Add(CarrierShip(Side::Alliance, "Carrier"));
-  builder.Add(XwingLike(Side::Alliance, carrier, "Red"));
+  const UnitIndex squadron = builder.Add(XwingLike(Side::Alliance, carrier, "Red"));
   const UnitIndex empire = builder.Add(Wedge(Side::Empire, "Tyrant"));
   Battle battle(builder.Snapshot(), Uncommanded());
+  sim::DockSquadron(Mutable(battle), squadron, carrier, false);
   battle.RunHeadless(15 * kTicksPerSecond);
   ViewModel launched;
   battle.BuildViewModel(1.0f, launched);

@@ -294,6 +294,7 @@ void TrenchRunDestroysTheStation()
   aces.torpedoesPerCraft = 200;
   const UnitIndex flight = builder.Add(aces);
   Battle battle(builder.Snapshot(), Uncommanded());
+  sim::DockSquadron(Mutable(battle), docked, station, false);
   Mutable(battle).Squadron(docked)->stayDocked = true;
   SB_CHECK(TrenchRunPossible(battle.State(), station));
   ViewModel view;
@@ -445,8 +446,7 @@ void OutroFreezesCombatAndHangarsButKeepsVisualsMoving()
   options.tickLimit = 1;
   Battle battle(builder.Snapshot(), options);
   battle.SetOutroSeconds(5.0f);
-  sim::LaunchSquadron(Mutable(battle), returning);
-  sim::LaunchSquadron(Mutable(battle), attacking);
+  sim::DockSquadron(Mutable(battle), docked, carrier, false);
   battle.Step();
   SB_CHECK(!battle.Finished() && battle.State().endReason == EndReason::TimeLimit);
   BattleState& state = Mutable(battle);

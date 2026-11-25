@@ -97,7 +97,9 @@ void InitSquadron(BattleState& state, UnitIndex index, const SquadronEntry& entr
   UnitState& unit = state.units[index];
   unit.slot = static_cast<int32_t>(state.squadrons.size());
   unit.fate = squadron.alive > 0 ? UnitFate::Active : UnitFate::Destroyed;
-  squadron.place = squadron.alive > 0 ? SquadronPlace::Docked : SquadronPlace::Destroyed;
+  unit.inSpace = squadron.alive > 0;
+  squadron.place = squadron.alive > 0 ? SquadronPlace::InSpace : SquadronPlace::Destroyed;
+  squadron.launched = squadron.alive > 0;
   state.squadrons.push_back(squadron);
 }
 
@@ -398,22 +400,27 @@ void FormFlights(BattleState& state, Side side)
 
 void PlaceSquadrons(BattleState& state)
 {
+  std::vector<int> carrierSlot(state.units.size(), 0);
+  std::array<int, 2> freeSlot{0, 0};
   for (SquadronState& squadron : state.squadrons) {
     UnitState& unit = state.units[squadron.unit];
     const SideLayout layout = LayoutFor(state, unit.side);
     Vec2 origin;
     if (squadron.carrier != kNoUnit) {
-      origin = state.units[squadron.carrier].position;
-    } else if (unit.side == state.attacker) {
-      // System-based squadrons belong to the defender; an attacker's arrive with its fleet, already flying.
-      origin = layout.center - layout.forward * kDeploymentRowSpacing;
-      if (squadron.place == SquadronPlace::Docked) {
-        squadron.place = SquadronPlace::InSpace;
-        squadron.launched = true;
-        unit.inSpace = true;
-      }
+      const int slot = carrierSlot[squadron.carrier]++;
+      const int row = slot / 3;
+      const int col = (slot % 3) - 1;
+      const float ahead = state.profiles[squadron.carrier].radius + 350.0f + static_cast<float>(row) * 320.0f;
+      const float lateral = static_cast<float>(col) * 380.0f;
+      origin = Clamped(state.units[squadron.carrier].position + layout.forward * ahead + layout.left * lateral,
+                       kBattleHalfExtent);
     } else {
-      origin = state.planetCenter + state.arrivalDirection * kPlanetRadius;
+      const int slot = freeSlot[SideIndex(unit.side)]++;
+      const int row = slot / 4;
+      const int col = slot % 4;
+      const float ahead = 500.0f - static_cast<float>(row) * 360.0f;
+      const float lateral = (static_cast<float>(col) - 1.5f) * 420.0f;
+      origin = Clamped(layout.center + layout.forward * ahead + layout.left * lateral, kBattleHalfExtent);
     }
     unit.position = origin;
     unit.heading = AngleOf(layout.forward);

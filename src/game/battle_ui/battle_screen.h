@@ -57,8 +57,8 @@ class ScreenInputHook
 struct BattleScreenOptions {
   battle::Side playerSide = battle::Side::Alliance;
   bool startPaused = true;
-  // Both sides stay under the AI until the player gives the first order (Observe Battle, then Take Command).
-  bool aiUntilFirstOrder = true;
+  // When true, the player's side stays under the AI until the first order is submitted.
+  bool aiUntilFirstOrder = false;
   bool preserveAiControl = false;
   // BattleParams::systemPictureId, the planet type drawn behind the defender; 0 draws a generic one.
   uint32_t systemPicture = 0;
