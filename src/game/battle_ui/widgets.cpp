@@ -2,12 +2,14 @@
 
 #include <ranges>
 
+#include "battle_ui/chrome.h"
+
 namespace reb::battle_ui
 {
 
 const Theme& DefaultTheme()
 {
-  static const Theme theme;
+  static const Theme theme = chrome::SkinnedTheme(battle::Side::Alliance, false);
   return theme;
 }
 
@@ -154,8 +156,10 @@ void Ui::EndFrame()
     if (box.Bottom() > m_screen.Bottom()) {
       box.y = m_mouse.y - S(8.0f) - box.h;
     }
-    m_draw->FillRect(box, m_theme.tooltip);
-    m_draw->StrokeRect(box, m_theme.panelBorder, S(m_theme.border));
+    Theme tooltip = m_theme;
+    tooltip.panel = m_theme.tooltip;
+    tooltip.panelBottom = m_theme.tooltip;
+    chrome::Plate(*m_draw, box, tooltip, m_scale, 1.0f);
     float y = box.y + pad;
     for (const std::string& line : lines) {
       m_draw->Text(line, {box.x + pad, y}, size, m_theme.text, Align::Start, VAlign::Top);
@@ -187,16 +191,12 @@ void Ui::Block(const Rect& rect)
 Rect Ui::Panel(const Rect& rect, std::string_view title)
 {
   Block(rect);
-  m_draw->FillRect(rect, m_theme.panel);
-  m_draw->StrokeRect(rect, m_theme.panelBorder, S(m_theme.border));
+  chrome::Plate(*m_draw, rect, m_theme, m_scale);
   if (title.empty()) {
     return rect.Inset(S(m_theme.padding));
   }
   const float titleHeight = S(m_theme.rowHeight);
-  const Rect titleRect{rect.x, rect.y, rect.w, titleHeight};
-  m_draw->FillRect(titleRect.Inset(S(m_theme.border)), m_theme.buttonFace.WithAlpha(150));
-  Label(titleRect.Inset(S(m_theme.padding), 0.0f), title,
-        {m_theme.titleSize, m_theme.title, Align::Start, VAlign::Middle, FontWeight::Bold});
+  chrome::Caption(*m_draw, rect, titleHeight, title, S(m_theme.titleSize), m_theme, m_scale);
   return Rect{rect.x, rect.y + titleHeight, rect.w, rect.h - titleHeight}.Inset(S(m_theme.padding));
 }
 
@@ -234,14 +234,7 @@ bool Ui::Interact(WidgetId id, const Rect& rect, bool enabled)
 
 void Ui::DrawButtonFace(const Rect& rect, bool hovered, bool pressed, bool on, bool enabled)
 {
-  Color face = on ? m_theme.buttonOn : m_theme.buttonFace;
-  if (enabled && pressed) {
-    face = m_theme.buttonPressed;
-  } else if (enabled && hovered) {
-    face = on ? Mix(m_theme.buttonOn, m_theme.text, 0.15f) : m_theme.buttonHover;
-  }
-  m_draw->FillRect(rect, face);
-  m_draw->StrokeRect(rect, on ? m_theme.accent : m_theme.buttonBorder, S(m_theme.border));
+  chrome::ButtonCap(*m_draw, rect, chrome::FaceFor(hovered, pressed, on, enabled), m_theme, m_scale);
 }
 
 bool Ui::Button(WidgetId id, const Rect& rect, std::string_view label, bool enabled)
@@ -268,22 +261,21 @@ bool Ui::Toggle(WidgetId id, const Rect& rect, std::string_view label, bool& val
   const bool hovered = Hovered(id);
   const float box = std::min(rect.h, S(14.0f));
   const Rect check{rect.x, rect.Center().y - box * 0.5f, box, box};
-  m_draw->FillRect(check, hovered ? m_theme.buttonHover : m_theme.buttonFace);
-  m_draw->StrokeRect(check, value ? m_theme.accent : m_theme.buttonBorder, S(m_theme.border));
-  if (value) {
-    m_draw->FillRect(check.Inset(box * 0.25f), m_theme.accent);
+  chrome::Well(*m_draw, check, m_theme, m_scale);
+  if (hovered) {
+    m_draw->StrokeRect(check, m_theme.metalHigh.WithAlpha(110), 1.0f);
   }
+  chrome::Lamp(*m_draw, check.Center(), box * 0.28f, m_theme.accent, value);
   Label({check.Right() + S(m_theme.padding), rect.y, rect.Right() - check.Right() - S(m_theme.padding), rect.h}, label);
   return clicked;
 }
 
 void Ui::Bar(const Rect& rect, float fraction, Color fill, Color back)
 {
-  m_draw->FillRect(rect, back.a == 0 ? m_theme.barBack : back);
-  const float clamped = std::clamp(fraction, 0.0f, 1.0f);
-  if (clamped > 0.0f) {
-    m_draw->FillRect({rect.x, rect.y, rect.w * clamped, rect.h}, fill);
+  if (back.a != 0) {
+    m_draw->FillRect(rect, back);
   }
+  chrome::Gauge(*m_draw, rect, fraction, fill, m_theme, m_scale);
 }
 
 int Ui::List(WidgetId id, const Rect& rect, int rows, float rowHeight, int selectedRow, const RowPainter& drawRow)
@@ -310,6 +302,7 @@ int Ui::List(WidgetId id, const Rect& rect, int rows, float rowHeight, int selec
     const bool selected = row == selectedRow;
     if (selected) {
       m_draw->FillRect(rowRect, m_theme.rowSelected);
+      m_draw->FillRect({rowRect.x, rowRect.y, S(2.0f), rowRect.h}, m_theme.accent);
     } else if (hovered) {
       m_draw->FillRect(rowRect, m_theme.rowHover);
     }
@@ -322,7 +315,7 @@ int Ui::List(WidgetId id, const Rect& rect, int rows, float rowHeight, int selec
   if (maxScroll > 0.0f) {
     const float trackHeight = rect.h * rect.h / contentHeight;
     const float trackY = rect.y + (rect.h - trackHeight) * (scroll / maxScroll);
-    m_draw->FillRect({rect.Right() - S(3.0f), trackY, S(3.0f), trackHeight}, m_theme.panelBorder);
+    m_draw->GradientRect({rect.Right() - S(3.0f), trackY, S(3.0f), trackHeight}, m_theme.metalHigh, m_theme.metalShade);
   }
   return clickedRow;
 }

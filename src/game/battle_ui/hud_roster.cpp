@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "battle_ui/chrome.h"
 #include "battle_ui/command_hud.h"
 #include "battle_ui/hud_draw.h"
 #include "battle_ui/selection.h"
@@ -236,7 +237,8 @@ void CommandHud::DrawRoster(Ui& ui)
   if (total > content.h) {
     const float track = content.h * content.h / total;
     const float trackY = content.y + (content.h - track) * (scroll / (total - content.h));
-    ui.Draw().FillRect({content.Right() - ui.S(3.0f), trackY, ui.S(3.0f), track}, theme.panelBorder);
+    ui.Draw().GradientRect({content.Right() - ui.S(3.0f), trackY, ui.S(3.0f), track}, theme.metalHigh,
+                           theme.metalShade);
   }
 
   if (hoveredRow >= 0 && !m_rosterDragging) {
@@ -340,21 +342,21 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
   const battle::ViewModel& view = m_screen.View();
   DrawList& draw = ui.Draw();
   if (dropTarget) {
-    draw.FillRect(rect, theme.accent.WithAlpha(60));
-    draw.StrokeRect(rect, theme.accent, ui.S(1.5f));
+    draw.FillRect(rect, theme.accent.WithAlpha(50));
+    draw.StrokeRect(rect, theme.accent, std::max(1.0f, ui.S(1.5f)));
   }
   switch (row.kind) {
     case RosterRow::Kind::Section:
       {
-        ui.Label({rect.x + ui.S(2.0f), rect.y, rect.w, rect.h}, row.flight ? "FLIGHTS" : "TASK FORCES",
-                 {10.0f, theme.textDim, Align::Start, VAlign::Bottom, FontWeight::Bold});
-        draw.FillRect({rect.x, rect.Bottom() - ui.S(1.0f), rect.w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(70));
+        hud::Caption(ui, {rect.x + ui.S(2.0f), rect.y + ui.S(3.0f), rect.w - ui.S(2.0f), rect.h - ui.S(3.0f)},
+                     row.flight ? "FLIGHTS" : "TASK FORCES");
         return;
       }
     case RosterRow::Kind::NewGroup:
       {
         const Rect slot = rect.Inset(ui.S(2.0f), ui.S(3.0f));
-        draw.StrokeRect(slot, dropTarget ? theme.accent : theme.textDim, ui.S(1.0f));
+        chrome::Well(draw, slot, theme, ui.Scale());
+        draw.StrokeRect(slot, dropTarget ? theme.accent : theme.textDim.WithAlpha(120), 1.0f);
         DrawIcon(draw, Icon::Plus, {slot.x + ui.S(6.0f), slot.y, ui.S(12.0f), slot.h}, theme.text, ui.Scale());
         ui.Label({slot.x + ui.S(24.0f), slot.y, slot.w, slot.h},
                  row.flight ? "Drop here for a new flight" : "Drop here for a new task force", {11.0f, theme.text});
@@ -367,20 +369,21 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
           return;
         }
         const bool focused = m_subject.IsGroup() && m_subject.group == row.group;
+        // A group header is a steel label plate; the focused group's plate is lit.
+        const Rect plate = rect.Inset(0.0f, ui.S(1.0f));
+        draw.GradientRect(plate, Mix(theme.buttonFace, Rgb(0x000000), 0.35f).WithAlpha(hovered ? 235 : 200),
+                          Mix(theme.buttonFaceBottom, Rgb(0x000000), 0.4f).WithAlpha(hovered ? 235 : 200));
+        draw.FillRect({plate.x, plate.y, plate.w, 1.0f}, Rgb(0xffffff, 34));
         if (focused) {
-          draw.FillRect(rect, theme.rowSelected);
-        } else if (hovered) {
-          draw.FillRect(rect, theme.rowHover);
+          draw.FillRect(plate, theme.rowSelected);
+          draw.FillRect({plate.x, plate.y, ui.S(2.0f), plate.h}, theme.accent);
         }
-        draw.FillRect({rect.x, rect.y + ui.S(1.0f), rect.w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(50));
         DrawIcon(draw, m_collapsedGroups.contains(row.group) ? Icon::ChevronRight : Icon::ChevronDown,
                  Rect{rect.x, rect.y, ui.S(16.0f), rect.h}.Inset(ui.S(3.0f)), theme.textDim, ui.Scale());
         float x = rect.x + ui.S(18.0f);
         if (const std::optional<int> key = HotkeyFor(row.group)) {
           const Rect badge{x, rect.Center().y - ui.S(8.0f), ui.S(16.0f), ui.S(16.0f)};
-          draw.FillRect(badge, theme.buttonFace);
-          draw.StrokeRect(badge, theme.buttonBorder, ui.S(1.0f));
-          ui.Label(badge, std::to_string(*key), {11.0f, theme.title, Align::Center, VAlign::Middle, FontWeight::Bold});
+          chrome::Keycap(draw, badge, std::to_string(*key), ui.S(10.5f), theme, ui.Scale());
           x = badge.Right() + ui.S(6.0f);
         }
         std::string detail;
@@ -408,7 +411,7 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
         const float detailWidth = ui.TextWidth(detail, 11.0f) + ui.S(4.0f);
         ui.Label({x, rect.y, rect.Right() - x - detailWidth - ui.S(4.0f), rect.h}, GroupTitle(*group),
                  {12.0f, theme.text, Align::Start, VAlign::Middle, FontWeight::Bold});
-        ui.Label({rect.x, rect.y, rect.w - ui.S(2.0f), rect.h}, detail, {11.0f, theme.title, Align::End});
+        ui.Label({rect.x, rect.y, rect.w - ui.S(4.0f), rect.h}, detail, {11.0f, theme.title, Align::End});
         return;
       }
     case RosterRow::Kind::Unit:
@@ -420,7 +423,9 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
   const bool selected = m_screen.GetSelection().Contains(row.unit);
   const bool dragged = m_rosterDragging && std::ranges::find(m_dragUnits, row.unit) != m_dragUnits.end();
   if (selected) {
-    draw.FillRect(rect.Inset(ui.S(1.0f), ui.S(1.0f)), theme.rowSelected.WithAlpha(dragged ? 90 : 170));
+    const Rect lit = rect.Inset(ui.S(1.0f), ui.S(1.0f));
+    draw.FillRect(lit, theme.rowSelected.WithAlpha(dragged ? 24 : 44));
+    draw.FillRect({lit.x, lit.y, ui.S(2.0f), lit.h}, theme.accent.WithAlpha(dragged ? 120 : 255));
   } else if (hovered && active) {
     draw.FillRect(rect.Inset(ui.S(1.0f), ui.S(1.0f)), theme.rowHover);
   }
@@ -450,8 +455,8 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
     const float fraction
         = unit->craftMax > 0 ? static_cast<float>(unit->craft) / static_cast<float>(unit->craftMax) : 0.0f;
     const float barWidth = w * 0.55f;
-    ui.Bar({x, barsY + ui.S(1.0f), barWidth, ui.S(4.0f)}, fraction, HullColor(theme, fraction));
-    ui.Bar({x, barsY + ui.S(6.0f), barWidth, ui.S(2.0f)}, unit->shieldFraction, theme.shield);
+    chrome::StatusBars(draw, {x, barsY - ui.S(1.0f), barWidth, ui.S(9.0f)}, unit->shieldFraction, fraction,
+                       HullColor(theme, fraction), theme, ui.Scale());
     ui.Label({x + barWidth + ui.S(6.0f), barsY - ui.S(2.0f), w - barWidth - ui.S(6.0f), ui.S(12.0f)},
              std::to_string(unit->craft) + "/" + std::to_string(unit->craftMax) + " craft",
              {10.0f, theme.textDim, Align::Start, VAlign::Middle});
@@ -466,8 +471,8 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
   const float slotWidth = ui.S(22.0f);
   const float damagedWidth = damaged.empty() ? 0.0f : static_cast<float>(damaged.size()) * slotWidth + ui.S(6.0f);
   const float barWidth = std::max(w * 0.36f, w - damagedWidth);
-  ui.Bar({x, barsY, barWidth, ui.S(3.0f)}, unit->shieldFraction, theme.shield);
-  ui.Bar({x, barsY + ui.S(5.0f), barWidth, ui.S(4.0f)}, unit->hullFraction, HullColor(theme, unit->hullFraction));
+  chrome::StatusBars(draw, {x, barsY - ui.S(1.0f), barWidth, ui.S(11.0f)}, unit->shieldFraction, unit->hullFraction,
+                     HullColor(theme, unit->hullFraction), theme, ui.Scale());
   float sx = x + barWidth + ui.S(6.0f);
   for (const SystemState& system : damaged) {
     const Color color = system.remaining == 0 ? theme.hullPoor : theme.hullFair;

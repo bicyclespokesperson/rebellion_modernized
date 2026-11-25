@@ -222,7 +222,8 @@ void CrowdsLabelKeyUnitsOnly()
   REQUIRE(!labelled("Unit 25")); // crowded: not every ship on screen
 }
 
-// Two selected ships whose names would overlap: the first keeps its label; hovering the other gives it the space.
+// Two selected ships whose names would overlap: the first keeps its place under its ship and the other's name moves
+// above its own ship; hovering the other gives it the place under its ship instead.
 void OverlappingLabelsGiveWay()
 {
   ScreenDriver d;
@@ -234,18 +235,23 @@ void OverlappingLabelsGiveWay()
   d.screen.GetCamera().SetZoom(Camera::kDetailedZoom * 1.5f);
   d.screen.CenterAt({20150.0f, 20000.0f});
   d.screen.GetSelection().Set({60, 61});
-  const auto labelled = [&](const DrawList& frame, std::string_view name) {
-    return CountIf<DrawText>(frame,
-                             [&](const DrawText& t) {
-                               return t.text == name && t.align == Align::Center;
-                             })
-           > 0;
+  const auto labelY = [&](const DrawList& frame, std::string_view name) {
+    float y = -1.0f;
+    for (const DrawCommand& command : frame.Commands()) {
+      if (const auto* t = std::get_if<DrawText>(&command); t && t->text == name && t->align == Align::Center) {
+        y = t->position.y;
+      }
+    }
+    return y;
   };
   DrawList& before = d.Frame();
-  REQUIRE(labelled(before, "Unit 60") && !labelled(before, "Unit 61"));
-  d.Move(d.At(61));
+  const Point at60 = d.At(60);
+  const Point at61 = d.At(61);
+  REQUIRE(labelY(before, "Unit 60") > at60.y && labelY(before, "Unit 61") >= 0.0f && labelY(before, "Unit 61") < at61.y);
+  d.Move(at61);
   DrawList& hovered = d.Frame();
-  REQUIRE(labelled(hovered, "Unit 61") && !labelled(hovered, "Unit 60"));
+  REQUIRE(labelY(hovered, "Unit 61") > at61.y && labelY(hovered, "Unit 60") >= 0.0f
+          && labelY(hovered, "Unit 60") < at60.y);
 }
 
 void BoltsFollowThePalette()
@@ -261,12 +267,12 @@ void BoltsFollowThePalette()
   REQUIRE(accessible.allianceBolt != DefaultTheme().allianceBolt && accessible.ionBolt != DefaultTheme().ionBolt);
   d.screen.SetTheme(accessible);
   d.Frame();
-  REQUIRE(CountIf<DrawPolyline>(d.frame,
-                                [&](const DrawPolyline& l) {
-                                  return l.blend == Blend::Additive
-                                         && l.color.WithAlpha(255) == accessible.allianceBolt;
-                                })
-          == 1);
+  REQUIRE(CountIf<DrawTriangles>(d.frame,
+                                 [&](const DrawTriangles& t) {
+                                   return t.blend == Blend::Additive && t.vertices.size() == 6
+                                          && t.vertices[1].color.WithAlpha(255) == accessible.allianceBolt;
+                                 })
+          >= 1);
 }
 
 void PodsAndDamage()

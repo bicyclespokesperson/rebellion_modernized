@@ -321,6 +321,14 @@ void PaintBackdrop(const Painter& p)
   PaintPlanet(p);
 }
 
+void PaintVignette(const Painter& p)
+{
+  const Rect& viewport = p.camera.Viewport();
+  const float reach = 0.5f * std::hypot(viewport.w, viewport.h);
+  p.out.GradientSector(viewport.Center(), reach * 0.5f, reach * 1.02f, 0.0f, kTwoPi, Rgb(0x000000, 0),
+                       Rgb(0x000000, p.detailed ? 110 : 140));
+}
+
 void PaintGrid(const Painter& p)
 {
   const battle::ViewModel& view = p.scene.view;

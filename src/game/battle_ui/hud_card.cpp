@@ -6,6 +6,7 @@
 #include <map>
 #include <ranges>
 
+#include "battle_ui/chrome.h"
 #include "battle_ui/command_hud.h"
 #include "battle_ui/hud_draw.h"
 #include "battle_ui/selection.h"
@@ -51,14 +52,18 @@ void CommandHud::DrawCard(Ui& ui)
   if (area.Empty()) {
     return;
   }
-  const float collapsedHeight = ui.S(2.0f * kPad + kHeader + kGap + kOrders);
+  const float collapsedHeight = ui.S(2.0f * kPad + kHeader + kGap + kOrders + 3.0f);
   const Rect panel = m_cardCollapsed ? Rect{area.x, area.Bottom() - collapsedHeight, area.w, collapsedHeight} : area;
   ui.Panel(panel);
+  // The header is the card's caption band, like a strategic window's title bar.
+  const Rect band = chrome::Caption(ui.Draw(), panel, ui.S(kPad + kHeader + 1.0f), "", 0.0f, ui.GetTheme(), ui.Scale());
   const float x = panel.x + ui.S(8.0f);
   const float w = panel.w - ui.S(16.0f);
   float y = panel.y + ui.S(kPad);
   const CardDoctrine doctrine = ReadCardDoctrine();
-  DrawCardHeader(ui, {x, y, w, ui.S(kHeader)}, doctrine);
+  const float headerX = band.x + band.h * 1.25f;
+  DrawCardHeader(ui, {headerX, y, panel.Right() - ui.S(8.0f) - headerX, ui.S(kHeader)}, doctrine);
+  y += ui.S(3.0f);
   y += ui.S(kHeader + kGap);
   if (!m_cardCollapsed) {
     DrawChips(ui, {x, y, w, ui.S(kChips)}, doctrine);
@@ -96,13 +101,11 @@ void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doc
       return;
     }
     if (const std::optional<int> key = HotkeyFor(group->id)) {
-      const Rect badge{x, row.Center().y - ui.S(8.0f), ui.S(16.0f), ui.S(16.0f)};
-      ui.Draw().FillRect(badge, theme.buttonFace);
-      ui.Draw().StrokeRect(badge, theme.buttonBorder, ui.S(1.0f));
-      ui.Label(badge, std::to_string(*key), {11.0f, theme.title, Align::Center, VAlign::Middle, FontWeight::Bold});
-      x = badge.Right() + ui.S(6.0f);
+      const Rect badge{x, row.Center().y - ui.S(8.0f), ui.S(17.0f), ui.S(17.0f)};
+      chrome::Keycap(ui.Draw(), badge, std::to_string(*key), ui.S(11.0f), theme, ui.Scale());
+      x = badge.Right() + ui.S(7.0f);
     }
-    text(GroupTitle(*group), 13.0f, theme.title, FontWeight::Bold);
+    text(GroupTitle(*group), 13.0f, theme.captionText, FontWeight::Bold);
     std::map<std::string, int> classes;
     for (UnitIndex unit : ActiveMembers(view, *group)) {
       ++classes[m_screen.Label(unit).className];
@@ -112,37 +115,37 @@ void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doc
       composition += (composition.empty() ? "" : ", ") + (name.empty() ? std::string("unknown class") : name)
                      + (count > 1 ? " x" + std::to_string(count) : "");
     }
-    text(composition.empty() ? "no units on the field" : composition, 11.0f, theme.textDim);
+    text(composition.empty() ? "no units on the field" : composition, 11.0f, theme.captionText.WithAlpha(185));
     return;
   }
   if (!m_subject.units.empty()) {
     if (m_subject.units.size() == 1) {
       const UnitIndex unit = m_subject.units.front();
-      text(m_screen.Label(unit).name, 13.0f, theme.title, FontWeight::Bold);
+      text(m_screen.Label(unit).name, 13.0f, theme.captionText, FontWeight::Bold);
       std::string where = m_screen.Label(unit).className;
       if (const battle::ViewUnit* found = FindUnit(view, unit)) {
         if (const battle::ViewGroup* group = FindGroup(view, found->group)) {
           where += (where.empty() ? "in " : ", in ") + GroupTitle(*group);
         }
       }
-      text(where, 11.0f, theme.textDim);
+      text(where, 11.0f, theme.captionText.WithAlpha(185));
     } else {
-      text(std::to_string(m_subject.units.size()) + (m_subject.flight ? " squadrons" : " ships"), 13.0f, theme.title,
+      text(std::to_string(m_subject.units.size()) + (m_subject.flight ? " squadrons" : " ships"), 13.0f, theme.captionText,
            FontWeight::Bold);
-      text("edits apply to this selection", 11.0f, theme.textDim);
+      text("edits apply to this selection", 11.0f, theme.captionText.WithAlpha(185));
     }
     return;
   }
   const std::vector<UnitIndex>& selection = m_screen.GetSelection().Units();
   if (selection.size() == 1) {
     if (const battle::ViewUnit* unit = FindUnit(view, selection.front()); unit && unit->side != m_screen.PlayerSide()) {
-      text(m_screen.Label(unit->unit).name, 13.0f, FactionColor(theme, unit->side), FontWeight::Bold);
-      text(m_screen.Label(unit->unit).className + ", enemy: its doctrine is unknown", 11.0f, theme.textDim);
+      text(m_screen.Label(unit->unit).name, 13.0f, theme.captionText, FontWeight::Bold);
+      text(m_screen.Label(unit->unit).className + ", enemy: its doctrine is unknown", 11.0f, theme.captionText.WithAlpha(185));
       return;
     }
   }
-  text("No ships selected", 13.0f, theme.textDim, FontWeight::Bold);
-  text("Click a group in the fleet list or a ship on the battle plane, or press 1-9.", 11.0f, theme.textDim);
+  text("No ships selected", 13.0f, theme.captionText.WithAlpha(185), FontWeight::Bold);
+  text("Click a group in the fleet list or a ship on the battle plane, or press 1-9.", 11.0f, theme.captionText.WithAlpha(185));
 }
 
 void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine)
@@ -190,20 +193,20 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
       OpenPopupAt(PopupKind::Field, chip, field);
     }
     const bool hovered = ui.Hovered(id);
-    ui.Draw().FillRect(chip, open ? theme.buttonOn : hovered ? theme.buttonHover : theme.buttonFace);
-    ui.Draw().StrokeRect(chip, open ? theme.accent : theme.buttonBorder, ui.S(1.0f));
+    const bool pressed = ui.ActiveId() == id && ui.MouseIn(chip);
+    chrome::ButtonCap(ui.Draw(), chip, chrome::FaceFor(hovered, pressed, open, true), theme, ui.Scale());
     const bool small = chip.w < icon + ui.S(56.0f);
     float textX = chip.x + ui.S(6.0f);
     if (!small) {
-      DrawIcon(ui.Draw(), FieldIcon(field), {textX, chip.Center().y - icon * 0.5f, icon, icon}, theme.title,
-               ui.Scale());
+      DrawIcon(ui.Draw(), FieldIcon(field), {textX, chip.Center().y - icon * 0.5f - ui.S(1.0f), icon, icon},
+               open ? theme.accent : theme.title, ui.Scale());
       textX += icon + ui.S(6.0f);
     }
     const float textWidth = chip.Right() - textX - ui.S(4.0f);
-    ui.Label({textX, chip.y + ui.S(3.0f), textWidth, ui.S(11.0f)}, Describe(field).label,
-             {9.0f, theme.textDim, Align::Start, VAlign::Middle, FontWeight::Bold});
+    ui.Label({textX, chip.y + ui.S(2.0f), textWidth, ui.S(11.0f)}, Describe(field).label,
+             {9.0f, Mix(theme.textDim, theme.text, 0.35f), Align::Start, VAlign::Middle, FontWeight::Bold});
     const bool mixed = (doctrine.mixed & mask) != 0;
-    ui.Label({textX, chip.y + ui.S(14.0f), textWidth, ui.S(15.0f)}, values[i],
+    ui.Label({textX, chip.y + ui.S(12.5f), textWidth, ui.S(15.0f)}, values[i],
              {12.0f, mixed ? theme.textDim : theme.text, Align::Start, VAlign::Middle, FontWeight::Bold});
     std::string tip = std::string(Describe(field).label) + ": " + std::string(Describe(field).help);
     if (!mixed) {
@@ -371,8 +374,9 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
     right = button.x - gap;
   }
   if (any) {
-    const float divider = right - ui.S(6.0f);
-    ui.Draw().FillRect({divider, row.y + ui.S(3.0f), ui.S(1.0f), row.h - ui.S(6.0f)}, theme.panelBorder.WithAlpha(90));
+    const float divider = std::round(right - ui.S(6.0f));
+    ui.Draw().FillRect({divider, row.y + ui.S(2.0f), 1.0f, row.h - ui.S(4.0f)}, Rgb(0x000000, 170));
+    ui.Draw().FillRect({divider + 1.0f, row.y + ui.S(2.0f), 1.0f, row.h - ui.S(4.0f)}, theme.metalHigh.WithAlpha(40));
   }
 }
 
@@ -394,7 +398,9 @@ void CommandHud::DrawIntent(Ui& ui, const Rect& row)
   }
   const battle::ViewUnit* found = unit == kNoUnit ? nullptr : FindUnit(view, unit);
   hud::Caption(ui, {row.x, row.y, ui.S(50.0f), row.h}, "INTENT");
-  float x = row.x + ui.S(52.0f);
+  const Rect well{row.x + ui.S(48.0f), row.y - ui.S(1.0f), row.w - ui.S(48.0f), row.h + ui.S(2.0f)};
+  chrome::Well(ui.Draw(), well, theme, ui.Scale());
+  float x = well.x + ui.S(6.0f);
   if (!found) {
     ui.Label({x, row.y, row.Right() - x, row.h}, "Hover over a ship to see what it is doing and why.",
              {11.0f, theme.textDim});

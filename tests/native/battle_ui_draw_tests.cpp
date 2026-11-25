@@ -121,20 +121,20 @@ void ShotsUseTheColourCode()
   ion.side = reb::battle::Side::Empire;
   d.source.View().shots = {alliance, ion};
   const DrawList& frame = d.Frame();
-  const auto additive = [](const DrawPolyline& line) {
-    return line.blend == Blend::Additive;
+  // Each bolt is additive light: streaks shaded toward the bolt's head, in its colour.
+  const auto streaks = [&](auto test) {
+    return CountIf<DrawTriangles>(frame, [&](const DrawTriangles& t) {
+      return t.blend == Blend::Additive && t.vertices.size() == 6 && test(t.vertices[1].color);
+    });
   };
-  REQUIRE(CountIf<DrawPolyline>(frame, additive) == 4); // a glow and a core per bolt
-  REQUIRE(CountIf<DrawPolyline>(frame,
-                                [](const DrawPolyline& l) {
-                                  return l.blend == Blend::Additive && l.color.r > 200 && l.color.g < 120;
-                                })
-          == 1); // red Alliance glow
-  REQUIRE(CountIf<DrawPolyline>(frame,
-                                [](const DrawPolyline& l) {
-                                  return l.blend == Blend::Additive && l.color.b > 200 && l.color.r < 120;
-                                })
-          == 1); // blue ion glow
+  REQUIRE(streaks([](Color c) {
+            return c.r > 200 && c.g < 120;
+          })
+          >= 2); // red Alliance glow and body
+  REQUIRE(streaks([](Color c) {
+            return c.b > 200 && c.r < 120;
+          })
+          >= 1); // blue ion trail
   REQUIRE(BoltColor(DefaultTheme(), reb::battle::Side::Empire, reb::battle::ViewShotKind::Laser).g > 200);
   Theme accessible;
   accessible.ionBolt = Rgb(0xc89cff);
@@ -164,7 +164,8 @@ void OverlayDrawsArcsAndTargetLines()
   REQUIRE(CountIf<DrawPolyline>(d.frame,
                                 [&](const DrawPolyline& l) {
                                   return l.points.size() == 2 && Near(l.points[0], from, 0.5f)
-                                         && Near(l.points[1], to, 0.5f) && l.stroke.dash == 0.0f;
+                                         && Near(l.points[1], to, 0.5f) && l.stroke.dash == 0.0f
+                                         && l.blend == Blend::Alpha;
                                 })
           == 1);
   // Pausing turns the overlay on by default; Tab overrides it until the pause state changes.

@@ -42,6 +42,7 @@ struct Stroke {
   float dash = 0.0f; // dash and gap lengths along the line; 0 = solid
   float gap = 0.0f;
   float dashOffset = 0.0f;
+  float feather = 0.0f; // soft edge on each side, in pixels, for glows; below 1 the edge is the 1-pixel anti-aliasing
 };
 
 struct DrawPolyline {
@@ -64,6 +65,7 @@ struct DrawArc {
 };
 
 // A filled annular sector: a pie slice when innerRadius is 0, a ring when the sweep is a full turn, a disc when both.
+// With an edge colour it is a radial gradient: `color` at the inner radius (the centre of a pie), `edge` at the outer.
 struct DrawSector {
   Point center;
   float innerRadius = 0.0f;
@@ -72,13 +74,15 @@ struct DrawSector {
   float sweep = kTwoPi;
   Color color;
   Blend blend = Blend::Alpha;
+  std::optional<Color> edge;
 };
 
-// A filled convex polygon; its edges are anti-aliased.
+// A filled convex polygon; its edges are anti-aliased. `colors`, when given, holds one colour per point (a gradient).
 struct DrawPolygon {
   std::vector<Point> points;
   Color color;
   Blend blend = Blend::Alpha;
+  std::vector<Color> colors;
 };
 
 struct Vertex {
@@ -148,6 +152,15 @@ class DrawList
               Blend blend = Blend::Alpha);
   void FillTriangle(Point a, Point b, Point c, Color color, Blend blend = Blend::Alpha);
   void FillConvex(std::vector<Point> points, Color color, Blend blend = Blend::Alpha);
+  // A convex polygon shaded by one colour per point.
+  void FillConvexShaded(std::vector<Point> points, std::vector<Color> colors, Blend blend = Blend::Alpha);
+  // A rectangle shaded from `top` to `bottom`.
+  void GradientRect(const Rect& rect, Color top, Color bottom, Blend blend = Blend::Alpha);
+  // A disc fading from `core` at the centre to transparent at `radius`: glows, flashes and fireballs.
+  void Glow(Point center, float radius, Color core, Blend blend = Blend::Additive);
+  // A ring band (or arc band) shaded from `inner` at innerRadius to `outer` at outerRadius.
+  void GradientSector(Point center, float innerRadius, float outerRadius, float start, float sweep, Color inner,
+                      Color outer, Blend blend = Blend::Alpha);
   void Triangles(std::vector<Vertex> vertices, Blend blend = Blend::Alpha);
   void Text(DrawText text)
   {

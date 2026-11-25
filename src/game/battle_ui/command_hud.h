@@ -203,6 +203,7 @@ class CommandHud : public HudPanel, public ScreenInputHook
   void DrawEvents(Ui& ui, const Rect& rect);
   void DrawBriefing(Ui& ui, const Rect& column);
   void DrawDeployment(Ui& ui);
+  void DrawDeploymentZones(Ui& ui);
   void DrawCard(Ui& ui);
   void DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doctrine);
   void DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine);
@@ -253,6 +254,7 @@ class CommandHud : public HudPanel, public ScreenInputHook
   std::set<battle::GroupId> m_collapsedGroups;
   // briefing: dragging a group's handle
   battle::GroupId m_deployDrag = battle::kNoGroup;
+  battle::Vec2 m_deployGrab; // from the group's centre to where its handle was grabbed
 
   bool m_briefing = false;
   bool m_observing = false;
@@ -273,7 +275,7 @@ class CommandHud : public HudPanel, public ScreenInputHook
 // owns it; `host` and `store` must outlive the screen.
 CommandHud& InstallCommandHud(BattleScreen& screen, BattleHost& host, SettingsStore& store);
 
-// The theme for the settings' palette.
-Theme HudTheme(bool colorBlind);
+// The theme for the settings' palette, in the console skin of the player's side.
+Theme HudTheme(bool colorBlind, battle::Side side = battle::Side::Alliance);
 
 } // namespace reb::battle_ui

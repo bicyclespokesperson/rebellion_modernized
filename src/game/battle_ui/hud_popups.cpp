@@ -2,6 +2,7 @@
 // fleet-withdrawal confirmation, and the ghost of a roster drag.
 #include <algorithm>
 
+#include "battle_ui/chrome.h"
 #include "battle_ui/command_hud.h"
 #include "battle_ui/hud_draw.h"
 #include "battle_ui/selection.h"
@@ -73,14 +74,12 @@ void CommandHud::DrawFieldPopup(Ui& ui, const CardDoctrine& doctrine)
     } else if (ui.Hovered(id)) {
       ui.Draw().FillRect(row, theme.rowHover);
     }
-    if (on) {
-      ui.Draw().FillRect({row.x, row.y, ui.S(3.0f), row.h}, theme.accent);
-    }
-    ui.Label({content.x + ui.S(6.0f), y + ui.S(3.0f), textWidth, ui.S(17.0f)}, option.name,
+    chrome::Lamp(ui.Draw(), {row.x + ui.S(5.0f), y + ui.S(11.5f)}, ui.S(2.5f), theme.accent, on);
+    ui.Label({content.x + ui.S(8.0f), y + ui.S(3.0f), textWidth, ui.S(17.0f)}, option.name,
              {12.0f, theme.text, Align::Start, VAlign::Middle, on ? FontWeight::Bold : FontWeight::Regular});
     float hy = y + ui.S(20.0f);
     for (const std::string& line : helps[i]) {
-      ui.Label({content.x + ui.S(6.0f), hy, textWidth, helpLine}, line, {10.5f, theme.textDim});
+      ui.Label({content.x + ui.S(8.0f), hy, textWidth, helpLine}, line, {10.5f, theme.textDim});
       hy += helpLine;
     }
     if (clicked) {
@@ -239,9 +238,8 @@ void CommandHud::DrawDragGhost(Ui& ui)
     text += " +" + std::to_string(m_dragUnits.size() - 1);
   }
   const float width = ui.TextWidth(text, 12.0f, FontWeight::Bold) + ui.S(16.0f);
-  const Rect box{ui.Mouse().x + ui.S(12.0f), ui.Mouse().y + ui.S(6.0f), width, ui.S(22.0f)};
-  ui.Draw().FillRect(box, theme.buttonOn.WithAlpha(230));
-  ui.Draw().StrokeRect(box, theme.accent, ui.S(1.0f));
+  const Rect box{ui.Mouse().x + ui.S(12.0f), ui.Mouse().y + ui.S(6.0f), width + ui.S(8.0f), ui.S(22.0f)};
+  chrome::Notice(ui.Draw(), box, theme.accent, theme, ui.Scale());
   ui.Label(box, text, {12.0f, theme.text, Align::Center, VAlign::Middle, FontWeight::Bold});
 }
 

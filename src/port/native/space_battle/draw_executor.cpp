@@ -1,5 +1,6 @@
 #include "port/native/space_battle/draw_executor.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace reb::native::space_battle
@@ -214,7 +215,7 @@ void DrawExecutor::Draw(const battle_ui::DrawRect& rect)
   FilledRect(x1 - w, y0 + w, x1, y1 - w, color);
 }
 
-void DrawExecutor::Polyline(const std::vector<Point>& input, bool closed, SDL_FColor color, float width)
+void DrawExecutor::Polyline(const std::vector<Point>& input, bool closed, SDL_FColor color, float width, float feather)
 {
   std::vector<Point> points;
   points.reserve(input.size());
@@ -234,8 +235,9 @@ void DrawExecutor::Polyline(const std::vector<Point>& input, bool closed, SDL_FC
     color.a *= width;
     width = 1.0f;
   }
-  const float inner = (width - kFringe) * 0.5f;
-  const float outer = inner + kFringe;
+  const float fringe = std::max(kFringe, feather);
+  const float inner = std::max(0.0f, (width - kFringe) * 0.5f);
+  const float outer = inner + fringe;
   const size_t segments = closed ? n : n - 1;
   std::vector<Point> normals(n);
   for (size_t i = 0; i < segments; ++i) {
@@ -282,11 +284,11 @@ void DrawExecutor::StrokePath(const std::vector<Point>& points, bool closed, Col
   const SDL_FColor fcolor = ToFColor(color);
   if (stroke.dash > 0.0f && stroke.gap > 0.0f) {
     for (const std::vector<Point>& dash : Dashes(points, closed, stroke)) {
-      Polyline(dash, false, fcolor, stroke.width);
+      Polyline(dash, false, fcolor, stroke.width, stroke.feather);
     }
     return;
   }
-  Polyline(points, closed, fcolor, stroke.width);
+  Polyline(points, closed, fcolor, stroke.width, stroke.feather);
 }
 
 void DrawExecutor::Draw(const battle_ui::DrawPolyline& line)
@@ -306,12 +308,14 @@ void DrawExecutor::Draw(const battle_ui::DrawArc& arc)
 
 void DrawExecutor::Draw(const battle_ui::DrawSector& sector)
 {
-  if (sector.outerRadius <= 0.0f || sector.color.a == 0) {
+  if (sector.outerRadius <= 0.0f || (sector.color.a == 0 && (!sector.edge || sector.edge->a == 0))) {
     return;
   }
   Batch(nullptr, sector.blend);
   const SDL_FColor color = ToFColor(sector.color);
   const SDL_FColor clear = Transparent(color);
+  const SDL_FColor edge = sector.edge ? ToFColor(*sector.edge) : color;
+  const SDL_FColor edgeClear = Transparent(edge);
   const bool full = std::abs(sector.sweep) >= battle_ui::kTwoPi - 1e-4f;
   const float sweep = full ? battle_ui::kTwoPi : sector.sweep;
   const int segments = ArcSegments(sector.outerRadius, sweep);
@@ -331,19 +335,19 @@ void DrawExecutor::Draw(const battle_ui::DrawSector& sector)
     const Point oe0 = at(outerEdge, k);
     const Point oe1 = at(outerEdge, k + 1);
     if (pie) {
-      Triangle(sector.center, oc0, oc1, color, color, color);
+      Triangle(sector.center, oc0, oc1, color, edge, edge);
     } else {
       const Point ic0 = at(innerCore, k);
       const Point ic1 = at(innerCore, k + 1);
       const Point ie0 = at(innerEdge, k);
       const Point ie1 = at(innerEdge, k + 1);
-      Triangle(ic0, oc0, oc1, color, color, color);
-      Triangle(ic0, oc1, ic1, color, color, color);
+      Triangle(ic0, oc0, oc1, color, edge, edge);
+      Triangle(ic0, oc1, ic1, color, edge, color);
       Triangle(ie0, ic0, ic1, clear, color, color);
       Triangle(ie0, ic1, ie1, clear, color, clear);
     }
-    Triangle(oc0, oe0, oe1, color, clear, clear);
-    Triangle(oc0, oe1, oc1, color, clear, color);
+    Triangle(oc0, oe0, oe1, edge, edgeClear, edgeClear);
+    Triangle(oc0, oe1, oc1, edge, edgeClear, edge);
   }
 }
 
@@ -351,7 +355,7 @@ void DrawExecutor::Draw(const battle_ui::DrawPolygon& polygon)
 {
   const std::vector<Point>& points = polygon.points;
   const size_t n = points.size();
-  if (n < 3 || polygon.color.a == 0) {
+  if (n < 3 || (polygon.color.a == 0 && polygon.colors.empty())) {
     return;
   }
   Batch(nullptr, polygon.blend);
@@ -370,8 +374,11 @@ void DrawExecutor::Draw(const battle_ui::DrawPolygon& polygon)
     const Point d = Normalized(points[(i + 1) % n] - points[i]);
     normals[i] = Point{d.y, -d.x} * sign;
   }
-  const SDL_FColor color = ToFColor(polygon.color);
-  const SDL_FColor clear = Transparent(color);
+  const bool shaded = polygon.colors.size() == n;
+  std::vector<SDL_FColor> colors(n, ToFColor(polygon.color));
+  if (shaded) {
+    std::ranges::transform(polygon.colors, colors.begin(), ToFColor);
+  }
   std::vector<Point> inner(n);
   std::vector<Point> outer(n);
   for (size_t i = 0; i < n; ++i) {
@@ -380,12 +387,12 @@ void DrawExecutor::Draw(const battle_ui::DrawPolygon& polygon)
     outer[i] = points[i] + miter * (kFringe * 0.5f);
   }
   for (size_t k = 1; k + 1 < n; ++k) {
-    Triangle(inner[0], inner[k], inner[k + 1], color, color, color);
+    Triangle(inner[0], inner[k], inner[k + 1], colors[0], colors[k], colors[k + 1]);
   }
   for (size_t i = 0; i < n; ++i) {
     const size_t j = (i + 1) % n;
-    Triangle(inner[i], inner[j], outer[j], color, color, clear);
-    Triangle(inner[i], outer[j], outer[i], color, clear, clear);
+    Triangle(inner[i], inner[j], outer[j], colors[i], colors[j], Transparent(colors[j]));
+    Triangle(inner[i], outer[j], outer[i], colors[i], Transparent(colors[j]), Transparent(colors[i]));
   }
 }
 

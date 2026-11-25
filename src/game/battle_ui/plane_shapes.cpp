@@ -94,6 +94,37 @@ void PlaneSector(DrawList& out, const Camera& camera, Vec2 center, float inner, 
   out.Triangles(std::move(vertices), blend);
 }
 
+void PlaneSectorShaded(DrawList& out, const Camera& camera, Vec2 center, float inner, float outer, float start,
+                       float sweep, Color innerColor, Color outerColor, Blend blend)
+{
+  if (outer <= 0.0f || (innerColor.a == 0 && outerColor.a == 0)) {
+    return;
+  }
+  if (camera.View() == CameraView::TopDown) {
+    out.GradientSector(camera.WorldToScreen(center), camera.PixelsFor(std::max(0.0f, inner)), camera.PixelsFor(outer),
+                       camera.ScreenHeading(start), sweep, innerColor, outerColor, blend);
+    return;
+  }
+  const bool full = FullTurn(sweep);
+  const float turn = full ? kTwoPi : sweep;
+  const int segments = Segments(camera, outer, turn);
+  const std::vector<Point> rim = ArcPoints(camera, center, outer, start, turn, segments);
+  const std::vector<Point> hole = ArcPoints(camera, center, std::max(0.0f, inner), start, turn, segments);
+  std::vector<Vertex> vertices;
+  vertices.reserve(rim.size() * 6);
+  const size_t count = full ? rim.size() : rim.size() - 1;
+  for (size_t i = 0; i < count; ++i) {
+    const size_t j = (i + 1) % rim.size();
+    vertices.insert(vertices.end(), {{hole[i], innerColor},
+                                     {rim[i], outerColor},
+                                     {rim[j], outerColor},
+                                     {hole[i], innerColor},
+                                     {rim[j], outerColor},
+                                     {hole[j], innerColor}});
+  }
+  out.Triangles(std::move(vertices), blend);
+}
+
 void PlaneDisc(DrawList& out, const Camera& camera, Vec2 center, float radius, Color color, Blend blend)
 {
   PlaneSector(out, camera, center, 0.0f, radius, 0.0f, kTwoPi, color, blend);

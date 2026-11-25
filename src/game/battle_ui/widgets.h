@@ -9,6 +9,7 @@
 #include "battle_ui/draw_list.h"
 #include "battle_ui/input.h"
 #include "battle_ui/text_measure.h"
+#include "space_battle/snapshot.h"
 
 // A small immediate-mode widget kit for the battle HUD: panels, labels, buttons, toggles, lists, bars and tooltips.
 //
@@ -41,23 +42,39 @@ constexpr WidgetId Id(WidgetId parent, int64_t index)
   return hash;
 }
 
+// Colours and sizes of the HUD. The console chrome follows the original tactical and strategic screens (§10.2):
+// brushed-steel rims around smoked-glass panels, a caption band in the player's colours, steel button caps with a lamp
+// slit that lights for the current choice, and LED readouts in black wells. SkinnedTheme (chrome.h) fills it for a
+// side; these defaults are the Alliance skin.
 struct Theme {
-  Color panel = Rgb(0x08101c, 224);
-  Color panelBorder = Rgb(0x5a8cbe, 150);
-  Color title = Rgb(0x96c8f0);
-  Color text = Rgb(0xd2dceb);
-  Color textDim = Rgb(0x8496aa);
-  Color accent = Rgb(0x5ab4ff);
-  Color buttonFace = Rgb(0x1c2c40, 235);
-  Color buttonHover = Rgb(0x2c4664, 240);
-  Color buttonPressed = Rgb(0x162232, 240);
-  Color buttonOn = Rgb(0x3c6ea0, 245);
-  Color buttonBorder = Rgb(0x5a8cbe, 170);
-  Color disabledText = Rgb(0x56606c);
-  Color rowHover = Rgb(0x2c4664, 160);
-  Color rowSelected = Rgb(0x3c6ea0, 200);
-  Color tooltip = Rgb(0x0c1420, 245);
-  Color barBack = Rgb(0x202a36, 220);
+  Color panel = Rgb(0x15181d, 236); // panel glass, top
+  Color panelBottom = Rgb(0x0b0d10, 242);
+  Color panelBorder = Rgb(0x8f949b, 200); // engraved lines and scroll thumbs
+  Color title = Rgb(0xf2f3f4);
+  Color text = Rgb(0xe4e7eb);
+  Color textDim = Rgb(0x9aa1aa);
+  Color accent = Rgb(0xffb43c); // lit lamps, the current choice, drop targets
+  Color buttonFace = Rgb(0x5b6068);
+  Color buttonFaceBottom = Rgb(0x31353b);
+  Color buttonHover = Rgb(0x70767f);
+  Color buttonPressed = Rgb(0x23262b);
+  Color buttonOn = Rgb(0x6b6458);
+  Color buttonBorder = Rgb(0x0b0c0e, 230);
+  Color disabledText = Rgb(0x6a7078);
+  Color rowHover = Rgb(0xffffff, 20);
+  Color rowSelected = Rgb(0xffb43c, 44);
+  Color tooltip = Rgb(0x101317, 246);
+  Color barBack = Rgb(0x050607, 230);
+  // the console metal: a rim's lit top, its body and its shaded bottom
+  Color metalHigh = Rgb(0xe6e8ea);
+  Color metal = Rgb(0x9da1a7);
+  Color metalShade = Rgb(0x44474c);
+  // the caption band of a panel, in the player's colours (the strategic windows' title bars)
+  Color captionTop = Rgb(0xc4321f);
+  Color captionBottom = Rgb(0x781309);
+  Color captionText = Rgb(0xffffff);
+  Color readout = Rgb(0xff4c30); // LED digits: red on the Alliance's consoles, green on the Empire's
+  Color well = Rgb(0x030405, 238);
   Color alliance = Rgb(0xeb5a46);
   Color empire = Rgb(0x6ed26e);
   Color ion = Rgb(0x5aa0ff);
@@ -69,6 +86,7 @@ struct Theme {
   Color hullGood = Rgb(0x64d264);
   Color hullFair = Rgb(0xe6c846);
   Color hullPoor = Rgb(0xe65a46);
+  battle::Side skin = battle::Side::Alliance;
   float textSize = 13.0f;
   float smallTextSize = 11.0f;
   float titleSize = 13.0f;

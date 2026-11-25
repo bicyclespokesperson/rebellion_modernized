@@ -3,8 +3,10 @@
 #include "battle_ui/world_painter.h"
 
 #include <algorithm>
+#include <array>
 #include <string>
 
+#include "battle_ui/chrome.h"
 #include "battle_ui/silhouettes.h"
 #include "battle_ui/world_painter_internal.h"
 
@@ -22,6 +24,7 @@ constexpr float kSymbolBelow = 9.0f;      // UI pixels: a ship smaller than this
 constexpr size_t kCrowd = 24;             // more capital ships on screen than this: only key units are labelled
 constexpr size_t kLabelledSelection = 4;  // larger selections label only their group leaders
 constexpr float kLabelSize = 11.0f;       // UI pixels
+constexpr float kCountSize = 9.5f;        // UI pixels
 
 const Color kSelectOwn = Rgb(0xd8f0ff);
 const Color kSelectOther = Rgb(0xff7a6a);
@@ -368,61 +371,126 @@ void PaintBars(const Painter& p, const ViewUnit& unit)
 {
   const Theme& theme = p.scene.theme;
   const float width = std::clamp(DrawnRadiusPx(p, unit) * 1.5f, 26.0f * p.ui, 70.0f * p.ui);
-  const float height = 3.0f * p.ui;
   const Point center = p.Screen(unit.position);
-  float y = center.y + MarkerDropPx(p, unit) + 5.0f * p.ui;
-  const float x = center.x - width * 0.5f;
-  p.out.FillRect({x - 1.0f, y - 1.0f, width + 2.0f, height * 2.0f + 3.0f}, Rgb(0x000000, 150));
-  p.out.FillRect({x, y, width * std::clamp(unit.shieldFraction, 0.0f, 1.0f), height}, theme.shield);
-  y += height + 1.0f;
-  p.out.FillRect({x, y, width * std::clamp(unit.hullFraction, 0.0f, 1.0f), height},
-                 HullColor(theme, unit.hullFraction));
+  const float y = center.y + MarkerDropPx(p, unit) + 4.0f * p.ui;
+  chrome::StatusBars(p.out, {center.x - width * 0.5f, y, width, 8.0f * p.ui}, unit.shieldFraction, unit.hullFraction,
+                     HullColor(theme, unit.hullFraction), theme, p.ui);
 }
 
-Rect LabelRect(const Painter& p, const ViewUnit& unit, const std::string& text, bool bars)
+float LabelHeight(const Painter& p, float size)
+{
+  return p.scene.text ? p.scene.text->LineHeight(size) : 1.3f * size;
+}
+
+float LabelWidth(const Painter& p, const std::string& text, float size)
+{
+  return p.scene.text ? p.scene.text->Width(text, size) : 0.56f * size * static_cast<float>(text.size());
+}
+
+// A ship's name goes under it (under its bars when they show), or above it when that space is taken.
+std::array<Rect, 2> NameRects(const Painter& p, const ViewUnit& unit, const std::string& text, bool bars)
 {
   const float size = kLabelSize * p.ui;
-  const TextMeasurer* measure = p.scene.text;
-  const float width = measure ? measure->Width(text, size) : 0.56f * size * static_cast<float>(text.size());
-  const float height = measure ? measure->LineHeight(size) : 1.3f * size;
+  const float width = LabelWidth(p, text, size);
+  const float height = LabelHeight(p, size);
   const Point center = p.Screen(unit.position);
-  return {center.x - width * 0.5f, center.y + MarkerDropPx(p, unit) + (bars ? 13.0f : 4.0f) * p.ui, width, height};
+  const float drop = MarkerDropPx(p, unit);
+  return {Rect{center.x - width * 0.5f, center.y + drop + (bars ? 13.0f : 4.0f) * p.ui, width, height},
+          Rect{center.x - width * 0.5f, center.y - drop - 4.0f * p.ui - height, width, height}};
+}
+
+// A squadron's craft count sits off its upper right.
+Rect CountRect(const Painter& p, const ViewUnit& unit, const std::string& text)
+{
+  const float size = kCountSize * p.ui;
+  const Point center = p.Screen(unit.position, p.CraftHeight());
+  const float offset = p.detailed ? std::max(p.Px(unit.radius), 10.0f * p.ui) : 8.0f * p.ui;
+  const float height = LabelHeight(p, size);
+  return {center.x + offset, center.y - offset - height, LabelWidth(p, text, size), height};
 }
 
 struct LabelCandidate {
   size_t index = 0; // in the view's unit list
-  int rank = 0;     // 0 hovered, 1 selected, 2 group leader, 3 any other
+  int rank = 0;     // 0 hovered, 1 selected, 2 group leader, 3 any other ship, 4 a squadron's count
   float sizePx = 0.0f;
   bool bars = false;
+  bool count = false;
 };
 
-// Higher-ranked and then larger units claim their space first; a label that would overlap one already placed is
-// dropped, except the hovered unit's.
+// What labels must not cover: the ships on screen, as boxes a little inside their drawn reach.
+struct Obstacle {
+  battle::UnitIndex unit;
+  Rect rect;
+};
+
+std::vector<Obstacle> ShipObstacles(const Painter& p)
+{
+  std::vector<Obstacle> obstacles;
+  for (const ViewUnit& unit : p.scene.view.units) {
+    if (!Selectable(unit) || unit.kind == ViewUnitKind::Squadron) {
+      continue;
+    }
+    const Point c = p.Screen(unit.position);
+    const float r = DrawnRadiusPx(p, unit) * 0.6f;
+    if (r >= 4.0f * p.ui && p.camera.Viewport().Contains(c)) {
+      obstacles.push_back({unit.unit, {c.x - r, c.y - r * p.camera.VerticalScale(), 2.0f * r,
+                                       2.0f * r * p.camera.VerticalScale()}});
+    }
+  }
+  return obstacles;
+}
+
+// Higher-ranked and then larger units claim their space first. A name that would overlap a label already placed or
+// another ship moves above its ship, and is dropped when that is taken too, except the hovered unit's.
 void PaintLabels(const Painter& p, std::vector<LabelCandidate> candidates)
 {
   std::ranges::stable_sort(candidates, [](const LabelCandidate& a, const LabelCandidate& b) {
     return a.rank != b.rank ? a.rank < b.rank : a.sizePx > b.sizePx;
   });
   const float gap = 2.0f * p.ui;
+  const std::vector<Obstacle> ships = ShipObstacles(p);
   std::vector<Rect> placed;
+  const auto clear = [&](const Rect& rect, battle::UnitIndex own) {
+    const Rect padded = rect.Inset(-gap);
+    return std::ranges::none_of(placed,
+                                [&](const Rect& other) {
+                                  return !Intersection(padded, other).Empty();
+                                })
+           && std::ranges::none_of(ships, [&](const Obstacle& ship) {
+                return ship.unit != own && !Intersection(padded, ship.rect).Empty();
+              });
+  };
   for (const LabelCandidate& candidate : candidates) {
     const ViewUnit& unit = p.scene.view.units[candidate.index];
-    const std::string& name = p.scene.names[static_cast<size_t>(unit.unit)];
-    const Rect rect = LabelRect(p, unit, name, candidate.bars);
-    const Rect padded = rect.Inset(-gap);
-    const bool clear = std::ranges::none_of(placed, [&](const Rect& other) {
-      return !Intersection(padded, other).Empty();
-    });
-    if (!clear && candidate.rank > 0) {
+    const Color color = FactionColor(p.scene.theme, unit.side);
+    if (candidate.count) {
+      const std::string text = std::to_string(unit.craft);
+      const Rect rect = CountRect(p, unit, text);
+      if (!clear(rect, unit.unit) && candidate.rank > 1) {
+        continue;
+      }
+      placed.push_back(rect);
+      chrome::ShadowText(p.out,
+                         DrawText{text, {rect.x, rect.y}, kCountSize * p.ui, color.WithAlpha(230), Align::Start,
+                                  VAlign::Top, FontWeight::Bold},
+                         p.ui);
       continue;
     }
+    const std::string& name = p.scene.names[static_cast<size_t>(unit.unit)];
+    const std::array<Rect, 2> options = NameRects(p, unit, name, candidate.bars);
+    const auto free = std::ranges::find_if(options, [&](const Rect& rect) {
+      return clear(rect, unit.unit);
+    });
+    if (free == options.end() && candidate.rank > 0) {
+      continue;
+    }
+    const Rect rect = free == options.end() ? options.front() : *free;
     placed.push_back(rect);
     // A shadow keeps the faction-coloured name readable over art tinted the same colour.
-    const float shadow = std::max(1.0f, p.ui);
-    p.out.Text(name, {rect.Center().x + shadow, rect.y + shadow}, kLabelSize * p.ui, Rgb(0x000000, 200), Align::Center,
-               VAlign::Top);
-    p.out.Text(name, {rect.Center().x, rect.y}, kLabelSize * p.ui,
-               FactionColor(p.scene.theme, unit.side).WithAlpha(220), Align::Center, VAlign::Top);
+    chrome::ShadowText(p.out,
+                       DrawText{name, {rect.Center().x, rect.y}, kLabelSize * p.ui, color.WithAlpha(230), Align::Center,
+                                VAlign::Top},
+                       p.ui);
   }
 }
 
@@ -443,15 +511,19 @@ void PaintSelectionMarker(const Painter& p, const ViewUnit& unit, bool hovered)
   }
   const Point center = p.Screen(unit.position);
   const float r = std::max(DrawnRadiusPx(p, unit), 9.0f * p.ui) + 5.0f * p.ui;
+  const Color shadow = Rgb(0x000000, 130);
   if (hovered && !selected) {
-    p.out.Circle(center, r, color.WithAlpha(110), Stroke{1.0f * p.ui});
+    p.out.Circle(center, r, shadow, Stroke{3.0f * p.ui});
+    p.out.Circle(center, r, color.WithAlpha(150), Stroke{1.0f * p.ui, 4.0f * p.ui, 3.0f * p.ui});
     return;
   }
-  const float arm = std::max(4.0f * p.ui, r * 0.35f);
-  const Stroke stroke{1.5f * p.ui};
+  // The original's targeting frame: corner brackets, here with a dark keyline so they read over bright art.
+  const float arm = std::max(5.0f * p.ui, r * 0.3f);
   for (const Point corner : {Point{-1, -1}, Point{1, -1}, Point{1, 1}, Point{-1, 1}}) {
     const Point c = center + Point{corner.x * r, corner.y * r};
-    p.out.Polyline({c + Point{-corner.x * arm, 0.0f}, c, c + Point{0.0f, -corner.y * arm}}, color, stroke);
+    const std::vector<Point> bracket{c + Point{-corner.x * arm, 0.0f}, c, c + Point{0.0f, -corner.y * arm}};
+    p.out.Polyline(bracket, shadow, Stroke{3.5f * p.ui});
+    p.out.Polyline(bracket, color, Stroke{1.6f * p.ui});
   }
 }
 
@@ -536,10 +608,7 @@ void PaintUnitMarkers(const Painter& p)
       candidates.push_back({i, rank, DrawnRadiusPx(p, unit), showBars});
     }
     if (unit.kind == ViewUnitKind::Squadron) {
-      const Point center = p.Screen(unit.position, p.CraftHeight());
-      const float offset = p.detailed ? std::max(p.Px(unit.radius), 10.0f * p.ui) : 9.0f * p.ui;
-      p.out.Text(std::to_string(unit.craft), {center.x + offset, center.y - offset}, 10.0f * p.ui,
-                 FactionColor(p.scene.theme, unit.side).WithAlpha(220), Align::Start, VAlign::Bottom);
+      candidates.push_back({i, hovered ? 0 : selected ? 1 : 4, 0.0f, false, true});
     }
   }
   PaintLabels(p, std::move(candidates));
@@ -596,6 +665,7 @@ void PaintWorld(DrawList& out, const WorldScene& scene)
   out.PushClip(scene.camera.Viewport());
   PaintBackdrop(p);
   PaintGrid(p);
+  PaintVignette(p);
   PaintPlanetaryCover(p);
   PaintWells(p);
   if (scene.overlay) {

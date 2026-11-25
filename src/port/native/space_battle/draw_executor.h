@@ -39,7 +39,8 @@ class DrawExecutor
 
   void StrokePath(const std::vector<battle_ui::Point>& points, bool closed, battle_ui::Color color,
                   const battle_ui::Stroke& stroke, battle_ui::Blend blend);
-  void Polyline(const std::vector<battle_ui::Point>& points, bool closed, SDL_FColor color, float width);
+  void Polyline(const std::vector<battle_ui::Point>& points, bool closed, SDL_FColor color, float width,
+                float feather);
   void FilledRect(float x0, float y0, float x1, float y1, SDL_FColor color);
 
   TextAtlas& m_text;

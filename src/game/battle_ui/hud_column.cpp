@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <ranges>
 
 #include "battle_ui/battle_hud.h"
+#include "battle_ui/chrome.h"
 #include "battle_ui/command_hud.h"
 #include "battle_ui/plane_shapes.h"
 #include "battle_ui/hud_draw.h"
@@ -141,7 +143,7 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
     OpenPopupAt(PopupKind::Options, gear);
   }
   DrawIcon(ui.Draw(), Icon::Gear, gear.Inset(title * 0.25f),
-           ui.Hovered(hud_id::Options()) || m_popup.kind == PopupKind::Options ? theme.text : theme.textDim,
+           theme.captionText.WithAlpha(ui.Hovered(hud_id::Options()) || m_popup.kind == PopupKind::Options ? 255 : 170),
            ui.Scale());
   ui.Tooltip(hud_id::Options(), "Options: auto-pause events, colours and HUD size.");
   Record(hud_id::Options(), gear);
@@ -154,14 +156,11 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   const float w = panel.w - ui.S(16.0f);
   bool drewSection = false;
   if (hasSignals) {
-    hud::Caption(ui, {x, y, w, ui.S(16.0f)}, "SIGNALS");
+    const float pips = static_cast<float>(own.signalsMax) * ui.S(11.0f);
+    hud::Caption(ui, {x, y, w - pips - ui.S(4.0f), ui.S(16.0f)}, "SIGNALS");
     for (int i = 0; i < own.signalsMax; ++i) {
       const Point pip{x + w - static_cast<float>(own.signalsMax - i) * ui.S(11.0f) + ui.S(5.0f), y + ui.S(8.0f)};
-      if (i < own.signalsReady) {
-        ui.Draw().FillCircle(pip, ui.S(4.0f), Rgb(0xffd25a));
-      } else {
-        ui.Draw().Circle(pip, ui.S(4.0f), theme.textDim, Stroke{ui.S(1.0f)});
-      }
+      chrome::Lamp(ui.Draw(), pip, ui.S(3.5f), theme.accent, i < own.signalsReady);
     }
     y += ui.S(16.0f);
     const float half = (w - ui.S(4.0f)) * 0.5f;
@@ -201,7 +200,8 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
     }
     const bool ownBatteries = list == 0;
     if (drewSection) {
-      ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
+      chrome::Groove(ui.Draw(), {x, std::round(y - pad * 0.5f)}, {x + w, std::round(y - pad * 0.5f)}, theme,
+                     ui.Scale());
     }
     hud::Caption(ui, {x, y, w, ui.S(16.0f)}, ownBatteries ? "PLANETARY DEFENSES" : "ENEMY PLANETARY DEFENSES");
     y += batteryCaption;
@@ -236,7 +236,7 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   const bool ours = deathStar->side == m_screen.PlayerSide();
   const float charge = std::max(0.0f, view.superlaserCharge);
   if (drewSection) {
-    ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
+    chrome::Groove(ui.Draw(), {x, std::round(y - pad * 0.5f)}, {x + w, std::round(y - pad * 0.5f)}, theme, ui.Scale());
   }
   hud::Caption(ui, {x, y, w, ui.S(16.0f)}, ours ? "SUPERLASER" : "ENEMY DEATH STAR");
   y += ui.S(17.0f);
@@ -244,7 +244,8 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   if (ours) {
     const float buttonWidth = ui.S(64.0f);
     const float valueWidth = ui.S(46.0f);
-    ui.Bar({x, y + ui.S(7.0f), w - buttonWidth - valueWidth - ui.S(8.0f), ui.S(8.0f)}, charge, fill);
+    chrome::Gauge(ui.Draw(), {x, y + ui.S(6.0f), w - buttonWidth - valueWidth - ui.S(8.0f), ui.S(10.0f)}, charge, fill,
+                  theme, ui.Scale(), 16);
     ui.Label({x, y, w - buttonWidth - ui.S(6.0f), ui.S(22.0f)}, charge >= 1.0f ? "READY" : Percent(charge),
              {11.0f, charge >= 1.0f ? fill : theme.text, Align::End, VAlign::Middle, FontWeight::Bold});
     const Rect fire{x + w - buttonWidth, y, buttonWidth, ui.S(22.0f)};
@@ -264,7 +265,7 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
     y += ui.S(24.0f);
     ui.Label({x, y, w, ui.S(14.0f)}, "Cannot be damaged by ordinary weapons", {10.0f, theme.textDim});
   } else {
-    ui.Bar({x, y + ui.S(7.0f), w - ui.S(70.0f), ui.S(8.0f)}, charge, fill);
+    chrome::Gauge(ui.Draw(), {x, y + ui.S(6.0f), w - ui.S(70.0f), ui.S(10.0f)}, charge, fill, theme, ui.Scale(), 16);
     ui.Label({x, y, w, ui.S(22.0f)}, charge >= 1.0f ? "CHARGED" : Percent(charge),
              {11.0f, charge >= 1.0f ? theme.hullPoor : theme.text, Align::End, VAlign::Middle, FontWeight::Bold});
     y += ui.S(24.0f);
@@ -357,8 +358,13 @@ void CommandHud::DrawEvents(Ui& ui, const Rect& rect)
     if (hovered && unit != kNoUnit) {
       ui.Draw().FillRect(line, theme.rowHover);
     }
-    ui.Draw().FillRect({line.x, line.y + ui.S(3.0f), ui.S(3.0f), line.h - ui.S(6.0f)}, FactionColor(theme, event.side));
-    ui.Label({line.x + ui.S(7.0f), line.y, ui.S(36.0f), line.h}, FormatClock(event.time), {10.0f, theme.textDim});
+    chrome::Lamp(ui.Draw(), {line.x + ui.S(4.0f), line.Center().y}, ui.S(2.5f), FactionColor(theme, event.side),
+                 i == 0);
+    if (i != 0) {
+      ui.Draw().FillCircle({line.x + ui.S(4.0f), line.Center().y}, ui.S(2.0f), FactionColor(theme, event.side));
+    }
+    ui.Label({line.x + ui.S(10.0f), line.y, ui.S(34.0f), line.h}, FormatClock(event.time),
+             {10.0f, Mix(theme.readout, theme.textDim, 0.45f)});
     ui.Label({line.x + ui.S(44.0f), line.y, line.w - ui.S(46.0f), line.h}, text,
              {11.0f, i == 0 ? theme.text : Mix(theme.text, theme.textDim, 0.4f)});
     Record(hud_id::EventRow(i), line);
@@ -383,8 +389,8 @@ void CommandHud::DrawBriefing(Ui& ui, const Rect& column)
   if (ui.Region(hud_id::Options(), gear)) {
     OpenPopupAt(PopupKind::Options, gear);
   }
-  DrawIcon(ui.Draw(), Icon::Gear, gear.Inset(title * 0.25f), ui.Hovered(hud_id::Options()) ? theme.text : theme.textDim,
-           ui.Scale());
+  DrawIcon(ui.Draw(), Icon::Gear, gear.Inset(title * 0.25f),
+           theme.captionText.WithAlpha(ui.Hovered(hud_id::Options()) ? 255 : 170), ui.Scale());
   ui.Tooltip(hud_id::Options(), "Options: auto-pause events, colours and HUD size.");
   Record(hud_id::Options(), gear);
 
@@ -515,14 +521,61 @@ void CommandHud::DrawBriefing(Ui& ui, const Rect& column)
 
   const Rect engage{content.x, content.Bottom() - ui.S(34.0f), content.w, ui.S(34.0f)};
   const bool clicked = ui.Region(hud_id::Engage(), engage);
-  const bool hovered = ui.Hovered(hud_id::Engage());
-  ui.Draw().FillRect(engage, hovered ? Mix(theme.buttonOn, theme.text, 0.2f) : theme.buttonOn);
-  ui.Draw().StrokeRect(engage, theme.accent, ui.S(1.5f));
-  ui.Label(engage, "ENGAGE", {15.0f, theme.text, Align::Center, VAlign::Middle, FontWeight::Bold});
+  const bool pressed = ui.ActiveId() == hud_id::Engage() && ui.MouseIn(engage);
+  chrome::CommandButton(ui.Draw(), engage, chrome::FaceFor(ui.Hovered(hud_id::Engage()), pressed, false, true), theme,
+                        ui.Scale());
+  chrome::ShadowText(ui.Draw(),
+                     DrawText{"ENGAGE", engage.Center() + Point{0.0f, pressed ? ui.S(1.0f) : 0.0f}, ui.S(15.0f),
+                              theme.captionText, Align::Center, VAlign::Middle, FontWeight::Bold},
+                     ui.Scale());
   ui.Tooltip(hud_id::Engage(), "Start the battle (Enter). You can pause at any time with Space.");
   Record(hud_id::Engage(), engage);
   if (clicked) {
     Engage();
+  }
+}
+
+void CommandHud::DrawDeploymentZones(Ui& ui)
+{
+  const Theme& theme = ui.GetTheme();
+  const battle::ViewModel& view = m_screen.View();
+  const battle::Side side = m_screen.PlayerSide();
+  const Camera& camera = m_screen.GetCamera();
+  DrawList& draw = ui.Draw();
+  for (const battle::Side zoneSide : {Enemy(), side}) {
+    const battle::ViewDeployZone& zone = view.deployZones[static_cast<int>(zoneSide)];
+    if (zone.radius <= 0.0f) {
+      continue;
+    }
+    const bool own = zoneSide == side;
+    const Point center = camera.WorldToScreen(zone.center);
+    const float radius = camera.PixelsFor(zone.radius) * camera.VerticalScale(); // on screen, above the centre
+    const Color color = own ? theme.accent : FactionColor(theme, zoneSide);
+    // A hologram disc that brightens toward its rim, with range ticks around it.
+    PlaneSectorShaded(draw, camera, zone.center, zone.radius * 0.45f, zone.radius, 0.0f, kTwoPi, color.WithAlpha(0),
+                      color.WithAlpha(own ? 34 : 16));
+    if (own) {
+      PlaneCircle(draw, camera, zone.center, zone.radius, color.WithAlpha(60), Stroke{ui.S(1.0f), 0, 0, 0, ui.S(4.0f)},
+                  Blend::Additive);
+      PlaneCircle(draw, camera, zone.center, zone.radius, color.WithAlpha(210), Stroke{ui.S(1.5f)});
+      constexpr int kTicks = 72;
+      for (int i = 0; i < kTicks; ++i) {
+        const float angle = kTwoPi * static_cast<float>(i) / kTicks;
+        const float length = zone.radius * (i % 6 == 0 ? 0.05f : 0.022f);
+        const battle::Vec2 dir{std::cos(angle), std::sin(angle)};
+        draw.Line(camera.WorldToScreen(zone.center + dir * zone.radius),
+                  camera.WorldToScreen(zone.center + dir * (zone.radius - length)),
+                  color.WithAlpha(i % 6 == 0 ? 170 : 90), Stroke{ui.S(1.0f)});
+      }
+    } else {
+      PlaneCircle(draw, camera, zone.center, zone.radius, color.WithAlpha(110),
+                  Stroke{ui.S(1.0f), ui.S(9.0f), ui.S(6.0f)});
+    }
+    chrome::ShadowText(draw,
+                       DrawText{own ? "YOUR DEPLOYMENT ZONE" : "ENEMY DEPLOYMENT",
+                                {center.x, center.y - radius - ui.S(7.0f)}, ui.S(10.5f),
+                                color.WithAlpha(own ? 235 : 160), Align::Center, VAlign::Bottom, FontWeight::Bold},
+                       ui.Scale());
   }
 }
 
@@ -534,23 +587,7 @@ void CommandHud::DrawDeployment(Ui& ui)
   const Camera& camera = m_screen.GetCamera();
   DrawList& draw = ui.Draw();
   draw.PushClip(camera.Viewport());
-  for (const battle::Side zoneSide : {Enemy(), side}) {
-    const battle::ViewDeployZone& zone = view.deployZones[static_cast<int>(zoneSide)];
-    if (zone.radius <= 0.0f) {
-      continue;
-    }
-    const bool own = zoneSide == side;
-    const Point center = camera.WorldToScreen(zone.center);
-    const float radius = camera.PixelsFor(zone.radius) * camera.VerticalScale(); // on screen, above the centre
-    const Color color = own ? theme.accent : FactionColor(theme, zoneSide);
-    if (own) {
-      PlaneDisc(draw, camera, zone.center, zone.radius, color.WithAlpha(16));
-    }
-    PlaneCircle(draw, camera, zone.center, zone.radius, color.WithAlpha(own ? 200 : 90),
-                Stroke{ui.S(own ? 1.5f : 1.0f), ui.S(9.0f), ui.S(6.0f)});
-    draw.Text(own ? "YOUR DEPLOYMENT ZONE" : "ENEMY DEPLOYMENT", {center.x, center.y - radius - ui.S(6.0f)},
-              ui.S(10.0f), color.WithAlpha(own ? 220 : 140), Align::Center, VAlign::Bottom, FontWeight::Bold);
-  }
+  DrawDeploymentZones(ui);
   draw.PopClip();
 
   const battle::ViewDeployZone& zone = view.deployZones[static_cast<int>(side)];
@@ -560,7 +597,7 @@ void CommandHud::DrawDeployment(Ui& ui)
     if (ui.ReleasedId() == hud_id::DeployHandle(m_deployDrag)) {
       battle::Command command;
       command.target.groups = {m_deployDrag};
-      command.order = battle::OrderDeploy{mouseWorld, std::nullopt};
+      command.order = battle::OrderDeploy{mouseWorld - m_deployGrab, std::nullopt};
       Submit(std::move(command));
     }
     m_deployDrag = kNoGroup;
@@ -575,14 +612,19 @@ void CommandHud::DrawDeployment(Ui& ui)
       continue;
     }
     battle::Vec2 centroid;
+    float top = std::numeric_limits<float>::max();
     for (UnitIndex unit : members) {
-      const battle::Vec2 p = FindUnit(view, unit)->position;
-      centroid += p;
+      const battle::ViewUnit* found = FindUnit(view, unit);
+      centroid += found->position;
+      top = std::min(top, camera.WorldToScreen(found->position).y
+                              - std::max(camera.PixelsFor(found->radius), ui.S(6.0f)) * camera.VerticalScale());
     }
     centroid = centroid * (1.0f / static_cast<float>(members.size()));
     const WidgetId id = hud_id::DeployHandle(group.id);
-    const Point at = camera.WorldToScreen(centroid);
+    const Point base = camera.WorldToScreen(centroid);
     const float r = ui.S(kHandleRadius);
+    // The handle floats above its group on a stem, clear of the ships and their names below them.
+    const Point at{base.x, std::min(base.y, top) - r - ui.S(10.0f)};
     const Rect hit{at.x - r, at.y - r, 2.0f * r, 2.0f * r};
     if (!camera.Viewport().Contains(at) && m_deployDrag != group.id) {
       continue;
@@ -593,35 +635,47 @@ void CommandHud::DrawDeployment(Ui& ui)
     if (pressing && m_deployDrag == kNoGroup && !m_pressAbandoned
         && Distance(ui.Mouse(), ui.PressPoint()) > ui.S(kDeployDragThreshold)) {
       m_deployDrag = group.id;
+      m_deployGrab = camera.ScreenToWorld(ui.PressPoint()) - centroid;
     }
     const bool dragging = m_deployDrag == group.id;
-    const battle::Vec2 target = DeploymentTarget(view, members, centroid, mouseWorld, zone);
+    const battle::Vec2 target = DeploymentTarget(view, members, centroid, mouseWorld - m_deployGrab, zone);
     if (clicked && !dragging && Distance(ui.ClickPoint(), ui.PressPoint()) <= ui.S(kDeployDragThreshold)) {
       FocusGroup(group.id);
     }
     const Color faction = FactionColor(theme, side);
+    const bool hovered = ui.Hovered(id);
+    const Color ring = hovered || dragging ? theme.accent : faction;
     if (dragging) {
       const Point to = camera.WorldToScreen(target);
-      draw.Line(at, to, theme.accent.WithAlpha(160), Stroke{ui.S(1.5f), ui.S(6.0f), ui.S(4.0f)});
+      draw.Line(base, to, theme.accent.WithAlpha(170), Stroke{ui.S(1.5f), ui.S(6.0f), ui.S(4.0f)});
       for (UnitIndex unit : members) {
         const battle::ViewUnit* found = FindUnit(view, unit);
-        const Point ghost = camera.WorldToScreen(
-            {found->position.x + target.x - centroid.x, found->position.y + target.y - centroid.y});
-        draw.Circle(ghost, std::max(camera.PixelsFor(found->radius), ui.S(5.0f)), faction.WithAlpha(170),
+        const battle::Vec2 ghost = found->position + (target - centroid);
+        PlaneCircle(draw, camera, ghost, std::max(found->radius, camera.MetersFor(ui.S(5.0f))), faction.WithAlpha(180),
                     Stroke{ui.S(1.5f)});
       }
-      draw.FillCircle(to, r, theme.panel);
-      draw.Circle(to, r, theme.accent, Stroke{ui.S(2.0f)});
+      draw.Glow(to, ui.S(10.0f), theme.accent.WithAlpha(120));
+      draw.FillCircle(to, ui.S(3.0f), theme.accent);
     }
-    const bool hovered = ui.Hovered(id);
-    draw.FillCircle(at, r, theme.panel);
-    draw.Circle(at, r, hovered || dragging ? theme.accent : faction, Stroke{ui.S(hovered ? 2.0f : 1.5f)});
+    draw.Line({at.x, at.y + r}, {base.x, std::min(base.y, top)}, ring.WithAlpha(150),
+              Stroke{ui.S(1.0f), ui.S(2.0f), ui.S(2.0f)});
+    draw.FillCircle({base.x, std::min(base.y, top)}, ui.S(2.0f), ring.WithAlpha(200));
+    if (hovered || dragging) {
+      draw.Glow(at, r * 1.9f, theme.accent.WithAlpha(70));
+    }
+    draw.FillCircle(at + Point{ui.S(1.0f), ui.S(2.0f)}, r, Rgb(0x000000, 110));
+    draw.GradientSector(at, 0.0f, r, 0.0f, kTwoPi, theme.buttonHover, theme.buttonFaceBottom);
+    draw.Ring(at, r - ui.S(2.5f), r, ring);
+    draw.Circle(at, r, Rgb(0x000000, 180), Stroke{1.0f});
     const std::optional<int> key = HotkeyFor(group.id);
     const std::string mark = key ? std::to_string(*key) : GroupTitle(group).substr(0, 1);
-    draw.Text(mark, at, ui.S(12.0f), theme.text, Align::Center, VAlign::Middle, FontWeight::Bold);
+    chrome::ShadowText(draw, DrawText{mark, at, ui.S(12.0f), theme.title, Align::Center, VAlign::Middle, FontWeight::Bold},
+                       ui.Scale());
     if (hovered && !dragging) {
-      draw.Text(GroupTitle(group), {at.x, at.y - r - ui.S(4.0f)}, ui.S(11.0f), theme.text, Align::Center,
-                VAlign::Bottom);
+      chrome::ShadowText(draw,
+                         DrawText{GroupTitle(group), {at.x, at.y - r - ui.S(4.0f)}, ui.S(11.0f), theme.text,
+                                  Align::Center, VAlign::Bottom},
+                         ui.Scale());
     }
     ui.Tooltip(id, "Drag to deploy " + GroupTitle(group) + " anywhere inside your zone; click to select it.");
   }

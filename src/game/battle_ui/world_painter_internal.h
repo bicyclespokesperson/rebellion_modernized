@@ -115,6 +115,8 @@ float DrawnRadiusPx(const Painter& p, const ViewUnit& unit);
 // world_backdrop.cpp
 void PaintBackdrop(const Painter& p);
 void PaintGrid(const Painter& p);
+// Darkens the corners of the view, so the battle reads as a lit display and the HUD panels stand off it.
+void PaintVignette(const Painter& p);
 
 // world_overlay.cpp
 void PaintWells(const Painter& p);

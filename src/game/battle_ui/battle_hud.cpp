@@ -1,6 +1,9 @@
 #include "battle_ui/battle_hud.h"
 
+#include <array>
 #include <cstdio>
+
+#include "battle_ui/chrome.h"
 
 #include "battle_ui/world_painter.h"
 
@@ -190,18 +193,26 @@ void TopBarPanel::Draw(Ui& ui, BattleScreen& screen)
   const Theme& theme = ui.GetTheme();
   const Rect bar = screen.Layout().topBar;
   const battle::ViewModel& view = screen.View();
-  ui.Panel(bar);
+  ui.Block(bar);
+  chrome::ConsoleBar(ui.Draw(), bar, theme, ui.Scale());
   const float pad = ui.S(6.0f);
   const float buttonHeight = ui.S(24.0f);
-  const float y = bar.y + (bar.h - buttonHeight) * 0.5f;
-  float x = bar.x + pad;
+  const float y = std::round(bar.y + (bar.h - buttonHeight) * 0.5f - ui.S(1.0f));
+  float x = bar.x + pad + ui.S(2.0f);
 
+  // Pause and the speeds sit together in a recessed tray, like the original's row of console buttons.
+  const float pauseWidth = buttonHeight + ui.S(6.0f);
+  const float speedWidth = ui.S(40.0f);
+  const float trayWidth = pauseWidth + ui.S(4.0f) + static_cast<float>(BattleScreen::kSpeeds.size()) * speedWidth;
+  chrome::Well(ui.Draw(), {x - ui.S(2.0f), y - ui.S(2.0f), trayWidth + ui.S(4.0f), buttonHeight + ui.S(4.0f)}, theme,
+               ui.Scale());
   const WidgetId pauseId = Id("top.pause");
-  const Rect pause{x, y, buttonHeight + ui.S(6.0f), buttonHeight};
+  const Rect pause{x, y, pauseWidth, buttonHeight};
   if (ui.Selectable(pauseId, pause, "", screen.Paused())) {
     screen.SetPaused(!screen.Paused());
   }
-  DrawPlayIcon(ui.Draw(), pause, screen.Paused(), theme.text, ui.Scale());
+  DrawPlayIcon(ui.Draw(), {pause.x, pause.y - ui.S(1.0f), pause.w, pause.h}, screen.Paused(),
+               screen.Paused() ? theme.accent : theme.text, ui.Scale());
   ui.Tooltip(pauseId, screen.Paused() ? "Resume (Space)" : "Pause (Space)");
   x = pause.Right() + ui.S(4.0f);
 
@@ -209,18 +220,19 @@ void TopBarPanel::Draw(Ui& ui, BattleScreen& screen)
     char label[8];
     SpeedLabel(label, sizeof label, BattleScreen::kSpeeds[i]);
     const WidgetId id = Id(Id("top.speed"), i);
-    const Rect button{x, y, ui.S(40.0f), buttonHeight};
+    const Rect button{x, y, speedWidth, buttonHeight};
     if (ui.Selectable(id, button, label, !screen.Paused() && screen.SpeedIndex() == i)) {
       screen.SetSpeedIndex(i);
       screen.SetPaused(false);
     }
     ui.Tooltip(id, "Battle speed (- and =)");
-    x = button.Right() + ui.S(2.0f);
+    x = button.Right();
   }
   x += ui.S(14.0f);
-  ui.Label({x, bar.y, ui.S(60.0f), bar.h}, FormatClock(view.battleSeconds),
-           {16.0f, theme.title, Align::Start, VAlign::Middle, FontWeight::Bold});
-  x += ui.S(70.0f);
+  const Rect clock{x, y - ui.S(1.0f), ui.S(74.0f), buttonHeight + ui.S(2.0f)};
+  chrome::Readout(ui.Draw(), clock, FormatClock(view.battleSeconds), "88:88", ui.S(17.0f), theme.readout, theme,
+                  ui.Scale());
+  x = clock.Right() + ui.S(14.0f);
 
   const WidgetId viewId = Id("top.view");
   const Rect viewButton{x, y, ui.S(64.0f), buttonHeight};
@@ -240,27 +252,34 @@ void TopBarPanel::Draw(Ui& ui, BattleScreen& screen)
   ui.Tooltip(followId, following ? "Following " + screen.Label(screen.Following()).name
                                        + ": click, press F or pan the view to release the camera"
                                  : "Keep the camera on the selected ship as it moves (F)");
-  x = followButton.Right() + ui.S(16.0f);
+  x = followButton.Right() + ui.S(18.0f);
+
+  const float medallion = bar.h * 0.4f;
+  const Point emblemAt{bar.Right() - pad - medallion - ui.S(4.0f), bar.Center().y - ui.S(1.0f)};
+  chrome::Medallion(ui.Draw(), emblemAt, medallion, theme);
 
   const Side player = screen.PlayerSide();
   const Side enemy = player == Side::Alliance ? Side::Empire : Side::Alliance;
-  const float available = bar.Right() - pad - x;
-  const float block = std::min(ui.S(300.0f), available * 0.5f);
+  const float available = emblemAt.x - medallion - ui.S(12.0f) - x;
+  const float block = std::min(ui.S(320.0f), available * 0.5f);
   for (const Side side : {player, enemy}) {
-    if (block < ui.S(150.0f)) {
+    if (block < ui.S(170.0f)) {
       break;
     }
     const battle::ViewSide& state = view.sides[static_cast<int>(side)];
     const Color color = FactionColor(theme, side);
     const float fraction = state.initialStrength > 0.0f ? state.strength / state.initialStrength : 0.0f;
-    const float nameWidth = ui.S(70.0f);
-    const float valueWidth = ui.S(40.0f);
-    ui.Label({x, bar.y, nameWidth, bar.h}, SideName(side),
+    const float nameWidth = ui.S(74.0f);
+    const float valueWidth = ui.S(58.0f);
+    ui.Label({x, bar.y - ui.S(1.0f), nameWidth, bar.h}, SideName(side),
              {12.0f, color, Align::Start, VAlign::Middle, FontWeight::Bold});
-    const float barWidth = block - nameWidth - valueWidth - ui.S(16.0f);
-    ui.Bar({x + nameWidth, bar.Center().y - ui.S(4.0f), barWidth, ui.S(8.0f)}, fraction, color.WithAlpha(210));
-    ui.Label({x + nameWidth + barWidth, bar.y, valueWidth, bar.h}, state.withdrawing ? "RET" : Percent(fraction),
-             {12.0f, theme.text, Align::End});
+    const float gaugeWidth = block - nameWidth - valueWidth - ui.S(24.0f);
+    chrome::Gauge(ui.Draw(), {x + nameWidth, bar.Center().y - ui.S(6.0f), gaugeWidth, ui.S(10.0f)}, fraction, color,
+                  theme, ui.Scale(), 20);
+    const Rect value{x + nameWidth + gaugeWidth + ui.S(6.0f), y + ui.S(2.0f), valueWidth, buttonHeight - ui.S(4.0f)};
+    chrome::Readout(ui.Draw(), value, state.withdrawing ? "JUMPING" : Percent(fraction),
+                    state.withdrawing ? "" : "888%", ui.S(state.withdrawing ? 10.0f : 13.0f),
+                    state.withdrawing ? theme.accent : theme.readout, theme, ui.Scale(), Align::End);
     x += block;
   }
 }
@@ -282,10 +301,44 @@ void InfoBoxPanel::Draw(Ui& ui, BattleScreen& screen)
 
 void KeyHintsPanel::Draw(Ui& ui, BattleScreen& screen)
 {
-  ui.Label(
-      screen.Layout().hints,
-      "Space pause   -/= speed   Tab overlay   V angled view   Q/E rotate   Home frame   F follow   Ctrl+1-9 group",
-      {11.0f, ui.GetTheme().textDim, Align::End, VAlign::Middle});
+  struct Hint {
+    std::string_view keys;
+    std::string_view action;
+  };
+  static constexpr std::array kHints{Hint{"Space", "pause"}, Hint{"- =", "speed"},    Hint{"Tab", "overlay"},
+                                     Hint{"V", "angled"},    Hint{"Q E", "rotate"},   Hint{"Home", "frame"},
+                                     Hint{"F", "follow"},    Hint{"Ctrl 1-9", "group"}};
+  const Theme& theme = ui.GetTheme();
+  const Rect area = screen.Layout().hints;
+  const float keySize = ui.S(10.0f);
+  const float textSize = ui.S(11.0f);
+  const float capHeight = std::min(area.h, ui.S(16.0f));
+  const auto width = [&](const Hint& hint) {
+    return ui.Text().Width(hint.keys, keySize, FontWeight::Bold) + ui.S(10.0f) + ui.S(4.0f)
+           + ui.Text().Width(hint.action, textSize) + ui.S(12.0f);
+  };
+  // Right-aligned; the hints that do not fit are left out from the end.
+  size_t count = kHints.size();
+  float total = 0.0f;
+  for (const Hint& hint : kHints) {
+    total += width(hint);
+  }
+  while (count > 0 && total > area.w) {
+    total -= width(kHints[--count]);
+  }
+  float x = area.Right() - total;
+  for (size_t i = 0; i < count; ++i) {
+    const Hint& hint = kHints[i];
+    const float capWidth = ui.Text().Width(hint.keys, keySize, FontWeight::Bold) + ui.S(10.0f);
+    chrome::Keycap(ui.Draw(), {x, area.Center().y - capHeight * 0.5f, capWidth, capHeight}, hint.keys, keySize, theme,
+                   ui.Scale());
+    x += capWidth + ui.S(4.0f);
+    chrome::ShadowText(ui.Draw(),
+                       DrawText{std::string(hint.action), {x, area.Center().y}, textSize, theme.textDim, Align::Start,
+                                VAlign::Middle},
+                       ui.Scale());
+    x += ui.Text().Width(hint.action, textSize) + ui.S(12.0f);
+  }
 }
 
 } // namespace reb::battle_ui

@@ -2,6 +2,8 @@
 // rings, target lines and projected positions (§10.1). Plane shapes go through plane_shapes.h, so they foreshorten
 // with the angled view.
 #include <array>
+#include <cstdio>
+#include <string>
 
 #include "battle_ui/world_painter_internal.h"
 #include "space_battle/battle.h"
@@ -28,9 +30,69 @@ Color KindColor(const Theme& theme, Side side, int kind)
   return theme.text;
 }
 
-// With one unit selected, its arcs, range rings and tractor reach; with several, fainter arcs only, so that a task
-// force's overlapping coverage stays readable.
-void PaintArcsAndRanges(const Painter& p, const ViewUnit& unit, const battle::ViewUnitDetail& detail, bool single)
+std::string_view KindName(int kind)
+{
+  switch (static_cast<battle::WeaponKind>(kind)) {
+    case battle::WeaponKind::Turbolaser:
+      return "TURBOLASER";
+    case battle::WeaponKind::Ion:
+      return "ION";
+    case battle::WeaponKind::Laser:
+      return "LASER";
+  }
+  return "";
+}
+
+// Each weapon kind keeps its own line pattern as well as its colour, so the rings stay apart without colour.
+Stroke KindStroke(int kind, float ui)
+{
+  switch (static_cast<battle::WeaponKind>(kind)) {
+    case battle::WeaponKind::Turbolaser:
+      return Stroke{1.0f * ui};
+    case battle::WeaponKind::Ion:
+      return Stroke{1.0f * ui, 10.0f * ui, 5.0f * ui};
+    case battle::WeaponKind::Laser:
+      return Stroke{1.2f * ui, 2.0f * ui, 4.0f * ui};
+  }
+  return Stroke{1.0f * ui};
+}
+
+// A small tag naming a ring, where the ring crosses the upper right of its centre; a tag that would overlap one
+// already placed is left out.
+void RingTag(const Painter& p, Vec2 center, float radius, const std::string& text, Color color,
+             std::vector<Rect>& placed)
+{
+  const Point c = p.Screen(center);
+  const float rx = p.Px(radius);
+  const float ry = rx * p.camera.VerticalScale();
+  const Point at{c.x + rx * 0.7071f, c.y - ry * 0.7071f};
+  const float size = 9.0f * p.ui;
+  const float width = p.scene.text ? p.scene.text->Width(text, size, FontWeight::Bold) : 5.5f * p.ui * text.size();
+  const Rect rect{at.x + 4.0f * p.ui, at.y - 13.0f * p.ui, width + 8.0f * p.ui, 12.0f * p.ui};
+  if (!p.camera.Viewport().Contains(at) || std::ranges::any_of(placed, [&](const Rect& other) {
+        return !Intersection(rect, other).Empty();
+      })) {
+    return;
+  }
+  placed.push_back(rect);
+  p.out.Line(at, {rect.x, rect.Bottom()}, color.WithAlpha(120), Stroke{1.0f * p.ui});
+  p.out.FillRect(rect, Rgb(0x02050a, 190));
+  p.out.FillRect({rect.x, rect.Bottom() - 1.0f * p.ui, rect.w, 1.0f * p.ui}, color.WithAlpha(150));
+  p.out.Text(text, {rect.x + 4.0f * p.ui, rect.Center().y}, size, color.WithAlpha(230), Align::Start, VAlign::Middle,
+             FontWeight::Bold);
+}
+
+std::string Kilometers(float meters)
+{
+  char text[16];
+  std::snprintf(text, sizeof text, "%.1f km", meters / 1000.0f);
+  return text;
+}
+
+// With one unit selected, its firing arcs as coverage that brightens toward its reach, labelled range rings and its
+// tractor reach; with several, fainter arcs only, so that a task force's overlapping coverage stays readable.
+void PaintArcsAndRanges(const Painter& p, const ViewUnit& unit, const battle::ViewUnitDetail& detail, bool single,
+                        std::vector<Rect>& tags)
 {
   const battle::WeaponGrid& grid = detail.weapons;
   for (int arc = 0; arc < battle::kArcCount; ++arc) {
@@ -52,15 +114,20 @@ void PaintArcsAndRanges(const Painter& p, const ViewUnit& unit, const battle::Vi
       continue;
     }
     const float start = unit.heading + kArcCenters[arc] - kArcHalfWidth;
+    const float sweep = 2.0f * kArcHalfWidth;
     const Color color = KindColor(p.scene.theme, unit.side, strongestKind);
-    PlaneSector(p.out, p.camera, unit.position, 0.0f, reach, start, 2.0f * kArcHalfWidth,
-                color.WithAlpha(single ? 22 : 9));
-    PlaneArc(p.out, p.camera, unit.position, reach, start, 2.0f * kArcHalfWidth, color.WithAlpha(single ? 150 : 70),
+    PlaneSectorShaded(p.out, p.camera, unit.position, 0.0f, reach, start, sweep, color.WithAlpha(single ? 4 : 0),
+                      color.WithAlpha(single ? 46 : 7));
+    if (single) {
+      PlaneArc(p.out, p.camera, unit.position, reach, start, sweep, color.WithAlpha(70),
+               Stroke{1.0f * p.ui, 0, 0, 0, 4.0f * p.ui}, Blend::Additive);
+    }
+    PlaneArc(p.out, p.camera, unit.position, reach, start, sweep, color.WithAlpha(single ? 190 : 80),
              Stroke{1.5f * p.ui});
     if (single) {
-      for (const float edge : {start, start + 2.0f * kArcHalfWidth}) {
+      for (const float edge : {start, start + sweep}) {
         const Vec2 end{unit.position.x + std::cos(edge) * reach, unit.position.y + std::sin(edge) * reach};
-        p.out.Line(p.Screen(unit.position), p.Screen(end), color.WithAlpha(60), Stroke{1.0f * p.ui});
+        p.out.Line(p.Screen(unit.position), p.Screen(end), color.WithAlpha(50), Stroke{1.0f * p.ui});
       }
     }
   }
@@ -72,17 +139,19 @@ void PaintArcsAndRanges(const Painter& p, const ViewUnit& unit, const battle::Vi
     if (range <= 0.0f) {
       continue;
     }
-    const Stroke stroke
-        = kind == 0 ? Stroke{1.0f * p.ui, 10.0f * p.ui, 6.0f * p.ui} : Stroke{1.0f * p.ui, 3.0f * p.ui, 6.0f * p.ui};
-    PlaneCircle(p.out, p.camera, unit.position, range, KindColor(p.scene.theme, unit.side, kind).WithAlpha(110),
-                stroke);
+    const Color color = KindColor(p.scene.theme, unit.side, kind);
+    PlaneCircle(p.out, p.camera, unit.position, range, color.WithAlpha(120), KindStroke(kind, p.ui));
+    RingTag(p, unit.position, range, std::string(KindName(kind)) + " " + Kilometers(range), color, tags);
   }
   if (detail.tractorRange > 0.0f) {
-    PlaneCircle(p.out, p.camera, unit.position, detail.tractorRange, p.scene.theme.ion.WithAlpha(120),
-                Stroke{1.0f * p.ui, 2.0f * p.ui, 4.0f * p.ui});
+    PlaneCircle(p.out, p.camera, unit.position, detail.tractorRange, p.scene.theme.ion.WithAlpha(130),
+                Stroke{1.0f * p.ui, 1.5f * p.ui, 3.5f * p.ui});
+    RingTag(p, unit.position, detail.tractorRange, "TRACTOR " + Kilometers(detail.tractorRange), p.scene.theme.ion,
+            tags);
   }
 }
 
+// Where each selected unit will be in a few seconds: a dotted track and a ghost chevron pointing along it.
 void PaintProjections(const Painter& p)
 {
   for (const ViewUnit& unit : p.scene.view.units) {
@@ -93,12 +162,27 @@ void PaintProjections(const Painter& p)
                      unit.position.y + unit.velocity.y * kProjectionSeconds};
     const Point from = p.Screen(unit.position);
     const Point to = p.Screen(ahead);
-    if (Distance(from, to) < 4.0f * p.ui) {
+    const float length = Distance(from, to);
+    if (length < 4.0f * p.ui) {
       continue;
     }
-    const Color color = FactionColor(p.scene.theme, unit.side).WithAlpha(140);
-    p.out.Line(from, to, color, Stroke{1.0f * p.ui, 2.0f * p.ui, 4.0f * p.ui});
-    PlaneCircle(p.out, p.camera, ahead, p.camera.MetersFor(4.0f * p.ui), color, Stroke{1.0f * p.ui});
+    const Color color = FactionColor(p.scene.theme, unit.side).WithAlpha(150);
+    p.out.Line(from, to, color, Stroke{1.0f * p.ui, 1.5f * p.ui, 4.0f * p.ui});
+    const Point dir = (to - from) * (1.0f / length);
+    const Point side{-dir.y, dir.x};
+    const float s = 5.0f * p.ui;
+    p.out.Polyline({to - dir * s + side * s, to, to - dir * s - side * s}, color, Stroke{1.5f * p.ui});
+  }
+}
+
+// Brackets around a target, in the colour of the side aiming at it.
+void PaintTargetReticle(const Painter& p, const ViewUnit& target, Color color)
+{
+  const Point center = p.Screen(target.position);
+  const float r = std::max(DrawnRadiusPx(p, target) + 6.0f * p.ui, 11.0f * p.ui);
+  for (int i = 0; i < 4; ++i) {
+    const float mid = kPi * 0.25f + static_cast<float>(i) * kPi * 0.5f;
+    p.out.Arc(center, r, mid - 0.32f, 0.64f, color, Stroke{1.5f * p.ui});
   }
 }
 
@@ -111,7 +195,9 @@ void PaintWells(const Painter& p)
       continue;
     }
     const Color color = FactionColor(p.scene.theme, well.side);
-    PlaneCircle(p.out, p.camera, well.center, well.radius, color.WithAlpha(well.active ? 100 : 35),
+    PlaneSectorShaded(p.out, p.camera, well.center, well.radius * 0.82f, well.radius, 0.0f, kTwoPi, color.WithAlpha(0),
+                      color.WithAlpha(well.active ? 26 : 8));
+    PlaneCircle(p.out, p.camera, well.center, well.radius, color.WithAlpha(well.active ? 110 : 35),
                 Stroke{1.0f * p.ui});
     if (well.active) {
       for (int ripple = 0; ripple < 2; ++ripple) {
@@ -255,9 +341,10 @@ void PaintZoneLabels(const Painter& p)
 
 void PaintArcsAndRanges(const Painter& p)
 {
+  std::vector<Rect> tags;
   for (const battle::ViewUnitDetail& detail : p.scene.selectedDetails) {
     if (const ViewUnit* unit = FindUnit(p.scene.view, detail.unit); unit && Selectable(*unit)) {
-      PaintArcsAndRanges(p, *unit, detail, p.scene.selectedDetails.size() == 1);
+      PaintArcsAndRanges(p, *unit, detail, p.scene.selectedDetails.size() == 1, tags);
     }
   }
 }
@@ -281,17 +368,33 @@ void PaintTractors(const Painter& p)
     const float spread = std::max(p.Px(to->radius) * 0.7f, 4.0f * p.ui);
     const float pulse = 0.6f + 0.4f * static_cast<float>(std::sin(p.scene.seconds * 6.0));
     const Color color = p.scene.theme.ion;
-    p.out.FillConvex({a + normal * (1.5f * p.ui), b + normal * spread, b - normal * spread, a - normal * (1.5f * p.ui)},
-                     color.WithAlpha(static_cast<uint8_t>(40 * pulse + 20)), Blend::Additive);
-    p.out.Line(a, b, color.WithAlpha(static_cast<uint8_t>(120 * pulse)), Stroke{1.0f * p.ui}, Blend::Additive);
+    // A cone of light, strongest at the emitter, with waves running back along it as the beam pulls.
+    const Color source = color.WithAlpha(static_cast<uint8_t>(70 * pulse + 30));
+    const Color far = color.WithAlpha(static_cast<uint8_t>(20 * pulse + 10));
+    const float mouth = 1.5f * p.ui;
+    p.out.FillConvexShaded({a + normal * mouth, b + normal * spread, b - normal * spread, a - normal * mouth},
+                           {source, far, far, source}, Blend::Additive);
+    p.out.Line(a, b, color.WithAlpha(static_cast<uint8_t>(130 * pulse)), Stroke{1.0f * p.ui, 0, 0, 0, 2.0f * p.ui},
+               Blend::Additive);
+    constexpr int kWaves = 4;
+    for (int wave = 0; wave < kWaves; ++wave) {
+      const float t = 1.0f - Modulo(static_cast<float>(p.scene.seconds * 0.6) + static_cast<float>(wave) / kWaves, 1.0f);
+      const Point at = a + (b - a) * t;
+      const float half = mouth + (spread - mouth) * t;
+      p.out.Line(at + normal * half, at - normal * half, color.WithAlpha(static_cast<uint8_t>(110 * std::sin(t * kPi))),
+                 Stroke{1.0f * p.ui}, Blend::Additive);
+    }
+    p.out.Glow(a, 6.0f * p.ui, color.WithAlpha(150));
   }
 }
 
-// Solid while firing, dashed while only assigned: for the selection, or for all of the player's units when nothing is
-// selected. Lines run between positions on the plane, under the ships in both views.
+// Solid while firing, marching dashes while only assigned: for the selection, or for all of the player's units when
+// nothing is selected. Lines run between positions on the plane, under the ships in both views; a selected unit's
+// target is bracketed.
 void PaintTargetLines(const Painter& p)
 {
   const bool all = p.scene.selection.Empty();
+  std::vector<battle::UnitIndex> bracketed;
   for (const ViewUnit& unit : p.scene.view.units) {
     if (!Selectable(unit) || unit.target == battle::kNoUnit) {
       continue;
@@ -304,9 +407,22 @@ void PaintTargetLines(const Painter& p)
     if (!target) {
       continue;
     }
-    const Color color = FactionColor(p.scene.theme, unit.side).WithAlpha(selected ? 200 : 90);
-    const Stroke stroke = unit.firing ? Stroke{1.5f * p.ui} : Stroke{1.5f * p.ui, 7.0f * p.ui, 5.0f * p.ui};
-    p.out.Line(p.Screen(unit.position), p.Screen(target->position), color, stroke);
+    const Color color = FactionColor(p.scene.theme, unit.side).WithAlpha(selected ? 210 : 90);
+    const Point from = p.Screen(unit.position);
+    const Point to = p.Screen(target->position);
+    if (unit.firing) {
+      if (selected) {
+        p.out.Line(from, to, color.WithAlpha(50), Stroke{1.0f * p.ui, 0, 0, 0, 3.0f * p.ui}, Blend::Additive);
+      }
+      p.out.Line(from, to, color, Stroke{1.5f * p.ui});
+    } else {
+      const float march = -static_cast<float>(std::fmod(p.scene.seconds * 24.0, 1000.0)) * p.ui;
+      p.out.Line(from, to, color, Stroke{1.5f * p.ui, 7.0f * p.ui, 5.0f * p.ui, march});
+    }
+    if (selected && std::ranges::find(bracketed, target->unit) == bracketed.end()) {
+      bracketed.push_back(target->unit);
+      PaintTargetReticle(p, *target, color);
+    }
   }
   PaintProjections(p);
 }

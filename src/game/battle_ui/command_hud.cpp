@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include "battle_ui/battle_hud.h"
+#include "battle_ui/chrome.h"
 #include "battle_ui/hud_draw.h"
 #include "battle_ui/selection.h"
 #include "battle_ui/world_painter.h"
@@ -169,19 +170,9 @@ WidgetId CollapseCard()
 }
 } // namespace hud_id
 
-Theme HudTheme(bool colorBlind)
+Theme HudTheme(bool colorBlind, battle::Side side)
 {
-  Theme theme;
-  if (colorBlind) {
-    // Orange against sky blue stays distinct under red-green and blue-yellow colour blindness.
-    theme.alliance = Rgb(0xf5a43a);
-    theme.empire = Rgb(0x5cc6f2);
-    // Bolts follow the sides' colours; ion fire, otherwise blue like the Empire's, is told apart by brightness.
-    theme.allianceBolt = Rgb(0xff9a1e);
-    theme.empireBolt = Rgb(0x3cc8ff);
-    theme.ionBolt = Rgb(0xf0ecff);
-  }
-  return theme;
+  return chrome::SkinnedTheme(side, colorBlind);
 }
 
 CommandHud& InstallCommandHud(BattleScreen& screen, BattleHost& host, SettingsStore& store)
@@ -202,7 +193,7 @@ CommandHud::CommandHud(BattleScreen& screen, BattleHost& host, SettingsStore& st
 {
   m_hotkeyGroup.fill(kNoGroup);
   m_briefing = screen.View().tick == 0 && screen.Paused() && !screen.View().finished;
-  screen.SetTheme(HudTheme(m_settings.colorBlindPalette));
+  screen.SetTheme(HudTheme(m_settings.colorBlindPalette, screen.PlayerSide()));
   screen.SetHudScale(m_settings.hudScale);
 }
 
@@ -210,7 +201,7 @@ void CommandHud::ApplySettings(HudSettings settings)
 {
   m_settings = std::move(settings);
   m_settings.Save(m_store);
-  m_screen.SetTheme(HudTheme(m_settings.colorBlindPalette));
+  m_screen.SetTheme(HudTheme(m_settings.colorBlindPalette, m_screen.PlayerSide()));
   m_screen.SetHudScale(m_settings.hudScale);
 }
 
@@ -804,13 +795,19 @@ void CommandHud::DrawPickOverlay(Ui& ui)
       const Point center = camera.WorldToScreen(unit->position);
       const float r = std::max(camera.PixelsFor(unit->radius), ui.S(10.0f)) + ui.S(8.0f);
       const bool valid = PickValid(hovered);
-      const Color color = valid ? Rgb(0xffd25a) : theme.disabledText;
+      const Color color = valid ? theme.accent : theme.disabledText;
       ui.Draw().PushClip(view);
+      // A targeting reticle: a ring with crosshair ticks, slowly turning while the pick is valid.
+      const float spin = valid ? static_cast<float>(m_screen.Seconds() * 0.8) : 0.0f;
+      ui.Draw().Circle(center, r, Rgb(0x000000, 140), Stroke{ui.S(4.0f)});
+      if (valid) {
+        ui.Draw().Circle(center, r, color.WithAlpha(70), Stroke{ui.S(2.0f), 0, 0, 0, ui.S(5.0f)}, Blend::Additive);
+      }
       ui.Draw().Circle(center, r, color, Stroke{ui.S(2.0f), valid ? 0.0f : ui.S(4.0f), ui.S(4.0f)});
       if (valid) {
         for (int i = 0; i < 4; ++i) {
-          const Point dir = ScreenDirection(static_cast<float>(i) * kPi * 0.5f);
-          ui.Draw().Line(center + dir * (r - ui.S(5.0f)), center + dir * (r + ui.S(6.0f)), color, Stroke{ui.S(2.0f)});
+          const Point dir = ScreenDirection(spin + static_cast<float>(i) * kPi * 0.5f);
+          ui.Draw().Line(center + dir * (r - ui.S(5.0f)), center + dir * (r + ui.S(7.0f)), color, Stroke{ui.S(2.0f)});
         }
       }
       ui.Draw().PopClip();
@@ -821,10 +818,9 @@ void CommandHud::DrawPickOverlay(Ui& ui)
   const float size = 13.0f;
   const float width = ui.TextWidth(prompt, size, FontWeight::Bold) + ui.TextWidth(hint, 11.0f) + ui.S(44.0f);
   const Rect box{view.Center().x - width * 0.5f, view.y + ui.S(42.0f), width, ui.S(28.0f)};
-  ui.Draw().FillRect(box, theme.tooltip);
-  ui.Draw().StrokeRect(box, Rgb(0xffd25a, 200), ui.S(1.0f));
-  const Rect text = box.Inset(ui.S(12.0f), 0.0f);
-  ui.Label(text, prompt, {size, Rgb(0xffe6a0), Align::Start, VAlign::Middle, FontWeight::Bold});
+  chrome::Notice(ui.Draw(), box, theme.accent, theme, ui.Scale());
+  const Rect text = box.Inset(ui.S(14.0f), 0.0f);
+  ui.Label(text, prompt, {size, Mix(theme.accent, theme.title, 0.45f), Align::Start, VAlign::Middle, FontWeight::Bold});
   ui.Label(text, hint, {11.0f, theme.textDim, Align::End});
 }
 
@@ -840,9 +836,8 @@ void CommandHud::DrawObserving(Ui& ui)
   const float width = ui.TextWidth(text, 13.0f, FontWeight::Bold) + buttonWidth + ui.S(36.0f);
   const Rect box{view.Center().x - width * 0.5f, view.y + ui.S(42.0f), width, ui.S(30.0f)};
   ui.Block(box);
-  ui.Draw().FillRect(box, theme.tooltip);
-  ui.Draw().StrokeRect(box, theme.accent, ui.S(1.0f));
-  ui.Label(box.Inset(ui.S(12.0f), 0.0f), text, {13.0f, theme.title, Align::Start, VAlign::Middle, FontWeight::Bold});
+  chrome::Notice(ui.Draw(), box, theme.readout, theme, ui.Scale());
+  ui.Label(box.Inset(ui.S(14.0f), 0.0f), text, {13.0f, theme.title, Align::Start, VAlign::Middle, FontWeight::Bold});
   const Rect button{box.Right() - buttonWidth - ui.S(4.0f), box.y + ui.S(3.0f), buttonWidth, box.h - ui.S(6.0f)};
   const WidgetId id = Id("hud.observing.take");
   if (hud::Button(ui, id, button, Icon::Eye, "Take command")) {
@@ -859,11 +854,10 @@ void CommandHud::DrawToasts(Ui& ui)
   for (const Toast& toast : m_toasts | std::views::reverse) {
     const float age = static_cast<float>(m_screen.Seconds() - toast.time);
     const float fade = std::clamp((static_cast<float>(kToastSeconds) - age) / 0.6f, 0.0f, 1.0f);
-    const float width = ui.TextWidth(toast.text, 12.0f) + ui.S(24.0f);
+    const float width = ui.TextWidth(toast.text, 12.0f) + ui.S(32.0f);
     const Rect box{view.Center().x - width * 0.5f, y, width, ui.S(24.0f)};
-    ui.Draw().FillRect(box, theme.tooltip.Faded(fade));
-    ui.Draw().StrokeRect(box, theme.panelBorder.Faded(fade), ui.S(1.0f));
-    ui.Label(box, toast.text, {12.0f, theme.text.Faded(fade), Align::Center});
+    chrome::Notice(ui.Draw(), box, theme.metal, theme, ui.Scale(), fade);
+    ui.Label(box.Inset(ui.S(4.0f), 0.0f), toast.text, {12.0f, theme.text.Faded(fade), Align::Center});
     y += box.h + ui.S(4.0f);
   }
 }

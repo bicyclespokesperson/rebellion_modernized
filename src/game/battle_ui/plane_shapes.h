@@ -15,6 +15,10 @@ void PlaneCircle(DrawList& out, const Camera& camera, Vec2 center, float radius,
 // A filled annular sector (a pie slice when `inner` is 0, a ring or disc over a full turn).
 void PlaneSector(DrawList& out, const Camera& camera, Vec2 center, float inner, float outer, float start, float sweep,
                  Color color, Blend blend = Blend::Alpha);
+// A sector shaded from `innerColor` at `inner` to `outerColor` at `outer`: coverage and zones that brighten toward
+// their rim.
+void PlaneSectorShaded(DrawList& out, const Camera& camera, Vec2 center, float inner, float outer, float start,
+                       float sweep, Color innerColor, Color outerColor, Blend blend = Blend::Alpha);
 void PlaneDisc(DrawList& out, const Camera& camera, Vec2 center, float radius, Color color, Blend blend = Blend::Alpha);
 
 } // namespace reb::battle_ui

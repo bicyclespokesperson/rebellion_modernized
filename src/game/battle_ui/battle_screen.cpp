@@ -1,8 +1,11 @@
 #include "battle_ui/battle_screen.h"
 
+#include "battle_ui/chrome.h"
+
 #include <cmath>
 
 #include "battle_ui/battle_hud.h"
+#include "battle_ui/chrome.h"
 #include "battle_ui/orders.h"
 #include "battle_ui/plane_shapes.h"
 #include "battle_ui/unit_names.h"
@@ -43,6 +46,7 @@ BattleScreen::BattleScreen(BattleSource& source, const TextMeasurer& text, const
       m_source.SetAiControlled(m_options.playerSide, false);
     }
   }
+  m_ui.SetTheme(chrome::SkinnedTheme(m_options.playerSide, false));
   SetScreen(m_screen);
   RebuildView(0.0f);
   m_hotkeys.SeedFromGroups(m_view, m_options.playerSide);
@@ -749,14 +753,15 @@ void BattleScreen::DrawHoverCard(DrawList& out) const
   if (box.Bottom() > m_layout.screen.Bottom()) {
     box.y = m_mouse.y - 12.0f * ui - height;
   }
-  out.FillRect(box, theme.tooltip);
-  out.StrokeRect(box, FactionColor(theme, unit->side).WithAlpha(180), 1.0f * ui);
+  box.w += 4.0f * ui;
+  chrome::Notice(out, box, FactionColor(theme, unit->side), theme, ui);
   float y = box.y + pad;
-  out.Text(title, {box.x + pad, y}, titleSize, FactionColor(theme, unit->side), Align::Start, VAlign::Top,
+  const float padText = pad + 4.0f * ui;
+  out.Text(title, {box.x + padText, y}, titleSize, FactionColor(theme, unit->side), Align::Start, VAlign::Top,
            FontWeight::Bold, width - 2.0f * pad);
   y += m_text.LineHeight(titleSize) + 2.0f * ui;
   for (const std::string& line : intent) {
-    out.Text(line, {box.x + pad, y}, textSize, theme.text, Align::Start, VAlign::Top, FontWeight::Regular,
+    out.Text(line, {box.x + padText, y}, textSize, theme.text, Align::Start, VAlign::Top, FontWeight::Regular,
              width - 2.0f * pad);
     y += lineHeight;
   }
@@ -814,7 +819,7 @@ void BattleScreen::DrawBanners(DrawList& out) const
                                     : "BATTLE OVER";
   } else if (m_paused && !m_view.decided) {
     text = "PAUSED";
-    color = theme.text;
+    color = theme.accent;
   }
   const float followTop = m_layout.view.y + (text.empty() ? 10.0f : 42.0f) * ui;
   DrawFollowBanner(out, followTop);
@@ -822,11 +827,16 @@ void BattleScreen::DrawBanners(DrawList& out) const
     return;
   }
   const float size = 15.0f * ui;
-  const float width = m_text.Width(text, size, FontWeight::Bold) + 28.0f * ui;
-  const Rect box{m_layout.view.Center().x - width * 0.5f, m_layout.view.y + 10.0f * ui, width, 26.0f * ui};
-  out.FillRect(box, theme.panel);
-  out.StrokeRect(box, theme.panelBorder, 1.0f * ui);
-  out.Text(text, box.Center(), size, color, Align::Center, VAlign::Middle, FontWeight::Bold);
+  const float width = m_text.Width(text, size, FontWeight::Bold) + 64.0f * ui;
+  const Rect box{m_layout.view.Center().x - width * 0.5f, m_layout.view.y + 10.0f * ui, width, 28.0f * ui};
+  chrome::Plate(out, box, theme, ui);
+  const Rect well = box.Inset(5.0f * ui);
+  chrome::Readout(out, well, text, "", size, color, theme, ui);
+  // Status lamps either side, blinking while paused.
+  const bool lit = !m_paused || std::fmod(m_seconds, 1.2) < 0.8;
+  for (const float x : {well.x + 9.0f * ui, well.Right() - 9.0f * ui}) {
+    chrome::Lamp(out, {x, well.Center().y}, 3.0f * ui, color, lit);
+  }
 }
 
 void BattleScreen::DrawFollowBanner(DrawList& out, float top) const
@@ -840,10 +850,10 @@ void BattleScreen::DrawFollowBanner(DrawList& out, float top) const
   const std::string text = name.empty() ? "FOLLOWING  (F to release)" : "FOLLOWING " + name + "  (F to release)";
   const float size = 12.0f * ui;
   const float width = m_text.Width(text, size, FontWeight::Bold) + 20.0f * ui;
-  const Rect box{m_layout.view.Center().x - width * 0.5f, top, width, 20.0f * ui};
-  out.FillRect(box, theme.panel);
-  out.StrokeRect(box, theme.panelBorder, 1.0f * ui);
-  out.Text(text, box.Center(), size, theme.text, Align::Center, VAlign::Middle, FontWeight::Bold);
+  const Rect box{m_layout.view.Center().x - width * 0.5f - 4.0f * ui, top, width + 8.0f * ui, 22.0f * ui};
+  chrome::Notice(out, box, theme.accent, theme, ui);
+  out.Text(text, box.Center() + Point{3.0f * ui, 0.0f}, size, theme.text, Align::Center, VAlign::Middle,
+           FontWeight::Bold);
 }
 
 } // namespace reb::battle_ui
