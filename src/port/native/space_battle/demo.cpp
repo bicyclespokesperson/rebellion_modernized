@@ -687,6 +687,12 @@ int ReviewCommandHud(const std::filesystem::path& directory, int width, int heig
   review.Capture("22_flight_card");
   review.Key(battle_ui::Key::Escape);
 
+  // A box selection of ships and squadrons: the card commands the ships and says the squadrons are left out.
+  review.Screen().GetSelection().Set({0, 1, 7, 8});
+  review.Frame();
+  review.Hover(review.At(id::Order(battle_ui::OrderButton::Withdraw)));
+  review.Capture("22b_mixed_selection");
+
   review.Click(id::CollapseRoster());
   review.Click(id::CollapseCommand());
   review.Click(id::CollapseEvents());

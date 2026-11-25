@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <optional>
 #include <string_view>
 
@@ -37,6 +38,7 @@ constexpr UnitIndex kDefiance = 1;
 constexpr UnitIndex kSalvation = 3;
 constexpr UnitIndex kTantive = 4;
 constexpr UnitIndex kRedSquadron = 7;
+constexpr UnitIndex kGoldSquadron = 8;
 constexpr UnitIndex kAvenger = 10;
 constexpr UnitIndex kHarrow = 12;
 constexpr battle::GroupId kTaskForce1 = 0;
@@ -123,9 +125,22 @@ class Harness
 
   void Frame()
   {
-    DrawList list;
+    frame.Clear();
     screen->Update(0.0);
-    screen->Build(list);
+    screen->Build(frame);
+  }
+  bool Drew(std::string_view text) const
+  {
+    return std::ranges::any_of(frame.Commands(), [&](const DrawCommand& command) {
+      const DrawText* drawn = std::get_if<DrawText>(&command);
+      return drawn && drawn->text == text;
+    });
+  }
+  void Select(std::vector<UnitIndex> units)
+  {
+    screen->GetSelection().Set(std::move(units));
+    Frame();
+    Frame();
   }
   Point At(WidgetId id) const
   {
@@ -205,6 +220,7 @@ class Harness
   }
 
   KnowledgeBattle source;
+  DrawList frame;
   FixedTextMeasurer text;
   NoSprites sprites;
   MemorySettingsStore store;
@@ -402,6 +418,68 @@ void OrdersPickTheirTargets()
   REQUIRE(!h.hud->Observing() && !h.host.observing);
   h.Click(hud_id::ImmediateResult());
   REQUIRE(h.host.immediate == 1);
+}
+
+void WithdrawNamesWhatLeaves()
+{
+  Harness h(false);
+  h.Key(DigitKey(1));
+  REQUIRE(h.Drew("Withdraw task force"));
+  h.Click(hud_id::RosterUnit(kDefiance));
+  REQUIRE(h.Drew("Withdraw ship"));
+  h.Select({kLiberty, kDefiance});
+  REQUIRE(!h.hud->Subject().IsGroup() && h.Drew("Withdraw 2 ships"));
+  h.Key(DigitKey(4));
+  REQUIRE(h.hud->Subject().IsGroup() && h.hud->Subject().flight && h.Drew("Withdraw flight"));
+  h.Select({kRedSquadron, kGoldSquadron});
+  REQUIRE(h.Drew("Withdraw 2 squadrons"));
+  h.Select({kRedSquadron});
+  REQUIRE(h.Drew("Withdraw squadron"));
+  // The fleet-wide withdrawal never shares the order's label or icon.
+  REQUIRE(h.Drew("Withdraw fleet"));
+  REQUIRE(!h.Drew("Withdraw"));
+}
+
+void MixedSelectionSaysWhatItLeavesOut()
+{
+  const std::vector<UnitIndex> mixed{kLiberty, kDefiance, kRedSquadron, kGoldSquadron};
+  Harness h(false);
+  const DoctrineSubject subject = ResolveSubject(h.screen->View(), Side::Alliance, mixed, battle::kNoGroup);
+  REQUIRE(!subject.flight && subject.units == (std::vector<UnitIndex>{kLiberty, kDefiance}) && subject.excluded == 2);
+  REQUIRE(ExcludedNoun(subject) == "2 squadrons");
+  REQUIRE(ResolveSubject(h.screen->View(), Side::Alliance, {kLiberty, kDefiance}, battle::kNoGroup).excluded == 0);
+
+  h.Select(mixed);
+  REQUIRE(h.hud->Subject() == subject);
+  REQUIRE(h.Drew("2 squadrons not included"));
+  h.Click(hud_id::Order(OrderButton::Withdraw));
+  REQUIRE(std::holds_alternative<battle::OrderWithdraw>(h.Last().order));
+  REQUIRE(h.Last().target.units == (std::vector<UnitIndex>{kLiberty, kDefiance}));
+  REQUIRE(std::ranges::count(h.hud->Toasts(), std::string("Withdrawing 2 ships; 2 squadrons not included")) == 1);
+
+  h.Select({kLiberty, kDefiance});
+  REQUIRE(!h.Drew("2 squadrons not included"));
+}
+
+void WithdrawFleetSurvivesNarrowRows()
+{
+  for (const int width : {1920, 1280, 1024, 960, 800, 640, 560}) {
+    Harness h(false, Side::Alliance, false, {width, 600, 1.0f, 1.0f});
+    h.Key(DigitKey(3)); // the carrier task force: the most order buttons
+    const std::optional<Rect> fleet = h.hud->ControlRect(hud_id::WithdrawFleet());
+    REQUIRE(fleet.has_value());
+    // It keeps its label for as long as any other fleet button is left.
+    REQUIRE(h.Drew("Withdraw fleet") || !h.hud->ControlRect(hud_id::ImmediateResult()));
+    const std::optional<Rect> order = h.hud->ControlRect(hud_id::Order(OrderButton::Withdraw));
+    REQUIRE(order.has_value() && order->Right() < fleet->x);
+    // Get Immediate Result and Observe give way first: they lose their labels, then their places, before it does.
+    if (h.Drew("Get Immediate Result")) {
+      REQUIRE(h.Drew("Observe"));
+    }
+    if (!h.hud->ControlRect(hud_id::ImmediateResult())) {
+      REQUIRE(!h.hud->ControlRect(hud_id::Observe()));
+    }
+  }
 }
 
 void SuperlaserNeedsACapitalShipTarget()
@@ -694,6 +772,9 @@ int main(int argc, char** argv)
   run("folding", SmallScreensFoldTheLargestGroups);
   run("priorities", PriorityEditsAndTargetFocus);
   run("targeting", OrdersPickTheirTargets);
+  run("withdraw_label", WithdrawNamesWhatLeaves);
+  run("mixed_selection", MixedSelectionSaysWhatItLeavesOut);
+  run("narrow_fleet", WithdrawFleetSurvivesNarrowRows);
   run("superlaser", SuperlaserNeedsACapitalShipTarget);
   run("roster", RosterDragRegroups);
   run("briefing", BriefingDeploysAndEngages);

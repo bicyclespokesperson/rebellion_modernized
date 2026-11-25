@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 
 #include "battle_ui/hud_settings.h"
@@ -15,6 +16,8 @@ struct DoctrineSubject {
   bool flight = false;
   battle::GroupId group = battle::kNoGroup;
   std::vector<battle::UnitIndex> units; // when not a group
+  // Selected units of the other kind (squadrons beside ships, or ships beside squadrons) that the subject leaves out.
+  int excluded = 0;
 
   bool IsGroup() const
   {
@@ -28,6 +31,11 @@ struct DoctrineSubject {
 };
 
 battle::CommandTarget TargetOf(const DoctrineSubject& subject);
+
+// What an order acts on, in a few words: "ship", "task force", "3 ships", "squadron", "flight", "2 squadrons".
+std::string SubjectNoun(const DoctrineSubject& subject);
+// The selected units the subject leaves out, e.g. "2 squadrons"; empty when it leaves none out.
+std::string ExcludedNoun(const DoctrineSubject& subject);
 
 // Sets the subject's `fields` (ship or flight fields, by the subject's kind) to the values in the doctrines.
 battle::Command SetDoctrineCommand(const DoctrineSubject& subject, const battle::ShipDoctrine& ship,
@@ -45,7 +53,8 @@ std::vector<battle::UnitIndex> ActiveMembers(const battle::ViewModel& view, cons
 
 // The doctrine the card edits for the player's selection. A group picked in the roster (`focus`) stays the subject;
 // otherwise a selection that is exactly a group's active members (two or more) edits the group, one unit edits that
-// unit's overrides, and a mixed selection edits overrides on the units of the first unit's kind.
+// unit's overrides, and a mixed selection edits overrides on the units of the first unit's kind, counting the others in
+// `excluded`.
 DoctrineSubject ResolveSubject(const battle::ViewModel& view, battle::Side side,
                                const std::vector<battle::UnitIndex>& orderable, battle::GroupId focus);
 

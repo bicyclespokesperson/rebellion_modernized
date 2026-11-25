@@ -215,7 +215,7 @@ void CommandHud::DrawConfirmWithdraw(Ui& ui)
                      ui.S(26.0f)};
   const Rect cancel{content.Right() - buttonWidth, confirm.y, buttonWidth, confirm.h};
   Record(hud_id::ConfirmWithdraw(), confirm);
-  if (hud::Button(ui, hud_id::ConfirmWithdraw(), confirm, Icon::Withdraw, "Withdraw fleet", true, true)) {
+  if (hud::Button(ui, hud_id::ConfirmWithdraw(), confirm, Icon::WithdrawFleet, "Withdraw fleet", true, true)) {
     ClosePopup();
     WithdrawFleet();
     return;

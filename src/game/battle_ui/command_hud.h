@@ -226,6 +226,10 @@ class CommandHud : public HudPanel, public ScreenInputHook
   void ClosePopup();
   bool PickValid(battle::UnitIndex unit) const;
   std::vector<battle::UnitIndex> SubjectUnits() const;
+  // The subject by name: a group's title, one unit's name, or "3 ships".
+  std::string SubjectName() const;
+  // What the Withdraw order does for the subject, naming it.
+  std::string WithdrawHelp() const;
   bool SubjectHas(bool (*test)(const UnitFacts&)) const;
 
   BattleScreen& m_screen;

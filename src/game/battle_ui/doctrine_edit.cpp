@@ -1,6 +1,7 @@
 #include "battle_ui/doctrine_edit.h"
 
 #include <algorithm>
+#include <string_view>
 
 #include "battle_ui/selection.h"
 
@@ -19,6 +20,37 @@ battle::CommandTarget TargetOf(const DoctrineSubject& subject)
     target.units = subject.units;
   }
   return target;
+}
+
+namespace
+{
+
+std::string Count(size_t count, std::string_view one, std::string_view many)
+{
+  return std::to_string(count) + " " + std::string(count == 1 ? one : many);
+}
+
+} // namespace
+
+std::string SubjectNoun(const DoctrineSubject& subject)
+{
+  if (subject.IsGroup()) {
+    return subject.flight ? "flight" : "task force";
+  }
+  if (subject.units.size() == 1) {
+    return subject.flight ? "squadron" : "ship";
+  }
+  return subject.flight ? Count(subject.units.size(), "squadron", "squadrons")
+                        : Count(subject.units.size(), "ship", "ships");
+}
+
+std::string ExcludedNoun(const DoctrineSubject& subject)
+{
+  if (subject.excluded <= 0) {
+    return {};
+  }
+  const size_t excluded = static_cast<size_t>(subject.excluded);
+  return subject.flight ? Count(excluded, "ship", "ships") : Count(excluded, "squadron", "squadrons");
 }
 
 battle::Command SetDoctrineCommand(const DoctrineSubject& subject, const battle::ShipDoctrine& ship,
@@ -128,9 +160,13 @@ DoctrineSubject ResolveSubject(const battle::ViewModel& view, battle::Side side,
   DoctrineSubject subject{flight, battle::kNoGroup, {}};
   for (UnitIndex unit : orderable) {
     const battle::ViewUnit* found = FindUnit(view, unit);
-    if (found && (found->kind == battle::ViewUnitKind::Squadron) == flight
-        && found->kind != battle::ViewUnitKind::DeathStar) {
+    if (!found || found->kind == battle::ViewUnitKind::DeathStar) {
+      continue;
+    }
+    if ((found->kind == battle::ViewUnitKind::Squadron) == flight) {
       subject.units.push_back(unit);
+    } else {
+      ++subject.excluded;
     }
   }
   return subject;

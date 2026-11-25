@@ -1,6 +1,7 @@
 #include "battle_ui/hud_icons.h"
 
 #include <cmath>
+#include <utility>
 #include <vector>
 
 namespace reb::battle_ui
@@ -71,6 +72,16 @@ void DrawWithdraw(const Pen& p)
   p.Line(-0.9f, -0.45f, -0.25f, -0.45f);
   p.Line(-0.9f, 0.45f, -0.25f, 0.45f);
   p.Line(-0.7f, 0.0f, -0.4f, 0.0f);
+}
+
+// Withdraw doubled and staggered: the whole fleet jumping out together.
+void DrawWithdrawFleet(const Pen& p)
+{
+  for (const auto [y, tip] : {std::pair{-0.45f, 1.0f}, std::pair{0.45f, 0.6f}}) {
+    p.Line(tip - 1.15f, y, tip - 0.3f, y);
+    p.Head(tip, y, 1.0f, 0.0f, 0.46f);
+    p.Line(tip - 1.6f, y, tip - 1.35f, y);
+  }
 }
 
 void DrawShield(const Pen& p)
@@ -199,6 +210,9 @@ void DrawIcon(DrawList& draw, Icon icon, const Rect& box, Color color, float sca
     case Icon::Withdraw:
     case Icon::Hyperdrive:
       DrawWithdraw(p);
+      break;
+    case Icon::WithdrawFleet:
+      DrawWithdrawFleet(p);
       break;
     case Icon::Formation:
       for (const Point at : {Point{0.45f, 0.0f}, Point{-0.35f, -0.55f}, Point{-0.35f, 0.55f}}) {

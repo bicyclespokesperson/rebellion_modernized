@@ -196,7 +196,9 @@ doctrine-driven games, which is that you cannot tell whether the ships are obeyi
 
 ### 5.4 Live orders
 
-Orders apply to the selection and replace or (with Shift) queue after the current one:
+Orders apply to the selection and replace or (with Shift) queue after the current one. A selection mixing ships and
+squadrons commands the kind of its first unit; the card's header names the units left out ("2 squadrons not
+included"), and so does a notice when an order is given:
 
 - **Attack** a target: focus fire overriding priorities; Ctrl-click adds further targets in order, as in the
   original.
@@ -205,8 +207,11 @@ Orders apply to the selection and replace or (with Shift) queue after the curren
 - **Hold**, **Escort**, **Screen**.
 - **Tractor** a ship (tractor-equipped ships only; section 6.9).
 - **Launch**, **Recall**, **Strike** (flights), **Recover** (dock for rearm or before a jump).
-- **Withdraw**: spool hyperdrive and jump when able (section 6.10); fleet-wide withdrawal asks for confirmation, as
-  the original did.
+- **Withdraw**: spool hyperdrive and jump when able (section 6.10). The order button names what leaves ("Withdraw
+  ship", "Withdraw task force", "Withdraw 3 ships", "Withdraw flight", "Withdraw 2 squadrons") and its tooltip names
+  the units. **Withdraw fleet**, with a double-arrow icon of its own, sits at the far end of the fleet-wide buttons and
+  asks for confirmation, as the original did; on a narrow orders bar Observe and Get Immediate Result lose their
+  labels and then their places before it does.
 - **Get Immediate Result**: stop commanding; the same simulator finishes the battle headless from its current
   state, with the AI commanding both sides (section 11.1).
 - **Power routing** and **doctrine** changes, which are orders like any other.
@@ -786,7 +791,7 @@ It gets no stat bonuses at any difficulty.
 | TF1 Line - Mon Calamari Cruiser x2, Assault Frigate                                 |
 | Range Optimal | Approach Left Hook | Facing Broadside | Power Weapons | Withdraw <25%  |
 | Targets 1 Interdictors 2 Carriers 3 Damaged 4 Nearest | Alloc Auto | Subsystem Hyperdrive |
-| [Attack] [Move] [Hold] [Escort] [Withdraw]                                          |
+| [Attack] [Move] [Hold] [Escort] [Withdraw task force]       [Withdraw fleet]        |
 | Intent: Liberty -> Interdictor "Hammerhead": priority #1, port arc, ~35 s to disable |
 +------------------------------------------------------------------------------------+
 ```

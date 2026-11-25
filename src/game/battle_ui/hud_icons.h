@@ -34,6 +34,7 @@ enum class Icon : uint8_t {
   Recall,
   Strike,
   Recover,
+  WithdrawFleet,
   DeathStar,
   PlanetaryBattery,
   // commander signals

@@ -31,8 +31,8 @@ constexpr float kPad = 7.0f;
 struct OrderSpec {
   OrderButton order;
   Icon icon;
-  std::string_view label;
-  std::string_view help;
+  std::string label;
+  std::string help;
   bool enabled = true;
 };
 
@@ -130,9 +130,14 @@ void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doc
       }
       text(where, 11.0f, theme.captionText.WithAlpha(185));
     } else {
-      text(std::to_string(m_subject.units.size()) + (m_subject.flight ? " squadrons" : " ships"), 13.0f, theme.captionText,
-           FontWeight::Bold);
-      text("edits apply to this selection", 11.0f, theme.captionText.WithAlpha(185));
+      text(SubjectNoun(m_subject), 13.0f, theme.captionText, FontWeight::Bold);
+      if (m_subject.excluded == 0) {
+        text("edits apply to this selection", 11.0f, theme.captionText.WithAlpha(185));
+      }
+    }
+    // A mixed selection commands one kind; say what the card leaves out.
+    if (const std::string excluded = ExcludedNoun(m_subject); !excluded.empty()) {
+      text(excluded + " not included", 11.0f, Mix(theme.accent, theme.captionText, 0.6f), FontWeight::Bold);
     }
     return;
   }
@@ -224,8 +229,8 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
   const bool any = !m_subject.Empty() && !view.finished;
   std::vector<OrderSpec> orders;
   const auto add
-      = [&](OrderButton order, Icon icon, std::string_view label, std::string_view help, bool enabled = true) {
-          orders.push_back({order, icon, label, help, enabled && any});
+      = [&](OrderButton order, Icon icon, std::string label, std::string help, bool enabled = true) {
+          orders.push_back({order, icon, std::move(label), std::move(help), enabled && any});
         };
   add(OrderButton::Attack, Icon::Attack, "Attack",
       "Attack a target you pick, overriding target focus; Ctrl+click adds more targets in order.");
@@ -253,8 +258,11 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
     add(OrderButton::Recover, Icon::Recover, "Dock",
         "Return to the carrier, or any ship with free hangar space, and stay docked until ordered to launch.");
   }
-  add(OrderButton::Withdraw, Icon::Withdraw, "Withdraw",
-      "Spool hyperdrives and jump out as soon as possible; these ships leave the battle.");
+  if (m_subject.Empty()) {
+    add(OrderButton::Withdraw, Icon::Withdraw, "Withdraw", "Order the selected ships out of the battle.");
+  } else {
+    add(OrderButton::Withdraw, Icon::Withdraw, "Withdraw " + SubjectNoun(m_subject), WithdrawHelp());
+  }
   const bool enemyDeathStar = std::ranges::any_of(view.units, [&](const battle::ViewUnit& unit) {
     return unit.kind == battle::ViewUnitKind::DeathStar && unit.side != m_screen.PlayerSide() && Selectable(unit);
   });
@@ -273,9 +281,10 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
     std::string_view help;
     bool on;
   };
+  // Withdraw fleet sits at the row's end and keeps its label longest, so it never reads as the order row's Withdraw;
+  // on a narrow row the others lose their labels first and are dropped first, from the left, and Withdraw fleet goes
+  // to its own double-arrow icon only when nothing else is left to give way.
   const std::array fleet{
-      FleetSpec{hud_id::WithdrawFleet(), Icon::Withdraw, "Withdraw fleet",
-                "Withdraw every ship from the battle; asks for confirmation first.", false},
       FleetSpec{hud_id::Observe(), Icon::Eye, m_observing ? "Take command" : "Observe",
                 m_observing ? "Take command of your fleet back from the AI."
                             : "Hand your fleet to the AI, which fights with your doctrines; any order takes it back.",
@@ -283,6 +292,8 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
       FleetSpec{hud_id::ImmediateResult(), Icon::FastForward, "Get Immediate Result",
                 "Stop commanding: the battle is finished at once by the simulator, the AI commanding both sides.",
                 false},
+      FleetSpec{hud_id::WithdrawFleet(), Icon::WithdrawFleet, "Withdraw fleet",
+                "Withdraw every ship and squadron from the battle; asks for confirmation first.", false},
   };
 
   const float gap = ui.S(4.0f);
@@ -297,7 +308,7 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
       total += widthOf(order.label, ordersIconOnly) + gap;
     }
     for (const FleetSpec& spec : fleet) {
-      total += widthOf(spec.label, fleetIconOnly) + gap;
+      total += widthOf(spec.label, fleetIconOnly && spec.id != hud_id::WithdrawFleet()) + gap;
     }
     return total;
   };
@@ -323,8 +334,7 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
         PressOrder(order.order);
       }
     }
-    ui.Tooltip(id,
-               ordersIconOnly ? std::string(order.label) + ": " + std::string(order.help) : std::string(order.help));
+    ui.Tooltip(id, ordersIconOnly ? order.label + ": " + order.help : order.help);
     Record(id, button);
     x = button.Right() + gap;
   }
@@ -351,14 +361,31 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
     }
   }
 
-  float right = row.Right();
-  for (const FleetSpec& spec : fleet | std::views::reverse) {
-    const float width = widthOf(spec.label, fleetIconOnly);
-    const Rect button{right - width, row.y, width, row.h};
-    if (button.x < x + gap) {
-      break;
+  // How many fleet buttons fit, counted from the right, and whether Withdraw fleet (the last) must lose its label.
+  const float room = row.Right() - (x + gap);
+  const auto fleetWidth = [&](size_t kept, bool lastIconOnly) {
+    float total = 0.0f;
+    for (size_t i = fleet.size() - kept; i < fleet.size(); ++i) {
+      const bool last = i + 1 == fleet.size();
+      total += widthOf(fleet[i].label, last ? lastIconOnly : fleetIconOnly) + gap;
     }
-    if (hud::Button(ui, spec.id, button, spec.icon, fleetIconOnly ? "" : spec.label, !view.finished, spec.on)) {
+    return total - gap;
+  };
+  size_t kept = fleet.size();
+  while (kept > 0 && fleetWidth(kept, false) > room) {
+    --kept;
+  }
+  const bool withdrawIconOnly = kept == 0;
+  if (withdrawIconOnly && fleetWidth(1, true) <= room) {
+    kept = 1;
+  }
+  float right = row.Right();
+  for (size_t i = fleet.size(); i-- > fleet.size() - kept;) {
+    const FleetSpec& spec = fleet[i];
+    const bool iconOnly = i + 1 == fleet.size() ? withdrawIconOnly : fleetIconOnly;
+    const float width = widthOf(spec.label, iconOnly);
+    const Rect button{right - width, row.y, width, row.h};
+    if (hud::Button(ui, spec.id, button, spec.icon, iconOnly ? "" : spec.label, !view.finished, spec.on)) {
       if (spec.id == hud_id::WithdrawFleet()) {
         OpenPopupAt(PopupKind::ConfirmWithdraw, button);
       } else if (spec.id == hud_id::Observe()) {
@@ -369,7 +396,7 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
       }
     }
     ui.Tooltip(spec.id,
-               fleetIconOnly ? std::string(spec.label) + ": " + std::string(spec.help) : std::string(spec.help));
+               iconOnly ? std::string(spec.label) + ": " + std::string(spec.help) : std::string(spec.help));
     Record(spec.id, button);
     right = button.x - gap;
   }

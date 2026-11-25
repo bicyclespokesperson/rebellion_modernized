@@ -64,6 +64,31 @@ std::string_view PickMistake(PickMode mode)
   }
 }
 
+std::string_view OrderName(OrderButton order)
+{
+  switch (order) {
+    case OrderButton::Attack:
+      return "Attack";
+    case OrderButton::Move:
+      return "Move";
+    case OrderButton::Hold:
+      return "Hold";
+    case OrderButton::Escort:
+      return "Escort";
+    case OrderButton::Tractor:
+      return "Tractor";
+    case OrderButton::Launch:
+      return "Launch";
+    case OrderButton::Recover:
+      return "Dock";
+    case OrderButton::Withdraw:
+      return "Withdraw";
+    case OrderButton::DeathStarRun:
+      return "Attack Death Star";
+  }
+  return "Order";
+}
+
 } // namespace
 
 namespace hud_id
@@ -467,6 +492,47 @@ std::vector<UnitIndex> CommandHud::SubjectUnits() const
   return group ? group->members : std::vector<UnitIndex>{};
 }
 
+std::string CommandHud::SubjectName() const
+{
+  if (m_subject.IsGroup()) {
+    const battle::ViewGroup* group = FindGroup(m_screen.View(), m_subject.group);
+    return group ? GroupTitle(*group) : SubjectNoun(m_subject);
+  }
+  if (m_subject.units.size() == 1) {
+    return m_screen.Label(m_subject.units.front()).name;
+  }
+  return SubjectNoun(m_subject);
+}
+
+std::string CommandHud::WithdrawHelp() const
+{
+  const battle::ViewGroup* group = m_subject.IsGroup() ? FindGroup(m_screen.View(), m_subject.group) : nullptr;
+  const size_t count = group ? ActiveMembers(m_screen.View(), *group).size() : m_subject.units.size();
+  const bool one = count == 1;
+  std::string who;
+  if (m_subject.IsGroup()) {
+    who = SubjectName() + ": " + std::to_string(count) + (m_subject.flight ? (one ? " squadron" : " squadrons")
+                                                                           : (one ? " ship" : " ships"));
+  } else if (one) {
+    who = SubjectName();
+  } else {
+    who = std::to_string(count) + (m_subject.flight ? " selected squadrons" : " selected ships");
+  }
+  std::string help;
+  if (m_subject.flight) {
+    help = who + (one ? " leaves" : " leave")
+           + " the battle. Squadrons with a hyperdrive jump out on their own; fighters without one dock with a "
+             "departing ship, or stay behind if none has room.";
+  } else {
+    help = who + (one ? " spools its hyperdrive and jumps out as soon as it can."
+                      : " spool hyperdrives and jump out as soon as they can.");
+  }
+  if (const std::string excluded = ExcludedNoun(m_subject); !excluded.empty()) {
+    help += " Not included: the " + excluded + " also selected.";
+  }
+  return help;
+}
+
 bool CommandHud::SubjectHas(bool (*test)(const UnitFacts&)) const
 {
   return std::ranges::any_of(SubjectUnits(), [&](UnitIndex unit) {
@@ -570,20 +636,31 @@ void CommandHud::PressOrder(OrderButton order)
     AddToast("Select ships or a group first");
     return;
   }
+  const auto noteExclusion = [&] {
+    if (const std::string excluded = ExcludedNoun(m_subject); !excluded.empty()) {
+      const std::string who = order == OrderButton::Withdraw ? "Withdrawing " + SubjectName()
+                                                             : std::string(OrderName(order)) + ": " + SubjectName();
+      AddToast(who + "; " + excluded + " not included");
+    }
+  };
+  const auto pick = [&](PickMode mode) {
+    StartPick(mode);
+    noteExclusion();
+  };
   battle::Command command;
   command.target = TargetOf(m_subject);
   switch (order) {
     case OrderButton::Attack:
-      StartPick(PickMode::Attack);
+      pick(PickMode::Attack);
       return;
     case OrderButton::Move:
-      StartPick(PickMode::Move);
+      pick(PickMode::Move);
       return;
     case OrderButton::Escort:
-      StartPick(PickMode::Escort);
+      pick(PickMode::Escort);
       return;
     case OrderButton::Tractor:
-      StartPick(PickMode::Tractor);
+      pick(PickMode::Tractor);
       return;
     case OrderButton::Hold:
       command.order = battle::OrderHold{};
@@ -601,7 +678,9 @@ void CommandHud::PressOrder(OrderButton order)
       command.order = battle::OrderDeathStarRun{};
       break;
   }
-  Submit(std::move(command));
+  if (Submit(std::move(command))) {
+    noteExclusion();
+  }
 }
 
 void CommandHud::SubmitDoctrine(const CardDoctrine& doctrine, battle::DoctrineOverrideMask fields)
