@@ -1,0 +1,106 @@
+# Release binaries for Linux (x86-64), macOS (arm64 and x86-64) and Windows (x86-64), run by hand from the Actions tab.
+# Each platform builds the `rebellion` target in Release with the native configuration and uploads one archive as a
+# workflow artifact. No game data is used: the startup text pack and the macOS icon come from a local installation and
+# are absent here, so the archives contain only the executable and the Liberation Sans fallback fonts. Players still
+# need their own copy of the game; the first-run check asks for it through config.ini (install_dir).
+name: release
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-19 cmake ninja-build pkg-config \
+            libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxss-dev libxkbcommon-dev \
+            libwayland-dev wayland-protocols libdecor-0-dev libasound2-dev libpulse-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+            libegl1-mesa-dev libudev-dev libdbus-1-dev libxcb1-dev libxtst-dev libxrender-dev
+      - name: Dependencies
+        run: tools/fetch_deps.sh freetype liberation sdl3
+      - name: Configure
+        run: |
+          cmake -S . -B build/native -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 \
+            -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON
+      - name: Build
+        run: cmake --build build/native --target rebellion
+      - name: Package
+        run: |
+          stage=dist/rebellion-linux-x86_64
+          mkdir -p "$stage/fonts"
+          cp build/native/rebellion "$stage/"
+          cp third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Bold.ttf "$stage/fonts/"
+          tar -C dist -czf "$stage.tar.gz" "$(basename "$stage")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebellion-linux-x86_64
+          path: dist/rebellion-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: macos-14, arch: arm64}
+          - {runner: macos-15-intel, arch: x86_64}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          brew install cmake ninja uv coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Dependencies
+        run: tools/fetch_deps.sh freetype liberation sdl3
+      - name: Configure
+        run: |
+          cmake -S . -B build/native -G Ninja -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+      - name: Build
+        run: cmake --build build/native --target rebellion
+      - name: Package
+        run: |
+          mkdir -p dist
+          ditto -c -k --keepParent build/native/Rebellion.app "dist/rebellion-macos-${{ matrix.arch }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebellion-macos-${{ matrix.arch }}
+          path: dist/rebellion-macos-${{ matrix.arch }}.zip
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Dependencies
+        shell: bash
+        run: bash tools/fetch_deps.sh freetype liberation sdl3
+      - name: Configure
+        run: >-
+          cmake -S . -B build/native -G Ninja
+          -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+          -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON
+      - name: Build
+        run: cmake --build build/native --target rebellion
+      - name: Package
+        shell: pwsh
+        run: |
+          $stage = "dist/rebellion-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path "$stage/fonts" | Out-Null
+          Copy-Item build/native/rebellion.exe $stage
+          Copy-Item third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf, third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Bold.ttf "$stage/fonts"
+          Compress-Archive -Path $stage -DestinationPath "$stage.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebellion-windows-x86_64
+          path: dist/rebellion-windows-x86_64.zip
+          if-no-files-found: error
