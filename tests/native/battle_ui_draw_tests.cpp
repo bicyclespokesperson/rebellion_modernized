@@ -311,11 +311,13 @@ void OutroBannersUseThePlayersPerspective()
 {
   using reb::battle::Side;
   using reb::battle::ViewEndReason;
-  constexpr std::array<std::string_view, 6> messages{
-      "VICTORY · ALL ENEMY SHIPS DESTROYED", "VICTORY · THE ENEMY FLEET HAS WITHDRAWN",
-      "DEFEAT · OUR FLEET HAS BEEN DESTROYED", "WITHDRAWAL COMPLETE",
-      "STALEMATE · NEITHER SIDE CAN BREAK THE OTHER", "TIME LIMIT REACHED"};
   for (Side player : {Side::Alliance, Side::Empire}) {
+    const bool holder = player == Side::Alliance;
+    const std::array<std::string_view, 6> messages{
+        "VICTORY · ALL ENEMY SHIPS DESTROYED", "VICTORY · THE ENEMY FLEET HAS WITHDRAWN",
+        "DEFEAT · OUR FLEET HAS BEEN DESTROYED", "WITHDRAWAL COMPLETE",
+        holder ? "STALEMATE · THE SYSTEM STAYS OURS" : "STALEMATE · WE MUST LEAVE THE SYSTEM",
+        holder ? "TIME LIMIT · THE SYSTEM STAYS OURS" : "TIME LIMIT · WE MUST LEAVE THE SYSTEM"};
     for (int ending = 0; ending < 6; ++ending) {
       BattleScreenOptions options;
       options.playerSide = player;
@@ -323,6 +325,7 @@ void OutroBannersUseThePlayersPerspective()
       const float pausedSize = FindText(h.Frame(), "PAUSED").size;
       auto& view = h.source.View();
       view.decided = true;
+      view.stalemateHolder = Side::Alliance;
       view.endReason = ending < 4 ? ViewEndReason::Elimination
                                   : ending == 4 ? ViewEndReason::Stalemate : ViewEndReason::TimeLimit;
       for (auto& unit : view.units) {

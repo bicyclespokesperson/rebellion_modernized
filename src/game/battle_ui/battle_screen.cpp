@@ -30,23 +30,31 @@ constexpr float kWheelStep = 1.2f;
 
 // The stalemate countdown (tactical_combat.md §6.11), shown for its last minute below the top banners.
 void DrawStalemateWarning(DrawList& out, const battle::ViewModel& view, battle::Side player, const Theme& theme,
-                          const TextMeasurer& text, const Rect& area, float ui)
+                          const TextMeasurer& text, const Rect& area, float ui, double seconds)
 {
   if (!view.stalemateWarning) {
     return;
   }
-  const int seconds = static_cast<int>(std::ceil(view.stalemateSecondsLeft));
-  const std::string clock = std::to_string(seconds / 60) + ":" + (seconds % 60 < 10 ? "0" : "")
-                            + std::to_string(seconds % 60);
+  const int left = static_cast<int>(std::ceil(view.stalemateSecondsLeft));
+  const std::string clock = std::to_string(left / 60) + ":" + (left % 60 < 10 ? "0" : "") + std::to_string(left % 60);
   const std::string message = view.stalemateHolder == player
                                   ? "NO LOSSES - STALEMATE IN " + clock + " - THE SYSTEM STAYS OURS"
                                   : "NO LOSSES - BREAK THROUGH IN " + clock + " OR CEDE THE SYSTEM";
   const float size = 13.0f * ui;
-  const float width = text.Width(message, size, FontWeight::Bold) + 24.0f * ui;
-  const Rect box{area.Center().x - width * 0.5f, area.y + 70.0f * ui, width, 22.0f * ui};
-  out.FillRect(box, theme.panel);
-  out.StrokeRect(box, theme.hullFair, 1.0f * ui);
-  out.Text(message, box.Center(), size, theme.hullFair, Align::Center, VAlign::Middle, FontWeight::Bold);
+  const float width = text.Width(message, size, FontWeight::Bold) + 56.0f * ui;
+  const Rect box{area.Center().x - width * 0.5f, area.y + 70.0f * ui, width, 26.0f * ui};
+  chrome::Plate(out, box, theme, ui);
+  const Rect well = box.Inset(4.0f * ui);
+  chrome::Readout(out, well, message, "", size, theme.accent, theme, ui);
+  const bool lit = std::fmod(seconds, 1.2) < 0.8;
+  for (const float x : {well.x + 9.0f * ui, well.Right() - 9.0f * ui}) {
+    chrome::Lamp(out, {x, well.Center().y}, 3.0f * ui, theme.accent, lit);
+  }
+}
+
+std::string_view SystemVerdict(bool ours)
+{
+  return ours ? "THE SYSTEM STAYS OURS" : "WE MUST LEAVE THE SYSTEM";
 }
 
 } // namespace
@@ -700,7 +708,8 @@ void BattleScreen::Build(DrawList& out)
   m_ui.EndFrame();
   DrawHoverCard(out);
   DrawBanners(out);
-  DrawStalemateWarning(out, m_view, PlayerSide(), m_ui.GetTheme(), m_text, m_layout.view, m_screen.uiScale);
+  DrawStalemateWarning(out, m_view, PlayerSide(), m_ui.GetTheme(), m_text, m_layout.view, m_screen.uiScale,
+                       m_seconds);
 }
 
 void BattleScreen::DrawGestures(DrawList& out) const
@@ -794,9 +803,9 @@ void BattleScreen::DrawOutro()
   if (!m_view.decided || m_view.finished) return;
   std::string text;
   if (m_view.endReason == battle::ViewEndReason::Stalemate) {
-    text = "STALEMATE · NEITHER SIDE CAN BREAK THE OTHER";
+    text = "STALEMATE · " + std::string(SystemVerdict(m_view.stalemateHolder == PlayerSide()));
   } else if (m_view.endReason == battle::ViewEndReason::TimeLimit) {
-    text = "TIME LIMIT REACHED";
+    text = "TIME LIMIT · " + std::string(SystemVerdict(m_view.stalemateHolder == PlayerSide()));
   } else {
     bool ownPresent = false;
     bool ownWithdrew = false;
@@ -835,7 +844,9 @@ void BattleScreen::DrawBanners(DrawList& out) const
     for (const battle::ViewUnit& unit : m_view.units) {
       present[static_cast<int>(unit.side)] |= Selectable(unit);
     }
-    text = present[0] && present[1] ? "BATTLE OVER - STALEMATE"
+    text = present[0] && present[1] ? (m_view.stalemateHolder == battle::Side::Alliance
+                                           ? "BATTLE OVER - STALEMATE - ALLIANCE KEEPS THE SYSTEM"
+                                           : "BATTLE OVER - STALEMATE - EMPIRE KEEPS THE SYSTEM")
            : present[0]             ? "BATTLE OVER - ALLIANCE HOLDS THE SYSTEM"
            : present[1]             ? "BATTLE OVER - EMPIRE HOLDS THE SYSTEM"
                                     : "BATTLE OVER";
