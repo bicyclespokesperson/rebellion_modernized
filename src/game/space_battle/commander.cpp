@@ -548,14 +548,16 @@ std::unique_ptr<Commander> MakeBattleCommander(CommanderParams params)
 void DefaultCommander::PreserveShips(const Battle& battle, Side side, std::vector<Command>& out)
 {
   const BattleState& state = battle.State();
-  if (m_observing || m_withdrawTick >= 0 || !state.snapshot.params.sides[SideIndex(side)].canRetreat) {
+  if (m_withdrawTick >= 0 || !state.snapshot.params.sides[SideIndex(side)].canRetreat) {
     return;
   }
   for (const ShipState& ship : state.ships) {
     const float preserveAt = state.Profile(ship.unit).archetype == Archetype::Transport ? 0.5f
                              : m_params.temperament == Temperament::Cautious ? 0.5f
                              : m_params.temperament == Temperament::Balanced ? 0.25f : 0.15f;
+    // A rule the player chose (a hull threshold, or Never) stands even after the AI takes the side over.
     if (state.units[ship.unit].side != side || !state.InSpace(ship.unit) || ship.withdrawing
+        || state.EffectiveShipDoctrine(ship.unit).withdraw != WithdrawRule::OnOrderOnly
         || state.HullFraction(ship.unit) >= preserveAt) {
       continue;
     }

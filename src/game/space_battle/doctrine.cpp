@@ -140,7 +140,6 @@ ShipDoctrine DefaultShipDoctrine(Archetype archetype, int ordinal)
       doctrine.role = Role::Reserve;
       doctrine.range = EngagementRange::StandOff;
       doctrine.priorities = MakePriorities({TargetTag::Fighter, TargetTag::Nearest}, false);
-      doctrine.withdraw = WithdrawRule::HullBelow50;
       doctrine.formation = Formation::Column;
       break;
     case Archetype::Interceptor:

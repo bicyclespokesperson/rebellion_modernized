@@ -521,6 +521,71 @@ void FocusSignalsAvoidOverkill()
   SB_CHECK(signal != commands.end());
   SB_CHECK(std::get<OrderSignal>(signal->order).target == other);
 }
+bool LeavingOrGone(const Battle& battle, UnitIndex unit)
+{
+  return battle.State().Withdrawing(unit) || battle.State().units[unit].fate == UnitFate::Withdrawn;
+}
+
+void SetHullFraction(Battle& battle, UnitIndex unit, float fraction)
+{
+  Mutable(battle).Ship(unit)->hull = fraction * battle.State().Profile(unit).hullMax;
+}
+
+// The player's damaged ships fight on until ordered out, while the AI side still saves its own damaged ships.
+void PlayerShipsWithdrawOnlyWhenOrdered()
+{
+  SnapshotBuilder builder;
+  const UnitIndex playerLine = builder.Add(Wedge(Side::Alliance, "Player line"));
+  const UnitIndex playerTransport = builder.Add(TransportShip(Side::Alliance, "Player transport"));
+  builder.Add(Wedge(Side::Alliance, "Player healthy"));
+  const UnitIndex aiLine = builder.Add(Wedge(Side::Empire, "AI line"));
+  const UnitIndex aiTransport = builder.Add(TransportShip(Side::Empire, "AI transport"));
+  builder.Add(Wedge(Side::Empire, "AI healthy"));
+  BattleOptions options = Uncommanded();
+  options.aiControlled[SideIndex(Side::Empire)] = true;
+  Battle battle(builder.Snapshot(), options);
+  for (UnitIndex line : {playerLine, aiLine}) {
+    SetHullFraction(battle, line, 0.2f);
+  }
+  for (UnitIndex transport : {playerTransport, aiTransport}) {
+    SetHullFraction(battle, transport, 0.4f);
+  }
+  battle.RunHeadless(3 * kTicksPerSecond);
+  for (UnitIndex unit : {playerLine, playerTransport}) {
+    SB_CHECK(!battle.State().Withdrawing(unit) && battle.State().units[unit].fate == UnitFate::Active);
+    SB_CHECK(battle.State().EffectiveShipDoctrine(unit).withdraw == WithdrawRule::OnOrderOnly);
+  }
+  SB_CHECK(LeavingOrGone(battle, aiLine));
+  SB_CHECK(LeavingOrGone(battle, aiTransport));
+  Command withdraw = MakeCommand(Side::Alliance, OrderWithdraw{}, {playerLine});
+  withdraw.tick = battle.Tick();
+  SB_CHECK(battle.Submit(withdraw));
+  battle.Step();
+  SB_CHECK(battle.State().Withdrawing(playerLine) && !battle.State().Withdrawing(playerTransport));
+}
+
+// An AI taking the player's side over mid-battle saves damaged ships left to the commander, but keeps a Never the
+// player chose.
+void AiTakingOverKeepsThePlayersWithdrawChoice()
+{
+  SnapshotBuilder builder;
+  const UnitIndex leftToCommander = builder.Add(Wedge(Side::Alliance, "Left to the commander"));
+  const UnitIndex neverWithdraws = builder.Add(Wedge(Side::Alliance, "Never withdraws"));
+  builder.Add(Wedge(Side::Empire));
+  Battle battle(builder.Snapshot(), Uncommanded());
+  OrderSetShipDoctrine never;
+  never.doctrine.withdraw = WithdrawRule::Never;
+  never.fields = kShipWithdraw;
+  SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, never, {neverWithdraws})));
+  SetHullFraction(battle, leftToCommander, 0.2f);
+  SetHullFraction(battle, neverWithdraws, 0.2f);
+  battle.RunHeadless(kTicksPerSecond);
+  SB_CHECK(!battle.State().Withdrawing(leftToCommander) && !battle.State().Withdrawing(neverWithdraws));
+  battle.SetAiControlled(Side::Alliance, true);
+  battle.RunHeadless(2 * kTicksPerSecond);
+  SB_CHECK(LeavingOrGone(battle, leftToCommander));
+  SB_CHECK(!battle.State().Withdrawing(neverWithdraws));
+}
 } // namespace
 
 int main()
@@ -545,6 +610,8 @@ int main()
   TractorPursuitClosesOnStableNearestTarget();
   WinnersPursueWithdrawingShipsWithoutAbandoningStations();
   FocusSignalsAvoidOverkill();
+  PlayerShipsWithdrawOnlyWhenOrdered();
+  AiTakingOverKeepsThePlayersWithdrawChoice();
   std::puts("space battle AI decisions passed");
   return 0;
 }

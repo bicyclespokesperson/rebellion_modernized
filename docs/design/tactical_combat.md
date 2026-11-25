@@ -144,7 +144,7 @@ orders (decisive moments) and commander signals (scarce, powerful).
 | Fire allocation | Concentrate (one target for the group), Spread (each ship picks its own), Auto (overkill-aware split) | Auto |
 | Subsystem focus | Hull, Shields, Engines, Weapons, Hyperdrive, Tractor beam | Hull |
 | Power routing | Balanced, Weapons, Shields, Engines | Balanced |
-| Withdraw at | Never, hull below 25% / 50% / 75%, when shields collapse, only on order | Hull below 25% |
+| Withdraw at | Never, hull below 25% / 50% / 75%, when shields collapse, only on order | Only on order: the player's Withdraw order, or the AI commander's own preservation (a player's Never or hull rule stands after an AI takeover) |
 | Formation | Line abreast, Column, Wedge, Ring (around an escorted ship), Loose | From role |
 
 Fighters have their own card:

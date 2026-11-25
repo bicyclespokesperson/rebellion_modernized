@@ -191,7 +191,10 @@ void CommandSignals()
   SB_CHECK(battle.State().Ship(flagship)->primaryTarget == named);
   SB_CHECK(battle.State().Ship(escort)->primaryTarget == named);
   SB_CHECK(battle.State().units[flagship].intent.fromOrder);
-  // Hold the line: no automatic withdrawal while it lasts.
+  // Hold the line: no automatic withdrawal while it lasts, even under a withdraw rule the player chose.
+  ShipDoctrine retreating;
+  retreating.withdraw = WithdrawRule::HullBelow25;
+  SetShipDoctrine(battle, Side::Alliance, {}, {escort}, retreating, kShipWithdraw);
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderSignal{SignalKind::HoldTheLine, kNoUnit})));
   Mutable(battle).Ship(escort)->hull = 400.0f;
   battle.RunHeadless(5 * kTicksPerSecond);

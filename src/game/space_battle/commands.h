@@ -31,6 +31,8 @@ enum class Facing : uint8_t { Auto, BowOn, Broadside, StrongestToThreat };
 enum class FireAllocation : uint8_t { Auto, Concentrate, Spread };
 enum class Subsystem : uint8_t { Hull, Shields, Engines, Weapons, Hyperdrive, Tractor };
 enum class PowerRouting : uint8_t { Balanced, Weapons, Shields, Engines };
+// OnOrderOnly, the default, leaves withdrawal to whoever commands the side: the player's Withdraw order, or the AI
+// commander's own self-preservation. Never is the player's explicit choice, which an AI taking over respects too.
 enum class WithdrawRule : uint8_t { Never, HullBelow25, HullBelow50, HullBelow75, ShieldsCollapse, OnOrderOnly };
 enum class Formation : uint8_t { LineAbreast, Column, Wedge, Ring, Loose };
 
@@ -77,7 +79,7 @@ struct ShipDoctrine {
   FireAllocation allocation = FireAllocation::Auto;
   Subsystem subsystem = Subsystem::Hull;
   PowerRouting power = PowerRouting::Balanced;
-  WithdrawRule withdraw = WithdrawRule::HullBelow25;
+  WithdrawRule withdraw = WithdrawRule::OnOrderOnly;
   Formation formation = Formation::LineAbreast;
   bool breakFormation = false;
   bool allBatteriesOnTarget = false;

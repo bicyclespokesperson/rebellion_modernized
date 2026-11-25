@@ -254,6 +254,8 @@ Low, Normal and High difficulty reassess every 5, 2 and 1 seconds. Low uses Spre
 Normal and High use the simulator's overkill-aware Auto allocator and situational signals. Aggressive line ships
 close with weapons power (and concentrate against a lone capital); cautious line ships stand off and preserve
 ships below 50% hull, balanced below 25%, aggressive below 15%. Transports retain their 50% preservation threshold.
+Preservation covers only ships whose withdraw rule is "only on order" (the default), so a rule the player set
+before an AI takeover, Never included, still decides; a player-commanded side never withdraws a ship on its own.
 These settings change commands only, never ship statistics or the strategic fleet-withdrawal threshold.
 The stronger fleet pursues spooling capitals and uses tractors to close inside locking range. The base hyperdrive
 spool is 30 seconds before retreat-distance and drive-rating scaling.
