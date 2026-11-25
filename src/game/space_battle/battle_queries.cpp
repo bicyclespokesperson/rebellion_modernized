@@ -435,6 +435,13 @@ bool SidePresent(const BattleState& state, Side side)
   });
 }
 
+int64_t StalemateTicksLeft(const BattleState& state)
+{
+  const int64_t lullStart = std::max(state.lastDurableDropTick, state.superlaserChargingTick);
+  const auto window = static_cast<int64_t>(kStalemateSeconds * kTicksPerSecond);
+  return std::max<int64_t>(0, window - (state.tick - lullStart));
+}
+
 bool SideInSpace(const BattleState& state, Side side)
 {
   return std::any_of(state.units.begin(), state.units.end(), [&](const UnitState& unit) {

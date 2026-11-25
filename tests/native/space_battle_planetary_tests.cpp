@@ -366,6 +366,47 @@ void ViewModelShowsBatteriesAndCover()
   SB_CHECK(std::any_of(view.shots.begin(), view.shots.end(), [](const ViewShot& shot) { return shot.battery >= 0; }));
 }
 
+// The standoff: an attacker that parks out of the batteries' reach and never closes cannot outwait the defender. The
+// side that did not hold the system is warned a minute before the lull runs out, and the stalemate then leaves the
+// system to the defender with both fleets intact; the strategic game routes the attacker away (§6.11).
+void AttackerParkedOutsideTheCoverCedesTheSystem()
+{
+  SnapshotBuilder builder = Defended({LnrSeriesII()});
+  builder.Add(Wedge(Side::Alliance));
+  std::vector<UnitIndex> attackers{builder.Add(Wedge(Side::Empire)), builder.Add(Wedge(Side::Empire))};
+  BattleOptions options;
+  options.aiControlled = {true, false}; // the defender's battle AI against a player who stays where they arrived
+  Battle battle(builder.Snapshot(), options);
+  SB_CHECK(battle.Submit(MakeCommand(Side::Empire, OrderHold{}, attackers)));
+  ViewModel view;
+  battle.BuildViewModel(1.0f, view);
+  SB_CHECK_NEAR(view.stalemateSecondsLeft, tuning::kStalemateSeconds, 1e-3f);
+  SB_CHECK(!view.stalemateWarning && view.stalemateHolder == Side::Alliance);
+
+  const int64_t warning = sim::Ticks(tuning::kStalemateSeconds - tuning::kStalemateWarningSeconds);
+  battle.RunHeadless(warning - 1);
+  battle.BuildViewModel(1.0f, view);
+  SB_CHECK(!view.stalemateWarning && !Logged(battle.State(), "must break through"));
+  battle.RunHeadless(1);
+  battle.BuildViewModel(1.0f, view);
+  SB_CHECK(view.stalemateWarning);
+  SB_CHECK_NEAR(view.stalemateSecondsLeft, tuning::kStalemateWarningSeconds, 1e-3f);
+  SB_CHECK(Logged(battle.State(), "the Empire must break through within 60 s or leave the system to the Alliance"));
+
+  SB_CHECK(battle.RunHeadless(battle.Options().tickLimit));
+  const BattleState& state = battle.State();
+  SB_CHECK(state.endReason == EndReason::Stalemate && state.tick == sim::Ticks(tuning::kStalemateSeconds));
+  SB_CHECK(state.defenses[0].lastFireTick < 0); // the attackers never came within reach
+  SB_CHECK(Logged(state, "Stalemate: the system stays with the Alliance"));
+  battle.BuildViewModel(1.0f, view);
+  SB_CHECK(view.stalemateSecondsLeft < 0.0f && !view.stalemateWarning);
+  const BattleResultSet results = battle.Results();
+  SB_CHECK(results.outcome.alliancePresent && results.outcome.empirePresent);
+  SB_CHECK(!results.outcome.allianceWithdrew && !results.outcome.empireWithdrew);
+  SB_CHECK(std::all_of(results.ships.begin(), results.ships.end(),
+                       [](const ShipResult& ship) { return ship.fate == UnitFate::Active; }));
+}
+
 } // namespace
 
 int main()
@@ -383,6 +424,7 @@ int main()
   SavesAndReplaysWithBatteries();
   VersionOneStateBlocksRestore();
   ViewModelShowsBatteriesAndCover();
+  AttackerParkedOutsideTheCoverCedesTheSystem();
   std::puts("space battle planetary batteries passed");
   return 0;
 }

@@ -438,10 +438,36 @@ Destroyer could stop almost anything, which made tractor power and target speed 
   sides present. The engine reports both sides alive and never "unfinished"; `BattleResults` resolves that
   combination with `contestedWinner`, in favour of the side recorded as holding the system first, and the strategic
   game routes the other side away. (The legacy simulator cleared that combination, so its results never reach this
-  path.) The original's rule that a stalemate loser unable to withdraw is destroyed outright is not carried over.
+  path.) The original battle code destroyed the stalemate loser outright whenever its side could not withdraw. That rule is not carried over. What remains is the strategic game's own
+  routing, which applies to every loser, withdrawn or not, and destroys only units that have no way out:
+  - each capital ship whose primary and backup hyperdrives are both gone or knocked out (destroyed as stranded,
+    `Fleet::OnAutoroutingChanged`);
+  - each unit left directly in the system, such as a squadron no carrier took back, that cannot jump to the system
+    chosen for it (stranded, `ApplyEvent307`);
+  - any unit for which no system in the galaxy, friendly, neutral or enemy, will take it (lost location,
+    `RulesMgr::FindDestination`).
+
+  The rule is applied per unit. A fleet's ships with a working drive leave, and squadrons aboard carry on with their
+  carrier. The battle has already rehomed orphaned squadrons to any friendly ship with a free hangar (§6.10), so a
+  squadron is stranded only if no friendly hangar could take it. A long trip never destroys anything, and the
+  battle's gravity wells no longer matter once it is over. On the held-first corpus no both-present ending leaves the
+  loser such a unit (0 of 234 surviving ships and 148 squadrons in 108 runs). `REB_STALEMATE_ROUTING_SMOKE`
+  (`docs/native.md`) exercises the strategic routing.
 - Calibration requires a loss of at least one craft's hull (8 points, which may be spread over several craft) or 1%
   of a side's last recorded hull total, whichever is greater, within 120 seconds to count as progress. Negligible
   chip damage cannot keep a stalled battle open. Point defence wearing a squadron down can.
+- The stalemate clock waits while a superlaser charges with a capital ship to aim at, since that shot is progress
+  still to come. Once the superlaser is charged the clock runs again, so a Death Star whose owner never gives the
+  order cannot hold a battle open until the time limit.
+- **Standoffs end against the side that did not hold the system.** An attacker that waits outside a planet's battery
+  cover (§6.13) and never closes gains nothing: the stalemate leaves the system with the defender and the attacker
+  is routed away. Since the stalemate always favours the side that held the system, neither side can win by stalling,
+  and a defender out of reach never loses on the clock. One minute before the lull runs out, the event log tells the
+  other side it must break through or cede the system. The view model carries the countdown
+  (`stalemateSecondsLeft`, `stalemateHolder`, `stalemateWarning`) and the HUD shows it for that last minute. The
+  stalemate and time-limit lines name the side that keeps the system. The side that held the system is the one whose
+  fleet was there first, not necessarily the planet's owner. A fleet blockading an enemy planet holds it against a
+  relief fleet, which has to break the blockade even though the batteries are its own.
 - A time limit (initially 15 minutes of battle time) ends the battle the same way.
 
 Live battles wind down for a few seconds after they are decided, with movement and effects continuing under a
@@ -1050,6 +1076,11 @@ Deliberate departures from the text above, each explained where it is implemente
   side present indefinitely. A lone Y-wing squadron could not hurt a Carrack and docked whenever its torpedoes ran out,
   so that battle ended as a stalemate in the garrison's favour. In the held-first corpus (2,382 snapshots, 2 seeds),
   stalemates fall from 6.8% to 5.2% of runs and 98.4% of winners are unchanged; most of the flips are such garrisons.
+- **Standoffs** (2026-11-25, §6.11): a charged but unfired superlaser no longer suspends the stalemate rule, and
+  the side that would lose a stalemate is warned a minute ahead. The battle AI always fires a charged superlaser, so
+  on the held-first corpus (2,382 snapshots, 2 seeds) every result is identical: stalemates stay at 2.2% of runs and
+  no winner changes. 13 of the 104 snapshots with batteries have batteries owned by the side that did not hold the
+  system first (a blockade met by a relief fleet).
 - **Death Star**: the superlaser needs a completed station; a Death Star Shield facility blocks the trench run but not
   firing; surface batteries are off (§6.12).
 - **Calibration targets** (§8.3): plausibility holds (the stronger side wins about 97% of battles where it is twice

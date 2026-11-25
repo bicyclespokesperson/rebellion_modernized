@@ -344,6 +344,25 @@ void OutroBannersUseThePlayersPerspective()
   }
 }
 
+// The stalemate countdown's last minute (tactical_combat.md §6.11), worded for the side it threatens.
+void StalemateWarningCountsDown()
+{
+  using reb::battle::Side;
+  for (Side player : {Side::Alliance, Side::Empire}) {
+    BattleScreenOptions options;
+    options.playerSide = player;
+    ScreenDriver h(options);
+    auto& view = h.source.View();
+    view.stalemateHolder = Side::Alliance;
+    view.stalemateSecondsLeft = 61.0f;
+    REQUIRE(CountIf<DrawText>(h.Frame(), [](const DrawText& text) { return text.text.starts_with("NO LOSSES"); }) == 0);
+    view.stalemateWarning = true;
+    view.stalemateSecondsLeft = 44.2f;
+    REQUIRE(HasText(h.Frame(), player == Side::Alliance ? "NO LOSSES - STALEMATE IN 0:45 - THE SYSTEM STAYS OURS"
+                                                        : "NO LOSSES - BREAK THROUGH IN 0:45 OR CEDE THE SYSTEM"));
+  }
+}
+
 void OutroPlaysAtNormalSpeed()
 {
   ScreenDriver h;
@@ -417,6 +436,7 @@ int main()
   OutroBannersUseThePlayersPerspective();
   OutroContinueButtonAndKeysSkip();
   OutroPlaysAtNormalSpeed();
+  StalemateWarningCountsDown();
   SpaceStillPausesBeforeDecision();
   std::puts("battle_ui draw-list tests passed");
 }

@@ -54,6 +54,8 @@ float DurableTotal(const BattleState& state, Side side);
 // Still in the battle (§6.11): a unit in space, or a squadron waiting for its first launch from a hangar that is
 // there. A squadron that has flown and docked again does not keep its side in the battle.
 bool SidePresent(const BattleState& state, Side side);
+// Ticks left before the stalemate rule ends the battle in favour of the side that held the system (§6.11).
+int64_t StalemateTicksLeft(const BattleState& state);
 // Holding space: a unit of the side is in space.
 bool SideInSpace(const BattleState& state, Side side);
 // Another unit of the squadron's side is in space, so it can dock without conceding the battle.

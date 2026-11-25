@@ -291,6 +291,8 @@ inline constexpr float kTrenchMinSurvival = 0.05f;
 inline constexpr float kStalemateSeconds = 120.0f;
 inline constexpr float kPressAttackSeconds = 40.0f; // a stronger attacker commits everything after this long a lull
 inline constexpr float kStalemateProgressShare = 0.01f;
+// The side that would lose the system to a stalemate is warned this long before it.
+inline constexpr float kStalemateWarningSeconds = 60.0f;
 
 // ---- deployment (§4) ----------------------------------------------------------------------------------------------------------
 inline constexpr float kDefaultAttackerBearing = 0.0f; // the attacker arrives from +x

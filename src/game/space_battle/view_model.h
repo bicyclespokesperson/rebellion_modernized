@@ -177,6 +177,12 @@ struct ViewModel {
   bool decided = false;
   ViewEndReason endReason = ViewEndReason::None;
   bool finished = false;
+  // The stalemate countdown (§6.11): with no losses before it runs out, the battle ends and the system stays with
+  // `stalemateHolder`, the side that held it first; the other side must break through or be routed away. Negative
+  // once the battle is decided. `stalemateWarning` is set for its last kStalemateWarningSeconds.
+  float stalemateSecondsLeft = -1.0f;
+  Side stalemateHolder = Side::Alliance;
+  bool stalemateWarning = false;
 };
 
 // Detail for the selected unit's card and overlays: arcs, ranges and doctrine.

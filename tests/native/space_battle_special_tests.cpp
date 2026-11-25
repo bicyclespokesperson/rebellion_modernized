@@ -254,6 +254,51 @@ void SuperlaserFiresOnSchedule()
   SB_CHECK(!battle.Submit(MakeCommand(Side::Alliance, OrderAttack{{station}}, {fighters})));
 }
 
+// A weaponless Alliance line facing a Death Star whose owner never gives the order: only the superlaser could change
+// anything, so the stalemate clock waits while it charges and runs once it is ready (§6.11).
+BattleSnapshot IdleSuperlaser()
+{
+  SnapshotBuilder builder;
+  builder.Params().heldFirstBy = Side::Alliance;
+  builder.AddDeathStar();
+  for (int i = 0; i < 2; ++i) {
+    CapitalShipEntry ship = Broadside(Side::Alliance, "Rebel " + std::to_string(i + 1));
+    ship.weapons = {};
+    ship.weaponRecharge = 0;
+    builder.Add(ship);
+  }
+  return builder.Snapshot();
+}
+
+void ChargedSuperlaserLeftUnfiredDoesNotHoldTheBattleOpen()
+{
+  Battle battle(IdleSuperlaser(), Uncommanded());
+  SB_CHECK(battle.RunHeadless(battle.Options().tickLimit));
+  SB_CHECK(battle.State().endReason == EndReason::Stalemate);
+  SB_CHECK(battle.Tick() == sim::Ticks(tuning::kStalemateSeconds));
+}
+
+void ChargingSuperlaserDefersTheStalemate()
+{
+  const BattleSnapshot snapshot = IdleSuperlaser();
+  Battle battle(snapshot, Uncommanded());
+  const int32_t charge = sim::Ticks(200.0f);
+  Mutable(battle).stations[0].chargeTicks = charge;
+  battle.RunHeadless(charge - 10);
+  ViewModel view;
+  battle.BuildViewModel(1.0f, view);
+  SB_CHECK(!battle.Finished() && !view.stalemateWarning);
+  SB_CHECK_NEAR(view.stalemateSecondsLeft, tuning::kStalemateSeconds, 1e-3f);
+  const std::unique_ptr<Battle> restored = Battle::RestoreState(snapshot, Uncommanded(), battle.SaveState());
+  SB_CHECK(restored != nullptr && restored->StateHash() == battle.StateHash());
+  SB_CHECK(battle.RunHeadless(battle.Options().tickLimit));
+  SB_CHECK(restored->RunHeadless(battle.Options().tickLimit));
+  SB_CHECK(battle.State().endReason == EndReason::Stalemate);
+  const int64_t charged = charge; // the superlaser was last charging on the tick before it was ready
+  SB_CHECK(std::llabs(battle.Tick() - (charged + sim::Ticks(tuning::kStalemateSeconds))) <= 1);
+  SB_CHECK(restored->StateHash() == battle.StateHash());
+}
+
 // The run needs a complete station, no shield facility and more Alliance fighters in play (§6.12).
 void TrenchRunConditions()
 {
@@ -603,6 +648,8 @@ int main()
   GravityWellBlocksJumpsInside();
   TrappedShipsKeepSpoolingAndFighting();
   SuperlaserFiresOnSchedule();
+  ChargedSuperlaserLeftUnfiredDoesNotHoldTheBattleOpen();
+  ChargingSuperlaserDefersTheStalemate();
   TrenchRunConditions();
   TrenchRunDestroysTheStation();
   TrenchRunCostsClumsyCraft();

@@ -270,6 +270,10 @@ void Battle::BuildViewModel(float alpha, ViewModel& out) const
   out.planetRadius = kPlanetRadius;
   out.decided = state.endReason != EndReason::None;
   out.endReason = static_cast<ViewEndReason>(state.endReason);
+  out.stalemateSecondsLeft
+      = out.decided ? -1.0f : static_cast<float>(StalemateTicksLeft(state)) / static_cast<float>(kTicksPerSecond);
+  out.stalemateHolder = state.snapshot.params.heldFirstBy;
+  out.stalemateWarning = !out.decided && out.stalemateSecondsLeft <= kStalemateWarningSeconds;
   out.finished = state.finished;
 
   // The target each unit is assigned to, and whether it shot at it within the last second.
