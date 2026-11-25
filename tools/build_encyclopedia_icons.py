@@ -23,11 +23,13 @@ import pefile
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance
 
 from build_hd_pack import bitmap_file, entries_for, fnv1a64, merge_asset_records, palette_for, preview_rgb
+from encyclopedia_overlays import DAMAGE_OFFSET, crop_to, opaque, overlay_rgba, overlay_targets
 
 
 MODEL = "isnet-general-use"
 MODEL_SHA256 = "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a"
 REVISION = 4
+PACK_REVISION = 2
 SCALE = 4
 RECIPE_PATH = Path(__file__).with_name("encyclopedia_icon_recipes.json")
 FACILITY_BRIGHTNESS_THRESHOLD = 80.0
@@ -331,6 +333,68 @@ def facility_icon(cutout: Image.Image, source: Image.Image, key: int, crop: list
     return result
 
 
+def color_key(source: Image.Image, dib: bytes) -> int:
+    signed_height = struct.unpack_from("<i", dib, 8)[0]
+    return source.getpixel((0, source.height - 1 if signed_height > 0 else 0))
+
+
+def write_companion(out: Path, module: Path, resource: int, language: int, dib: bytes, source: Image.Image,
+                    indexed: Image.Image, key: int) -> tuple[str, Path, Image.Image]:
+    source_fnv = fnv1a64(dib)
+    pack_file = f"{source_fnv:016x}.rhd"
+    payload = indexed.tobytes()
+    (out / pack_file).write_bytes(b"REBHD02\0" + struct.pack("<IIIIQ", source.width, source.height,
+                                                              SCALE, len(payload), source_fnv) + payload)
+    asset_dir = out / f"{module.stem.lower()}-{resource}-{language}"
+    asset_dir.mkdir(exist_ok=True)
+    indexed.save(asset_dir / "accepted-indexed.png")
+    source.save(asset_dir / "source-indexed.png")
+    preview = preview_rgb(indexed, key)
+    preview.save(asset_dir / "preview.png")
+    return pack_file, asset_dir, preview
+
+
+def build_state_overlays(out: Path, module: Path, pictures: dict[tuple[int, int], tuple[Image.Image, Image.Image, int]],
+                         previews: list[tuple[Image.Image, str]]) -> list[dict]:
+    """Redraw damage and en-route overlays around HD ship pictures; see encyclopedia_overlays.
+
+    Some ships share a byte-identical overlay (and so one companion), e.g. both Star Destroyer marks; those are
+    fitted to the union of the sharing ships' silhouettes, which have near-identical poses.
+    """
+    targets = overlay_targets()
+    groups: dict[int, list[tuple[int, int, bytes]]] = {}
+    for resource, language, dib in entries_for(module, set(targets)):
+        if (targets[resource][0], language) in pictures:
+            groups.setdefault(fnv1a64(dib), []).append((resource, language, dib))
+    records = []
+    for members in groups.values():
+        resource, language, dib = members[0]
+        kind = targets[resource][1]
+        bases = [pictures[(targets[member][0], member_language)] for member, member_language, _ in members]
+        size = bases[0][0].size
+        original = np.logical_or.reduce([opaque(base, key, size) for base, _, key in bases])
+        hd = np.logical_or.reduce([opaque(hd_base, key, bases[0][1].size) for _, hd_base, key in bases])
+        overlay = Image.open(io.BytesIO(bitmap_file(dib)))
+        overlay.load()
+        key = color_key(overlay, dib)
+        rgba = overlay_rgba(kind, original, hd, overlay, key, SCALE, resource)
+        if rgba is None:
+            continue
+        indexed = quantize_icon(crop_to(rgba, overlay, SCALE), palette_for(overlay), key)
+        pack_file, asset_dir, preview = write_companion(out, module, resource, language, dib, overlay, indexed, key)
+        state = "damaged" if kind == DAMAGE_OFFSET else "en route"
+        base_ids = [targets[member][0] for member, _, _ in members]
+        records.append({"module": module.name, "resource_id": resource, "language_id": language,
+                        "pack_file": pack_file, "source_sha256": hashlib.sha256(dib).hexdigest(),
+                        "source_fnv1a64": pack_file[:16], "logical_size": list(overlay.size),
+                        "scale": SCALE, "key_index": key, "format": "REBHD02",
+                        "method": "encyclopedia-overlay", "overlay_state": state,
+                        "shared_resource_ids": [member for member, _, _ in members], "base_resource_ids": base_ids,
+                        "indexed_png": str((asset_dir / "accepted-indexed.png").resolve())})
+        previews.append((preview, f"{resource:04x} {state} overlay"))
+    return records
+
+
 def save_contacts(items: list[tuple[Image.Image, str]], directory: Path) -> None:
     for page, start in enumerate(range(0, len(items), 24), 1):
         group = items[start:start + 24]
@@ -450,6 +514,7 @@ def build(args: argparse.Namespace) -> None:
     skipped: set[str] = set()
     previews: list[tuple[Image.Image, str]] = []
     review = ["# module_filename\tresource_id\tcategory\tlabel"]
+    gokres_pictures: dict[tuple[int, int], tuple[Image.Image, Image.Image, int]] = {}
     for module_name, mapping in targets.items():
         module = find_file(args.install_dir, module_name)
         for resource, language, dib in entries_for(module, set(mapping)):
@@ -458,8 +523,7 @@ def build(args: argparse.Namespace) -> None:
             source = Image.open(io.BytesIO(bitmap_file(dib)))
             source.load()
             palette = palette_for(source)
-            signed_height = struct.unpack_from("<i", dib, 8)[0]
-            key = source.getpixel((0, source.height - 1 if signed_height > 0 else 0))
+            key = color_key(source, dib)
             override = overrides.get(filename, {})
             if override.get("skip") or not cutouts[filename].getbbox():
                 skipped.add(f"{fnv1a64(dib):016x}.rhd")
@@ -476,17 +540,11 @@ def build(args: argparse.Namespace) -> None:
             else:
                 rgba = fit_icon(cutouts[filename], source, key, item["category"], crop)
                 indexed = quantize_icon(rgba, palette, key)
+            pack_file, asset_dir, preview = write_companion(args.out, module, resource, language, dib, source,
+                                                            indexed, key)
             source_fnv = fnv1a64(dib)
-            pack_file = f"{source_fnv:016x}.rhd"
-            payload = indexed.tobytes()
-            (args.out / pack_file).write_bytes(b"REBHD02\0" + struct.pack("<IIIIQ", source.width, source.height,
-                                                                       SCALE, len(payload), source_fnv) + payload)
-            asset_dir = args.out / f"{module.stem.lower()}-{resource}-{language}"
-            asset_dir.mkdir(exist_ok=True)
-            indexed.save(asset_dir / "accepted-indexed.png")
-            source.save(asset_dir / "source-indexed.png")
-            preview = preview_rgb(indexed, key)
-            preview.save(asset_dir / "preview.png")
+            if module_name == "GOKRES.DLL":
+                gokres_pictures[(resource, language)] = (source, indexed, key)
             records.append({"module": module.name, "resource_id": resource, "language_id": language,
                             "pack_file": pack_file, "source_sha256": hashlib.sha256(dib).hexdigest(),
                             "source_fnv1a64": f"{source_fnv:016x}", "logical_size": list(source.size),
@@ -498,11 +556,21 @@ def build(args: argparse.Namespace) -> None:
             label = f"{resource:04x} {item['label']}"
             previews.append((preview, label))
             review.append(f"{module.name}\t{resource}\t{item['category']}\t{item['label']}")
+    gokres = find_file(args.install_dir, "GOKRES.DLL")
+    overlay_records = build_state_overlays(args.out, gokres, gokres_pictures, previews)
+    records += overlay_records
+    review += [f"{gokres.name}\t{resource}\t{record['overlay_state']} overlay\tfor {base:#06x}"
+               for record in overlay_records
+               for resource, base in zip(record["shared_resource_ids"], record["base_resource_ids"])]
     manifest_path = args.out / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"schema": "rebellion-hd-indexed-pack-v1"}
     previous = manifest.get("assets", [])
-    owned = {item["pack_file"] for item in previous if item.get("method") == "encyclopedia-cutout"}
+    owned = {item["pack_file"] for item in previous
+             if item.get("method") in ("encyclopedia-cutout", "encyclopedia-overlay")}
     removed = skipped & owned
+    current = {record["pack_file"] for record in records}
+    removed.update(item["pack_file"] for item in previous
+                   if item.get("method") == "encyclopedia-overlay" and item["pack_file"] not in current)
     retired_transit = {base + 3 for base in FACILITY_ROWS}
     removed.update(item["pack_file"] for item in previous
                    if item.get("method") == "encyclopedia-cutout"
@@ -515,12 +583,12 @@ def build(args: argparse.Namespace) -> None:
                                            "model_sha256": MODEL_SHA256, "dependencies": versions,
                                            "dependency_lock_sha256": lock_digest,
                                            "recipes_sha256": fingerprint(recipe_document),
-                                           "icon_count": len(records), "cache": str(args.cache_dir.resolve())}
+                                           "icon_count": len(records), "pack_revision": PACK_REVISION, "cache": str(args.cache_dir.resolve())}
     (args.out / "targets.tsv").write_text("\n".join(review) + "\n")
     preview_dir = args.cache_dir / "icons"
     preview_dir.mkdir(exist_ok=True)
     save_contacts(previews, preview_dir)
-    used = {record["encyclopedia"]["file"] for record in records}
+    used = {record["encyclopedia"]["file"] for record in records if "encyclopedia" in record}
     manifest["encyclopedia_extraction"]["unmapped_sources"] = [item["file"] for item in inventory if item["file"] not in used]
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"Extracted {len(inventory)} pictures; wrote {len(records)} icons to {args.out}", flush=True)

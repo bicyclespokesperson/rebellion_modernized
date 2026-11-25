@@ -47,7 +47,7 @@ class LaunchGameTests(unittest.TestCase):
 
     def launch_result(self) -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
-            ["bash", str(self.root / "launch_game.sh")], env=self.environment,
+            ["bash", str(self.root / "launch_game.sh"), "--no-build"], env=self.environment,
             capture_output=True, text=True, check=True,
         )
         self.assertTrue((self.root / "launched.txt").exists(), result.stderr)
@@ -56,25 +56,6 @@ class LaunchGameTests(unittest.TestCase):
     def launch(self) -> str:
         self.launch_result()
         return (self.root / "launched.txt").read_text()
-
-    def write_source_aged_against_build(self, source_age_seconds: int) -> None:
-        source = self.root / "src/game/example.cpp"
-        source.parent.mkdir(parents=True)
-        source.touch()
-        built = source.stat().st_mtime
-        os.utime(source, (built - source_age_seconds, built - source_age_seconds))
-        for relative in ("build/native/rebellion", "build/native/Rebellion.app/Contents/MacOS/Rebellion"):
-            os.utime(self.root / relative, (built, built))
-
-    def test_warns_when_sources_are_newer_than_the_build(self) -> None:
-        self.write_source_aged_against_build(-60)
-        stderr = self.launch_result().stderr
-        self.assertIn("sources changed since the game was built", stderr)
-        self.assertIn("src/game/example.cpp", stderr)
-
-    def test_no_stale_warning_when_the_build_is_newer(self) -> None:
-        self.write_source_aged_against_build(60)
-        self.assertNotIn("sources changed", self.launch_result().stderr)
 
     def test_missing_pack_uses_selected_installation_and_is_reused(self) -> None:
         self.assertEqual(self.launch(), str(self.pack))
@@ -106,15 +87,36 @@ class LaunchGameTests(unittest.TestCase):
         )
         self.assertEqual(self.launch(), str(self.pack))
 
-    def test_missing_original_assets_launch_without_generation(self) -> None:
+    def launch_failure(self) -> str:
+        result = subprocess.run(
+            ["bash", str(self.root / "launch_game.sh"), "--no-build"], env=self.environment,
+            capture_output=True, text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((self.root / "launched.txt").exists())
+        return result.stderr
+
+    def test_missing_original_assets_fail_with_no_hd_hint(self) -> None:
         (self.installation / "sTrAtEgY.dLl").unlink()
-        self.assertEqual(self.launch(), "unset")
+        self.assertIn("STRATEGY.DLL was not found", self.launch_failure())
         self.assertFalse((self.root / "generated.txt").exists())
 
-    def test_missing_uv_launches_without_generation(self) -> None:
+    def test_missing_uv_fails_with_no_hd_hint(self) -> None:
         self.environment["PATH"] = "/usr/bin:/bin"
-        self.assertEqual(self.launch(), "unset")
+        self.assertIn("--no-hd", self.launch_failure())
         self.assertFalse(self.pack.exists())
+
+    def test_outdated_icons_rebuild_without_asking_and_current_icons_are_kept(self) -> None:
+        self.pack.mkdir(parents=True)
+        manifest = self.pack / "manifest.json"
+        manifest.write_text('{"encyclopedia_extraction": {"revision": 4}}\n')
+        self.assertIn("Updating HD icons", self.launch_result().stdout)
+        arguments = (self.root / "generated.txt").read_text().splitlines()
+        self.assertTrue(arguments[arguments.index("--install-dir") - 1].endswith("build_encyclopedia_icons.py"))
+        (self.root / "generated.txt").unlink()
+        manifest.write_text('{"encyclopedia_extraction": {"revision": 4, "pack_revision": 2}}\n')
+        self.assertEqual(self.launch(), str(self.pack))
+        self.assertFalse((self.root / "generated.txt").exists())
 
     def test_failed_generation_removes_partial_pack_and_retries(self) -> None:
         self.environment["FAKE_UV_STATUS"] = "1"

@@ -54,7 +54,7 @@ prepare_hd_pack() {
   fi
   # uv, and so install_dir, is only needed to build something: the gameplay pack when it is missing, or the optional icons
   # when they are neither built nor declined.
-  if [[ -d "$HD_PACK" ]] && { icons_built || [[ -z "${REB_HD_ICONS+x}" && -f "$ROOT/work/hd/.icons-declined" ]]; }; then
+  if [[ -d "$HD_PACK" ]] && { icons_current || icons_declined; }; then
     export REB_HD_ASSET_DIR="$(native_path "$HD_PACK")"
     return 0
   fi
@@ -98,6 +98,15 @@ icons_built() {
   grep -q '"encyclopedia_extraction"' "$HD_PACK/manifest.json" 2> /dev/null
 }
 
+# Bump with PACK_REVISION in tools/build_encyclopedia_icons.py so existing packs pick up new generated artwork.
+icons_current() {
+  grep -Eq '"pack_revision": 2([^0-9]|$)' "$HD_PACK/manifest.json" 2> /dev/null
+}
+
+icons_declined() {
+  [[ "${REB_HD_ICONS:-}" =~ ^(no|n|0)$ ]] || [[ -z "${REB_HD_ICONS+x}" && -f "$ROOT/work/hd/.icons-declined" ]]
+}
+
 confirm_icon_download() {
   case "${REB_HD_ICONS:-}" in
     yes|y|1) return 0 ;;
@@ -124,17 +133,24 @@ MESSAGE
 }
 
 prepare_hd_icons() {
-  icons_built && return 0
-  [[ -z "${REB_HD_ICONS+x}" && -f "$ROOT/work/hd/.icons-declined" ]] && return 0
-  local install_dir="$INSTALL_DIR"
+  icons_current || icons_declined && return 0
+  if icons_built; then
+    printf 'Updating HD icons to the current pack revision\n'
+    run_icon_build
+    return 0
+  fi
   if ! confirm_icon_download; then
     [[ -z "${REB_HD_ICONS+x}" && -t 0 ]] && touch "$ROOT/work/hd/.icons-declined"
     return 0
   fi
   rm -f "$ROOT/work/hd/.icons-declined"
   printf 'Generating HD icons (the first run downloads the model)\n'
+  run_icon_build
+}
+
+run_icon_build() {
   uv run --locked --python 3.12 "$ROOT/tools/build_encyclopedia_icons.py" \
-      --install-dir "$install_dir" --no-overrides --out "$(native_path "$HD_PACK")" ||
+      --install-dir "$INSTALL_DIR" --no-overrides --out "$(native_path "$HD_PACK")" ||
     printf 'HD icon generation failed; launching without them. It will be offered again next launch.\n' >&2
 }
 

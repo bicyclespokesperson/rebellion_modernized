@@ -164,7 +164,20 @@ alongside the local pack. The procedural drawing code and lockfile are committed
 generated artwork remains local. Set `REB_CHARACTER_TRANSIT_REVIEW_DIR` during the
 native UI smoke for character-row captures and character composite checks.
 
-The Alliance headquarters is reconstructed separately by
+Ship and fighter state overlays are redrawn to fit the cutouts. `CreateObjectPicture` draws a per-record GOKRES
+overlay under the ship picture: damage fire at `id + 0x2000`/`0x6000` (state flag `0x200`) and en-route engine
+trails at `id + 0x1000`/`0x5000`. The originals are positioned for the original sprite, whose pose differs from the
+encyclopedia artwork, so `tools/encyclopedia_overlays.py` regenerates them from the HD silhouette: each original
+fire blob becomes a procedural fire puff placed at the matching relative position and snapped onto the HD hull, and
+each original trail is smoothly upscaled and re-rooted at the HD ship's rearmost edge along the original trail
+direction, keeping its colours. Both still sit under the ship, which keeps every opaque ship pixel. Six ship pairs
+(both Star Destroyer and Victory marks, both Dreadnaughts) share byte-identical overlays and so one companion,
+fitted to the union of their near-identical silhouettes. Set `REB_SHIP_STATE_REVIEW_DIR` during the native UI smoke
+to capture stationary/damaged/en-route composites for every ship type in the save and check that the overlays add
+detail without changing the ship. Bump `PACK_REVISION` in `build_encyclopedia_icons.py` (and `icons_current` in
+`launch_game.sh`) when generated artwork changes; the launcher then rebuilds an older pack without asking again.
+
+
 `tools/build_headquarters_icons.py`, also invoked by the main rebuild. Its larger
 GOKRES `0x0340` (122×50) provides the same gold saucer-and-mast reference as the
 compact `0x4340` (61×25) and the separate STRATEGY `0x0388` (37×37) sector

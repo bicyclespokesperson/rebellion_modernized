@@ -22,7 +22,7 @@ constexpr uint32_t kEmpire = 2;
 constexpr uint32_t kStateUsable = 0x1;
 constexpr uint32_t kStateDestroyed = 0x8;
 constexpr uint32_t kStateEnroute = 0x10;
-constexpr uint32_t kStateHasOrders = 0x200;
+constexpr uint32_t kStateDamaged = 0x200;
 constexpr uint32_t kStateCompleted = 0x4;
 constexpr uint32_t kCharacterCaptured = 0x1;
 
@@ -187,7 +187,7 @@ DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNoti
       }
     }
 
-    if ((stateFlags & kStateHasOrders) && decorate) {
+    if ((stateFlags & kStateDamaged) && decorate) {
       HMODULE overlayModule = module;
       int overlayId = (recordBits & kRecordIdMask) + (alternate ? 0x2000 : 0x6000);
       if (kCharacterFamilies.Contains(family)) {

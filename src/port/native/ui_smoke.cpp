@@ -1793,6 +1793,89 @@ void CheckFacilityTransitArtwork(RebellionApplication& app)
   checkTransitFamily({0x22, 0x28}, "shield transit preserves opaque foreground pixels");
 }
 
+// Damage fire and en-route trails are drawn under the ship from per-record overlays; their HD companions are fitted
+// to the encyclopedia cutouts (tools/encyclopedia_overlays.py), so each state must add detail around the HD ship
+// without touching any of its opaque pixels.
+void CheckShipStateOverlayArtwork(RebellionApplication& app)
+{
+  const char* reviewDirectory = std::getenv("REB_SHIP_STATE_REVIEW_DIR");
+  if (!reviewDirectory || !*reviewDirectory) {
+    return;
+  }
+  constexpr uint32_t kDamaged = 0x200;
+  const auto hdPixel = [](const DibBitmap& bitmap, int scale, int x, int y) {
+    return bitmap.m_hdPixels.empty() ? Pixel(bitmap, x / scale, y / scale)
+                                     : bitmap.m_hdPixels[static_cast<size_t>(y) * bitmap.Width() * scale + x];
+  };
+  uint32_t palette[256];
+  minwin_gdi::CurrentPalette(palette, nullptr);
+  std::set<uint32_t> reviewed;
+  for (const FamilyRange range : {family::kCapitalShips, family::kFighterSquadrons}) {
+    for (auto* candidate = GetFirstObjectInRangeForSide(app.m_strategicWindow->m_side, &range, 0); candidate;
+         candidate = static_cast<GameObj*>(candidate)->FindNextSibling(&range, 0)) {
+      auto* ship = static_cast<GameObj*>(candidate);
+      if (!ship->m_record || !reviewed.insert(ship->GetRecordTypeBits() & 0xfff).second) {
+        continue;
+      }
+      struct RestoreFlags {
+        GameObj& object;
+        uint32_t flags;
+        ~RestoreFlags()
+        {
+          object.m_stateFlags = flags;
+        }
+      } restore{*ship, ship->m_stateFlags};
+      ObjectKey key;
+      ship->GetKey(&key);
+      for (const int alternate : {0, 1}) {
+        const uint32_t settled = (restore.flags & ~(strategy_ui::kEnrouteState | 0x8u | kDamaged)) | 0x5u;
+        std::vector<std::unique_ptr<DibBitmap>> pictures;
+        for (const uint32_t state : {0u, kDamaged, strategy_ui::kEnrouteState}) {
+          ship->m_stateFlags = settled | state;
+          pictures.emplace_back(CreateObjectPicture(CoolAppGetResourceModule(10), &key, ship, alternate, 1));
+        }
+        RequireAiMenu(pictures[0] && pictures[1] && pictures[2], "ship state pictures load from GOKRES");
+        const DibBitmap& stationary = *pictures[0];
+        if (stationary.m_hdPixels.empty()) {
+          continue;
+        }
+        const int scale = stationary.m_hdScale;
+        const int width = stationary.Width() * scale;
+        const int height = stationary.Height() * scale;
+        std::vector<uint32_t> sheet(static_cast<size_t>(width) * 3 * height);
+        for (size_t panel = 0; panel < pictures.size(); ++panel) {
+          const DibBitmap& picture = *pictures[panel];
+          RequireAiMenu(picture.m_hdScale == scale && picture.Width() == stationary.Width()
+                            && picture.Height() == stationary.Height(),
+                        "ship state pictures share HD dimensions");
+          bool backgroundChanged = false;
+          for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+              const uint8_t base = hdPixel(stationary, scale, x, y);
+              const uint8_t pixel = hdPixel(picture, scale, x, y);
+              if (base != stationary.m_colorKey) {
+                RequireAiMenu(pixel == base, "ship state overlay leaves every opaque HD ship pixel unchanged");
+              }
+              backgroundChanged |= pixel != base;
+              sheet[static_cast<size_t>(y) * width * 3 + panel * width + x]
+                  = pixel == picture.m_colorKey ? 0 : palette[pixel];
+            }
+          }
+          RequireAiMenu(panel == 0 || backgroundChanged, "ship damage and en-route states add overlay detail");
+        }
+        char name[48];
+        std::snprintf(name, sizeof(name), "ship-%03x-%s.bmp", ship->GetRecordTypeBits() & 0xfff,
+                      alternate ? "large" : "small");
+        const auto path = std::filesystem::u8path(reviewDirectory) / name;
+        std::filesystem::create_directories(path.parent_path());
+        RequireAiMenu(minwin::present::CaptureScreenshotPixels(sheet.data(), width * 3, height, path.string().c_str()),
+                      "ship state review image saved");
+      }
+    }
+  }
+  RequireAiMenu(!reviewed.empty(), "ship state review found capital ships or fighters");
+}
+
 void CheckMissionCharacterEta(RebellionApplication& app)
 {
   const char* characterTransitReviewDirectory = std::getenv("REB_CHARACTER_TRANSIT_REVIEW_DIR");
@@ -3076,6 +3159,7 @@ void RunNativeUiSmoke(RebellionApplication& app)
   CheckFleetLabelsAndDrag(app);
   CheckArrivalDisplay(app);
   CheckFacilityTransitArtwork(app);
+  CheckShipStateOverlayArtwork(app);
   CheckForcesAndFleetTabArtwork(app);
   CheckMissionCharacterEta(app);
   CheckMissionWithDecoys(app);

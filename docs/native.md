@@ -115,7 +115,7 @@ Prefix it with these to add checks:
 - `REB_UI_SMOKE=1`: fleet-list layout, rendering, hit testing, keyboard navigation, selection and sorting; battle
   participant lists and outcome artwork; status tables; Notice7/Notice15 and assault/story report windows; HQ-only and
   standard victory conditions. Logs `UI visibility checks passed`. The HD review variables (`REB_HD_REVIEW_DIR`,
-  `REB_FACILITY_REVIEW_DIR` and others) are in [hd_artwork.md](hd_artwork.md).
+  `REB_FACILITY_REVIEW_DIR`, `REB_SHIP_STATE_REVIEW_DIR` and others) are in [hd_artwork.md](hd_artwork.md).
 - `REB_SWITCH_SIDES_SMOKE=1`: the developer menu click, deferred switching for both factions, queued-order and
   speed/pause preservation, then the same after reload.
 
