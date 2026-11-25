@@ -768,18 +768,62 @@ It gets no stat bonuses at any difficulty.
 Ship cards in the roster show hull, shields and the five critical systems as small icons, with the same
 remaining / maximum convention the strategic ship status already uses.
 
+**Console chrome.** The HUD looks like the original game's consoles rather than a generic dashboard. The traits come
+from the original's own art: TACTICAL.DLL's battle frame (bitmap 1000) and side panels (1301-1310: brushed steel,
+bevelled edges, rivets, embossed faction emblems, green-grid screens set into the metal), its small steel buttons with
+a coloured lamp slit (1005-1020), and the strategic windows (`gameplay.png`): a title bar in the side's colour, LED
+readouts in black wells (red digits on the Alliance's consoles, green on the Empire's) and segmented LED bars. All of
+it is drawn procedurally by `src/game/battle_ui/chrome.{h,cpp}`, so it is crisp at any HUD scale and needs no art
+from the installation:
+
+- **Plates**: every panel, popup, tooltip and notice is a steel rim with clipped corners, lit at the top and shaded
+  at the bottom, around a smoked-glass body, with a drop shadow on the battle.
+- **Caption bands**: a panel's title, and the doctrine card's header, sit in a band of the player's colour (Alliance
+  red, Imperial blue) with the side's emblem (the starbird or the Imperial crest) and white Arial, like a strategic
+  window's title bar.
+- **Button caps**: steel, lit from above, with a lamp slit along the bottom that glows amber for the current choice
+  (speed, power routing, open doctrine setting, armed order). Hotkeys are small key caps.
+- **Readouts and gauges**: the clock and strength percentages are LED digits over their unlit "88:88" segments in a
+  black well; side strength and superlaser charge are segmented LED gauges; roster and ship bars are shield and hull
+  strips in one well. Signal charges and events use round indicator lamps.
+- **Top bar**: a steel console strip casting a shadow onto the battle, the speed controls in a recessed tray and the
+  player's emblem as an embossed medallion at its right end. Key reminders are drawn as key caps.
+- **Skins**: `chrome::SkinnedTheme` gives the Alliance warm steel, red captions and red LEDs, and the Empire blue
+  steel, imperial-blue captions and green LEDs. Amber is the selection and lamp colour on both. The colour-blind
+  palette recolours factions and bolts on top of either skin.
+
 ### 10.3 Visual language
 
 - Bolts follow the original's colour code: red for the Alliance, green for the Empire, blue for ion fire. They
   are visible, travelling projectiles, but the hit is decided when the shot is fired (section 11.3), so the
   visual only flies to an outcome the simulation already knows.
-- Shield hits flash an arc of the shield bubble at the impact point; once shields are down, hits scorch and spark
-  the hull, and critical hits show (engine glow sputtering, a dark turret section, venting).
+- All light is additive and soft-edged (radial glows, streaks shaded from transparent tail to bright head), so
+  crossing fire brightens rather than covers. A turbolaser bolt is a comet-like streak with a white-hot core and a
+  coloured glow, its length set in meters and kept between a readable minimum and maximum on screen; fighter lasers
+  are short thin streaks; ion bolts are blue-white balls with a short trail; torpedoes are hot points with a turning
+  four-point flare and a trail. Each bolt opens with a muzzle flash.
+- Shield hits light an arc of the shield bubble at the impact point: a band brightening toward the rim and fading at
+  its ends, a bright edge, a spreading ripple and a flash where it was struck. Once shields are down, hull hits burst
+  into sparks and smoke, critical hits add a ring and shorting arcs, and critical damage shows on the hull (engine
+  glow sputtering, a scorched burning section, venting).
 - Fighters are drawn slightly above the plane with soft shadows, so strikes visibly sweep over their targets.
-- Tractor beams are a blue cone; a gravity well is a faint shimmering circle on the plane; a ship spooling its
-  hyperdrive shows a brightening engine glow and a countdown ring.
-- Explosions scale with hull size and leave debris; a destroyed capital ship ejects escape pods, a nod to the
-  characters aboard being set adrift (section 5.6).
+- Tractor beams are a blue cone, brightest at the emitter, with waves running back along it; a gravity well is a
+  ring that brightens toward its edge with ripples moving inward; a ship spooling its hyperdrive shows a countdown
+  ring and leaves in a streak of light along its heading. Ion disruption crackles around the hull.
+- Explosions scale with hull size: a white flash, overlapping fireballs cooling from yellow-white to red over a pall
+  of smoke, a shock wave, tumbling hull fragments that glow and then darken, sparks, and for capital ships secondary
+  blasts and escape pods, a nod to the characters aboard being set adrift (section 5.6).
+- The overlay is informative without clutter. A single selected ship's firing arcs are coverage that brightens toward
+  its reach, with a bright rim; its range rings keep a line pattern per weapon kind (solid turbolaser, long-dash ion,
+  dotted laser) as well as a colour, and carry small tags ("TURBOLASER 5.6 km"). Several selected ships show only
+  faint arcs. Target lines are solid while firing and march toward the target while only assigned, and a selected
+  ship's target is bracketed. Projections are dotted tracks ending in a chevron.
+- Selection uses the original's targeting frame: corner brackets, with a dark keyline so they read over bright art;
+  hover is a dashed ring. Ship names go under a ship, or above it when the space below is taken by another name or
+  another ship; a squadron's craft count is dropped when it would overlap, unless the squadron is hovered or
+  selected. A vignette darkens the view's corners.
+- Deployment (section 4): the player's zone is a hologram disc that brightens toward its ticked rim, the enemy's a
+  faint dashed one. Each group's handle floats above its ships on a stem, clear of their names.
 
 ### 10.4 Two looks
 
@@ -807,6 +851,20 @@ from the player's installation at runtime. Which clip belongs to which event is 
 and `src/game/battle_ui/battle_sounds.{h,cpp}`; the original plays no sound at the muzzle, only at the target, and
 drops a voice line while another is speaking. The original tactical music (`MDATA.401`-`MDATA.406`) is missing
 from this installation, so battles use the strategic music tracks until it can be found in another edition.
+
+### 10.7 Review captures
+
+The demo (`src/port/native/space_battle/demo.cpp`) writes review captures without showing a window:
+`REB_SPACE_BATTLE_DEMO=<snapshot>` (or `fabricated`), `REB_SPACE_BATTLE_REVIEW_DIR=<directory>`, optionally
+`REB_TACTICAL_SPRITE_DIR=work/hd/tactical/pack` for the ship art, `REB_SPACE_BATTLE_SIDE=alliance|empire` for the
+player's side (and so the HUD skin), `REB_SPACE_BATTLE_REVIEW_SIZE=WxH` to limit the HUD passes to one size (otherwise
+1920x1080, 1280x720 and 2560x1600 at HUD scale 2) and `REB_SPACE_BATTLE_REVIEW_SKIP_HUD=1`. They cover the screen
+alone (`01`-`12`, the angled view `a*`, the planet `p1`, a turbolaser exchange close up `c1_combat` and
+`c2_combat_impacts`, damage `d1` and a capital ship's explosion `d2`), the command HUD on the fabricated battle at
+each size (`hud_<size>_*`: briefing, deployment, every popup, roster drag, picking, options and the colour-blind
+palette at 115 %, withdrawal confirmation, collapsed panels, observing), the Death Star for both sides
+(`hud_deathstar_*`), and the HUD on the snapshot's battle (`hud_sim_*`, through to its end: `08_decided` when the
+source plays an outro, `09_finished`).
 
 ## 11. Engineering
 

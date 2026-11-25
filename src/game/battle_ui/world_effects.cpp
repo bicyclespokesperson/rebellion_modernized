@@ -247,8 +247,9 @@ void PaintExplosion(const Painter& p, const battle::ViewEffect& effect, float t)
       p.out.Glow(center, size * (0.9f + 1.5f * t), kWhite.WithAlpha(Alpha(230.0f * flash * flash)));
     }
     const float shock = size * (0.25f + 1.35f * grow);
-    p.out.GradientSector(center, shock * 0.8f, shock, 0.0f, kTwoPi, kFire.WithAlpha(0),
-                         Mix(kFire, kWhite, 0.4f).WithAlpha(Alpha(110.0f * fade * fade)), Blend::Additive);
+    const Color front = Mix(kFire, kWhite, 0.4f).WithAlpha(Alpha(110.0f * fade * fade));
+    p.out.GradientSector(center, shock * 0.8f, shock, 0.0f, kTwoPi, kFire.WithAlpha(0), front, Blend::Additive);
+    p.out.GradientSector(center, shock, shock * 1.06f, 0.0f, kTwoPi, front, kFire.WithAlpha(0), Blend::Additive);
     PaintDebris(p, center, size, seed, t, capital ? 18 : 8);
     Sparks(p, center, seed + 7U, capital ? 14 : 8, size * 1.4f, t, Rgb(0xffe0a0));
     // Secondary blasts tear through a capital ship's hull after the first.
@@ -284,8 +285,13 @@ void PaintShieldFlash(const Painter& p, const battle::ViewEffect& effect, float 
   const Color color = p.scene.theme.shield;
   // The bubble lights where it is struck: a band brightening toward the rim, a bright edge and a ripple spreading.
   const float spread = 0.55f + 0.5f * t;
-  p.out.GradientSector(center, radius * 0.72f, radius, angle - spread, 2.0f * spread, color.WithAlpha(0),
-                       color.WithAlpha(Alpha(120.0f * fade)), Blend::Additive);
+  constexpr int kSlices = 9; // the band fades toward its ends as well as inward
+  for (int i = 0; i < kSlices; ++i) {
+    const float weight = std::sin(kPi * (static_cast<float>(i) + 0.5f) / kSlices);
+    const float from = angle - spread + 2.0f * spread * static_cast<float>(i) / kSlices;
+    p.out.GradientSector(center, radius * 0.72f, radius, from, 2.0f * spread / kSlices, color.WithAlpha(0),
+                         color.WithAlpha(Alpha(130.0f * fade * weight)), Blend::Additive);
+  }
   p.out.Arc(center, radius, angle - spread * 0.8f, 1.6f * spread, Mix(color, kWhite, 0.45f).WithAlpha(Alpha(220.0f * fade)),
             Stroke{1.5f * p.ui, 0, 0, 0, 2.5f * p.ui}, Blend::Additive);
   p.out.Arc(center, radius * (1.0f + 0.1f * t), angle - spread * 1.2f, 2.4f * spread,

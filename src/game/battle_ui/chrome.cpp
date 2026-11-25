@@ -71,8 +71,8 @@ void Starbird(DrawList& draw, Point c, float r, Color color)
 {
   constexpr int kSteps = 24;
   const float degrees = kPi / 180.0f;
-  const float outerFrom = -48.6f * degrees;
-  const float innerFrom = -34.2f * degrees;
+  const float outerFrom = -51.6f * degrees;
+  const float innerFrom = -30.3f * degrees;
   std::vector<Point> outline;
   std::vector<Vertex> fill;
   const auto outer = [&](int k) {
@@ -81,7 +81,7 @@ void Starbird(DrawList& draw, Point c, float r, Color color)
   };
   const auto inner = [&](int k) {
     const float a = innerFrom + (kPi - 2.0f * innerFrom) * static_cast<float>(k) / kSteps;
-    return Point{c.x + std::cos(a) * r * 0.8f, c.y - r * 0.3f + std::sin(a) * r * 0.8f};
+    return Point{c.x + std::cos(a) * r * 0.72f, c.y - r * 0.42f + std::sin(a) * r * 0.72f};
   };
   for (int k = 0; k < kSteps; ++k) {
     fill.insert(fill.end(), {{outer(k), color}, {outer(k + 1), color}, {inner(k + 1), color},
@@ -95,8 +95,8 @@ void Starbird(DrawList& draw, Point c, float r, Color color)
   }
   draw.Triangles(std::move(fill));
   draw.Polyline(std::move(outline), color, Stroke{1.0f}, true);
-  draw.FillConvex({{c.x, c.y - r * 1.08f}, {c.x + r * 0.15f, c.y - r * 0.05f}, {c.x + r * 0.07f, c.y + r * 0.6f},
-                   {c.x - r * 0.07f, c.y + r * 0.6f}, {c.x - r * 0.15f, c.y - r * 0.05f}},
+  draw.FillConvex({{c.x, c.y - r * 1.1f}, {c.x + r * 0.17f, c.y - r * 0.15f}, {c.x, c.y + r * 0.5f},
+                   {c.x - r * 0.17f, c.y - r * 0.15f}},
                   color);
 }
 
@@ -237,7 +237,7 @@ void ButtonCap(DrawList& draw, const Rect& rect, Face face, const Theme& theme, 
   const Rect slit{std::round(r.Center().x - slitWidth * 0.5f), r.Bottom() - std::round(4.0f * s), slitWidth,
                   std::max(1.0f, std::round(2.0f * s))};
   if (face == Face::On) {
-    draw.Glow(slit.Center(), slitWidth * 0.75f, theme.accent.WithAlpha(70));
+    draw.Glow(slit.Center(), slitWidth * 0.6f, theme.accent.WithAlpha(60));
     draw.FillRect(slit, Mix(theme.accent, kWhite, 0.25f));
   } else {
     draw.FillRect(slit, kBlack.WithAlpha(face == Face::Disabled ? 60 : 120));

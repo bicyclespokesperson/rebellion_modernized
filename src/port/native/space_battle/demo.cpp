@@ -1,6 +1,7 @@
 #include "port/native/space_battle/demo.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -206,6 +207,34 @@ class ReviewScript
   int m_failures = 0;
 };
 
+// Fire close up, in the detailed look: a turbolaser bolt in flight between two capital ships, framed so that both show,
+// then the moment it lands (muzzle flashes, bolts, shield hits). Waits up to twenty seconds of battle for such a shot.
+void ReviewCombat(BattleScreen& screen, ReviewScript& script)
+{
+  const battle_ui::Rect area = screen.Layout().view;
+  for (int frame = 0; frame < 20 * 30; ++frame) {
+    for (const battle::ViewShot& shot : screen.View().shots) {
+      const battle::ViewUnit* shooter = battle_ui::FindUnit(screen.View(), shot.shooter);
+      const battle::ViewUnit* target = battle_ui::FindUnit(screen.View(), shot.target);
+      if (shot.kind != battle::ViewShotKind::Turbolaser || !shot.hit || shot.progress < 0.25f || shot.progress > 0.5f
+          || !shooter || !target || target->kind != battle::ViewUnitKind::CapitalShip) {
+        continue;
+      }
+      const float distance = std::max(1.0f, std::hypot(shot.to.x - shot.from.x, shot.to.y - shot.from.y));
+      const float zoom = 0.7f * std::min(area.w, area.h) / distance;
+      screen.GetCamera().SetZoom(std::max(zoom, battle_ui::Camera::kDetailedZoom * 1.1f * screen.Screen().uiScale));
+      screen.CenterAt({(shot.from.x + shot.to.x) * 0.5f, (shot.from.y + shot.to.y) * 0.5f});
+      script.Advance(0.0);
+      script.Capture("c1_combat");
+      script.Advance(0.3);
+      script.Capture("c2_combat_impacts");
+      return;
+    }
+    script.Advance(1.0 / 30.0);
+  }
+  std::printf("space battle review: no turbolaser exchange between capital ships within twenty seconds\n");
+}
+
 // Damage close up: the worst-hit capital ship, and a capital ship's explosion with its escape pods, waiting up to a
 // minute of battle for one.
 void ReviewDamage(BattleScreen& screen, ReviewScript& script)
@@ -372,7 +401,8 @@ int RunReview(BattleScreen& screen, const std::filesystem::path& directory)
   script.Advance(0.1);
   script.Capture("11_rotated");
 
-  script.Press(Key::Space); // running again, for the damage close-ups
+  script.Press(Key::Space); // running again, for the close-ups
+  ReviewCombat(screen, script);
   ReviewDamage(screen, script);
 
   script.Press(Key::Home);
@@ -788,6 +818,25 @@ int ReviewSimulatorHud(const char* demo, const std::filesystem::path& directory,
     review.Screen().CenterAt({view.planetCenter.x * 0.6f, view.planetCenter.y * 0.6f});
     review.Frame();
     review.Capture("07_planetary_cover");
+  }
+  // The end of the battle: the decision with its outro (when the source plays one), then the finished battle's banner.
+  review.Key(battle_ui::Key::Home);
+  review.Key(battle_ui::Key::Equals);
+  for (int step = 0; step < 2400 && !review.Screen().View().decided; ++step) {
+    review.Script().Advance(0.5);
+  }
+  if (review.Screen().View().decided) {
+    if (!review.Screen().View().finished) {
+      review.Frame();
+      review.Capture("08_decided");
+    }
+    for (int step = 0; step < 60 && !review.Screen().View().finished; ++step) {
+      review.Script().Advance(1.0);
+    }
+    review.Frame();
+    review.Capture("09_finished");
+  } else {
+    std::printf("space battle review: the battle was not decided within the review's time\n");
   }
   return review.Failures();
 }
