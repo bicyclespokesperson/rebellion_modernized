@@ -150,6 +150,44 @@
         }
       ]
     },
+    "EDATA.027": {
+      "label": "Longprobe Y-wing Recon Team",
+      "source_sha256": "55326a0e693b752dda76540abe8b3d3beeb4c2d17df0dfd686337ee3d1b303ab",
+      "size": [400, 200],
+      "reason": "Remove starfield kept inside the lower ship's aft engine cage and just above its top rail, preserving the rails and the red exhaust core.",
+      "operations": [
+        {
+          "operation": "subtract",
+          "points": [
+            [258, 116],
+            [303, 107],
+            [306, 107],
+            [307, 116],
+            [298, 117],
+            [293, 118],
+            [288, 119],
+            [283, 120],
+            [281, 121],
+            [268, 121],
+            [265, 120],
+            [259, 119],
+            [258, 118]
+          ]
+        },
+        {
+          "operation": "subtract",
+          "points": [
+            [263, 104],
+            [290, 104],
+            [281, 109],
+            [276, 110],
+            [272, 111],
+            [267, 112],
+            [263, 112]
+          ]
+        }
+      ]
+    },
     "EDATA.036": {
       "label": "X-wing",
       "source_sha256": "4e635d69a4108642668a0a9702da73f3618128fd53272cd9f8422ca3dba5356b",
@@ -185,115 +223,113 @@
     "EDATA.037": {
       "label": "Y-wing",
       "source_sha256": "d9edf53d752f1ea3e6a883c6dfb81e4c470e6ee74919ea7fadecdd4a7e2f2b96",
-      "size": [
-        400,
-        200
-      ],
-      "reason": "Remove starfield visible between the aft engine cage rails, preserving the longitudinal rails, exhaust cores and end rings.",
+      "size": [400, 200],
+      "reason": "Remove starfield visible between the aft engine cage rails and in the gap between the two engine pods behind the hull, preserving the longitudinal rails, exhaust cores, end rings and hull edge.",
       "operations": [
         {
           "operation": "subtract",
           "points": [
-            [
-              236,
-              98
-            ],
-            [
-              279,
-              99
-            ],
-            [
-              277,
-              102
-            ],
-            [
-              240,
-              101
-            ]
+            [236, 98],
+            [279, 99],
+            [277, 102],
+            [240, 101]
           ]
         },
         {
           "operation": "subtract",
           "points": [
-            [
-              240,
-              105
-            ],
-            [
-              277,
-              106
-            ],
-            [
-              277,
-              109
-            ],
-            [
-              240,
-              108
-            ]
+            [240, 105],
+            [277, 106],
+            [277, 109],
+            [240, 108]
           ]
         },
         {
           "operation": "subtract",
           "points": [
-            [
-              238,
-              111
-            ],
-            [
-              278,
-              112
-            ],
-            [
-              279,
-              115
-            ],
-            [
-              234,
-              114
-            ]
+            [238, 111],
+            [278, 112],
+            [279, 115],
+            [234, 114]
           ]
         },
         {
           "operation": "subtract",
           "points": [
-            [
-              269,
-              148
-            ],
-            [
-              323,
-              149
-            ],
-            [
-              319,
-              156
-            ],
-            [
-              275,
-              156
-            ]
+            [269, 148],
+            [323, 149],
+            [319, 156],
+            [275, 156]
           ]
         },
         {
           "operation": "subtract",
           "points": [
-            [
-              277,
-              164
-            ],
-            [
-              319,
-              165
-            ],
-            [
-              322,
-              171
-            ],
-            [
-              267,
-              170
-            ]
+            [277, 164],
+            [319, 165],
+            [322, 171],
+            [267, 170]
+          ]
+        },
+        {
+          "operation": "subtract",
+          "points": [
+            [249, 144],
+            [242, 143],
+            [242, 142],
+            [248, 141],
+            [248, 140],
+            [249, 139],
+            [249, 136],
+            [251, 135],
+            [250, 134],
+            [250, 131],
+            [250, 130],
+            [248, 129],
+            [248, 128],
+            [246, 127],
+            [248, 126],
+            [247, 125],
+            [248, 124],
+            [246, 123],
+            [245, 122],
+            [242, 121],
+            [244, 120],
+            [243, 119],
+            [243, 118],
+            [239, 117],
+            [240, 116],
+            [264, 116],
+            [264, 117],
+            [281, 117],
+            [282, 118],
+            [299, 118],
+            [299, 144]
+          ]
+        },
+        {
+          "operation": "subtract",
+          "points": [
+            [290, 106],
+            [296, 106],
+            [296, 118],
+            [285, 118],
+            [285, 117],
+            [287, 116],
+            [287, 115],
+            [288, 114],
+            [289, 113],
+            [289, 112],
+            [290, 111]
+          ]
+        },
+        {
+          "operation": "subtract",
+          "points": [
+            [290, 140],
+            [318, 140],
+            [318, 145],
+            [290, 145]
           ]
         }
       ]
