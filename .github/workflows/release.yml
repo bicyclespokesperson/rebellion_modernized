@@ -108,7 +108,9 @@ jobs:
           arch: x64
       - name: LLVM
         shell: pwsh
-        run: choco install llvm -y --no-progress
+        run: |
+          choco upgrade llvm -y --no-progress
+          & "C:\Program Files\LLVM\bin\clang-cl.exe" --version
       - name: Dependencies
         shell: bash
         run: bash tools/fetch_deps.sh freetype liberation sdl3
