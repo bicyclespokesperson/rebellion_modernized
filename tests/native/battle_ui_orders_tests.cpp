@@ -187,13 +187,10 @@ void CameraControls()
   d.Frame(0.5);
   REQUIRE(Near(camera.Center().x, panned.x, 0.01f));
 
-  d.Move({1279.0f, 400.0f}); // the right edge scrolls the same way
+  d.Move({1279.0f, 400.0f}); // the mouse at the screen's edge does not scroll
   d.Frame(0.5);
-  REQUIRE(camera.Center().x > panned.x + 100.0f);
+  REQUIRE(Near(camera.Center().x, panned.x, 0.01f) && Near(camera.Center().y, panned.y, 0.01f));
   const reb::battle::Vec2 edged = camera.Center();
-  d.Move({-1.0f, -1.0f}); // the mouse left the window: no scrolling
-  d.Frame(0.5);
-  REQUIRE(Near(camera.Center().x, edged.x, 0.01f) && Near(camera.Center().y, edged.y, 0.01f));
 
   d.Press(Key::F1, kModCtrl); // bookmark this view
   const float zoom = camera.Zoom();
@@ -212,7 +209,7 @@ void CameraControls()
   d.Frame(0.1);
   const Point areaCenter = d.screen.Layout().battleArea.Center();
   REQUIRE(Near(d.At(2), areaCenter, 0.5f));
-  d.Move({1279.0f, 400.0f}); // edge scrolling does not release the followed unit
+  d.Move({1279.0f, 400.0f});
   d.Frame(0.5);
   REQUIRE(d.screen.Following() == 2 && Near(d.At(2), areaCenter, 0.5f));
   d.screen.HandleInput(MouseWheel{{900.0f, 300.0f}, 0.0f, 1.0f}); // the wheel zooms on the followed unit

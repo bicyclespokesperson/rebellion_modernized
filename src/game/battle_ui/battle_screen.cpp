@@ -25,7 +25,6 @@ constexpr double kDoubleTapSeconds = 0.4;
 constexpr double kHoverDelay = 0.25;
 constexpr double kMarkerSeconds = 1.0;
 constexpr float kPanSpeed = 900.0f;     // UI pixels per second
-constexpr float kEdgeScrollBand = 4.0f; // UI pixels at the screen's edge that scroll the view
 constexpr float kWheelStep = 1.2f;
 
 // The stalemate countdown (tactical_combat.md §6.11), shown for its last minute below the top banners.
@@ -576,15 +575,8 @@ void BattleScreen::Update(double elapsedSeconds)
 {
   m_seconds += elapsedSeconds;
   const float pan = kPanSpeed * m_screen.uiScale * static_cast<float>(elapsedSeconds);
-  const float edge = kEdgeScrollBand * m_screen.uiScale;
-  // Edge scrolling never releases a followed unit: reaching for a panel at the window's edge would.
-  const bool edgeScroll
-      = m_follow == kNoUnit && m_mouseKnown && m_drag == Drag::None && m_layout.screen.Contains(m_mouse);
-  const bool left = m_panKeys[0] || (edgeScroll && m_mouse.x < edge);
-  const bool right = m_panKeys[1] || (edgeScroll && m_mouse.x >= m_layout.screen.Right() - edge);
-  const bool up = m_panKeys[2] || (edgeScroll && m_mouse.y < edge);
-  const bool down = m_panKeys[3] || (edgeScroll && m_mouse.y >= m_layout.screen.Bottom() - edge);
-  const Point panDelta{(left ? pan : 0.0f) - (right ? pan : 0.0f), (up ? pan : 0.0f) - (down ? pan : 0.0f)};
+  const auto held = [&](int key) { return m_panKeys[key] ? pan : 0.0f; };
+  const Point panDelta{held(0) - held(1), held(2) - held(3)};
   if (panDelta.x != 0.0f || panDelta.y != 0.0f) {
     m_camera.PanPixels(panDelta);
     m_follow = kNoUnit;

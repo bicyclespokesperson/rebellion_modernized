@@ -759,9 +759,9 @@ It gets no stat bonuses at any difficulty.
     a single sprite rotated to its heading.
   - **Angled**, at one fixed pitch (around 50 degrees), for a more cinematic look. Ships are drawn from frames
     pre-rendered at many headings (section 10.5).
-- Pan with WASD, edge scroll or a middle-drag; zoom with the wheel; rotate the view in 45-degree steps (Q/E).
+- Pan with WASD, the arrow keys or a middle-drag (the mouse at the screen edge does not scroll); zoom with the wheel; rotate the view in 45-degree steps (Q/E).
   Double-click a ship to centre it, F (or the top bar's Follow button) to follow it, Home to frame the whole
-  battle. Following shows a banner naming the ship; the wheel zooms on it, edge scrolling leaves it alone, and
+  battle. Following shows a banner naming the ship; the wheel zooms on it, and
   F with another ship selected switches to that ship. Camera bookmarks replace the original's memorized position.
 - **Semantic zoom**: zoomed out, ships become faction-coloured tactical symbols by archetype (section 7.2), and
   flights become one marker with a craft count. Zoomed in, the ship art takes over.
