@@ -144,7 +144,7 @@ orders (decisive moments) and commander signals (scarce, powerful).
 | Fire allocation | Concentrate (one target for the group), Spread (each ship picks its own), Auto (overkill-aware split) | Auto |
 | Subsystem focus | Hull, Shields, Engines, Weapons, Hyperdrive, Tractor beam | Hull |
 | Power routing | Balanced, Weapons, Shields, Engines | Balanced |
-| Withdraw at | Never, hull below 25% / 50% / 75%, when shields collapse, only on order | Only on order: the player's Withdraw order, or the AI commander's own preservation (a player's Never or hull rule stands after an AI takeover) |
+| Withdraw at | On order (shown first), never, hull below 25% / 50% / 75%, when shields collapse | Only on order: the player's Withdraw order, or the AI commander's own preservation (a player's Never or hull rule stands after an AI takeover) |
 | Formation | Line abreast, Column, Wedge, Ring (around an escorted ship), Loose | From role |
 
 Fighters have their own card:
@@ -586,7 +586,7 @@ broadside).
 | Escort frigate | Nebulon-B | Screen, Bow-on toward threats | Bow turbolasers plus lasers all round, two squadrons, detection 30 |
 | Carrier | Alliance and Imperial Escort Carriers | Carrier, launch immediately | Six squadrons and only lasers to defend itself; losing it strands fighters |
 | Interdictor | Interdictor Cruiser, CC-7700 | Picket on the enemy's escape side, fighters first | The net: weak guns, a gravity well, and the first thing the enemy wants dead |
-| Transport | Medium and Bulk Transport, Galleon, Star Galleon, Assault Transport | Reserve, withdraw at 50% | The invasion's weak point; the Assault Transport is fast enough to punch through |
+| Transport | Medium and Bulk Transport, Galleon, Star Galleon, Assault Transport | Reserve | The invasion's weak point; the Assault Transport is fast enough to punch through |
 
 ### 7.3 Two fleets, two styles
 

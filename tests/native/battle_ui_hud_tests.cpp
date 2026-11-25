@@ -285,9 +285,15 @@ void ShipEditsApplyToSelection()
   REQUIRE(h.Group(kTaskForce1).shipDoctrine.subsystem == battle::Subsystem::Hull);
 
   h.Click(hud_id::Chip(DoctrineField::Withdraw));
-  h.Click(hud_id::FieldOption(2)); // Hull < 50%
+  h.Click(hud_id::FieldOption(3)); // Hull < 50%
   REQUIRE(h.screen->Detail(kDefiance).overrides == (battle::kShipSubsystem | battle::kShipWithdraw));
   REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.withdraw == battle::WithdrawRule::HullBelow50);
+  h.Click(hud_id::Chip(DoctrineField::Withdraw));
+  h.Click(hud_id::FieldOption(1));
+  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.withdraw == battle::WithdrawRule::Never);
+  h.Click(hud_id::Chip(DoctrineField::Withdraw));
+  h.Click(hud_id::FieldOption(0)); // On order, the default
+  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.withdraw == battle::WithdrawRule::OnOrderOnly);
 }
 
 void PriorityEditsAndTargetFocus()

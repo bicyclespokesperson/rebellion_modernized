@@ -60,8 +60,11 @@ constexpr std::array kPowers{
     OptionText{"Shields", "Shields", "Shields recharge 80% faster, weapons 30% slower, speed 10% lower."},
     OptionText{"Engines", "Engines", "Speed and turn rate 40% higher, weapons and shields recharge 20% slower."},
 };
+// The menu leads with the default, so its indices are WithdrawRule's shifted by one
+// (GetOption, SetOption).
 constexpr std::array kWithdrawRules{
-    OptionText{"Never", "Never", "Fight on until ordered to withdraw."},
+    OptionText{"On order", "On order", "Jump out when you order it; an AI given the side pulls badly damaged ships out."},
+    OptionText{"Never", "Never", "Fight on until ordered to withdraw, even under an AI given the side."},
     OptionText{"Hull below 25%", "Hull < 25%", "Jump out once the hull falls below 25%."},
     OptionText{"Hull below 50%", "Hull < 50%", "Jump out once the hull falls below 50%."},
     OptionText{"Hull below 75%", "Hull < 75%", "Jump out once the hull falls below 75%."},
@@ -362,7 +365,7 @@ int GetOption(DoctrineField field, bool flight, const ShipDoctrine& ship, const 
     case DoctrineField::Power:
       return From(ship.power);
     case DoctrineField::Withdraw:
-      return ship.withdraw == battle::WithdrawRule::OnOrderOnly ? 0 : From(ship.withdraw);
+      return ship.withdraw == battle::WithdrawRule::OnOrderOnly ? 0 : From(ship.withdraw) + 1;
     case DoctrineField::Formation:
       return From(ship.formation);
     case DoctrineField::Mission:
@@ -415,7 +418,7 @@ void SetOption(DoctrineField field, bool flight, int index, ShipDoctrine& ship, 
       ship.power = To<battle::PowerRouting>(index);
       break;
     case DoctrineField::Withdraw:
-      ship.withdraw = To<battle::WithdrawRule>(index);
+      ship.withdraw = index == 0 ? battle::WithdrawRule::OnOrderOnly : To<battle::WithdrawRule>(index - 1);
       break;
     case DoctrineField::Formation:
       ship.formation = To<battle::Formation>(index);
