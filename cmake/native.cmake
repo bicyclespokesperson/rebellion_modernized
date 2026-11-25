@@ -303,6 +303,12 @@ if(BUILD_TESTING)
   target_compile_options(reb_enhancements_tests PRIVATE ${REB_NATIVE_FLAGS})
   target_link_libraries(reb_enhancements_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_enhancements COMMAND reb_enhancements_tests)
+  add_executable(reb_startup_assets_tests tests/native/startup_assets_tests.cpp src/port/native/startup_assets.cpp
+    ${MW}/res/pe_module.cpp ${MW}/res/mapped_file.cpp ${MW}/res/path.cpp ${REB_PLATFORM_SOURCE})
+  target_include_directories(reb_startup_assets_tests PRIVATE src/game src)
+  target_compile_options(reb_startup_assets_tests PRIVATE ${REB_NATIVE_FLAGS})
+  target_link_libraries(reb_startup_assets_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_startup_assets COMMAND reb_startup_assets_tests)
   add_executable(reb_save_transaction_tests
     tests/native/save_transaction_tests.cpp ${REB_STREAM_TEST_SOURCES}
     src/game/core/game_string.cpp src/game/core/stream_io.cpp

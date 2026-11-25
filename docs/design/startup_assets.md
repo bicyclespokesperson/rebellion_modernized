@@ -28,5 +28,7 @@ storage belongs to the entry-point asset owner and remains alive through game sh
 grid dimensions, geometry, resource type GUIDs, and allocation sizes belong in source rather than the asset pack.
 
 `create_build.sh` extracts the pack before configuring CMake. CMake packages an available pack in the app's resource
-directory (macOS) or beside the executable (Linux). CMake itself can compile without an installation or pack, allowing
-public compile checks. To use a pack stored elsewhere, configure `REB_STARTUP_ASSET_PACK` with its path.
+directory (macOS) or beside the executable (Linux/Windows). When no `startup-assets.bin` pack is packaged alongside the
+executable (such as CI release binaries built without game data), `StartupAssets::LoadForInstallation` extracts the same
+schema-1 entries directly from `<install_dir>/REBEXE.EXE` at runtime after `CheckInstallation()` validates the
+installation. To use a pre-extracted pack stored elsewhere, configure `REB_STARTUP_ASSET_PACK` with its path.

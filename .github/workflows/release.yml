@@ -1,9 +1,9 @@
 # Release binaries for Linux (x86-64), macOS (arm64, macOS 26 and later) and Windows (x86-64), run by hand from the Actions tab.
 # A draft GitHub Release for the given tag is created first; each platform builds the `rebellion` target in Release with the
 # native configuration and uploads its archive to that release; the release is published once every platform has uploaded.
-# No game data is used: the startup text pack and the macOS icon come from a local installation and are absent here, so
-# the archives contain only the executable and the Liberation Sans fallback fonts. Players still need their own copy of the
-# game; the first-run check asks for it through config.ini (install_dir).
+# No game data is included: startup text is read directly from the player's own REBEXE.EXE at runtime, so the archives
+# contain only the executable and the Liberation Sans fallback fonts. On first launch the app prompts the user to select
+# their Star Wars: Rebellion installation folder (or reads install_dir from config.ini).
 name: release
 on:
   workflow_dispatch:
@@ -28,8 +28,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
-          gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "$TAG" \
-            --notes "Native builds for Linux, macOS and Windows. Requires your own copy of Star Wars: Rebellion (set install_dir in config.ini)."
+          cat <<'EOF' > release-notes.md
+          Native builds for Linux (x86-64), macOS (Apple Silicon, macOS 26+), and Windows (x86-64).
+
+          ### How to run
+          You need your own copy of the original 1998 *Star Wars: Rebellion* (Steam, GOG, or CD).
+
+          1. Download and extract the archive for your platform:
+             - **macOS (arm64, macOS 26+):** unzip `rebellion-macos-arm64.zip` and open `Rebellion.app`. Because the build is ad-hoc signed (not notarized), allow it in **System Settings → Privacy & Security → Open Anyway**, or run `xattr -dr com.apple.quarantine Rebellion.app`.
+             - **Windows (x86-64):** unzip `rebellion-windows-x86_64.zip` and run `rebellion.exe`.
+             - **Linux (x86-64):** extract `rebellion-linux-x86_64.tar.gz` and run `./rebellion`.
+          2. On first launch, click **Choose Game Folder...** and select your *Star Wars: Rebellion* installation folder (the folder containing `REBEXE.EXE`, `GData`, `EData`, `MDATA`, and the game `.DLL` files). The path is saved automatically to `config.ini`.
+
+          You can also configure `install_dir` manually in `config.ini`:
+          - **macOS:** `~/Library/Application Support/Rebellion/config.ini`
+          - **Windows:** `%APPDATA%\Rebellion\config.ini`
+          - **Linux:** `~/.config/rebellion/config.ini`
+          EOF
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "$TAG" --notes-file release-notes.md
 
   linux:
     needs: create-release

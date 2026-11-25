@@ -83,6 +83,16 @@ class Module
   {
     return m_is64;
   }
+  uint64_t ImageBase() const
+  {
+    return m_imageBase;
+  }
+  uint32_t SizeOfImage() const
+  {
+    return m_sizeOfImage;
+  }
+  // Maps an RVA inside a section's raw file data to a read-only view of up to `maxBytes` bytes.
+  bool ReadBytesAtRva(uint32_t rva, size_t maxBytes, const uint8_t** outData, size_t* outAvailable) const;
   int refs = 1;
 
   private:
@@ -106,6 +116,8 @@ class Module
   size_t m_size = 0;
   std::string m_path;
   bool m_is64 = false;
+  uint64_t m_imageBase = 0;
+  uint32_t m_sizeOfImage = 0;
   uint32_t m_resRva = 0, m_resSize = 0, m_resOffset = 0;
   struct Section {
     uint32_t rva, vsize, rawOffset, rawSize;

@@ -1,5 +1,6 @@
 #include "pe_module.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "mapped_file.h"
@@ -112,6 +113,14 @@ bool Module::Parse()
   if (magic != 0x10b && magic != 0x20b) {
     return false;
   }
+  if (optionalSize >= 60) {
+    if (m_is64) {
+      m_imageBase = static_cast<uint64_t>(Rd32(opt + 24)) | (static_cast<uint64_t>(Rd32(opt + 28)) << 32);
+    } else {
+      m_imageBase = Rd32(opt + 28);
+    }
+    m_sizeOfImage = Rd32(opt + 56);
+  }
   uint32_t dirCountOffset = m_is64 ? 108 : 92;
   uint32_t dirBase = m_is64 ? 112 : 96;
   if (optionalSize >= dirBase + 8 * 3 && Rd32(opt + dirCountOffset) > 2) {
@@ -145,6 +154,37 @@ uint32_t Module::RvaToOffset(uint32_t rva, uint32_t size) const
     }
   }
   return 0;
+}
+
+bool Module::ReadBytesAtRva(uint32_t rva, size_t maxBytes, const uint8_t** outData, size_t* outAvailable) const
+{
+  if (!outData || !outAvailable || maxBytes == 0) {
+    return false;
+  }
+  if (m_sizeOfImage != 0 && rva >= m_sizeOfImage) {
+    return false;
+  }
+  for (const Section& s : m_sections) {
+    if (rva >= s.rva && rva - s.rva < s.rawSize) {
+      const uint64_t rel = rva - s.rva;
+      const uint64_t off = static_cast<uint64_t>(s.rawOffset) + rel;
+      if (off >= m_size) {
+        return false;
+      }
+      size_t avail = std::min(maxBytes, static_cast<size_t>(s.rawSize - rel));
+      avail = std::min(avail, m_size - static_cast<size_t>(off));
+      if (m_sizeOfImage != 0) {
+        avail = std::min(avail, static_cast<size_t>(m_sizeOfImage - rva));
+      }
+      if (avail == 0) {
+        return false;
+      }
+      *outData = m_base + off;
+      *outAvailable = avail;
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Module::ReadDir(uint32_t offset, std::vector<DirEntry>* out) const

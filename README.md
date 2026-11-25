@@ -25,6 +25,23 @@ You'll need a copy of the original game (I tested with the Steam version):
 - [Steam](https://store.steampowered.com/app/441550/STAR_WARS_Rebellion/)
 - [GOG](https://www.gog.com/)
 
+### Pre-built releases
+
+Download the latest archive for your platform from the [GitHub Releases](../../releases/latest) page:
+
+- **macOS (Apple Silicon, macOS 26+):** unzip `rebellion-macos-arm64.zip` and open `Rebellion.app`. Because the release
+  is ad-hoc signed rather than Apple-notarized, macOS Gatekeeper may block the first launch; allow it via
+  **System Settings → Privacy & Security → Open Anyway**, or run `xattr -dr com.apple.quarantine Rebellion.app`.
+- **Windows (x86-64):** unzip `rebellion-windows-x86_64.zip` and run `rebellion.exe`.
+- **Linux (x86-64):** extract `rebellion-linux-x86_64.tar.gz` and run `./rebellion`.
+
+On first launch, the game opens a setup prompt where you can click **Choose Game Folder...** and select your original
+*Star Wars: Rebellion* installation directory (the folder containing `REBEXE.EXE`, `GData`, `EData`, `MDATA`, and the
+game `.DLL` files). Your choice is saved automatically to `config.ini` (see [Configuration](#configuration) to edit or
+change it manually).
+
+### Building from source
+
 1. Clone this repo
 2. Set the path to the original game in the config file (see [Configuration](#configuration))
 3. Install the [prerequisites](#prerequisites)

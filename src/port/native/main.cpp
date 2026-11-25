@@ -11,6 +11,7 @@
 
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
+#include "port/minwin_impl/config/config.h"
 #include "port/minwin_impl/dsound/mixer.h"
 #include "port/native/first_run.h"
 #include "port/native/game_context.h"
@@ -48,10 +49,11 @@ int main(int argc, char** argv)
     if (const std::optional<int> demo = reb::native::space_battle::RunDemoIfRequested()) {
       return *demo;
     }
-    reb::native::StartupAssets startupAssets(reb::native::StartupAssetPath());
     if (!reb::native::CheckInstallation()) {
       return 1;
     }
+    reb::native::StartupAssets startupAssets;
+    startupAssets.LoadForInstallation(mw::config::Global().InstallDir());
     minwin_wiring::Install();
     // Buffer position notifications signal the audio threads' event groups (port/native/thread_sync.h).
     mwds::SetEventSignaler(reb::EventSet::SignalIfLive);
@@ -63,9 +65,14 @@ int main(int argc, char** argv)
     context.Shutdown();
     return result;
   } catch (const std::exception& error) {
-    std::cerr << "Native startup failed: " << error.what() << '\n';
+    reb::native::ReportStartupError(
+        "Star Wars: Rebellion — Startup Failed",
+        std::string("Native startup failed:\n    ") + error.what()
+            + "\n\nMake sure install_dir points to an unmodified English copy of Star Wars: Rebellion "
+              "(containing REBEXE.EXE from Steam, GOG, or CD).");
   } catch (...) {
-    std::cerr << "Native startup failed with an unknown exception\n";
+    reb::native::ReportStartupError("Star Wars: Rebellion — Startup Failed",
+                                    "Native startup failed with an unknown exception.");
   }
   return 1;
 }

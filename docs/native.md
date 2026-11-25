@@ -53,7 +53,7 @@ case-insensitive default of APFS works; case-sensitive volumes fall back to a di
 | program globals | typed definitions in `src/game` | |
 | initialization | `src/port/native/game_context.cpp` | named dependencies and scoped platform teardown |
 | entry | `src/port/native/main.cpp` | asset owner, `minwin_wiring::Install()`, scoped context, `RunApplication` and exception boundary |
-| startup text | `tools/extract_startup_assets.py` | a [versioned asset pack](design/startup_assets.md) extracted from the installation by `create_build.sh` |
+| startup text | `src/port/native/startup_assets.{h,cpp}`, `tools/extract_startup_assets.py` | loads a bundled `startup-assets.bin` ([design](design/startup_assets.md)) when present, or extracts the same entries directly from `<install_dir>/REBEXE.EXE` at runtime |
 | config | `src/port/minwin_impl/config` | on POSIX the derived `*Location` registry values are `C:` + install dir, so the game's "drop the drive letter, chdir" code works |
 
 ## Desktop behaviour
@@ -74,7 +74,7 @@ The presentation path is `src/port/minwin_impl/user/present.{h,cpp}`, small hook
 | Window dragging | Native game windows use live dragging; Windows builds keep the original outline mode |
 | Idle pacing | The game's main loop is `PeekMessage(PM_REMOVE)` until empty, one game step, repeat. When the queue is empty at nesting depth 0, `PeekMessage` sleeps so that two consecutive empty returns are at least 250 us apart (`REB_MINWIN_PACING_US`; 0 disables; off with `REB_DETERMINISTIC=1`). Do not make it coarser: game progress per real second depends on the loop's latency (the game's tick scheduler re-arms from "now"); 2000 us was measurably slower |
 | Audio | SDL3 audio stream at 44.1 kHz s16 stereo, device buffer 1024 frames (23 ms, `audio_buffer`), rendered in SDL's audio callback by the mixer. No device: a message on stderr and the real-time pacing thread keeps play cursors and refill threads running |
-| First run | `CheckInstallation()` (before anything else): config file present, `install_dir` set and a folder, `REBEXE.EXE` (its resources are read at run time), the 14 resource DLLs (`ALBRIEF ALSPRITE CDDERR COMMON EMBRIEF EMSPRITE ENCYBMAP ENCYTEXT GOKRES REBDLOG STRATEGY TEXTCOMM TEXTSTRA TEXTTACT`), `GData/`, `EData/`, `MDATA/MDATA.000` (in `data_dir`), `SaveGame/` (created if missing). Anything wrong: `SDL_ShowSimpleMessageBox` plus stderr naming the setting, the file and the config path, exit status 1. `SMACKW32.DLL`, `TACTICAL.DLL`, `VOICEFX*.DLL` are not needed natively |
+| First run | `CheckInstallation()` (before anything else): config file present, `install_dir` set and a folder, `REBEXE.EXE` (its resources and startup text are read at run time), the 14 resource DLLs (`ALBRIEF ALSPRITE CDDERR COMMON EMBRIEF EMSPRITE ENCYBMAP ENCYTEXT GOKRES REBDLOG STRATEGY TEXTCOMM TEXTSTRA TEXTTACT`), `GData/`, `EData/`, `MDATA/MDATA.000` (in `data_dir`), `SaveGame/` (created if missing). On a desktop, missing/incomplete setups offer an SDL message box with a native folder picker (`SDL_ShowFileDialogWithProperties`) that saves `install_dir` to `config.ini` and launches immediately; headless runs print the setup/error instructions to stderr and exit status 1. `SMACKW32.DLL`, `TACTICAL.DLL`, `VOICEFX*.DLL` are not needed natively |
 
 Encyclopedia artwork uses `EData` under `data_dir` (or `install_dir`); an explicit registry `EncyLocation` still
 overrides this. The graphics handle registry stays alive until process exit because global game font tables delete
