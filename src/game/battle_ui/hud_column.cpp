@@ -369,7 +369,7 @@ void CommandHud::DrawEvents(Ui& ui, const Rect& rect)
              {11.0f, i == 0 ? theme.text : Mix(theme.text, theme.textDim, 0.4f)});
     Record(hud_id::EventRow(i), line);
     if (hovered) {
-      ui.Tooltip(listId, text + (unit != kNoUnit ? ". Click to centre the view on it." : "."));
+      ui.Tooltip(listId, text + ".");
     }
     if (clicked && line.Contains(ui.ClickPoint()) && unit != kNoUnit) {
       m_screen.CenterOn(unit);
