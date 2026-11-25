@@ -106,13 +106,17 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+      - name: LLVM
+        shell: pwsh
+        run: choco install llvm -y --no-progress
       - name: Dependencies
         shell: bash
         run: bash tools/fetch_deps.sh freetype liberation sdl3
       - name: Configure
         run: >-
           cmake -S . -B build/native -G Ninja
-          -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+          -DCMAKE_C_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe"
+          -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe"
           -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON
       - name: Build
         run: cmake --build build/native --target rebellion
