@@ -335,6 +335,9 @@ struct BattleState {
   std::vector<Command> commandLog;
   std::vector<BattleEvent> events;
   int64_t lastDurableDropTick = 0;
+  // The last tick a superlaser was charging with a capital ship to aim at: the stalemate clock (§6.11) runs from the
+  // later of this and lastDurableDropTick, so a charged superlaser left unfired cannot hold a battle open.
+  int64_t superlaserChargingTick = 0;
   bool finished = false;
   EndReason endReason = EndReason::None;
   int64_t outroTicks = 0; // live presentation only; never archived

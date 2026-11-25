@@ -1,5 +1,6 @@
 #include "space_battle/battle_save.h"
 
+#include <algorithm>
 #include <cstring>
 #include <type_traits>
 #include <utility>
@@ -384,6 +385,14 @@ void VisitState(Archive<Io>& ar, BattleState& state)
   ar(state.commandLog);
   ar(state.events);
   ar(state.lastDurableDropTick);
+  if (ar.version >= 4) {
+    ar(state.superlaserChargingTick);
+  } else if constexpr (Io::kReading) {
+    // Earlier versions held a battle open while a charged superlaser waited: its owner gets a full window from here.
+    const bool charged = std::any_of(state.stations.begin(), state.stations.end(),
+                                     [](const StationState& station) { return station.chargeTicks <= 0; });
+    state.superlaserChargingTick = charged ? state.tick : 0;
+  }
   ar(state.finished);
   ar(state.endReason);
 }

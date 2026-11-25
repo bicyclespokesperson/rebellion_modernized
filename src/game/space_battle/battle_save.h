@@ -12,7 +12,7 @@ namespace reb::battle
 {
 
 // Version 2 adds planetary batteries (§6.13), version 3 whether each squadron has launched; older blocks still read.
-inline constexpr uint32_t kStateVersion = 3;
+inline constexpr uint32_t kStateVersion = 4;
 
 // The dynamic state only: profiles are derived again from the snapshot, cosmetic effects are dropped. An older
 // `version` leaves out what it did not have (the compatibility tests write version 1).

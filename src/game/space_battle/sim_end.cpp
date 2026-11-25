@@ -15,13 +15,13 @@ void CountDown(int32_t& ticks)
   ticks = std::max(0, ticks - 1);
 }
 
-// A superlaser with a capital ship to aim at, charging or waiting for its order, is progress still to come: no
-// stalemate while it can fire (the time limit still ends the battle).
-bool SuperlaserPending(const BattleState& state)
+// A superlaser charging with a capital ship to aim at is progress still to come, so the stalemate clock waits for it.
+// Once charged it runs again: an owner who never gives the order cannot hold the battle open to the time limit.
+bool SuperlaserCharging(const BattleState& state)
 {
   for (const StationState& station : state.stations) {
     const auto* entry = std::get_if<DeathStarEntry>(&state.snapshot.units[station.unit]);
-    if (entry == nullptr || !entry->completed || !state.InSpace(station.unit)) {
+    if (entry == nullptr || !entry->completed || station.chargeTicks <= 0 || !state.InSpace(station.unit)) {
       continue;
     }
     const Side side = state.units[station.unit].side;
@@ -33,6 +33,29 @@ bool SuperlaserPending(const BattleState& state)
     }
   }
   return false;
+}
+
+std::string FactionName(Side side)
+{
+  return side == Side::Alliance ? "the Alliance" : "the Empire";
+}
+
+std::string Seconds(float seconds)
+{
+  return std::to_string(static_cast<int>(seconds)) + " s";
+}
+
+// The side that did not hold the system is told when the lull has run long enough that a stalemate is coming.
+void WarnOfStalemate(BattleState& state)
+{
+  if (StalemateTicksLeft(state) != Ticks(kStalemateWarningSeconds)) {
+    return;
+  }
+  const Side held = state.snapshot.params.heldFirstBy;
+  LogEvent(state, Opponent(held),
+           "No losses for " + Seconds(kStalemateSeconds - kStalemateWarningSeconds) + ": " + FactionName(Opponent(held))
+               + " must break through within " + Seconds(kStalemateWarningSeconds) + " or leave the system to "
+               + FactionName(held));
 }
 
 UnitIndex ShipOf(const BattleState& state, UnitIndex character)
@@ -108,14 +131,18 @@ void UpdateEnding(BattleState& state)
       state.lastDurableDropTick = state.tick;
     }
   }
+  if (SuperlaserCharging(state)) {
+    state.superlaserChargingTick = state.tick;
+  }
   if (!SidePresent(state, Side::Alliance) || !SidePresent(state, Side::Empire)) {
     state.endReason = EndReason::Elimination;
-  } else if (state.tick - state.lastDurableDropTick >= Ticks(kStalemateSeconds) && !SuperlaserPending(state)) {
+  } else if (StalemateTicksLeft(state) == 0) {
     state.endReason = EndReason::Stalemate;
   } else if (state.tick >= state.options.tickLimit) {
     state.endReason = EndReason::TimeLimit;
   }
   if (state.endReason == EndReason::None) {
+    WarnOfStalemate(state);
     return;
   }
   for (Side side : {Side::Alliance, Side::Empire}) {
@@ -132,10 +159,10 @@ void UpdateEnding(BattleState& state)
   const Side held = state.snapshot.params.heldFirstBy;
   switch (state.endReason) {
     case EndReason::Stalemate:
-      LogEvent(state, held, "Stalemate: neither side can break the other");
+      LogEvent(state, held, "Stalemate: the system stays with " + FactionName(held));
       break;
     case EndReason::TimeLimit:
-      LogEvent(state, held, "Time limit reached");
+      LogEvent(state, held, "Time limit reached: the system stays with " + FactionName(held));
       break;
     default:
       LogEvent(state, alliance ? Side::Alliance : Side::Empire, "The battle is over");
