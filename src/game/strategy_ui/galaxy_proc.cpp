@@ -447,12 +447,14 @@ void GalaxyWindow::ShowDeveloperMenu()
 
 bool GalaxyWindow::HandleSpeedShortcut(WPARAM key, LPARAM lParam)
 {
-  if (key < '1' || key > '4' || !EnhancementsEnabled()) {
+  if (key < '0' || key > '4' || !EnhancementsEnabled()) {
     return false;
   }
   if ((static_cast<uintptr_t>(lParam) & (1u << 30)) == 0 && !InputBlocked() && !g_menuWindow
       && reb::compat::GetKeyState(VK_CONTROL) >= 0 && reb::compat::GetKeyState(VK_SHIFT) >= 0 && reb::compat::GetKeyState(VK_MENU) >= 0) {
-    OnMenuCommand(0x21 + static_cast<int>(key - '1'), 0, 0);
+    constexpr int kPauseCommand = 0x20;
+    constexpr int kFirstSpeedCommand = 0x21;
+    OnMenuCommand(key == '0' ? kPauseCommand : kFirstSpeedCommand + static_cast<int>(key - '1'), 0, 0);
   }
   return true;
 }

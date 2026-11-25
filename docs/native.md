@@ -95,7 +95,7 @@ human side and in the cockpit. **Switch sides**, on the strategic screen, exchan
 faction UI; existing orders continue, open panels and controller planning state reset.
 
 **Enhancements** (`src/game/app/enhancements.h`, config key `enhancements`, default on) toggles the port's interface
-additions as a group: ETAs and completion days, speed keys 1-4, Repeat mission, the decoys menu entry, extra ship damage
+additions as a group: ETAs and completion days, speed keys 1-4, pause on 0, Repeat mission, the decoys menu entry, extra ship damage
 and fleet capacity detail, maintenance totals and economy tooltips, the Saved Games delete cross and named questions,
 "Captured - location unknown", and the newer idle markers. Off, those views behave as in the original. It is a local
 display preference: simulation, saves and LAN traffic never read it. Panels whose layout differs pick it up when reopened.

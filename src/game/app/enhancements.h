@@ -2,9 +2,9 @@
 
 #include <string_view>
 
-// The port's quality-of-life additions to the original interface: ETAs and completion days, speed keys 1-4, the
-// Repeat mission button, the mission-with-decoys shortcut, extra ship and fleet status detail, and similar. Off,
-// those views and controls behave as in the original game.
+// The port's quality-of-life additions to the original interface: ETAs and completion days, speed keys 1-4 and pause
+// on 0, the Repeat mission button, the mission-with-decoys shortcut, extra ship and fleet status detail, and similar.
+// Off, those views and controls behave as in the original game.
 //
 // A per-player display preference, on by default and saved as `enhancements` in config.ini. It only changes what the
 // local interface shows and which shortcuts it offers: the simulation, saves and LAN traffic never depend on it.

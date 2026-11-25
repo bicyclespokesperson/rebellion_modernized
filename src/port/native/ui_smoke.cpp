@@ -23,6 +23,7 @@
 #include "ai/ai_controller_factory.h"
 #include "ai/codex_ai_assault.h"
 #include "app/ai_preferences.h"
+#include "app/app_dialogs.h"
 #include "app/enhancements.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
@@ -2730,6 +2731,20 @@ void CheckSpeedShortcuts(RebellionApplication& app)
     OverrideEnhancementsForProcess(true);
     RequireAiMenu(session->m_human->m_speed == speedBefore && session->m_human->m_nextMessageId == idBefore,
                   "enhancements off ignores speed keys");
+  }
+  {
+    GameStepDriver* driver = GetGameStepDriver();
+    RequireAiMenu(driver != nullptr, "step driver available");
+    const int pauseBefore = driver->m_pauseTick;
+    const int speedBeforePause = session->m_human->m_speed;
+    const int idBeforePause = session->m_human->m_nextMessageId;
+    galaxy->WindowProc(WM_KEYDOWN, '0', 0);
+    RequireAiMenu(driver->m_pauseTick > pauseBefore, "pause key requests a pause");
+    RequireAiMenu(session->m_human->m_speed == speedBeforePause && session->m_human->m_nextMessageId == idBeforePause,
+                  "pause key leaves speed and orders alone");
+    DestroyAppDialog();
+    UiSetPausePending(0);
+    driver->m_pauseTick = pauseBefore;
   }
   galaxy->m_inModalLoop = true;
   const int modalMessageId = session->m_human->m_nextMessageId;

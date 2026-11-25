@@ -246,7 +246,7 @@ int RebellionApplication::FilterMessage(MSG* message)
     return 0;
   }
   if (m_state == kStateStrategic && m_strategicWindow && message->message == WM_KEYDOWN
-      && message->wParam >= '1' && message->wParam <= '4') {
+      && message->wParam >= '0' && message->wParam <= '4') {
     CoolWindow* target = GetCoolWindow(message->hwnd);
     auto* text = dynamic_cast<TextScrollField*>(target);
     const bool editable = dynamic_cast<CoolStringField*>(target) || (text && (text->m_state & kTextEditable));
