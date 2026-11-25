@@ -18,7 +18,7 @@ root for editor tooling.
 | system font directories (Arial search) | `~/.fonts`, `~/.local/share/fonts`, `$XDG_DATA_HOME/fonts`, `/usr/share/fonts`, `/usr/local/share/fonts` | `/System/Library/Fonts/Supplemental` (has Arial), `/Library/Fonts`, `~/Library/Fonts` | `SystemFontDirs` |
 | bundled fallback fonts (Liberation Sans) | `<executable dir>/fonts` | `Rebellion.app/Contents/Resources/fonts` | `BundledFontDir`, `reb_native_platform_package` |
 | link libraries | `Threads::Threads dl m`; SDL3 finds X11/Wayland/ALSA/Pulse | `Threads::Threads m`; SDL3 links Cocoa/Metal/CoreAudio frameworks itself | `REB_PLATFORM_LIBS` |
-| deployment target | n/a | 15.0 for arm64 and x86-64 (std::jthread needs it in libc++; set before `project()`) | top-level `CMakeLists.txt` |
+| deployment target | n/a | 26.0 for arm64 and x86-64 (std::jthread is gated by libc++ availability; set before `project()`) | top-level `CMakeLists.txt` |
 | packaging | plain binary `build/native/rebellion` | `Rebellion.app` (Info.plist from `packaging/macos`, Liberation fonts, the game's icon converted to `Rebellion.icns` or `REB_BUNDLE_ICON`, ad-hoc `codesign`) | `reb_native_platform_package` |
 | cross builds | `--arch arm64`: clang-19 + Ubuntu cross libc/libstdc++, SDL3 with only its dummy drivers (`REB_SDL_HEADLESS`) | none (macOS is built on a Mac or a macOS runner) | `cmake/toolchain-linux-aarch64.cmake` |
 
