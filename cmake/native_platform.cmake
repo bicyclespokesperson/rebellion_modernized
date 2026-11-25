@@ -6,7 +6,7 @@ if(WIN32)
   set(REB_PLATFORM_NAME windows)
 elseif(APPLE)
   set(REB_PLATFORM_NAME macos)
-  # CMAKE_OSX_DEPLOYMENT_TARGET (26.0, both architectures) is set before project() in the top-level CMakeLists.txt
+  # CMAKE_OSX_DEPLOYMENT_TARGET (26.0) is set before project() in the top-level CMakeLists.txt
 else()
   set(REB_PLATFORM_NAME linux)
 endif()

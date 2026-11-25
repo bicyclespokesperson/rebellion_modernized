@@ -1,4 +1,4 @@
-# Release binaries for Linux (x86-64), macOS (arm64 and x86-64) and Windows (x86-64), run by hand from the Actions tab.
+# Release binaries for Linux (x86-64), macOS (arm64, macOS 26 and later) and Windows (x86-64), run by hand from the Actions tab.
 # A draft GitHub Release for the given tag is created first; each platform builds the `rebellion` target in Release with the
 # native configuration and uploads its archive to that release; the release is published once every platform has uploaded.
 # No game data is used: the startup text pack and the macOS icon come from a local installation and are absent here, so
@@ -66,13 +66,7 @@ jobs:
 
   macos:
     needs: create-release
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {runner: macos-26, arch: arm64}
-          - {runner: macos-26-intel, arch: x86_64}
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Tools
@@ -84,7 +78,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build/native -G Ninja -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON \
-            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+            -DCMAKE_OSX_ARCHITECTURES=arm64
       - name: Build
         run: cmake --build build/native --target rebellion
       - name: Package and upload
@@ -93,7 +87,7 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           mkdir -p dist
-          archive="dist/rebellion-macos-${{ matrix.arch }}.zip"
+          archive="dist/rebellion-macos-arm64.zip"
           ditto -c -k --keepParent build/native/Rebellion.app "$archive"
           gh release upload "$TAG" "$archive" --clobber
 
