@@ -45,11 +45,6 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
   const bool started = m_started;
   m_started = true;
   std::vector<Seen> seen(m_seen.size());
-  for (size_t i = 0; i < seen.size(); ++i) {
-    seen[i].everSeen = m_seen[i].everSeen;
-  }
-  int reinforcements = 0;
-  UnitIndex firstReinforcement = battle::kNoUnit;
   for (const battle::ViewUnit& unit : view.units) {
     if (unit.unit < 0) {
       continue;
@@ -60,7 +55,6 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
     const Seen before = static_cast<size_t>(unit.unit) < m_seen.size() ? m_seen[unit.unit] : Seen{};
     Seen& now = seen[unit.unit];
     now.present = true;
-    now.everSeen = true;
     now.gone = (unit.flags & battle::kViewDestroyed) != 0;
     now.hull = unit.hullFraction;
     now.shield = unit.shieldFraction;
@@ -68,10 +62,6 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
       continue;
     }
     const bool own = unit.side == player;
-    if (!own && !before.everSeen && !now.gone && view.tick > 0) {
-      ++reinforcements;
-      firstReinforcement = firstReinforcement == battle::kNoUnit ? unit.unit : firstReinforcement;
-    }
     if (!own || !before.present || before.gone) {
       continue;
     }
@@ -98,11 +88,6 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
                       facts(unit.unit).name + " is below its withdrawal threshold"});
     }
   }
-  if (reinforcements > 0) {
-    hits.push_back({AutoPauseEvent::Reinforcements, firstReinforcement,
-                    reinforcements == 1 ? "Enemy reinforcements: " + facts(firstReinforcement).name
-                                        : "Enemy reinforcements: " + std::to_string(reinforcements) + " units"});
-  }
 
   std::vector<UnitIndex> wells;
   for (const battle::ViewWell& well : view.wells) {
@@ -123,25 +108,6 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
   m_superlaser = view.superlaserCharge;
   m_seen = std::move(seen);
   return hits;
-}
-
-bool AutoPauseWatcher::PhaseDue(float battleSeconds, int intervalSeconds)
-{
-  if (intervalSeconds <= 0) {
-    m_phaseInterval = 0;
-    return false;
-  }
-  const float interval = static_cast<float>(intervalSeconds);
-  if (intervalSeconds != m_phaseInterval) {
-    m_phaseInterval = intervalSeconds;
-    m_nextPhase = (std::floor(battleSeconds / interval) + 1.0f) * interval;
-    return false;
-  }
-  if (battleSeconds + 1e-3f < m_nextPhase) {
-    return false;
-  }
-  m_nextPhase = (std::floor(battleSeconds / interval + 1e-4f) + 1.0f) * interval;
-  return true;
 }
 
 } // namespace reb::battle_ui

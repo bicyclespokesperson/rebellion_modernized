@@ -49,7 +49,6 @@ BattleScreen::BattleScreen(BattleSource& source, const TextMeasurer& text, const
   FrameAll();
   AddPanel(std::make_unique<TopBarPanel>());
   AddPanel(std::make_unique<InfoBoxPanel>());
-  AddPanel(std::make_unique<KeyHintsPanel>());
 }
 
 BattleScreen::~BattleScreen() = default;
@@ -665,7 +664,7 @@ void BattleScreen::Build(DrawList& out)
   }
   const WorldScene scene{m_view,    m_camera,         m_sprites,    m_ui.GetTheme(), m_seconds, m_selection,
                          m_hovered, OverlayVisible(), PlayerSide(), details,         m_names,   m_options.systemPicture,
-                         &m_text};
+                         &m_text,   m_layout.battleArea};
   PaintWorld(out, scene);
   DrawGestures(out);
   m_ui.BeginFrame(out, m_text, m_screen, m_seconds);

@@ -61,12 +61,11 @@ constexpr std::array kPowers{
     OptionText{"Engines", "Engines", "Speed and turn rate 40% higher, weapons and shields recharge 20% slower."},
 };
 constexpr std::array kWithdrawRules{
-    OptionText{"Never", "Never", "Fight on whatever the damage."},
+    OptionText{"Never", "Never", "Fight on until ordered to withdraw."},
     OptionText{"Hull below 25%", "Hull < 25%", "Jump out once the hull falls below 25%."},
     OptionText{"Hull below 50%", "Hull < 50%", "Jump out once the hull falls below 50%."},
     OptionText{"Hull below 75%", "Hull < 75%", "Jump out once the hull falls below 75%."},
     OptionText{"Shields down", "Shields down", "Jump out as soon as the shields collapse."},
-    OptionText{"On order only", "On order", "Withdraw only when ordered to."},
 };
 constexpr std::array kFormations{
     OptionText{"Line abreast", "Abreast", "Side by side across the line of advance."},
@@ -79,8 +78,21 @@ constexpr std::array kMissions{
     OptionText{"Intercept", "Intercept", "Hunt enemy fighters and bombers in the area."},
     OptionText{"Escort", "Escort", "Fly cover for a ship or another flight."},
     OptionText{"Strike", "Strike", "Attack enemy capital ships in priority order."},
-    OptionText{"Patrol", "Patrol", "Patrol an area and engage whatever enters it."},
     OptionText{"Hold in hangar", "Hangar", "Stay docked until ordered out."},
+};
+constexpr std::array kTargetFocuses{
+    OptionText{"Capital ships", "Capitals", "Focus on enemy cruisers, destroyers and battlecruisers."},
+    OptionText{"Carriers & transports", "Carriers", "Hunt enemy carriers and troop transports first."},
+    OptionText{"Interdictors & tractors", "Interdictors", "Target gravity-well and tractor ships so your fleet can escape."},
+    OptionText{"Fighters & bombers", "Fighters", "Prioritise incoming bombers and starfighter squadrons."},
+    OptionText{"Damaged & withdrawing", "Damaged", "Finish crippled enemies and ships spooling their hyperdrives."},
+    OptionText{"Nearest enemy", "Nearest", "Engage the closest enemy in range."},
+};
+constexpr std::array kMissionValues{
+    battle::FlightMission::Intercept,
+    battle::FlightMission::Escort,
+    battle::FlightMission::Strike,
+    battle::FlightMission::HoldInHangar,
 };
 constexpr std::array kDogfights{
     OptionText{"Engage", "Engage", "Fight enemy fighters freely."},
@@ -102,7 +114,7 @@ constexpr std::array<FieldText, 14> kFields{{
     {"Range", "The distance at which the group fights."},
     {"Approach", "How the group closes with its target."},
     {"Facing", "Which side of each ship turns toward the enemy; Rebellion's ships carry different guns in each arc."},
-    {"Targets", "The ranked target tags each ship scores enemies by; click to reorder or change them."},
+    {"Targets", "What kinds of enemy targets this group prioritises automatically."},
     {"Fire", "How the group shares its fire between targets."},
     {"Aim", "The system that hull hits favour; anything but Hull costs 30% of the damage and triples critical hits."},
     {"Power", "Where the ships route power; a switch takes about five seconds."},
@@ -114,12 +126,9 @@ constexpr std::array<FieldText, 14> kFields{{
     {"Launch", "When the flight launches from its carrier."},
 }};
 
-constexpr std::array kShipFields{DoctrineField::Role,      DoctrineField::Range,      DoctrineField::Approach,
-                                 DoctrineField::Facing,    DoctrineField::Priorities, DoctrineField::Allocation,
-                                 DoctrineField::Subsystem, DoctrineField::Power,      DoctrineField::Withdraw,
-                                 DoctrineField::Formation};
-constexpr std::array kFlightFields{DoctrineField::Mission, DoctrineField::Priorities, DoctrineField::Dogfight,
-                                   DoctrineField::Rearm, DoctrineField::Launch};
+constexpr std::array kShipFields{DoctrineField::Range, DoctrineField::Priorities, DoctrineField::Subsystem,
+                                 DoctrineField::Withdraw};
+constexpr std::array kFlightFields{DoctrineField::Mission, DoctrineField::Priorities};
 
 constexpr std::array<OptionText, kTargetTagCount> kTags{{
     {"Fighters", "Fighters", "Starfighter squadrons."},
@@ -164,7 +173,7 @@ std::span<const OptionText> OptionsOf(DoctrineField field)
     case DoctrineField::Facing:
       return kFacings;
     case DoctrineField::Priorities:
-      return {};
+      return kTargetFocuses;
     case DoctrineField::Allocation:
       return kAllocations;
     case DoctrineField::Subsystem:
@@ -269,7 +278,71 @@ const OptionText& Option(DoctrineField field, int index)
   return index >= 0 && index < static_cast<int>(options.size()) ? options[index] : kNone;
 }
 
-int GetOption(DoctrineField field, const ShipDoctrine& ship, const FlightDoctrine& flight)
+battle::TargetPriorities TargetFocusPriorities(int index)
+{
+  using battle::TargetTag;
+  const auto make = [](std::initializer_list<TargetTag> tags, bool finish) {
+    battle::TargetPriorities list;
+    list.count = 0;
+    for (TargetTag tag : tags) {
+      list.tags[list.count++] = tag;
+    }
+    list.finishDamaged = finish;
+    return list;
+  };
+  switch (index) {
+    case 0:
+      return make({TargetTag::Heavy, TargetTag::Medium, TargetTag::Super, TargetTag::Light}, true);
+    case 1:
+      return make({TargetTag::Carrier, TargetTag::Transport, TargetTag::Damaged, TargetTag::Nearest}, true);
+    case 2:
+      return make({TargetTag::Interdictor, TargetTag::Tractor, TargetTag::Heavy, TargetTag::Nearest}, true);
+    case 3:
+      return make({TargetTag::Bomber, TargetTag::Fighter, TargetTag::Threatening, TargetTag::Nearest}, false);
+    case 4:
+      return make({TargetTag::Withdrawing, TargetTag::Damaged, TargetTag::ShieldsDown, TargetTag::Nearest}, true);
+    case 5:
+    default:
+      return make({TargetTag::Nearest}, true);
+  }
+}
+
+int MatchTargetFocus(const battle::TargetPriorities& priorities)
+{
+  if (priorities.count <= 0) {
+    return 5;
+  }
+  switch (priorities.tags[0]) {
+    case battle::TargetTag::Heavy:
+    case battle::TargetTag::Medium:
+    case battle::TargetTag::Super:
+    case battle::TargetTag::Light:
+    case battle::TargetTag::DeathStar:
+    case battle::TargetTag::Flagship:
+    case battle::TargetTag::Picket:
+      return 0;
+    case battle::TargetTag::Carrier:
+    case battle::TargetTag::Transport:
+      return 1;
+    case battle::TargetTag::Interdictor:
+    case battle::TargetTag::Tractor:
+      return 2;
+    case battle::TargetTag::Bomber:
+    case battle::TargetTag::Fighter:
+    case battle::TargetTag::Threatening:
+      return 3;
+    case battle::TargetTag::Withdrawing:
+    case battle::TargetTag::Damaged:
+    case battle::TargetTag::ShieldsDown:
+    case battle::TargetTag::Tractored:
+      return 4;
+    case battle::TargetTag::Nearest:
+      return 5;
+  }
+  return 5;
+}
+
+int GetOption(DoctrineField field, bool flight, const ShipDoctrine& ship, const FlightDoctrine& flightDoctrine)
 {
   switch (field) {
     case DoctrineField::Role:
@@ -281,7 +354,7 @@ int GetOption(DoctrineField field, const ShipDoctrine& ship, const FlightDoctrin
     case DoctrineField::Facing:
       return From(ship.facing);
     case DoctrineField::Priorities:
-      return -1;
+      return MatchTargetFocus(flight ? flightDoctrine.priorities : ship.priorities);
     case DoctrineField::Allocation:
       return From(ship.allocation);
     case DoctrineField::Subsystem:
@@ -289,22 +362,32 @@ int GetOption(DoctrineField field, const ShipDoctrine& ship, const FlightDoctrin
     case DoctrineField::Power:
       return From(ship.power);
     case DoctrineField::Withdraw:
-      return From(ship.withdraw);
+      return ship.withdraw == battle::WithdrawRule::OnOrderOnly ? 0 : From(ship.withdraw);
     case DoctrineField::Formation:
       return From(ship.formation);
     case DoctrineField::Mission:
-      return From(flight.mission);
+      for (size_t i = 0; i < kMissionValues.size(); ++i) {
+        if (kMissionValues[i] == flightDoctrine.mission) {
+          return static_cast<int>(i);
+        }
+      }
+      return 0;
     case DoctrineField::Dogfight:
-      return From(flight.dogfight);
+      return From(flightDoctrine.dogfight);
     case DoctrineField::Rearm:
-      return From(flight.rearm);
+      return From(flightDoctrine.rearm);
     case DoctrineField::Launch:
-      return From(flight.launch);
+      return From(flightDoctrine.launch);
   }
   return -1;
 }
 
-void SetOption(DoctrineField field, int index, ShipDoctrine& ship, FlightDoctrine& flight)
+int GetOption(DoctrineField field, const ShipDoctrine& ship, const FlightDoctrine& flight)
+{
+  return GetOption(field, false, ship, flight);
+}
+
+void SetOption(DoctrineField field, bool flight, int index, ShipDoctrine& ship, FlightDoctrine& flightDoctrine)
 {
   switch (field) {
     case DoctrineField::Role:
@@ -320,6 +403,7 @@ void SetOption(DoctrineField field, int index, ShipDoctrine& ship, FlightDoctrin
       ship.facing = To<battle::Facing>(index);
       break;
     case DoctrineField::Priorities:
+      (flight ? flightDoctrine.priorities : ship.priorities) = TargetFocusPriorities(index);
       break;
     case DoctrineField::Allocation:
       ship.allocation = To<battle::FireAllocation>(index);
@@ -337,18 +421,25 @@ void SetOption(DoctrineField field, int index, ShipDoctrine& ship, FlightDoctrin
       ship.formation = To<battle::Formation>(index);
       break;
     case DoctrineField::Mission:
-      flight.mission = To<battle::FlightMission>(index);
+      if (index >= 0 && index < static_cast<int>(kMissionValues.size())) {
+        flightDoctrine.mission = kMissionValues[static_cast<size_t>(index)];
+      }
       break;
     case DoctrineField::Dogfight:
-      flight.dogfight = To<battle::DogfightRule>(index);
+      flightDoctrine.dogfight = To<battle::DogfightRule>(index);
       break;
     case DoctrineField::Rearm:
-      flight.rearm = To<battle::RearmRule>(index);
+      flightDoctrine.rearm = To<battle::RearmRule>(index);
       break;
     case DoctrineField::Launch:
-      flight.launch = To<battle::LaunchRule>(index);
+      flightDoctrine.launch = To<battle::LaunchRule>(index);
       break;
   }
+}
+
+void SetOption(DoctrineField field, int index, ShipDoctrine& ship, FlightDoctrine& flight)
+{
+  SetOption(field, false, index, ship, flight);
 }
 
 bool FieldDiffers(DoctrineField field, bool flight, const ShipDoctrine& shipA, const FlightDoctrine& flightA,
@@ -399,14 +490,7 @@ std::string_view Name(TagGroup group)
 
 std::string PriorityText(const battle::TargetPriorities& priorities)
 {
-  std::string text;
-  for (int i = 0; i < priorities.count; ++i) {
-    text += (i ? ", " : "") + std::string(Describe(priorities.tags[i]).shortName);
-  }
-  if (priorities.finishDamaged) {
-    text += text.empty() ? "Finish damaged" : " + finish";
-  }
-  return text;
+  return std::string(kTargetFocuses[static_cast<size_t>(MatchTargetFocus(priorities))].shortName);
 }
 
 const OptionText& Describe(battle::SignalKind signal)

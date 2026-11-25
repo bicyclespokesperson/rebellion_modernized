@@ -293,28 +293,19 @@ void HudSettingsPersistInNativeConfig()
   config.SetRegistryValue("Volume", {mw::config::ValueType::Dword, {}, 17});
   ConfigSettingsStore store(config, path.string());
   HudSettings settings;
-  settings.autoPause[0] = false;
-  settings.commandPhaseSeconds = 20;
+  settings.autoPause[0] = true;
   settings.colorBlindPalette = true;
   settings.hudScale = 1.3f;
-  DoctrinePreset preset;
-  preset.name = " Leading name\n[registry]\nVolume=bad ";
-  settings.presets.push_back(preset);
   settings.Save(store);
   mw::config::Config loaded;
   REQUIRE(loaded.Load(path.string()));
   ConfigSettingsStore restored(loaded, path.string());
   const auto actual = HudSettings::Load(restored);
-  REQUIRE(!actual.autoPause[0] && actual.commandPhaseSeconds == 20 && actual.colorBlindPalette);
+  REQUIRE(actual.autoPause[0] && actual.colorBlindPalette);
   REQUIRE(Near(actual.hudScale, 1.3f));
-  REQUIRE(actual.presets.size() == 1 && actual.presets[0].name == preset.name);
   REQUIRE(loaded.InstallDir() == "/preserved-install");
   mw::config::RegistryValue volume;
   REQUIRE(loaded.GetRegistryValue("Volume", &volume) && volume.dword == 17);
-  settings.presets.clear();
-  settings.Save(restored);
-  REQUIRE(!restored.Get("battle.hud.preset.0"));
-  REQUIRE(loaded.Load(path.string()) && loaded.Get("battle.hud.preset.0").empty());
   std::filesystem::remove(path);
 }
 

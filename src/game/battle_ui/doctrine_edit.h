@@ -34,7 +34,6 @@ battle::Command SetDoctrineCommand(const DoctrineSubject& subject, const battle:
                                    const battle::FlightDoctrine& flight, battle::DoctrineOverrideMask fields);
 // Drops the units' overrides of `fields`, so they follow their group again.
 battle::Command ClearOverridesCommand(const DoctrineSubject& subject, battle::DoctrineOverrideMask fields);
-battle::Command PresetCommand(const DoctrineSubject& subject, const DoctrinePreset& preset);
 
 // Copies the masked fields between doctrines, as the simulator applies them.
 void CopyFields(battle::ShipDoctrine& to, const battle::ShipDoctrine& from, battle::DoctrineOverrideMask fields);

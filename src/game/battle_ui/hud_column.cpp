@@ -110,6 +110,8 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   const float title = ui.S(theme.rowHeight);
   const float pad = ui.S(6.0f);
   const float signalRow = ui.S(26.0f);
+  const bool hasSignals = own.signalsMax > 0;
+  const float signalsHeight = hasSignals ? ui.S(16.0f) + 2.0f * signalRow + ui.S(4.0f) + pad : 0.0f;
   const float deathStarHeight = deathStar ? ui.S(62.0f) : 0.0f;
   const battle::Side player = m_screen.PlayerSide();
   const std::array<std::vector<std::pair<int, const battle::ViewDefense*>>, 2> batteries{
@@ -120,82 +122,88 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   for (const auto& list : batteries) {
     batteriesHeight += list.empty() ? 0.0f : batteryCaption + batteryRow * static_cast<float>(list.size()) + pad;
   }
-  const float height = m_commandCollapsed ? title
-                                          : title + pad + ui.S(16.0f) + 2.0f * signalRow + ui.S(4.0f) + deathStarHeight
-                                                + batteriesHeight + pad;
+  const bool hasBody = hasSignals || batteriesHeight > 0.0f || deathStar != nullptr;
+  const float height
+      = (m_commandCollapsed || !hasBody)
+            ? title
+            : title + pad + signalsHeight + batteriesHeight + deathStarHeight + (deathStar ? pad : 0.0f);
   const Rect panel{column.x, column.y, column.w, std::min(height, column.h)};
   ui.Panel(panel, "COMMAND");
   const Rect titleBar{panel.x, panel.y, panel.w, title};
-  if (hud::FoldButton(ui, hud_id::CollapseCommand(), titleBar, m_commandCollapsed, "signals and options")) {
-    m_commandCollapsed = !m_commandCollapsed;
+  if (hasBody) {
+    if (hud::FoldButton(ui, hud_id::CollapseCommand(), titleBar, m_commandCollapsed, "signals and options")) {
+      m_commandCollapsed = !m_commandCollapsed;
+    }
+    Record(hud_id::CollapseCommand(), hud::FoldRect(titleBar));
   }
-  Record(hud_id::CollapseCommand(), hud::FoldRect(titleBar));
-  const Rect gear{titleBar.Right() - 2.0f * title, titleBar.y, title, title};
+  const Rect gear{titleBar.Right() - (hasBody ? 2.0f * title : title), titleBar.y, title, title};
   if (ui.Region(hud_id::Options(), gear)) {
     OpenPopupAt(PopupKind::Options, gear);
   }
   DrawIcon(ui.Draw(), Icon::Gear, gear.Inset(title * 0.25f),
            ui.Hovered(hud_id::Options()) || m_popup.kind == PopupKind::Options ? theme.text : theme.textDim,
            ui.Scale());
-  ui.Tooltip(hud_id::Options(), "Options: auto-pause events, command phases, colours and HUD size.");
+  ui.Tooltip(hud_id::Options(), "Options: auto-pause events, colours and HUD size.");
   Record(hud_id::Options(), gear);
-  if (m_commandCollapsed) {
+  if (m_commandCollapsed || !hasBody) {
     return panel.h;
   }
 
   float y = panel.y + title + pad;
   const float x = panel.x + ui.S(8.0f);
   const float w = panel.w - ui.S(16.0f);
-  hud::Caption(ui, {x, y, w, ui.S(16.0f)}, "SIGNALS");
-  for (int i = 0; i < own.signalsMax; ++i) {
-    const Point pip{x + w - static_cast<float>(own.signalsMax - i) * ui.S(11.0f) + ui.S(5.0f), y + ui.S(8.0f)};
-    if (i < own.signalsReady) {
-      ui.Draw().FillCircle(pip, ui.S(4.0f), Rgb(0xffd25a));
-    } else {
-      ui.Draw().Circle(pip, ui.S(4.0f), theme.textDim, Stroke{ui.S(1.0f)});
-    }
-  }
-  if (own.signalsMax == 0) {
-    ui.Label({x, y, w, ui.S(16.0f)}, "no fleet admiral", {10.0f, theme.textDim, Align::End});
-  }
-  y += ui.S(16.0f);
-  const float half = (w - ui.S(4.0f)) * 0.5f;
-  for (int i = 0; i < 4; ++i) {
-    const auto signal = static_cast<battle::SignalKind>(i);
-    const OptionText& text = Describe(signal);
-    const WidgetId id = hud_id::Signal(signal);
-    const Rect button{x + static_cast<float>(i % 2) * (half + ui.S(4.0f)),
-                      y + static_cast<float>(i / 2) * (signalRow + ui.S(4.0f)), half, signalRow};
-    const bool ready = own.signalsReady > 0 && !view.finished;
-    const bool armed = signal == battle::SignalKind::ConcentrateFire && m_pick.mode == PickMode::ConcentrateFire;
-    if (hud::Button(ui, id, button, SignalIcon(signal), text.shortName, ready, armed)) {
-      if (armed) {
-        m_pick = {};
-      } else if (signal == battle::SignalKind::ConcentrateFire) {
-        StartPick(PickMode::ConcentrateFire);
+  bool drewSection = false;
+  if (hasSignals) {
+    hud::Caption(ui, {x, y, w, ui.S(16.0f)}, "SIGNALS");
+    for (int i = 0; i < own.signalsMax; ++i) {
+      const Point pip{x + w - static_cast<float>(own.signalsMax - i) * ui.S(11.0f) + ui.S(5.0f), y + ui.S(8.0f)};
+      if (i < own.signalsReady) {
+        ui.Draw().FillCircle(pip, ui.S(4.0f), Rgb(0xffd25a));
       } else {
-        battle::Command command;
-        command.order = battle::OrderSignal{signal, kNoUnit};
-        if (Submit(std::move(command))) {
-          AddToast("Signal: " + std::string(text.name));
-        }
+        ui.Draw().Circle(pip, ui.S(4.0f), theme.textDim, Stroke{ui.S(1.0f)});
       }
     }
-    std::string tip = std::string(text.name) + ": " + std::string(text.help);
-    tip += own.signalsMax == 0 ? " Needs a fleet admiral."
-                               : " Uses one of the admiral's charges, which recharge slowly.";
-    ui.Tooltip(id, tip);
-    Record(id, button);
+    y += ui.S(16.0f);
+    const float half = (w - ui.S(4.0f)) * 0.5f;
+    for (int i = 0; i < 4; ++i) {
+      const auto signal = static_cast<battle::SignalKind>(i);
+      const OptionText& text = Describe(signal);
+      const WidgetId id = hud_id::Signal(signal);
+      const Rect button{x + static_cast<float>(i % 2) * (half + ui.S(4.0f)),
+                        y + static_cast<float>(i / 2) * (signalRow + ui.S(4.0f)), half, signalRow};
+      const bool ready = own.signalsReady > 0 && !view.finished;
+      const bool armed = signal == battle::SignalKind::ConcentrateFire && m_pick.mode == PickMode::ConcentrateFire;
+      if (hud::Button(ui, id, button, SignalIcon(signal), text.shortName, ready, armed)) {
+        if (armed) {
+          m_pick = {};
+        } else if (signal == battle::SignalKind::ConcentrateFire) {
+          StartPick(PickMode::ConcentrateFire);
+        } else {
+          battle::Command command;
+          command.order = battle::OrderSignal{signal, kNoUnit};
+          if (Submit(std::move(command))) {
+            AddToast("Signal: " + std::string(text.name));
+          }
+        }
+      }
+      const std::string tip = std::string(text.name) + ": " + std::string(text.help)
+                              + " Uses one of the admiral's charges, which recharge slowly.";
+      ui.Tooltip(id, tip);
+      Record(id, button);
+    }
+    y += 2.0f * signalRow + ui.S(4.0f) + pad;
+    drewSection = true;
   }
-  y += 2.0f * signalRow + ui.S(4.0f) + pad;
 
   for (size_t list = 0; list < batteries.size(); ++list) {
     if (batteries[list].empty()) {
       continue;
     }
-    const bool own = list == 0;
-    ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
-    hud::Caption(ui, {x, y, w, ui.S(16.0f)}, own ? "PLANETARY DEFENSES" : "ENEMY PLANETARY DEFENSES");
+    const bool ownBatteries = list == 0;
+    if (drewSection) {
+      ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
+    }
+    hud::Caption(ui, {x, y, w, ui.S(16.0f)}, ownBatteries ? "PLANETARY DEFENSES" : "ENEMY PLANETARY DEFENSES");
     y += batteryCaption;
     for (const auto& [index, defense] : batteries[list]) {
       const Rect row{x, y, w, batteryRow};
@@ -213,12 +221,13 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
       ui.Region(id, row);
       Record(id, row);
       ui.Tooltip(id, defense->name + ". " + BatteryRole(*defense) + " Fires on "
-                         + (own ? "enemy capital ships" : "your capital ships")
+                         + (ownBatteries ? "enemy capital ships" : "your capital ships")
                          + " inside the ring around the planet; it cannot be destroyed in this battle."
-                         + (own ? " It joins your Concentrate Fire signal when the target is in reach." : ""));
+                         + (ownBatteries ? " It joins your Concentrate Fire signal when the target is in reach." : ""));
       y += batteryRow;
     }
     y += pad;
+    drewSection = true;
   }
 
   if (!deathStar) {
@@ -226,7 +235,9 @@ float CommandHud::DrawCommandPanel(Ui& ui, const Rect& column)
   }
   const bool ours = deathStar->side == m_screen.PlayerSide();
   const float charge = std::max(0.0f, view.superlaserCharge);
-  ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
+  if (drewSection) {
+    ui.Draw().FillRect({x, y - pad * 0.5f, w, ui.S(1.0f)}, theme.panelBorder.WithAlpha(80));
+  }
   hud::Caption(ui, {x, y, w, ui.S(16.0f)}, ours ? "SUPERLASER" : "ENEMY DEATH STAR");
   y += ui.S(17.0f);
   const Color fill = charge >= 1.0f ? Rgb(0x8cff6a) : Rgb(0x6ad25a, 220);
@@ -374,7 +385,7 @@ void CommandHud::DrawBriefing(Ui& ui, const Rect& column)
   }
   DrawIcon(ui.Draw(), Icon::Gear, gear.Inset(title * 0.25f), ui.Hovered(hud_id::Options()) ? theme.text : theme.textDim,
            ui.Scale());
-  ui.Tooltip(hud_id::Options(), "Options: auto-pause events, command phases, colours and HUD size.");
+  ui.Tooltip(hud_id::Options(), "Options: auto-pause events, colours and HUD size.");
   Record(hud_id::Options(), gear);
 
   float y = content.y;
@@ -500,7 +511,6 @@ void CommandHud::DrawBriefing(Ui& ui, const Rect& column)
     list(squadrons, true);
     y += ui.S(8.0f);
   };
-  summarize(side, true);
   summarize(Enemy(), false);
 
   const Rect engage{content.x, content.Bottom() - ui.S(34.0f), content.w, ui.S(34.0f)};

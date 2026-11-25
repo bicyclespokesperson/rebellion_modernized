@@ -12,7 +12,7 @@ namespace reb::battle_ui
 {
 
 struct AutoPauseHit {
-  AutoPauseEvent event = AutoPauseEvent::Reinforcements;
+  AutoPauseEvent event = AutoPauseEvent::GravityWell;
   battle::UnitIndex unit = battle::kNoUnit;
   std::string text;
 };
@@ -33,14 +33,11 @@ class AutoPauseWatcher
   // The events since the previous call, for `player`'s point of view; the first call only records the state.
   std::vector<AutoPauseHit> Update(const battle::ViewModel& view, battle::Side player, const UnitFactsLookup& facts,
                                    const WithdrawRuleLookup& withdrawRule);
-  // True once each time battle time reaches the next multiple of `intervalSeconds` (0 = off).
-  bool PhaseDue(float battleSeconds, int intervalSeconds);
 
   private:
   struct Seen {
     bool present = false;
-    bool everSeen = false; // reinforcements are units never seen before, not units returning to the view
-    bool gone = false;     // destroyed
+    bool gone = false; // destroyed
     float hull = 1.0f;
     float shield = 1.0f;
   };
@@ -48,8 +45,6 @@ class AutoPauseWatcher
   std::vector<battle::UnitIndex> m_activeWells;
   float m_superlaser = -1.0f;
   bool m_started = false;
-  int m_phaseInterval = 0;
-  float m_nextPhase = 0.0f;
 };
 
 } // namespace reb::battle_ui

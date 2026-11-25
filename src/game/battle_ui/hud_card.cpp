@@ -25,8 +25,7 @@ constexpr float kChips = 32.0f;
 constexpr float kOrders = 26.0f;
 constexpr float kIntent = 16.0f;
 constexpr float kGap = 4.0f;
-constexpr float kPad = 6.0f;
-constexpr Color kOverrideColor = Rgb(0xffc864);
+constexpr float kPad = 7.0f;
 
 struct OrderSpec {
   OrderButton order;
@@ -41,11 +40,7 @@ constexpr std::array kPowerLabels{"Bal", "Wpn", "Shd", "Eng"};
 std::string ChipValue(DoctrineField field, bool flight, const battle::ShipDoctrine& ship,
                       const battle::FlightDoctrine& flightDoctrine)
 {
-  if (field == DoctrineField::Priorities) {
-    const std::string text = PriorityText(flight ? flightDoctrine.priorities : ship.priorities);
-    return text.empty() ? "None" : text;
-  }
-  return std::string(Option(field, GetOption(field, ship, flightDoctrine)).shortName);
+  return std::string(Option(field, GetOption(field, flight, ship, flightDoctrine)).shortName);
 }
 
 } // namespace
@@ -72,12 +67,13 @@ void CommandHud::DrawCard(Ui& ui)
   DrawOrders(ui, {x, y, w, ui.S(kOrders)}, doctrine);
   y += ui.S(kOrders + kGap);
   if (!m_cardCollapsed) {
-    DrawIntent(ui, {x, y - ui.S(1.0f), w, ui.S(kIntent)});
+    DrawIntent(ui, {x, y, w, ui.S(kIntent)});
   }
 }
 
 void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doctrine)
 {
+  (void)doctrine;
   const Theme& theme = ui.GetTheme();
   const battle::ViewModel& view = m_screen.View();
   float right = row.Right();
@@ -87,17 +83,6 @@ void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doc
   }
   Record(hud_id::CollapseCard(), hud::FoldRect(titleBar));
   right -= row.h + ui.S(6.0f);
-  if (!m_subject.Empty()) {
-    const float width = hud::ButtonWidth(ui, "Presets");
-    const Rect presets{right - width, row.y, width, row.h};
-    if (hud::Button(ui, hud_id::Presets(), presets, Icon::Preset, "Presets", true,
-                    m_popup.kind == PopupKind::Presets)) {
-      OpenPopupAt(PopupKind::Presets, presets);
-    }
-    ui.Tooltip(hud_id::Presets(), "Apply a named doctrine in one click, or save this one under a name.");
-    Record(hud_id::Presets(), presets);
-    right = presets.x - ui.S(8.0f);
-  }
 
   float x = row.x;
   const auto text = [&](std::string_view value, float size, Color color, FontWeight weight = FontWeight::Regular) {
@@ -144,34 +129,7 @@ void CommandHud::DrawCardHeader(Ui& ui, const Rect& row, const CardDoctrine& doc
     } else {
       text(std::to_string(m_subject.units.size()) + (m_subject.flight ? " squadrons" : " ships"), 13.0f, theme.title,
            FontWeight::Bold);
-      text("edits override each one's group doctrine", 11.0f, theme.textDim);
-    }
-    const int overrides = std::popcount(doctrine.overrides & battle::DoctrineOverrideMask{0xffff});
-    if (overrides > 0 && x + ui.S(150.0f) < right) {
-      DrawIcon(ui.Draw(), Icon::Override, {x, row.Center().y - ui.S(5.0f), ui.S(10.0f), ui.S(10.0f)}, kOverrideColor,
-               ui.Scale());
-      x += ui.S(14.0f);
-      text(std::to_string(overrides) + (overrides == 1 ? " override" : " overrides"), 11.0f, kOverrideColor);
-      const float width = hud::ButtonWidth(ui, "Clear", false);
-      const Rect clear{x - ui.S(4.0f), row.y + ui.S(1.0f), width, row.h - ui.S(2.0f)};
-      if (hud::Segment(ui, hud_id::ClearOverrides(), clear, "Clear", false)) {
-        ClearOverrides(doctrine.overrides);
-      }
-      ui.Tooltip(hud_id::ClearOverrides(), "Drop these overrides so the ships follow their group's doctrine again.");
-      Record(hud_id::ClearOverrides(), clear);
-      x = clear.Right() + ui.S(8.0f);
-    }
-    if (doctrine.hasGroup) {
-      const battle::ViewUnit* first = FindUnit(view, m_subject.units.front());
-      const float width = hud::ButtonWidth(ui, "Edit group", false);
-      const Rect edit{x - ui.S(4.0f), row.y + ui.S(1.0f), width, row.h - ui.S(2.0f)};
-      if (first && edit.Right() < right && hud::Segment(ui, hud_id::EditGroup(), edit, "Edit group", false)) {
-        FocusGroup(first->group);
-      }
-      if (edit.Right() < right) {
-        ui.Tooltip(hud_id::EditGroup(), "Edit the doctrine of the whole group instead of this selection.");
-        Record(hud_id::EditGroup(), edit);
-      }
+      text("edits apply to this selection", 11.0f, theme.textDim);
     }
     return;
   }
@@ -194,7 +152,7 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
     return;
   }
   const std::span<const DoctrineField> fields = m_subject.flight ? FlightFields() : ShipFields();
-  const float gap = ui.S(4.0f);
+  const float gap = ui.S(6.0f);
   const float icon = ui.S(16.0f);
   std::vector<std::string> values;
   std::vector<float> widths;
@@ -204,8 +162,7 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
     std::string value
         = (doctrine.mixed & mask) ? "Mixed" : ChipValue(field, m_subject.flight, doctrine.ship, doctrine.flight);
     const battle::UnitIndex protectedUnit
-        = field == DoctrineField::Role && doctrine.ship.role == battle::Role::Screen ? doctrine.ship.screenTarget
-          : field == DoctrineField::Mission && doctrine.flight.mission == battle::FlightMission::Escort
+        = field == DoctrineField::Mission && doctrine.flight.mission == battle::FlightMission::Escort
               ? doctrine.flight.escortTarget
               : kNoUnit;
     if (protectedUnit != kNoUnit && !(doctrine.mixed & mask)) {
@@ -213,16 +170,13 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
     }
     const float text = std::max(ui.TextWidth(Describe(field).label, 9.0f, FontWeight::Bold),
                                 ui.TextWidth(value, 12.0f, FontWeight::Bold));
-    float width = icon + ui.S(20.0f) + text;
-    if (field == DoctrineField::Priorities) {
-      width = std::clamp(width, ui.S(130.0f), ui.S(250.0f));
-    }
+    const float width = std::clamp(icon + ui.S(24.0f) + text, ui.S(120.0f), ui.S(220.0f));
     values.push_back(std::move(value));
     widths.push_back(width);
     natural += width;
   }
   const float gaps = gap * static_cast<float>(fields.size() - 1);
-  const float stretch = std::min(1.35f, (row.w - gaps) / natural);
+  const float stretch = std::min(1.15f, (row.w - gaps) / natural);
   float x = row.x;
   for (size_t i = 0; i < fields.size(); ++i) {
     const DoctrineField field = fields[i];
@@ -231,10 +185,9 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
     const Rect chip{x, row.y, widths[i] * stretch, row.h};
     x = chip.Right() + gap;
     Record(id, chip);
-    const bool open
-        = (m_popup.kind == PopupKind::Field || m_popup.kind == PopupKind::Priorities) && m_popup.field == field;
+    const bool open = m_popup.kind == PopupKind::Field && m_popup.field == field;
     if (ui.Region(id, chip)) {
-      OpenPopupAt(field == DoctrineField::Priorities ? PopupKind::Priorities : PopupKind::Field, chip, field);
+      OpenPopupAt(PopupKind::Field, chip, field);
     }
     const bool hovered = ui.Hovered(id);
     ui.Draw().FillRect(chip, open ? theme.buttonOn : hovered ? theme.buttonHover : theme.buttonFace);
@@ -252,17 +205,10 @@ void CommandHud::DrawChips(Ui& ui, const Rect& row, const CardDoctrine& doctrine
     const bool mixed = (doctrine.mixed & mask) != 0;
     ui.Label({textX, chip.y + ui.S(14.0f), textWidth, ui.S(15.0f)}, values[i],
              {12.0f, mixed ? theme.textDim : theme.text, Align::Start, VAlign::Middle, FontWeight::Bold});
-    if (doctrine.overrides & mask) {
-      DrawIcon(ui.Draw(), Icon::Override, {chip.Right() - ui.S(11.0f), chip.y + ui.S(3.0f), ui.S(8.0f), ui.S(8.0f)},
-               kOverrideColor, ui.Scale());
-    }
     std::string tip = std::string(Describe(field).label) + ": " + std::string(Describe(field).help);
-    if (field != DoctrineField::Priorities && !mixed) {
-      const OptionText& current = Option(field, GetOption(field, doctrine.ship, doctrine.flight));
+    if (!mixed) {
+      const OptionText& current = Option(field, GetOption(field, m_subject.flight, doctrine.ship, doctrine.flight));
       tip += " Now " + std::string(current.name) + ": " + std::string(current.help);
-    }
-    if (doctrine.overrides & mask) {
-      tip += " Overridden for this selection; the group's setting no longer applies.";
     }
     ui.Tooltip(id, tip);
   }
@@ -279,10 +225,12 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
           orders.push_back({order, icon, label, help, enabled && any});
         };
   add(OrderButton::Attack, Icon::Attack, "Attack",
-      "Attack a target you pick, overriding the target priorities; Ctrl+click adds more targets in order.");
+      "Attack a target you pick, overriding target focus; Ctrl+click adds more targets in order.");
   add(OrderButton::Move, Icon::Move, "Move",
       "Move to a point you pick on the battle plane; right-click there does the same.");
-  add(OrderButton::Hold, Icon::Hold, "Hold", "Stop and hold position, still firing at whatever comes in range (H).");
+  if (!m_subject.flight) {
+    add(OrderButton::Hold, Icon::Hold, "Hold", "Stop and hold position, still firing at whatever comes in range (H).");
+  }
   add(OrderButton::Escort, Icon::Escort, "Escort",
       "Escort a friendly ship or squadron you pick, staying between it and the threat.");
   if (!m_subject.flight) {
@@ -298,10 +246,8 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
       add(OrderButton::Launch, Icon::Launch, "Launch", "Launch the squadrons docked aboard.");
     }
   } else {
-    add(OrderButton::Strike, Icon::Strike, "Strike", "Attack an enemy capital ship you pick, then come back to rearm.");
     add(OrderButton::Launch, Icon::Launch, "Launch", "Launch the flight from its carrier.");
-    add(OrderButton::Recall, Icon::Recall, "Recall", "Break off and fly back to the carrier, staying launched.");
-    add(OrderButton::Recover, Icon::Recover, "Recover",
+    add(OrderButton::Recover, Icon::Recover, "Dock",
         "Dock with the carrier, or any ship with free hangar space, to rearm or to leave with it.");
   }
   add(OrderButton::Withdraw, Icon::Withdraw, "Withdraw",
@@ -366,8 +312,7 @@ void CommandHud::DrawOrders(Ui& ui, const Rect& row, const CardDoctrine& doctrin
     const bool picking = (order.order == OrderButton::Attack && m_pick.mode == PickMode::Attack)
                          || (order.order == OrderButton::Move && m_pick.mode == PickMode::Move)
                          || (order.order == OrderButton::Escort && m_pick.mode == PickMode::Escort)
-                         || (order.order == OrderButton::Tractor && m_pick.mode == PickMode::Tractor)
-                         || (order.order == OrderButton::Strike && m_pick.mode == PickMode::Strike);
+                         || (order.order == OrderButton::Tractor && m_pick.mode == PickMode::Tractor);
     if (hud::Button(ui, id, button, order.icon, ordersIconOnly ? "" : order.label, order.enabled, picking)) {
       if (picking) {
         m_pick = {};

@@ -244,8 +244,7 @@ void TopBarPanel::Draw(Ui& ui, BattleScreen& screen)
 
   const Side player = screen.PlayerSide();
   const Side enemy = player == Side::Alliance ? Side::Empire : Side::Alliance;
-  const float signalsWidth = ui.S(110.0f);
-  const float available = bar.Right() - pad - signalsWidth - x;
+  const float available = bar.Right() - pad - x;
   const float block = std::min(ui.S(300.0f), available * 0.5f);
   for (const Side side : {player, enemy}) {
     if (block < ui.S(150.0f)) {
@@ -263,12 +262,6 @@ void TopBarPanel::Draw(Ui& ui, BattleScreen& screen)
     ui.Label({x + nameWidth + barWidth, bar.y, valueWidth, bar.h}, state.withdrawing ? "RET" : Percent(fraction),
              {12.0f, theme.text, Align::End});
     x += block;
-  }
-  const battle::ViewSide& own = view.sides[static_cast<int>(player)];
-  if (own.signalsMax > 0) {
-    ui.Label({bar.Right() - pad - signalsWidth, bar.y, signalsWidth, bar.h},
-             "Signals " + std::to_string(own.signalsReady) + "/" + std::to_string(own.signalsMax),
-             {12.0f, theme.textDim, Align::End});
   }
 }
 

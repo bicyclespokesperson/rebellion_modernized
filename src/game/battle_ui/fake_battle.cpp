@@ -487,11 +487,12 @@ void FakeBattle::Damage(UnitIndex index, float amount, Vec2 at)
   }
   const bool squadron = unit.view.kind == ViewUnitKind::Squadron;
   if (unit.shield > 0.0f) {
+    const bool hadShields = unit.shield >= 0.25f * unit.shieldMax;
     unit.shield = std::max(0.0f, unit.shield - amount);
     if (!squadron) {
       AddEffect(ViewEffectKind::ShieldFlash, at, unit.view.radius, 0.35f, index);
     }
-    if (unit.shield <= 0.0f && !squadron) {
+    if (hadShields && unit.shield <= 0.0f && !squadron) {
       Event(unit.view.side, unit.name + ": shields down", index);
     }
     return;

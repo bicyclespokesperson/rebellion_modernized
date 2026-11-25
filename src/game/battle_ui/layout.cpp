@@ -10,8 +10,8 @@ ScreenLayout ComputeLayout(const ScreenInfo& screen)
   const float height = static_cast<float>(screen.height);
   const float margin = 8.0f * s;
   const float topBarHeight = 34.0f * s;
-  const float sideWidth = std::min(240.0f * s, width * 0.2f);
-  const float cardHeight = 118.0f * s;
+  const float sideWidth = std::min(264.0f * s, width * 0.21f);
+  const float cardHeight = 122.0f * s;
   const float infoWidth = std::min(330.0f * s, width * 0.32f);
   const float infoHeight = 168.0f * s;
 

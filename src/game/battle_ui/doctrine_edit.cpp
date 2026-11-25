@@ -46,11 +46,6 @@ battle::Command ClearOverridesCommand(const DoctrineSubject& subject, DoctrineOv
   return command;
 }
 
-battle::Command PresetCommand(const DoctrineSubject& subject, const DoctrinePreset& preset)
-{
-  return SetDoctrineCommand(subject, preset.ship, preset.flightDoctrine, preset.fields);
-}
-
 void CopyFields(battle::ShipDoctrine& to, const battle::ShipDoctrine& from, DoctrineOverrideMask fields)
 {
   const auto copy = [fields](DoctrineOverrideMask bit, auto& destination, const auto& source) {

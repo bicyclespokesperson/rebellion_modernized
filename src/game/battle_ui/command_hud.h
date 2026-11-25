@@ -40,8 +40,6 @@ enum class OrderButton : uint8_t {
   Escort,
   Tractor,
   Launch,
-  Recall,
-  Strike,
   Recover,
   Withdraw,
   DeathStarRun,
@@ -54,13 +52,12 @@ enum class PickMode : uint8_t {
   Move,
   Escort,
   Tractor,
-  Strike,
   ConcentrateFire,
   Superlaser,
-  Protect, // the ship a Screen group or an Escort flight protects (a doctrine field)
+  Protect, // the ship an Escort flight protects (a doctrine field)
 };
 
-enum class PopupKind : uint8_t { None, Field, Priorities, Presets, Options, ConfirmWithdraw };
+enum class PopupKind : uint8_t { None, Field, Options, ConfirmWithdraw };
 
 // Widget ids of the HUD's controls, for tests and review scripts (ControlRect).
 namespace hud_id
@@ -70,22 +67,13 @@ WidgetId Order(OrderButton order);
 WidgetId Power(battle::PowerRouting power);
 WidgetId Signal(battle::SignalKind signal);
 WidgetId FieldOption(int index);
-WidgetId FollowGroup();
-WidgetId PrioritySlot(int slot);
-WidgetId PriorityRemove(int slot);
-WidgetId PriorityTag(battle::TargetTag tag);
-WidgetId FinishDamaged();
 WidgetId RosterGroup(battle::GroupId group);
 WidgetId RosterUnit(battle::UnitIndex unit);
 WidgetId RosterNewGroup(bool flight);
 WidgetId DeployHandle(battle::GroupId group);
 WidgetId Engage();
-WidgetId Presets();
-WidgetId PresetRow(int index);
-WidgetId SavePreset();
 WidgetId Options();
 WidgetId AutoPause(AutoPauseEvent event);
-WidgetId CommandPhase(int seconds);
 WidgetId Palette(bool colorBlind);
 WidgetId HudScale(int index);
 WidgetId WithdrawFleet();
@@ -93,8 +81,6 @@ WidgetId ConfirmWithdraw();
 WidgetId Observe();
 WidgetId ImmediateResult();
 WidgetId FireSuperlaser();
-WidgetId ClearOverrides();
-WidgetId EditGroup();
 WidgetId EventRow(int index);
 WidgetId Battery(int index); // a planetary battery's row in the command panel
 WidgetId CollapseRoster();
@@ -166,7 +152,7 @@ class CommandHud : public HudPanel, public ScreenInputHook
   };
   struct Popup {
     PopupKind kind = PopupKind::None;
-    DoctrineField field = DoctrineField::Role;
+    DoctrineField field = DoctrineField::Range;
     DoctrineSubject subject; // a doctrine popup edits the subject it was opened for, and closes when that changes
     Rect anchor;
     Rect rect; // as drawn last frame
@@ -224,8 +210,6 @@ class CommandHud : public HudPanel, public ScreenInputHook
   void DrawIntent(Ui& ui, const Rect& row);
   void DrawPopup(Ui& ui);
   void DrawFieldPopup(Ui& ui, const CardDoctrine& doctrine);
-  void DrawPriorityPopup(Ui& ui, const CardDoctrine& doctrine);
-  void DrawPresetPopup(Ui& ui, const CardDoctrine& doctrine);
   void DrawOptionsPopup(Ui& ui);
   void DrawConfirmWithdraw(Ui& ui);
   void DrawPickOverlay(Ui& ui);
@@ -236,10 +220,8 @@ class CommandHud : public HudPanel, public ScreenInputHook
   // actions
   void PressOrder(OrderButton order);
   void SubmitDoctrine(const CardDoctrine& doctrine, battle::DoctrineOverrideMask fields);
-  void SubmitPriorities(const CardDoctrine& doctrine, const battle::TargetPriorities& priorities);
-  void ClearOverrides(battle::DoctrineOverrideMask fields);
   void WithdrawFleet();
-  void OpenPopupAt(PopupKind kind, const Rect& anchor, DoctrineField field = DoctrineField::Role);
+  void OpenPopupAt(PopupKind kind, const Rect& anchor, DoctrineField field = DoctrineField::Range);
   void ClosePopup();
   bool PickValid(battle::UnitIndex unit) const;
   std::vector<battle::UnitIndex> SubjectUnits() const;
@@ -262,10 +244,6 @@ class CommandHud : public HudPanel, public ScreenInputHook
 
   Pick m_pick;
   Popup m_popup;
-  int m_prioritySlot = -1; // selected slot in the priority editor
-  int m_priorityDrag = -1; // slot being dragged
-  bool m_naming = false;   // typing a preset name
-  std::string m_presetName;
 
   // roster drag-to-regroup
   bool m_rosterDragging = false;

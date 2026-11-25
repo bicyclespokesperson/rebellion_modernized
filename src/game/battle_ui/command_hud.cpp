@@ -20,22 +20,10 @@ namespace
 {
 
 constexpr double kToastSeconds = 3.5;
-constexpr size_t kMaxNameLength = 32;
 
 WidgetId Indexed(std::string_view name, int64_t index)
 {
   return Id(Id(name), index);
-}
-
-void PopUtf8(std::string& text)
-{
-  while (!text.empty()) {
-    const auto byte = static_cast<uint8_t>(text.back());
-    text.pop_back();
-    if ((byte & 0xc0) != 0x80) {
-      break;
-    }
-  }
 }
 
 std::string_view PickPrompt(PickMode mode)
@@ -49,14 +37,12 @@ std::string_view PickPrompt(PickMode mode)
       return "ESCORT: click a friendly ship or squadron to escort.";
     case PickMode::Tractor:
       return "TRACTOR: click an enemy capital ship within 2 km to lock it.";
-    case PickMode::Strike:
-      return "STRIKE: click an enemy capital ship for the flight to attack.";
     case PickMode::ConcentrateFire:
       return "CONCENTRATE FIRE: click the enemy every ship in range should fire on.";
     case PickMode::Superlaser:
       return "SUPERLASER: click an enemy capital ship to destroy it.";
     case PickMode::Protect:
-      return "PROTECT: click the friendly ship this group should screen or escort.";
+      return "PROTECT: click the friendly ship or squadron this flight should escort.";
     case PickMode::None:
       break;
   }
@@ -70,7 +56,6 @@ std::string_view PickMistake(PickMode mode)
     case PickMode::Protect:
       return "Pick one of your own ships or squadrons to protect";
     case PickMode::Tractor:
-    case PickMode::Strike:
     case PickMode::Superlaser:
       return "Pick an enemy capital ship";
     default:
@@ -102,26 +87,6 @@ WidgetId FieldOption(int index)
 {
   return Indexed("hud.option", index);
 }
-WidgetId FollowGroup()
-{
-  return Id("hud.follow_group");
-}
-WidgetId PrioritySlot(int slot)
-{
-  return Indexed("hud.priority.slot", slot);
-}
-WidgetId PriorityRemove(int slot)
-{
-  return Indexed("hud.priority.remove", slot);
-}
-WidgetId PriorityTag(battle::TargetTag tag)
-{
-  return Indexed("hud.priority.tag", static_cast<int>(tag));
-}
-WidgetId FinishDamaged()
-{
-  return Id("hud.priority.finish");
-}
 WidgetId RosterGroup(battle::GroupId group)
 {
   return Indexed("hud.roster.group", group);
@@ -142,18 +107,6 @@ WidgetId Engage()
 {
   return Id("hud.engage");
 }
-WidgetId Presets()
-{
-  return Id("hud.presets");
-}
-WidgetId PresetRow(int index)
-{
-  return Indexed("hud.preset", index);
-}
-WidgetId SavePreset()
-{
-  return Id("hud.preset.save");
-}
 WidgetId Options()
 {
   return Id("hud.options");
@@ -161,10 +114,6 @@ WidgetId Options()
 WidgetId AutoPause(AutoPauseEvent event)
 {
   return Indexed("hud.autopause", static_cast<int>(event));
-}
-WidgetId CommandPhase(int seconds)
-{
-  return Indexed("hud.phase", seconds);
 }
 WidgetId Palette(bool colorBlind)
 {
@@ -194,17 +143,9 @@ WidgetId FireSuperlaser()
 {
   return Id("hud.superlaser");
 }
-WidgetId ClearOverrides()
-{
-  return Id("hud.clear_overrides");
-}
 WidgetId Battery(int index)
 {
   return Id(Id("hud.battery"), index);
-}
-WidgetId EditGroup()
-{
-  return Id("hud.edit_group");
 }
 WidgetId EventRow(int index)
 {
@@ -432,9 +373,6 @@ void CommandHud::CheckAutoPause()
       reason = hit.text;
     }
   }
-  if (m_watcher.PhaseDue(view.battleSeconds, m_settings.commandPhaseSeconds) && reason.empty()) {
-    reason = "Command phase at " + FormatClock(view.battleSeconds);
-  }
   if (!reason.empty() && !m_screen.Paused() && !view.finished) {
     m_screen.SetPaused(true);
     AddToast("Paused: " + reason);
@@ -656,17 +594,11 @@ void CommandHud::PressOrder(OrderButton order)
     case OrderButton::Tractor:
       StartPick(PickMode::Tractor);
       return;
-    case OrderButton::Strike:
-      StartPick(PickMode::Strike);
-      return;
     case OrderButton::Hold:
       command.order = battle::OrderHold{};
       break;
     case OrderButton::Launch:
       command.order = battle::OrderLaunch{};
-      break;
-    case OrderButton::Recall:
-      command.order = battle::OrderRecall{};
       break;
     case OrderButton::Recover:
       command.order = battle::OrderRecover{};
@@ -684,20 +616,6 @@ void CommandHud::PressOrder(OrderButton order)
 void CommandHud::SubmitDoctrine(const CardDoctrine& doctrine, battle::DoctrineOverrideMask fields)
 {
   Submit(SetDoctrineCommand(m_subject, doctrine.ship, doctrine.flight, fields));
-}
-
-void CommandHud::SubmitPriorities(const CardDoctrine& doctrine, const battle::TargetPriorities& priorities)
-{
-  CardDoctrine edited = doctrine;
-  (m_subject.flight ? edited.flight.priorities : edited.ship.priorities) = priorities;
-  SubmitDoctrine(edited, FieldMask(DoctrineField::Priorities, m_subject.flight));
-}
-
-void CommandHud::ClearOverrides(battle::DoctrineOverrideMask fields)
-{
-  if (!m_subject.IsGroup() && !m_subject.Empty()) {
-    Submit(ClearOverridesCommand(m_subject, fields));
-  }
 }
 
 void CommandHud::WithdrawFleet()
@@ -728,17 +646,11 @@ void CommandHud::OpenPopupAt(PopupKind kind, const Rect& anchor, DoctrineField f
   }
   m_pick = {};
   m_popup = {kind, field, m_subject, anchor, {}};
-  m_prioritySlot = -1;
-  m_priorityDrag = -1;
-  m_naming = false;
 }
 
 void CommandHud::ClosePopup()
 {
   m_popup = {};
-  m_naming = false;
-  m_prioritySlot = -1;
-  m_priorityDrag = -1;
 }
 
 bool CommandHud::PickValid(UnitIndex unit) const
@@ -758,7 +670,6 @@ bool CommandHud::PickValid(UnitIndex unit) const
       return !enemy && std::ranges::find(m_pick.who.units, unit) == m_pick.who.units.end()
              && std::ranges::find(m_pick.who.groups, found->group) == m_pick.who.groups.end();
     case PickMode::Tractor:
-    case PickMode::Strike:
     case PickMode::Superlaser:
       return enemy && capital;
     case PickMode::Move:
@@ -808,9 +719,6 @@ bool CommandHud::ViewClick(UnitIndex unit, battle::Vec2 world, uint8_t modifiers
     case PickMode::Tractor:
       command.order = battle::OrderTractor{unit};
       break;
-    case PickMode::Strike:
-      command.order = battle::OrderStrike{unit};
-      break;
     case PickMode::ConcentrateFire:
       command.target = {};
       command.order = battle::OrderSignal{battle::SignalKind::ConcentrateFire, unit};
@@ -852,10 +760,9 @@ bool CommandHud::Cancel()
     ClosePopup();
     return true;
   }
-  if (m_rosterDragging || m_deployDrag != kNoGroup || m_priorityDrag >= 0) {
+  if (m_rosterDragging || m_deployDrag != kNoGroup) {
     m_rosterDragging = false;
     m_deployDrag = kNoGroup;
-    m_priorityDrag = -1;
     m_pressAbandoned = true;
     return true;
   }
@@ -864,46 +771,8 @@ bool CommandHud::Cancel()
 
 bool CommandHud::Keyboard(const InputEvent& event)
 {
-  if (const auto* text = std::get_if<TextInput>(&event)) {
-    if (m_naming && m_presetName.size() + text->text.size() <= kMaxNameLength) {
-      m_presetName += text->text;
-    }
-    return m_naming;
-  }
   const auto* key = std::get_if<KeyEvent>(&event);
-  if (!key) {
-    return false;
-  }
-  if (m_naming) {
-    if (!key->down) {
-      return false;
-    }
-    if (key->key == Key::Backspace) {
-      PopUtf8(m_presetName);
-    } else if (key->key == Key::Escape) {
-      m_naming = false;
-    } else if (key->key == Key::Return) {
-      m_naming = false;
-      if (!m_presetName.empty()) {
-        const CardDoctrine doctrine = ReadCardDoctrine();
-        DoctrinePreset preset{
-            m_presetName, m_subject.flight, doctrine.ship, doctrine.flight, PresetFields(m_subject.flight), false};
-        HudSettings settings = m_settings;
-        std::erase_if(settings.presets, [&](const DoctrinePreset& existing) {
-          return existing.name == preset.name && existing.flight == preset.flight;
-        });
-        if (static_cast<int>(settings.presets.size()) >= HudSettings::kMaxPresets) {
-          AddToast("The preset list is full: delete one first");
-          return true;
-        }
-        settings.presets.push_back(std::move(preset));
-        ApplySettings(std::move(settings));
-        AddToast("Saved preset \"" + m_presetName + "\"");
-      }
-    }
-    return true;
-  }
-  if (!key->down || key->repeat) {
+  if (!key || !key->down || key->repeat) {
     return false;
   }
   if (const int digit = KeyDigit(key->key); digit > 0 && !(key->modifiers & kModCtrl)) {

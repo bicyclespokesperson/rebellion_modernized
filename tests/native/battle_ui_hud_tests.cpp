@@ -71,6 +71,10 @@ class KnowledgeBattle : public FakeBattle
   void BuildViewModel(float alpha, battle::ViewModel& out) const override
   {
     FakeBattle::BuildViewModel(alpha, out);
+    if (noAdmiral) {
+      out.sides[static_cast<int>(Side::Alliance)].signalsMax = 0;
+      out.sides[static_cast<int>(Side::Alliance)].signalsReady = 0;
+    }
     if (friendlyProjector) {
       out.wells.push_back({kLiberty, {-6000.0f, 0.0f}, 22500.0f, Side::Alliance, true});
     }
@@ -91,6 +95,7 @@ class KnowledgeBattle : public FakeBattle
       out.defenses.push_back(battery);
     }
   }
+  bool noAdmiral = false;
   bool hideEnemy = false;
   bool friendlyProjector = false;
   bool enemyBatteries = false;
@@ -236,27 +241,22 @@ void GroupDoctrineEditSetsOnlyThatField()
   REQUIRE(h.hud->Subject().flight && h.hud->OpenPopup() == PopupKind::None);
   h.Key(DigitKey(1));
 
-  // Choosing Screen asks for the ship to protect, which is a doctrine field of its own.
-  h.Click(hud_id::Chip(DoctrineField::Role));
-  h.Click(hud_id::FieldOption(static_cast<int>(battle::Role::Screen)));
-  REQUIRE(h.LastOrder<battle::OrderSetShipDoctrine>().fields == battle::kShipRole);
-  REQUIRE(h.hud->Picking() == PickMode::Protect);
-  h.Click(h.OnScreen(kSalvation));
-  const auto& screenTarget = h.LastOrder<battle::OrderSetShipDoctrine>();
-  REQUIRE(screenTarget.fields == battle::kShipScreenTarget && screenTarget.doctrine.screenTarget == kSalvation);
-  REQUIRE(h.Group(kTaskForce1).shipDoctrine.role == battle::Role::Screen);
-  REQUIRE(h.Group(kTaskForce1).shipDoctrine.screenTarget == kSalvation);
-  REQUIRE(h.hud->Picking() == PickMode::None);
-
   // Clicking the group's header in the roster picks the group too, and flights get the flight card.
+  // Choosing Escort asks for the ship to protect, which is a doctrine field of its own.
   h.Click(hud_id::RosterGroup(3));
   REQUIRE(h.hud->Subject().IsGroup() && h.hud->Subject().group == 3 && h.hud->Subject().flight);
   h.Click(hud_id::Chip(DoctrineField::Mission));
-  h.Click(hud_id::FieldOption(static_cast<int>(battle::FlightMission::Escort)));
+  h.Click(hud_id::FieldOption(1)); // Escort
   const auto& flight = h.LastOrder<battle::OrderSetFlightDoctrine>();
   REQUIRE(flight.fields == battle::kFlightMission);
   REQUIRE(flight.doctrine.mission == battle::FlightMission::Escort);
   REQUIRE(h.Group(3).flightDoctrine.mission == battle::FlightMission::Escort);
+  REQUIRE(h.hud->Picking() == PickMode::Protect);
+  h.Click(h.OnScreen(kSalvation));
+  const auto& escortTarget = h.LastOrder<battle::OrderSetFlightDoctrine>();
+  REQUIRE(escortTarget.fields == battle::kFlightEscortTarget && escortTarget.doctrine.escortTarget == kSalvation);
+  REQUIRE(h.Group(3).flightDoctrine.escortTarget == kSalvation);
+  REQUIRE(h.hud->Picking() == PickMode::None);
 }
 
 void SmallScreensFoldTheLargestGroups()
@@ -269,44 +269,28 @@ void SmallScreensFoldTheLargestGroups()
   REQUIRE(h.hud->ControlRect(hud_id::RosterUnit(kLiberty)));
 }
 
-void ShipEditsAreOverridesAndCanBeCleared()
+void ShipEditsApplyToSelection()
 {
   Harness h;
   h.Click(hud_id::RosterUnit(kDefiance));
   REQUIRE(!h.hud->Subject().IsGroup());
   REQUIRE(h.hud->Subject().units == std::vector<UnitIndex>{kDefiance});
-  h.Click(hud_id::Chip(DoctrineField::Facing));
-  h.Click(hud_id::FieldOption(static_cast<int>(battle::Facing::Broadside)));
+  h.Click(hud_id::Chip(DoctrineField::Subsystem));
+  h.Click(hud_id::FieldOption(static_cast<int>(battle::Subsystem::Shields)));
   const auto& set = h.LastOrder<battle::OrderSetShipDoctrine>();
-  REQUIRE(set.fields == battle::kShipFacing && set.clear == 0);
+  REQUIRE(set.fields == battle::kShipSubsystem && set.clear == 0);
   REQUIRE(h.Last().target.units == std::vector<UnitIndex>{kDefiance} && h.Last().target.groups.empty());
-  REQUIRE(h.screen->Detail(kDefiance).overrides == battle::kShipFacing);
-  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.facing == battle::Facing::Broadside);
-  REQUIRE(h.Group(kTaskForce1).shipDoctrine.facing == battle::Facing::Auto);
+  REQUIRE(h.screen->Detail(kDefiance).overrides == battle::kShipSubsystem);
+  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.subsystem == battle::Subsystem::Shields);
+  REQUIRE(h.Group(kTaskForce1).shipDoctrine.subsystem == battle::Subsystem::Hull);
 
-  h.Click(hud_id::Chip(DoctrineField::Power));
-  h.Click(hud_id::FieldOption(static_cast<int>(battle::PowerRouting::Shields)));
-  REQUIRE(h.screen->Detail(kDefiance).overrides == (battle::kShipFacing | battle::kShipPower));
-
-  // "Follow group" in a setting's options drops just that override.
-  h.Click(hud_id::Chip(DoctrineField::Facing));
-  h.Click(hud_id::FollowGroup());
-  const auto& follow = h.LastOrder<battle::OrderSetShipDoctrine>();
-  REQUIRE(follow.fields == 0 && follow.clear == battle::kShipFacing);
-  REQUIRE(h.screen->Detail(kDefiance).overrides == battle::kShipPower);
-  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.facing == battle::Facing::Auto);
-
-  // The header's Clear drops the rest.
-  h.Click(hud_id::ClearOverrides());
-  REQUIRE(h.LastOrder<battle::OrderSetShipDoctrine>().clear == battle::kShipPower);
-  REQUIRE(h.screen->Detail(kDefiance).overrides == 0);
-
-  // Edit group switches the card to the ship's group.
-  h.Click(hud_id::EditGroup());
-  REQUIRE(h.hud->Subject().IsGroup() && h.hud->Subject().group == kTaskForce1);
+  h.Click(hud_id::Chip(DoctrineField::Withdraw));
+  h.Click(hud_id::FieldOption(2)); // Hull < 50%
+  REQUIRE(h.screen->Detail(kDefiance).overrides == (battle::kShipSubsystem | battle::kShipWithdraw));
+  REQUIRE(h.screen->Detail(kDefiance).shipDoctrine.withdraw == battle::WithdrawRule::HullBelow50);
 }
 
-void PriorityEditsReorderAndMask()
+void PriorityEditsAndTargetFocus()
 {
   battle::TargetPriorities list;
   list = SetPriority(list, 0, TargetTag::Carrier);
@@ -323,34 +307,18 @@ void PriorityEditsReorderAndMask()
   list = RemovePriority(list, 0);
   REQUIRE(list.count == 2 && list.tags[0] == TargetTag::Damaged && list.tags[1] == TargetTag::Carrier);
 
+  for (int i = 0; i < OptionCount(DoctrineField::Priorities); ++i) {
+    REQUIRE(MatchTargetFocus(TargetFocusPriorities(i)) == i);
+  }
+
   Harness h;
   h.Key(DigitKey(2));
   h.Click(hud_id::Chip(DoctrineField::Priorities));
-  REQUIRE(h.hud->OpenPopup() == PopupKind::Priorities);
-  h.Click(hud_id::PriorityTag(TargetTag::Carrier));
-  h.Click(hud_id::PriorityTag(TargetTag::Interdictor));
-  h.Click(hud_id::PriorityTag(TargetTag::Damaged));
-  const battle::TargetPriorities& added = h.Group(kTaskForce2).shipDoctrine.priorities;
-  REQUIRE(added.count == 4 && added.tags[0] == TargetTag::Nearest && added.tags[3] == TargetTag::Damaged);
-  REQUIRE(h.LastOrder<battle::OrderSetShipDoctrine>().fields == battle::kShipPriorities);
-
-  // Drag the last slot to the top.
-  const Point from = h.At(hud_id::PrioritySlot(3));
-  const Point to = h.At(hud_id::PrioritySlot(0));
-  h.Drag(from, {to.x, to.y - 4.0f});
-  const battle::TargetPriorities& moved = h.Group(kTaskForce2).shipDoctrine.priorities;
-  REQUIRE(moved.tags[0] == TargetTag::Damaged && moved.tags[1] == TargetTag::Nearest
-          && moved.tags[3] == TargetTag::Interdictor);
-
-  // Select a slot, then a tag replaces it; x removes; finish damaged toggles.
-  h.Click(hud_id::PrioritySlot(1));
-  h.Click(hud_id::PriorityTag(TargetTag::Bomber));
-  REQUIRE(h.Group(kTaskForce2).shipDoctrine.priorities.tags[1] == TargetTag::Bomber);
-  h.Click(hud_id::PriorityRemove(0));
-  REQUIRE(h.Group(kTaskForce2).shipDoctrine.priorities.count == 3);
-  REQUIRE(h.Group(kTaskForce2).shipDoctrine.priorities.tags[0] == TargetTag::Bomber);
-  h.Click(hud_id::FinishDamaged());
-  REQUIRE(h.Group(kTaskForce2).shipDoctrine.priorities.finishDamaged);
+  REQUIRE(h.hud->OpenPopup() == PopupKind::Field);
+  h.Click(hud_id::FieldOption(1)); // Carriers & transports
+  REQUIRE(h.hud->OpenPopup() == PopupKind::None);
+  const battle::TargetPriorities& chosen = h.Group(kTaskForce2).shipDoctrine.priorities;
+  REQUIRE(chosen.count == 4 && chosen.tags[0] == TargetTag::Carrier && chosen.tags[1] == TargetTag::Transport);
   REQUIRE(h.LastOrder<battle::OrderSetShipDoctrine>().fields == battle::kShipPriorities);
 }
 
@@ -615,53 +583,44 @@ void PlanetaryDefensesExplainThemselves()
   REQUIRE(text.find("ENEMY PLANETARY DEFENSES") != std::string::npos);
 }
 
-void SettingsAndPresetsPersist()
+void SettingsPersist()
 {
   MemorySettingsStore store;
   HudSettings settings;
-  settings.autoPause[static_cast<int>(AutoPauseEvent::CarrierLost)] = false;
-  settings.commandPhaseSeconds = 20;
+  REQUIRE(!settings.AutoPause(AutoPauseEvent::CarrierLost) && !settings.AutoPause(AutoPauseEvent::GravityWell)
+          && settings.AutoPause(AutoPauseEvent::SuperlaserCharged));
+  settings.autoPause[static_cast<int>(AutoPauseEvent::GravityWell)] = true;
   settings.colorBlindPalette = true;
   settings.hudScale = 1.3f;
-  DoctrinePreset preset{"Wall; of = steel", false};
-  preset.ship.range = battle::EngagementRange::StandOff;
-  preset.ship.priorities = SetPriority(SetPriority({}, 0, TargetTag::Heavy), 1, TargetTag::Carrier);
-  preset.ship.priorities.finishDamaged = true;
-  preset.fields = PresetFields(false);
-  settings.presets = {preset};
   settings.Save(store);
   const HudSettings loaded = HudSettings::Load(store);
-  REQUIRE(!loaded.AutoPause(AutoPauseEvent::CarrierLost) && loaded.AutoPause(AutoPauseEvent::GravityWell));
-  REQUIRE(loaded.commandPhaseSeconds == 20 && loaded.colorBlindPalette && loaded.hudScale == 1.3f);
-  REQUIRE(loaded.presets.size() == 1);
-  REQUIRE(SerializePreset(loaded.presets.front()) == SerializePreset(preset));
-  REQUIRE(loaded.presets.front().name == "Wall; of = steel");
-  REQUIRE(!ParsePreset("flight=0;options=9,9;name=x"));
-  REQUIRE(!ParsePreset("garbage"));
-  for (const DoctrinePreset& builtIn : BuiltInPresets()) {
-    const std::optional<DoctrinePreset> round = ParsePreset(SerializePreset(builtIn));
-    REQUIRE(round && SerializePreset(*round) == SerializePreset(builtIn));
-  }
-  settings.presets.clear();
-  settings.Save(store);
-  REQUIRE(!store.Get("battle.hud.preset.0"));
+  REQUIRE(!loaded.AutoPause(AutoPauseEvent::CarrierLost) && loaded.AutoPause(AutoPauseEvent::GravityWell)
+          && loaded.AutoPause(AutoPauseEvent::SuperlaserCharged));
+  REQUIRE(loaded.colorBlindPalette && loaded.hudScale == 1.3f);
+}
 
-  // Applying a preset sends only its fields; saving one stores it in the settings.
-  Harness h;
-  h.Key(DigitKey(1));
-  h.Click(hud_id::Presets());
-  REQUIRE(h.hud->OpenPopup() == PopupKind::Presets);
-  h.Click(hud_id::PresetRow(0));
-  const auto& applied = h.LastOrder<battle::OrderSetShipDoctrine>();
-  REQUIRE(applied.fields == BuiltInPresets().front().fields);
-  REQUIRE(h.Group(kTaskForce1).shipDoctrine.allocation == battle::FireAllocation::Concentrate);
-  h.Click(hud_id::Presets());
-  h.Click(hud_id::SavePreset());
-  h.screen->HandleInput(TextInput{"Mine"});
-  h.Key(Key::W); // typing must not pan the camera or trigger shortcuts
-  h.Key(Key::Return);
-  REQUIRE(h.hud->Settings().presets.size() == 1 && h.hud->Settings().presets.front().name == "Mine");
-  REQUIRE(HudSettings::Load(h.store).presets.size() == 1);
+void CommandPanelHidesSignalsWithoutAdmiral()
+{
+  Harness h(false);
+  REQUIRE(h.hud->ControlRect(hud_id::Signal(battle::SignalKind::ConcentrateFire)).has_value());
+  h.source.noAdmiral = true;
+  h.Frame();
+  REQUIRE(!h.hud->ControlRect(hud_id::Signal(battle::SignalKind::ConcentrateFire)).has_value());
+  REQUIRE(h.hud->ControlRect(hud_id::Options()).has_value());
+
+  // Zone labels (gravity well) stay inside the visible battle area rather than clipping under side panels.
+  DrawList frame;
+  h.screen->Build(frame);
+  const Rect battleArea = h.screen->Layout().battleArea;
+  bool sawWellLabel = false;
+  for (const DrawCommand& command : frame.Commands()) {
+    if (const auto* text = std::get_if<DrawText>(&command); text && text->text.find("GRAVITY WELL") != std::string::npos) {
+      sawWellLabel = true;
+      REQUIRE(text->position.x >= battleArea.x && text->position.x <= battleArea.Right());
+      REQUIRE(text->position.y >= battleArea.y && text->position.y <= battleArea.Bottom());
+    }
+  }
+  REQUIRE(sawWellLabel);
 }
 
 void AutoPauseWatchesTheView()
@@ -699,10 +658,6 @@ void AutoPauseWatchesTheView()
   view.units[1].hullFraction = 0.4f;
   view.units[2].hullFraction = 0.4f;
   view.units[0].flags |= battle::kViewDestroyed;
-  battle::ViewUnit enemy = carrier;
-  enemy.unit = 2;
-  enemy.side = Side::Empire;
-  view.units.push_back(enemy);
   view.wells.push_back({2, {}, 15000.0f, Side::Empire, true});
   view.superlaserCharge = 1.0f;
   const std::vector<AutoPauseHit> hits = watcher.Update(view, Side::Alliance, facts, rules);
@@ -711,30 +666,10 @@ void AutoPauseWatchesTheView()
       return hit.event == event;
     });
   };
-  REQUIRE(hits.size() == 5);
+  REQUIRE(hits.size() == 4);
   REQUIRE(has(AutoPauseEvent::CarrierLost) && has(AutoPauseEvent::BelowWithdrawThreshold)
-          && has(AutoPauseEvent::Reinforcements) && has(AutoPauseEvent::GravityWell)
-          && has(AutoPauseEvent::SuperlaserCharged));
+          && has(AutoPauseEvent::GravityWell) && has(AutoPauseEvent::SuperlaserCharged));
   REQUIRE(watcher.Update(view, Side::Alliance, facts, rules).empty());
-
-  REQUIRE(!watcher.PhaseDue(3.0f, 10));
-  REQUIRE(!watcher.PhaseDue(9.9f, 10));
-  REQUIRE(watcher.PhaseDue(10.0f, 10));
-  REQUIRE(!watcher.PhaseDue(10.05f, 10));
-  REQUIRE(watcher.PhaseDue(20.1f, 10));
-
-  // In the HUD, a command phase pauses the running battle.
-  Harness h(false);
-  HudSettings phases = h.hud->Settings();
-  phases.commandPhaseSeconds = 10;
-  h.hud->ApplySettings(phases);
-  for (int frame = 0; frame < 12 * 30 && !h.screen->Paused(); ++frame) {
-    DrawList list;
-    h.screen->Update(1.0 / 30.0);
-    h.screen->Build(list);
-  }
-  REQUIRE(h.screen->Paused());
-  REQUIRE(std::abs(h.screen->View().battleSeconds - 10.0f) < 0.2f);
 }
 
 } // namespace
@@ -749,15 +684,16 @@ int main(int argc, char** argv)
     }
   };
   run("doctrine", GroupDoctrineEditSetsOnlyThatField);
-  run("overrides", ShipEditsAreOverridesAndCanBeCleared);
+  run("selection", ShipEditsApplyToSelection);
   run("folding", SmallScreensFoldTheLargestGroups);
-  run("priorities", PriorityEditsReorderAndMask);
+  run("priorities", PriorityEditsAndTargetFocus);
   run("targeting", OrdersPickTheirTargets);
   run("superlaser", SuperlaserNeedsACapitalShipTarget);
   run("roster", RosterDragRegroups);
   run("briefing", BriefingDeploysAndEngages);
   run("planetary", PlanetaryDefensesExplainThemselves);
-  run("settings", SettingsAndPresetsPersist);
+  run("settings", SettingsPersist);
+  run("admiral", CommandPanelHidesSignalsWithoutAdmiral);
   run("autopause", AutoPauseWatchesTheView);
   return 0;
 }

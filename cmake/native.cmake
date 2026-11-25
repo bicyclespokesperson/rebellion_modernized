@@ -485,8 +485,8 @@ if(BUILD_TESTING)
   add_executable(reb_battle_ui_hud_tests tests/native/battle_ui_hud_tests.cpp)
   target_compile_options(reb_battle_ui_hud_tests PRIVATE ${REB_NATIVE_FLAGS})
   target_link_libraries(reb_battle_ui_hud_tests PRIVATE reb_battle_ui_test_support ${REB_NATIVE_LINK_FLAGS})
-  foreach(REB_HUD_CASE doctrine overrides folding priorities targeting superlaser roster briefing planetary settings
-          autopause)
+  foreach(REB_HUD_CASE doctrine selection folding priorities targeting superlaser roster briefing planetary settings
+          admiral autopause)
     add_test(NAME native_battle_ui_hud_${REB_HUD_CASE} COMMAND reb_battle_ui_hud_tests ${REB_HUD_CASE})
   endforeach()
 endif()

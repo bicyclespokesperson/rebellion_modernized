@@ -48,11 +48,15 @@ battle::DoctrineOverrideMask FieldMask(DoctrineField field, bool flight);
 std::span<const DoctrineField> ShipFields();
 std::span<const DoctrineField> FlightFields();
 
-// Choice fields: every field but Priorities.
+// Choice fields (including simplified Target Focus for Priorities).
 int OptionCount(DoctrineField field);
 const OptionText& Option(DoctrineField field, int index);
+int GetOption(DoctrineField field, bool flight, const battle::ShipDoctrine& ship, const battle::FlightDoctrine& flightDoctrine);
 int GetOption(DoctrineField field, const battle::ShipDoctrine& ship, const battle::FlightDoctrine& flight);
+void SetOption(DoctrineField field, bool flight, int index, battle::ShipDoctrine& ship, battle::FlightDoctrine& flightDoctrine);
 void SetOption(DoctrineField field, int index, battle::ShipDoctrine& ship, battle::FlightDoctrine& flight);
+battle::TargetPriorities TargetFocusPriorities(int index);
+int MatchTargetFocus(const battle::TargetPriorities& priorities);
 // True when the field's value differs between the two doctrines (of ships, or with `flight` of flights).
 bool FieldDiffers(DoctrineField field, bool flight, const battle::ShipDoctrine& shipA,
                   const battle::FlightDoctrine& flightA, const battle::ShipDoctrine& shipB,

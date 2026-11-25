@@ -48,7 +48,7 @@ void TopBarAndInfoBox()
   REQUIRE(HasText(frame, "00:00"));
   REQUIRE(HasText(frame, "ALLIANCE") && HasText(frame, "EMPIRE"));
   REQUIRE(HasText(frame, "80%") && HasText(frame, "50%"));
-  REQUIRE(HasText(frame, "Signals 1/3"));
+  REQUIRE(!HasText(frame, "Signals 1/3"));
   REQUIRE(HasText(frame, "PAUSED"));
   REQUIRE(HasText(frame, "Unit 0") && !HasText(frame, "Unit 4")); // destroyed units are not labelled
   for (const char* speed : {"0.5x", "1x", "2x", "4x", "8x"}) {

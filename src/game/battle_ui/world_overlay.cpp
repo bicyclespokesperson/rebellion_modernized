@@ -194,7 +194,8 @@ std::vector<ZoneLabel> ZoneLabels(const Painter& p)
 
 void PaintZoneLabels(const Painter& p)
 {
-  const Rect viewport = p.camera.Viewport().Inset(6.0f * p.ui);
+  const Rect bounds = p.scene.labelBounds.Empty() ? p.camera.Viewport() : p.scene.labelBounds;
+  const Rect viewport = bounds.Inset(6.0f * p.ui);
   std::vector<Rect> placed;
   for (const ZoneLabel& zone : ZoneLabels(p)) {
     const Point center = p.Screen(zone.center);

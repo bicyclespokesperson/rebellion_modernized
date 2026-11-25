@@ -30,6 +30,7 @@ struct WorldScene {
   const std::vector<std::string>& names;                      // by unit index; may be shorter than the unit list
   uint32_t systemPicture = 0;         // BattleParams::systemPictureId: the planet type drawn behind the defender
   const TextMeasurer* text = nullptr; // sizes labels so that overlapping ones can be dropped; estimated without one
+  Rect labelBounds = {};              // area between HUD panels so zone labels never clip behind sidebars
 };
 
 void PaintWorld(DrawList& out, const WorldScene& scene);

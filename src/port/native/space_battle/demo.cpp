@@ -602,28 +602,8 @@ int ReviewCommandHud(const std::filesystem::path& directory, int width, int heig
   review.Capture("06_range_options");
   review.Click(id::FieldOption(0));
   review.Click(id::Chip(DoctrineField::Priorities));
-  review.Click(id::PriorityTag(battle::TargetTag::Carrier));
-  review.Click(id::PriorityTag(battle::TargetTag::Interdictor));
-  review.Click(id::PriorityTag(battle::TargetTag::Damaged));
-  review.Capture("07_priority_editor");
-  const battle_ui::Point from = review.At(id::PrioritySlot(3));
-  const battle_ui::Point to = review.At(id::PrioritySlot(0));
-  review.Drag(from, {from.x + 30.0f * uiScale, to.y - 4.0f * uiScale}, false);
-  review.Capture("08_priority_drag");
-  review.Release({from.x + 30.0f * uiScale, to.y - 4.0f * uiScale});
-  review.Capture("09_priorities_reordered");
-
-  review.Key(battle_ui::Key::Escape);
-  review.Click(id::Presets());
-  review.Capture("10_presets");
-  review.Click(id::SavePreset());
-  screen.HandleInput(battle_ui::TextInput{"Line breakers"});
-  review.Frame();
-  review.Capture("11_preset_naming");
-  review.Key(battle_ui::Key::Return);
-  review.Frame();
-  review.Capture("12_presets_saved");
-  review.Key(battle_ui::Key::Escape);
+  review.Capture("07_target_focus");
+  review.Click(id::FieldOption(1));
 
   review.Click(id::Engage());
   script.Advance(8.0);
@@ -631,10 +611,10 @@ int ReviewCommandHud(const std::filesystem::path& directory, int width, int heig
   review.Capture("13_battle");
 
   review.Click(id::RosterUnit(3));
-  review.Click(id::Chip(DoctrineField::Facing));
+  review.Click(id::Chip(DoctrineField::Subsystem));
   review.Click(id::FieldOption(1));
   review.Hover(review.At(id::RosterUnit(3)));
-  review.Capture("14_ship_override");
+  review.Capture("14_ship_edit");
 
   const battle_ui::Point grab = review.At(id::RosterUnit(4));
   const battle_ui::Point drop = review.At(id::RosterGroup(0));
@@ -657,7 +637,7 @@ int ReviewCommandHud(const std::filesystem::path& directory, int width, int heig
   review.Key(battle_ui::Key::Escape);
 
   review.Click(id::Options());
-  review.Hover(review.At(id::CommandPhase(20)));
+  review.Hover(review.At(id::AutoPause(battle_ui::AutoPauseEvent::GravityWell)));
   review.Capture("19_options");
   review.Click(id::Palette(true));
   review.Click(id::HudScale(2));

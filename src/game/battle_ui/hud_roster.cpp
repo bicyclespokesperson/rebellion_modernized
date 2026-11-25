@@ -393,12 +393,17 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
               craftMax += unit->craftMax;
             }
           }
-          detail
-              = std::string(Option(DoctrineField::Mission, static_cast<int>(group->flightDoctrine.mission)).shortName)
-                + "  " + std::to_string(craft) + "/" + std::to_string(craftMax);
+          detail = std::string(Option(DoctrineField::Mission,
+                                      GetOption(DoctrineField::Mission, true, group->shipDoctrine,
+                                                group->flightDoctrine))
+                                   .shortName)
+                   + "  " + std::to_string(craft) + "/" + std::to_string(craftMax);
         } else {
-          detail = std::string(Option(DoctrineField::Role, static_cast<int>(group->shipDoctrine.role)).shortName) + "  "
-                   + std::to_string(ActiveMembers(view, *group).size());
+          detail = std::string(Option(DoctrineField::Range,
+                                      GetOption(DoctrineField::Range, false, group->shipDoctrine,
+                                                group->flightDoctrine))
+                                   .shortName)
+                   + "  " + std::to_string(ActiveMembers(view, *group).size());
         }
         const float detailWidth = ui.TextWidth(detail, 11.0f) + ui.S(4.0f);
         ui.Label({x, rect.y, rect.Right() - x - detailWidth - ui.S(4.0f), rect.h}, GroupTitle(*group),
@@ -425,12 +430,6 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
   const std::string status = UnitStatus(unit);
   const float statusWidth = status.empty() ? 0.0f : ui.TextWidth(status, 10.0f) + ui.S(6.0f);
   float nameRight = x + w - statusWidth;
-  const battle::DoctrineOverrideMask overrides = active ? m_screen.Detail(row.unit).overrides : 0;
-  if (overrides) {
-    const Rect badge{nameRight - ui.S(11.0f), rect.y + ui.S(4.0f), ui.S(9.0f), ui.S(9.0f)};
-    DrawIcon(draw, Icon::Override, badge, Rgb(0xffc864), ui.Scale());
-    nameRight = badge.x - ui.S(3.0f);
-  }
   if (unit && (unit->flags & battle::kViewFlagship)) {
     const Rect badge{nameRight - ui.S(11.0f), rect.y + ui.S(4.0f), ui.S(9.0f), ui.S(9.0f)};
     DrawIcon(draw, Icon::HoldTheLine, badge, Rgb(0xffd860), ui.Scale());
@@ -458,32 +457,30 @@ void CommandHud::DrawRosterRow(Ui& ui, const RosterRow& row, const Rect& rect, b
              {10.0f, theme.textDim, Align::Start, VAlign::Middle});
     return;
   }
-  const float barWidth = w * 0.36f;
+  std::vector<SystemState> damaged;
+  for (const SystemState& system : Systems(unit->criticals, Facts(row.unit).tractor)) {
+    if (system.present && system.remaining < system.maximum) {
+      damaged.push_back(system);
+    }
+  }
+  const float slotWidth = ui.S(22.0f);
+  const float damagedWidth = damaged.empty() ? 0.0f : static_cast<float>(damaged.size()) * slotWidth + ui.S(6.0f);
+  const float barWidth = std::max(w * 0.36f, w - damagedWidth);
   ui.Bar({x, barsY, barWidth, ui.S(3.0f)}, unit->shieldFraction, theme.shield);
   ui.Bar({x, barsY + ui.S(5.0f), barWidth, ui.S(4.0f)}, unit->hullFraction, HullColor(theme, unit->hullFraction));
-  const float slot = (w - barWidth - ui.S(6.0f)) / 5.0f;
   float sx = x + barWidth + ui.S(6.0f);
-  for (const SystemState& system : Systems(unit->criticals, Facts(row.unit).tractor)) {
-    Color color = theme.textDim;
-    if (!system.present) {
-      color = theme.disabledText.WithAlpha(110);
-    } else if (system.remaining == 0) {
-      color = theme.hullPoor;
-    } else if (system.remaining < system.maximum) {
-      color = theme.hullFair;
-    }
+  for (const SystemState& system : damaged) {
+    const Color color = system.remaining == 0 ? theme.hullPoor : theme.hullFair;
     DrawIcon(draw, system.icon, {sx, barsY - ui.S(2.0f), ui.S(10.0f), ui.S(10.0f)}, color, ui.Scale() * 0.8f);
-    if (system.present) {
-      const float pip = ui.S(2.0f);
-      for (int i = 0; i < system.maximum; ++i) {
-        const Rect box{sx + ui.S(12.0f),
-                       barsY - ui.S(1.0f) + static_cast<float>(system.maximum - 1 - i) * ui.S(2.5f)
-                           - (system.maximum == 2 ? ui.S(-2.5f) : 0.0f),
-                       pip * 1.5f, pip};
-        draw.FillRect(box, i < system.remaining ? color : theme.barBack);
-      }
+    const float pip = ui.S(2.0f);
+    for (int i = 0; i < system.maximum; ++i) {
+      const Rect box{sx + ui.S(12.0f),
+                     barsY - ui.S(1.0f) + static_cast<float>(system.maximum - 1 - i) * ui.S(2.5f)
+                         - (system.maximum == 2 ? ui.S(-2.5f) : 0.0f),
+                     pip * 1.5f, pip};
+      draw.FillRect(box, i < system.remaining ? color : theme.barBack);
     }
-    sx += slot;
+    sx += slotWidth;
   }
 }
 
