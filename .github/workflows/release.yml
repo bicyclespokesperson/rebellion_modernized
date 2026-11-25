@@ -16,6 +16,9 @@ on:
 permissions:
   contents: write
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   create-release:
     runs-on: ubuntu-24.04
