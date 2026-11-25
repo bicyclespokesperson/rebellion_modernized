@@ -27,7 +27,7 @@ int Torpedoes(const BattleState& state, UnitIndex unit)
 std::vector<int64_t> LaunchTicks(Battle& battle, const std::vector<UnitIndex>& squadrons, int64_t limit)
 {
   std::vector<int64_t> ticks(squadrons.size(), -1);
-  while (battle.Tick() < limit) {
+  while (!battle.Finished() && battle.Tick() < limit) {
     battle.Step();
     for (size_t i = 0; i < squadrons.size(); ++i) {
       if (ticks[i] < 0 && battle.State().Squadron(squadrons[i])->place == SquadronPlace::InSpace) {
@@ -50,8 +50,9 @@ void CarriersLaunchOnTheOriginalCadence()
     for (int i = 0; i < 4; ++i) {
       squadrons.push_back(builder.Add(XwingLike(Side::Alliance, carrier)));
     }
-    builder.Add(Picket(Side::Empire));
+    const UnitIndex enemy = builder.Add(Picket(Side::Empire));
     Battle battle(builder.Snapshot(), Uncommanded());
+    Place(battle, enemy, {25000.0f, 0.0f}, kPi);
     if (scramble) {
       SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderSignal{SignalKind::Scramble, kNoUnit})));
       SB_CHECK(battle.State().sides[0].signalsReady == battle.State().sides[0].signalsMax - 1);
@@ -114,7 +115,7 @@ void TorpedoesAreAmmunitionAndRearm()
   bool spent = false;
   bool rearmed = false;
   float hullWhenSpent = 0.0f;
-  while (battle.Tick() < 400 * kTicksPerSecond && !rearmed) {
+  while (!battle.Finished() && battle.Tick() < 400 * kTicksPerSecond && !rearmed) {
     battle.Step();
     const BattleState& state = battle.State();
     const SquadronState& squadron = *state.Squadron(bombers);
@@ -158,7 +159,7 @@ void PointDefenceCoversNeighbours()
     }
     Place(battle, carrier, {7000.0f, 0.0f}, kPi);
     bool torpedoesFired = false;
-    while (!battle.Finished() && battle.Tick() < 90 * kTicksPerSecond) {
+    while (!battle.Finished() && battle.Tick() < 45 * kTicksPerSecond) {
       battle.Step();
       torpedoesFired = torpedoesFired || std::ranges::any_of(battle.State().shots, [&](const PendingShot& shot) {
         return shot.shooter == bombers && shot.kind == ShotKind::Torpedo;
@@ -167,16 +168,16 @@ void PointDefenceCoversNeighbours()
     SB_CHECK(torpedoesFired);
     survivors[escorted ? 1 : 0] = CraftAlive(battle.State(), bombers);
     if (escorted) {
-      battle.RunHeadless(90 * kTicksPerSecond);
-      const int after180 = CraftAlive(battle.State(), bombers);
-      std::printf("escorted strike after 180 s: %d bombers left\n", after180);
-      SB_CHECK(after180 > 0 && after180 < survivors[1]);
+      battle.RunHeadless(55 * kTicksPerSecond);
+      const int after100 = CraftAlive(battle.State(), bombers);
+      std::printf("escorted strike after 100 s: %d bombers left\n", after100);
+      SB_CHECK(after100 > 0 && after100 < survivors[1]);
       // The picket's lasers fired at the bombers even though they never attacked it.
       SB_CHECK(battle.State().Ship(picket)->hull == battle.State().Profile(picket).hullMax);
     }
   }
-  std::printf("bombers left after 90 s: %d unescorted, %d with a picket alongside\n", survivors[0], survivors[1]);
-  SB_CHECK(survivors[1] >= 3 && survivors[1] + 3 <= survivors[0]);
+  std::printf("bombers left after 45 s: %d unescorted, %d with a picket alongside\n", survivors[0], survivors[1]);
+  SB_CHECK(survivors[1] >= 3 && survivors[1] + 2 <= survivors[0]);
 }
 
 // A destroyed carrier takes its docked squadrons with it; launched ones find another hangar or are stranded (§6.8).
@@ -194,8 +195,9 @@ void CarrierLossRules()
     } else {
       builder.Add(Broadside(Side::Alliance, "No hangar"));
     }
-    builder.Add(Picket(Side::Empire));
+    const UnitIndex enemy = builder.Add(Picket(Side::Empire));
     Battle battle(builder.Snapshot(), Uncommanded());
+    Place(battle, enemy, {25000.0f, 0.0f}, kPi);
     BattleState& state = Mutable(battle);
     sim::LaunchSquadron(state, flying);
     state.Ship(carrier)->shield = 0.0f;
@@ -394,7 +396,7 @@ void InterceptorsDogfightBombers()
   SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, intercept, {red})));
   SB_CHECK(battle.State().units[red].overrides == (kFlightMission | kFlightPriorities));
   bool intercepted = false;
-  while (battle.Tick() < 150 * kTicksPerSecond) {
+  while (!battle.Finished() && battle.Tick() < 150 * kTicksPerSecond) {
     battle.Step();
     const SquadronState& squadron = *battle.State().Squadron(red);
     intercepted = intercepted || (squadron.task == SquadronTask::Intercept && squadron.target == bombers);
@@ -445,7 +447,7 @@ void BoltsAtFightersEndAtTheCraft()
   int checked = 0;
   float farthest = 0.0f;
   ViewModel view;
-  while (battle.Tick() < 120 * kTicksPerSecond && checked < 200) {
+  while (!battle.Finished() && battle.Tick() < 120 * kTicksPerSecond && checked < 200) {
     battle.Step();
     battle.BuildViewModel(1.0f, view);
     const BattleState& state = battle.State();

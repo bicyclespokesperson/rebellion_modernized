@@ -66,14 +66,18 @@ void UpdateSides(BattleState& state)
   for (Side side : {Side::Alliance, Side::Empire}) {
     SideState& self = state.sides[SideIndex(side)];
     if (self.admiral != kNoUnit) {
-      if (state.InSpace(ShipOf(state, self.admiral))) {
+      const UnitIndex flagship = ShipOf(state, self.admiral);
+      if (state.InSpace(flagship)) {
         self.commandRating = std::clamp(self.leadership / kLeadershipForFullRating, 0.0f, 1.0f);
       } else if (self.signalsMax > 0 || self.commandRating > 0.0f) {
         // The flagship is gone, and with it the admiral's command and signals (§5.6).
         self.commandRating = 0.0f;
         self.signalsMax = 0;
         self.signalsReady = 0;
-        LogEvent(state, side, "The flagship is lost: no more command signals");
+        const bool withdrew = state.Valid(flagship) && state.units[flagship].fate == UnitFate::Withdrawn;
+        LogEvent(state, side,
+                 withdrew ? "The flagship withdrew: no more command signals"
+                          : "The flagship is lost: no more command signals");
       }
     }
     if (self.signalsReady < self.signalsMax) {
@@ -118,6 +122,9 @@ void UpdateEnding(BattleState& state)
     if (!SideInSpace(state, side) && SideInSpace(state, Opponent(side)) && LoseHangars(state, side)) {
       state.endReason = EndReason::Elimination;
     }
+  }
+  for (Side side : {Side::Alliance, Side::Empire}) {
+    state.sides[SideIndex(side)].strength = SideStrength(state, side);
   }
   const bool alliance = SidePresent(state, Side::Alliance);
   state.finished = state.outroTicks == 0;

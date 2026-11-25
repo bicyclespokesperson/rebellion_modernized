@@ -53,8 +53,8 @@ int main()
     squadrons += unit.kind == UnitKind::Squadron ? 1 : 0;
   }
   SB_CHECK(ships == 60 && squadrons == 100);
-  // Let the fleets close and every hangar empty, then time the thick of the battle.
-  battle.RunHeadless(70 * kTicksPerSecond);
+  // Let the fleets close and hangars launch, then time the thick of the battle.
+  battle.RunHeadless(45 * kTicksPerSecond);
   int flying = 0;
   for (const SquadronState& squadron : battle.State().squadrons) {
     flying += squadron.place == SquadronPlace::InSpace ? 1 : 0;

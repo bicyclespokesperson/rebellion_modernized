@@ -40,10 +40,11 @@ void SpoolTimeUsesRetreatDistanceAndDriveRating()
     builder.Add(Wedge(Side::Empire));
     Battle battle(builder.Snapshot(), Uncommanded());
     SB_CHECK(battle.Submit(MakeCommand(Side::Alliance, OrderWithdraw{}, {first, second})));
-    const float seconds = std::min(60.0f, 30.0f + 0.4f * retreatDays);
+    const float seconds = std::clamp(tuning::kSpoolBaseSeconds + tuning::kSpoolSecondsPerRetreatDay * retreatDays,
+                                     tuning::kSpoolMinSeconds, tuning::kSpoolMaxSeconds);
     SB_CHECK(battle.State().Ship(first)->spoolTotal == sim::Ticks(seconds * 0.5f));
     SB_CHECK(battle.State().Ship(second)->spoolTotal == sim::Ticks(seconds));
-    SB_CHECK(battle.State().Ship(first)->spoolTotal >= 15 * kTicksPerSecond);
+    SB_CHECK(battle.State().Ship(first)->spoolTotal >= sim::Ticks(tuning::kSpoolBaseSeconds * 0.5f));
     const int fastTicks = battle.State().Ship(first)->spoolTotal;
     for (int tick = 0; tick < fastTicks - 1; ++tick) {
       sim::UpdateWithdrawal(Mutable(battle));
@@ -163,7 +164,7 @@ void TrappedShipsKeepSpoolingAndFighting()
   const UnitIndex wedge = builder.Add(Wedge(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
   Place(battle, interdictor, {0.0f, 0.0f}, 0.0f);
-  Place(battle, wedge, {1500.0f, -2500.0f}, 0.5f * kPi);
+  Place(battle, wedge, {1500.0f, -6500.0f}, 0.5f * kPi);
   Place(battle, trapped, {2500.0f, 1500.0f}, 0.0f);
   Place(battle, free, {-(tuning::kGravityWellRadius + 6000.0f), 0.0f}, kPi);
   Command withdraw = MakeCommand(Side::Alliance, OrderWithdraw{});

@@ -215,7 +215,8 @@ UnitProfile MakeShipProfile(const CapitalShipEntry& ship)
   profile.facing = FacingFromGrid(ship.weapons);
   profile.hullMax = static_cast<float>(std::max(1, ship.hullMax));
   profile.shieldMax = static_cast<float>(std::max(0, ship.shieldMax));
-  profile.shieldRecharge = static_cast<float>(std::max(0, ship.shieldRecharge)) * kLegacyStepsPerSecond;
+  profile.shieldRecharge
+      = static_cast<float>(std::max(0, ship.shieldRecharge)) * kLegacyStepsPerSecond * kShieldRechargeScale;
   profile.size = SizeFromMass(profile.hullMax + profile.shieldMax);
   profile.radius = ClassRadius(ship.identity.typeIndex, profile.hullMax + profile.shieldMax);
   profile.maxSpeed = static_cast<float>(std::max(0, ship.sublight)) * kCapitalSpeedPerSublight;

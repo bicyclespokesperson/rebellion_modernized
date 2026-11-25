@@ -29,9 +29,12 @@ inline constexpr float kFighterSpeedPerSublight = Meters(100.0f);
 inline constexpr float kTurnRatePerPoint = 10.0f * kDegrees;
 inline constexpr float kCapitalAccelerationSeconds = 10.0f; // time to reach full speed from rest
 inline constexpr float kCapitalDecelerationFactor = 2.0f;   // braking is this much faster than accelerating
-// Converts the records' per-step weapon and shield recharge rates to per-second rates. One global scale, held fixed
+// Converts the records' per-step weapon recharge rates to per-second rates. One global scale, held fixed
 // for calibration once the pacing targets hold.
-inline constexpr float kLegacyStepsPerSecond = 2.0f;
+inline constexpr float kLegacyStepsPerSecond = 3.5f;
+// Capital-ship shield recharge relative to weapon output: keeps shield-heavy hulls durable and prevents lone pickets
+// from cracking battleships, while letting peer capital ships break through each other's shields instead of stalemating.
+inline constexpr float kShieldRechargeScale = 0.28f;
 
 // ---- commanders (§5.6, §6.2) ----------------------------------------------------------------------------------------
 inline constexpr float kAdmiralMaxSpeedBonus = 0.15f;
@@ -90,10 +93,10 @@ inline constexpr float kBatteryRetargetSeconds = 0.5f;  // idle battery re-check
 inline constexpr float kAccuracyNear = 0.92f;           // capital-ship target at point blank
 inline constexpr float kAccuracyFalloff = 0.25f;        // lost at maximum range, reduced by detection
 inline constexpr float kDetectionForNoFalloff = 100.0f; // detection rating that removes the range falloff
-inline constexpr float kPointDefenceDamageScale = 0.25f;
+inline constexpr float kPointDefenceDamageScale = 0.22f;
 inline constexpr float kFighterTargetAccuracy = 0.75f;  // base accuracy against craft, before evasion
 inline constexpr float kPrimaryTargetBonus = 3.0f;      // a battery's preference for its ship's assigned target
-inline constexpr float kHullOutputFloor = 0.0f;         // output = floor + (1 - floor) * hull fraction
+inline constexpr float kHullOutputFloor = 0.35f;        // output = floor + (1 - floor) * hull fraction
 inline constexpr float kMaxHitChance = 0.99f;
 inline constexpr float kIonValueShieldsDown = 0.5f; // what ion fire is worth to scoring once it only disrupts
 
@@ -205,12 +208,12 @@ inline constexpr float kCraftGunSeconds = 0.5f;
 inline constexpr float kCraftGunCone = 12.0f * kDegrees;   // half-angle off the nose within which a craft fires
 inline constexpr float kCraftTorpedoCone = 25.0f * kDegrees;
 inline constexpr float kTorpedoSeconds = 1.2f;             // between torpedoes of one craft
-inline constexpr float kTorpedoDamage = 12.0f;             // hull damage per torpedo
+inline constexpr float kTorpedoDamage = 18.0f;             // hull damage per torpedo
 inline constexpr int32_t kTorpedoSalvo = 2;                // torpedoes a craft fires per pass
 inline constexpr float kTorpedoSpeed = Meters(900.0f);
 inline constexpr float kTorpedoAccuracy = 0.9f;
 inline constexpr float kCraftVsCraftAccuracy = 0.6f;
-inline constexpr float kDogfightDamageScale = 0.5f;
+inline constexpr float kDogfightDamageScale = 0.42f;
 inline constexpr float kCraftVsShipAccuracy = 0.9f;
 inline constexpr float kCraftDutyCycle = 0.35f;            // share of the time a craft has a target in its sights
 inline constexpr float kSquadronEngageSlack = Meters(2000.0f);     // estimates count a squadron this close as engaging
@@ -244,10 +247,10 @@ inline constexpr float kCommitRange = Meters(12000.0f);            // "when enem
 // ---- tractors, wells, withdrawal (§6.9-6.10) -----------------------------------------------------------------------------
 inline constexpr float kTractorBreakFactor = 1.1f; // locks break beyond this share of the tractor range
 inline constexpr float kGravityWellRadius = Meters(15000.0f);
-inline constexpr float kSpoolBaseSeconds = 30.0f;
-inline constexpr float kSpoolSecondsPerRetreatDay = 0.4f; // the original passed retreat days x 0.4 as seconds
+inline constexpr float kSpoolBaseSeconds = 20.0f;
+inline constexpr float kSpoolSecondsPerRetreatDay = 0.3f; // scaled with the shorter battle pacing
 inline constexpr float kSpoolMinSeconds = 8.0f;
-inline constexpr float kSpoolMaxSeconds = 60.0f;
+inline constexpr float kSpoolMaxSeconds = 40.0f;
 inline constexpr float kHyperdriveReferenceRating = 100.0f;
 inline constexpr float kDeathStarSpoolFactor = 3.0f;
 inline constexpr float kDeathStarOwnSpoolSeconds = 120.0f;
@@ -260,7 +263,7 @@ inline constexpr float kPlanetaryCoverReach = Meters(10000.0f);
 // The records' attack strengths (LNR Series I 800, KDY-150 2,000, LNR Series II 5,000) are on the bombardment scale,
 // where one hit cripples a ship. In space a battery's damage per second grows with their square root, so the LNR
 // Series II is 2.5 times the LNR Series I rather than 6: dps = scale x sqrt(attack strength).
-inline constexpr float kPlanetaryDpsPerRootAttack = 0.35f;
+inline constexpr float kPlanetaryDpsPerRootAttack = 0.50f;
 inline constexpr float kPlanetarySalvoSeconds = 3.0f; // fewer, heavier bolts than a ship's battery
 inline constexpr float kPlanetaryDetection = 50.0f;   // accuracy falls with range as for a ship of this detection
 // Emplacements stand on the limb facing the battle, spread this far either side of the direction to its centre.
@@ -291,13 +294,13 @@ inline constexpr float kStalemateProgressShare = 0.01f;
 
 // ---- deployment (§4) ----------------------------------------------------------------------------------------------------------
 inline constexpr float kDefaultAttackerBearing = 0.0f; // the attacker arrives from +x
-inline constexpr float kAttackerDeployDistance = Meters(9000.0f);
-inline constexpr float kDefenderDeployDistance = Meters(6000.0f);
+inline constexpr float kAttackerDeployDistance = Meters(6000.0f);
+inline constexpr float kDefenderDeployDistance = Meters(5000.0f);
 inline constexpr float kPlanetDistance = Meters(16000.0f);
 inline constexpr float kPlanetRadius = Meters(6000.0f);
 inline constexpr float kBattleHalfExtent = kBattlePlaneHalfExtent;
 inline constexpr float kDeploymentRowSpacing = Meters(2400.0f);
-inline constexpr float kDeployZoneRadius = Meters(7000.0f); // minimum briefing radius; crowded fleets grow rearward after wrapping
+inline constexpr float kDeployZoneRadius = Meters(5200.0f); // minimum briefing radius; crowded fleets grow rearward after wrapping
 inline constexpr float kMaxDeployZoneGrowth = 8.0f * kBattleHalfExtent; // the zone covers the whole plane long before this
 inline constexpr int32_t kMaxTaskForceShips = 6;
 inline constexpr int32_t kMaxFlightSquadrons = 4;

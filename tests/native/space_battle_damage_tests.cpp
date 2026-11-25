@@ -51,7 +51,7 @@ void RechargeIsAThreshold()
     BattleState& state = duel.State();
     const float regen = ShieldRegen(state, duel.target);
     SB_CHECK(regen > 0.0f);
-    for (int tick = 0; tick < 60 * kTicksPerSecond; ++tick) {
+    for (int tick = 0; tick < 120 * kTicksPerSecond; ++tick) {
       sim::DamageShip(state, duel.target, share * regen * kTickSeconds, ShotKind::Turbolaser, Subsystem::Hull);
       sim::UpdateShipSystems(state);
     }
@@ -71,7 +71,8 @@ void OutputScalesWithHullAndCriticals()
   const float fullWeapons = WeaponOutput(state, duel.target);
   const float fullShields = ShieldRegen(state, duel.target);
   duel.Ship().hull = 1300.0f;
-  SB_CHECK_NEAR(WeaponOutput(state, duel.target), 0.5f * fullWeapons, 1e-4f);
+  const float expectedHalfHull = tuning::kHullOutputFloor + (1.0f - tuning::kHullOutputFloor) * 0.5f;
+  SB_CHECK_NEAR(WeaponOutput(state, duel.target), expectedHalfHull * fullWeapons, 1e-4f);
   SB_CHECK_NEAR(ShieldRegen(state, duel.target), 0.5f * fullShields, 1e-4f);
   duel.Ship().hull = 2600.0f;
   duel.Ship().criticals.weaponRecharge = 1;

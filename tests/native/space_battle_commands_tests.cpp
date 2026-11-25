@@ -286,8 +286,9 @@ void ReserveHoldsUntilCommitted()
 {
   SnapshotBuilder builder;
   const UnitIndex transport = builder.Add(TransportShip(Side::Alliance));
-  builder.Add(Wedge(Side::Empire));
+  const UnitIndex enemy = builder.Add(Wedge(Side::Empire));
   Battle battle(builder.Snapshot(), Uncommanded());
+  Place(battle, enemy, {25000.0f, 0.0f}, kPi);
   const Vec2 start = Position(battle, transport);
   battle.RunHeadless(40 * kTicksPerSecond);
   SB_CHECK(Distance(Position(battle, transport), start) < 100.0f);
@@ -324,8 +325,8 @@ void NativeNamesAppearInBattleText()
   Battle battle(snapshot, Uncommanded());
   SB_CHECK(sim::UnitName(battle.State(), numbered) == "Imperial Star Destroyer 4");
   Place(battle, first, {-3000.0f, 0.0f}, 0.0f);
-  Place(battle, enemy, {0.0f, 0.0f}, kPi);
-  battle.RunHeadless(20 * kTicksPerSecond);
+  Place(battle, enemy, {9000.0f, 0.0f}, kPi);
+  battle.RunHeadless(15 * kTicksPerSecond);
   SB_CHECK(IntentOf(battle, first).find("Imperial Star Destroyer 1") != std::string::npos);
   bool launched = false;
   for (const auto& event : battle.State().events) {
