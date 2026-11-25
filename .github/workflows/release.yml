@@ -1,19 +1,39 @@
 # Release binaries for Linux (x86-64), macOS (arm64 and x86-64) and Windows (x86-64), run by hand from the Actions tab.
-# Each platform builds the `rebellion` target in Release with the native configuration and uploads one archive as a
-# workflow artifact. No game data is used: the startup text pack and the macOS icon come from a local installation and
-# are absent here, so the archives contain only the executable and the Liberation Sans fallback fonts. Players still
-# need their own copy of the game; the first-run check asks for it through config.ini (install_dir).
+# A draft GitHub Release for the given tag is created first; each platform builds the `rebellion` target in Release with the
+# native configuration and uploads its archive to that release; the release is published once every platform has uploaded.
+# No game data is used: the startup text pack and the macOS icon come from a local installation and are absent here, so
+# the archives contain only the executable and the Liberation Sans fallback fonts. Players still need their own copy of the
+# game; the first-run check asks for it through config.ini (install_dir).
 name: release
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag for the new release, for example v0.2.0 (created at the commit being run)
+        required: true
+        type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  create-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "$TAG" \
+            --notes "Native builds for Linux, macOS and Windows. Requires your own copy of Star Wars: Rebellion (set install_dir in config.ini)."
+
   linux:
+    needs: create-release
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Packages
         run: |
           sudo apt-get update
@@ -29,20 +49,20 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON
       - name: Build
         run: cmake --build build/native --target rebellion
-      - name: Package
+      - name: Package and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
         run: |
           stage=dist/rebellion-linux-x86_64
           mkdir -p "$stage/fonts"
           cp build/native/rebellion "$stage/"
           cp third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Bold.ttf "$stage/fonts/"
           tar -C dist -czf "$stage.tar.gz" "$(basename "$stage")"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rebellion-linux-x86_64
-          path: dist/rebellion-linux-x86_64.tar.gz
-          if-no-files-found: error
+          gh release upload "$TAG" "$stage.tar.gz" --clobber
 
   macos:
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
@@ -64,20 +84,22 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
       - name: Build
         run: cmake --build build/native --target rebellion
-      - name: Package
+      - name: Package and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
         run: |
           mkdir -p dist
-          ditto -c -k --keepParent build/native/Rebellion.app "dist/rebellion-macos-${{ matrix.arch }}.zip"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rebellion-macos-${{ matrix.arch }}
-          path: dist/rebellion-macos-${{ matrix.arch }}.zip
-          if-no-files-found: error
+          archive="dist/rebellion-macos-${{ matrix.arch }}.zip"
+          ditto -c -k --keepParent build/native/Rebellion.app "$archive"
+          gh release upload "$TAG" "$archive" --clobber
 
   windows:
+    needs: create-release
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -91,16 +113,25 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release -DREB_NATIVE=ON
       - name: Build
         run: cmake --build build/native --target rebellion
-      - name: Package
+      - name: Package and upload
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
         run: |
           $stage = "dist/rebellion-windows-x86_64"
           New-Item -ItemType Directory -Force -Path "$stage/fonts" | Out-Null
           Copy-Item build/native/rebellion.exe $stage
           Copy-Item third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf, third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Bold.ttf "$stage/fonts"
           Compress-Archive -Path $stage -DestinationPath "$stage.zip"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rebellion-windows-x86_64
-          path: dist/rebellion-windows-x86_64.zip
-          if-no-files-found: error
+          gh release upload $env:TAG "$stage.zip" --clobber
+
+  publish:
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release edit "$TAG" --draft=false --latest
