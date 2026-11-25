@@ -144,6 +144,18 @@ These advance the game themselves, so they run as one process:
     --config /path/to/config.ini --output-dir work/live-smoke
   ```
 
+- **Stalemate routing** (`src/port/native/stalemate_routing_smoke.cpp`) brings two Empire fleets into an Alliance
+  fleet's system, knocks out both hyperdrives of the second fleet's ships, and leaves every other squadron from the
+  first fleet's hangars in the system. It then resolves a both-present result (stalemate or time limit) through the
+  strategic follow-ups. The first fleet must be routed away with the squadrons still aboard, and a left-behind
+  squadron with a hyperdrive must be routed too. Units with no way out must be destroyed, the Alliance must stay, and
+  nothing of the Empire may remain to restart the battle (exit 0 and "Stalemate routing smoke passed" in the log):
+
+  ```sh
+  REBELLION_CONFIG=... SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy REB_DETERMINISTIC=1 REB_STALEMATE_ROUTING_SMOKE=1 \
+    REB_SIM="new:1,seed:1,ticks:0,save:/tmp/route.sav" build/native/Rebellion.app/Contents/MacOS/Rebellion
+  ```
+
 LAN smokes are in [multiplayer.md](multiplayer.md).
 
 ## Object cast regression checks

@@ -22,6 +22,7 @@
 #include "port/native/live_battle_smoke.h"
 #include "port/native/mission_repeat_smoke.h"
 #include "port/native/save_slots_smoke.h"
+#include "port/native/stalemate_routing_smoke.h"
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
 #include "events/game_clock_hooks.h"
@@ -562,6 +563,18 @@ int RebSimRun(RebellionApplication* app)
     }
     Log("Live battle smoke passed");
     session = GetGameSession();
+  }
+  if (GetEnvironmentVariableA("REB_STALEMATE_ROUTING_SMOKE", uiSmoke, sizeof uiSmoke) != 0) {
+    std::string error;
+    if (!reb::native::RunStalemateRoutingSmoke(*app, error)) {
+      Log("Stalemate routing smoke failed: %s", error.c_str());
+      return Finish(9, "REB_SIM: stalemate routing smoke failed");
+    }
+    if (const char* invalid = ValidateReferences()) {
+      Log("REB_SIM: invalid reference after stalemate routing: %s", invalid);
+      return Finish(6, "REB_SIM: stalemate routing reference validation failed");
+    }
+    Log("Stalemate routing smoke passed");
   }
   if (GetEnvironmentVariableA("REB_LAN_REPLICA_SMOKE", uiSmoke, sizeof uiSmoke) != 0) {
     RunLanReplicaSmoke(*app);

@@ -438,7 +438,21 @@ Destroyer could stop almost anything, which made tractor power and target speed 
   sides present. The engine reports both sides alive and never "unfinished"; `BattleResults` resolves that
   combination with `contestedWinner`, in favour of the side recorded as holding the system first, and the strategic
   game routes the other side away. (The legacy simulator cleared that combination, so its results never reach this
-  path.) The original's rule that a stalemate loser unable to withdraw is destroyed outright is not carried over.
+  path.) The original battle code destroyed the stalemate loser outright whenever its side could not withdraw. That rule is not carried over. What remains is the strategic game's own
+  routing, which applies to every loser, withdrawn or not, and destroys only units that have no way out:
+  - each capital ship whose primary and backup hyperdrives are both gone or knocked out (destroyed as stranded,
+    `Fleet::OnAutoroutingChanged`);
+  - each unit left directly in the system, such as a squadron no carrier took back, that cannot jump to the system
+    chosen for it (stranded, `ApplyEvent307`);
+  - any unit for which no system in the galaxy, friendly, neutral or enemy, will take it (lost location,
+    `RulesMgr::FindDestination`).
+
+  The rule is applied per unit. A fleet's ships with a working drive leave, and squadrons aboard carry on with their
+  carrier. The battle has already rehomed orphaned squadrons to any friendly ship with a free hangar (§6.10), so a
+  squadron is stranded only if no friendly hangar could take it. A long trip never destroys anything, and the
+  battle's gravity wells no longer matter once it is over. On the held-first corpus no both-present ending leaves the
+  loser such a unit (0 of 234 surviving ships and 148 squadrons in 108 runs). `REB_STALEMATE_ROUTING_SMOKE`
+  (`docs/native.md`) exercises the strategic routing.
 - Calibration requires a loss of at least one craft's hull (8 points, which may be spread over several craft) or 1%
   of a side's last recorded hull total, whichever is greater, within 120 seconds to count as progress. Negligible
   chip damage cannot keep a stalled battle open. Point defence wearing a squadron down can.
