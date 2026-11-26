@@ -31,7 +31,7 @@ inline constexpr float kCapitalAccelerationSeconds = 10.0f; // time to reach ful
 inline constexpr float kCapitalDecelerationFactor = 2.0f;   // braking is this much faster than accelerating
 // Converts the records' per-step weapon recharge rates to per-second rates. One global scale, held fixed
 // for calibration once the pacing targets hold.
-inline constexpr float kLegacyStepsPerSecond = 3.5f;
+inline constexpr float kLegacyStepsPerSecond = 3.0f;
 // Capital-ship shield recharge relative to weapon output: keeps shield-heavy hulls durable and prevents lone pickets
 // from cracking battleships, while letting peer capital ships break through each other's shields instead of stalemating.
 inline constexpr float kShieldRechargeScale = 0.28f;
@@ -93,7 +93,7 @@ inline constexpr float kBatteryRetargetSeconds = 0.5f;  // idle battery re-check
 inline constexpr float kAccuracyNear = 0.92f;           // capital-ship target at point blank
 inline constexpr float kAccuracyFalloff = 0.25f;        // lost at maximum range, reduced by detection
 inline constexpr float kDetectionForNoFalloff = 100.0f; // detection rating that removes the range falloff
-inline constexpr float kPointDefenceDamageScale = 0.22f;
+inline constexpr float kPointDefenceDamageScale = 0.33f;
 inline constexpr float kFighterTargetAccuracy = 0.75f;  // base accuracy against craft, before evasion
 inline constexpr float kPrimaryTargetBonus = 3.0f;      // a battery's preference for its ship's assigned target
 inline constexpr float kHullOutputFloor = 0.35f;        // output = floor + (1 - floor) * hull fraction
@@ -204,7 +204,7 @@ inline constexpr float kCraftHull = 8.0f;
 inline constexpr float kCraftLegacyOutput = 1.0f;          // a craft's weapon rating per legacy step (3.75 * 0.2667)
 inline constexpr float kCraftShieldRechargePerSecond = 0.1f;
 inline constexpr float kCraftGunSeconds = 0.5f;
-inline constexpr float kCraftGunCone = 12.0f * kDegrees;   // half-angle off the nose within which a craft fires
+inline constexpr float kCraftGunCone = 15.0f * kDegrees;   // half-angle off the nose within which a craft fires
 inline constexpr float kCraftTorpedoCone = 25.0f * kDegrees;
 inline constexpr float kTorpedoSeconds = 1.2f;             // between torpedoes of one craft
 inline constexpr float kTorpedoDamage = 18.0f;             // hull damage per torpedo
@@ -212,7 +212,7 @@ inline constexpr int32_t kTorpedoSalvo = 2;                // torpedoes a craft 
 inline constexpr float kTorpedoSpeed = Meters(900.0f);
 inline constexpr float kTorpedoAccuracy = 0.9f;
 inline constexpr float kCraftVsCraftAccuracy = 0.6f;
-inline constexpr float kDogfightDamageScale = 0.42f;
+inline constexpr float kDogfightDamageScale = 0.7f;
 inline constexpr float kCraftVsShipAccuracy = 0.9f;
 inline constexpr float kCraftDutyCycle = 0.35f;            // share of the time a craft has a target in its sights
 inline constexpr float kSquadronEngageSlack = Meters(2000.0f);     // estimates count a squadron this close as engaging

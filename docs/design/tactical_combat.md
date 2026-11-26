@@ -326,7 +326,7 @@ The turbolaser and laser factors are the original's (`tactical_weapon_profile.cp
 original 3D mode's ion hit handler (shields only) rather than the weapon profile, which rates ion like a
 turbolaser. Against fighters, laser and turbolaser hits are scaled by `max(0.1, attacker turn rate / target turn
 rate)`, the original's evasion term, so an A-wing or TIE Interceptor is hard for a slow ship to hit. Calibration
-scales capital batteries against craft to 25% and fighter guns against craft to 50% of their starting output;
+scales capital batteries against craft to 33% and fighter guns against craft to 70% of their starting output;
 anti-capital damage stays unchanged. A torpedo
 against a ship that still has shields does a quarter of its damage, to the shields only; against an unshielded
 ship it does full damage to the hull. (In the legacy auto-resolve torpedoes count only once shields are gone.) The

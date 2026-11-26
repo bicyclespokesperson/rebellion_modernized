@@ -242,6 +242,39 @@ six versus five ships but strongly favored the cruisers at 28 versus 23. Four-se
 were mostly censored by the 60,000-tick limit and do not establish side win rates. Results and campaign artifacts
 are kept locally under ignored `work/calibration/`.
 
+### Pacing retune (2026-11-26)
+
+Played battles showed fighters lasting too long and capital ships dying too fast. `reb_space_battle_log --batch` now
+records pacing telemetry, and `tools/battle_pacing_summary.py` summarizes it: battle length, how long destroyed line
+ships (hull 1,000 or more) and craft lasted once under fire, hull damage by source, and hit rates. The corpus was
+868 snapshots from ten Codex/Claude/Classic campaigns (two seeds each), alongside synthetic scenarios built from real
+class records (equal capital groups, pure dogfights, a bomber strike, mixed fleets of 8-15 ships and 8-24 squadrons;
+24 seeds each).
+
+Findings against the 2026-11-24 tuning: a dogfighting craft fires only about 0.3 times a second out of a possible 2
+(its quarry is rarely in the gun cone), and each hit removes a few percent of a craft's health, so an X-wing versus
+TIE Fighter battle ran 10 minutes. Line ships lasted a median 10 s once their hull was hit across the corpus (15 s in
+even battles) and 32-64 s in the scenarios, against the 45-90 s target. Torpedoes dealt 63% of capital hull damage,
+but cutting them barely helped: the fast deaths were overkill by huge squadron swarms. Torpedoes of 15 or less also
+stop an unescorted bomber strike from breaking a Victory's shields at all, because a quarter of each torpedo's damage
+is what out-chips the shield recharge; they stayed at 18.
+
+Changes: `kLegacyStepsPerSecond` 3.5 to 3.0 (all guns and shield recharge, so their ratio and the shield-break
+thresholds are unchanged), `kDogfightDamageScale` 0.42 to 0.7 and `kPointDefenceDamageScale` 0.22 to 0.33 (net +43% and
++29% against craft), and `kCraftGunCone` 12 to 15 degrees.
+
+| Measure (median) | Before | After |
+|---|---|---|
+| Line ship, hull hit to destroyed: corpus even battles / mixed fleets / 3 v 3 capitals | 15 / 46-61 / 64 s | 18 / 52-70 / 77 s |
+| Craft, first damage to destroyed: corpus / X-wing v TIE | 8.1 / 28 s | 4.5 / 8.8 s |
+| Battle length: corpus / mixed fleets / capitals only | 50 / 167-283 / 99-239 s | 42 / 157-218 / 110-280 s |
+| Stronger side wins (2x strength) / stalemates / 15-minute limits | 98.8% / 3 / 7 | 99.4% / 4 / 2 |
+
+```sh
+build/native/reb_space_battle_log --batch corpus.txt --seeds 2 --engine-label tuned > tuned.jsonl
+uv run tools/battle_pacing_summary.py baseline.jsonl tuned.jsonl
+```
+
 ### Tactical commanders
 
 The pure simulator uses `DefaultCommander` for each AI-controlled side. Set
