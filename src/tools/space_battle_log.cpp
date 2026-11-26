@@ -581,12 +581,166 @@ struct WithdrawalTelemetry {
   int spoolTotal = 0;
 };
 
+// Pacing (tactical_combat.md §6.1): how long destroyed units lasted once they came under fire, and how often fire
+// aimed at craft connects.
+struct ShotTally {
+  int fired = 0;
+  int hits = 0;
+};
+
+struct PacingTelemetry {
+  std::vector<float> capitalSecondsUnderFire; // destroyed capital ships: first damage to destruction
+  std::vector<float> capitalHullSeconds;      // destroyed capital ships: first hull damage to destruction
+  std::vector<float> capitalHullMax;          // destroyed capital ships: class hull, to separate transports from the line
+  // Damage of hits fired at unshielded capital ships, by source: ship turbolasers, ship lasers, craft guns, torpedoes,
+  // planetary batteries.
+  std::array<float, 5> hullDamageBySource{};
+  std::vector<float> craftSecondsInSpace;     // destroyed craft: first tick in space to destruction
+  std::vector<float> craftSecondsUnderFire;   // destroyed craft: first damage to destruction
+  ShotTally shipVsCraft;
+  ShotTally craftVsCraft;
+  ShotTally shipVsCapital;
+};
+
 struct RunTelemetry {
   int fightersLost60 = 0;
   int fightersLost120 = 0;
   int ionSpoolResets = 0;
   std::vector<WithdrawalTelemetry> withdrawals;
+  PacingTelemetry pacing;
 };
+
+class PacingRecorder
+{
+  public:
+  explicit PacingRecorder(const BattleState& state)
+      : m_shipDamaged(state.ships.size(), -1), m_shipHullHit(state.ships.size(), -1),
+        m_shipHull(state.ships.size()), m_shipRecorded(state.ships.size()), m_craftLaunched(state.craft.size(), -1), m_craftDamaged(state.craft.size(), -1),
+        m_craftHealth(state.craft.size()), m_craftAlive(state.craft.size())
+  {
+    for (size_t i = 0; i < state.ships.size(); ++i) {
+      m_shipHull[i] = state.ships[i].hull;
+    }
+    for (size_t i = 0; i < state.craft.size(); ++i) {
+      m_craftHealth[i] = state.craft[i].hull + state.craft[i].shield;
+      m_craftAlive[i] = state.craft[i].alive;
+    }
+  }
+
+  void Observe(const BattleState& state, PacingTelemetry& out)
+  {
+    const int64_t tick = state.tick;
+    for (size_t i = 0; i < state.ships.size(); ++i) {
+      const ShipState& ship = state.ships[i];
+      if (m_shipDamaged[i] < 0 && ship.lastDamageTick >= 0) {
+        m_shipDamaged[i] = ship.lastDamageTick;
+      }
+      if (m_shipHullHit[i] < 0 && ship.hull < m_shipHull[i]) {
+        m_shipHullHit[i] = tick;
+      }
+      m_shipHull[i] = ship.hull;
+      if (!m_shipRecorded[i] && state.units[ship.unit].fate == UnitFate::Destroyed && m_shipDamaged[i] >= 0) {
+        out.capitalSecondsUnderFire.push_back(Seconds(tick - m_shipDamaged[i]));
+        out.capitalHullSeconds.push_back(Seconds(tick - (m_shipHullHit[i] >= 0 ? m_shipHullHit[i] : m_shipDamaged[i])));
+        out.capitalHullMax.push_back(state.Profile(ship.unit).hullMax);
+        m_shipRecorded[i] = true;
+      }
+    }
+    for (const SquadronState& squadron : state.squadrons) {
+      for (int c = 0; c < squadron.craftCount; ++c) {
+        const auto i = static_cast<size_t>(squadron.firstCraft + c);
+        const CraftState& craft = state.craft[i];
+        if (m_craftLaunched[i] < 0 && craft.alive && squadron.place == SquadronPlace::InSpace) {
+          m_craftLaunched[i] = tick;
+        }
+        const float health = craft.hull + craft.shield;
+        if (m_craftDamaged[i] < 0 && health < m_craftHealth[i]) {
+          m_craftDamaged[i] = tick;
+        }
+        m_craftHealth[i] = health;
+        // Craft that die docked, with their carrier, never flew.
+        if (m_craftAlive[i] && !craft.alive && m_craftLaunched[i] >= 0) {
+          out.craftSecondsInSpace.push_back(Seconds(tick - m_craftLaunched[i]));
+          out.craftSecondsUnderFire.push_back(Seconds(tick - (m_craftDamaged[i] >= 0 ? m_craftDamaged[i] : m_craftLaunched[i])));
+        }
+        m_craftAlive[i] = craft.alive;
+      }
+    }
+    for (const PendingShot& shot : state.shots) {
+      if (shot.fireTick != tick - 1) {
+        continue;
+      }
+      if (shot.targetCraft < 0 && shot.hit && !shot.shieldImpact && shot.kind != ShotKind::Ion) {
+        out.hullDamageBySource[HullDamageSource(state, shot)] += shot.damage;
+      }
+      if (shot.shooter == kNoUnit) {
+        continue;
+      }
+      const bool fromShip = state.units[shot.shooter].kind != UnitKind::Squadron;
+      ShotTally* tally = shot.targetCraft >= 0 ? (fromShip ? &out.shipVsCraft : &out.craftVsCraft)
+                                               : (fromShip ? &out.shipVsCapital : nullptr);
+      if (tally != nullptr) {
+        ++tally->fired;
+        tally->hits += shot.hit ? 1 : 0;
+      }
+    }
+  }
+
+  private:
+  static float Seconds(int64_t ticks) { return static_cast<float>(ticks) / kTicksPerSecond; }
+
+  static size_t HullDamageSource(const BattleState& state, const PendingShot& shot)
+  {
+    if (shot.shooter == kNoUnit) {
+      return 4;
+    }
+    if (shot.kind == ShotKind::Torpedo) {
+      return 3;
+    }
+    if (state.units[shot.shooter].kind == UnitKind::Squadron) {
+      return 2;
+    }
+    return shot.kind == ShotKind::Laser ? 1 : 0;
+  }
+
+  std::vector<int64_t> m_shipDamaged;
+  std::vector<int64_t> m_shipHullHit;
+  std::vector<float> m_shipHull;
+  std::vector<bool> m_shipRecorded;
+  std::vector<int64_t> m_craftLaunched;
+  std::vector<int64_t> m_craftDamaged;
+  std::vector<float> m_craftHealth;
+  std::vector<bool> m_craftAlive;
+};
+
+std::string JsonFloats(const std::vector<float>& values)
+{
+  std::ostringstream out;
+  out << '[';
+  for (size_t i = 0; i < values.size(); ++i) {
+    out << (i == 0 ? "" : ",") << values[i];
+  }
+  out << ']';
+  return out.str();
+}
+
+std::string JsonShots(const ShotTally& tally)
+{
+  return "{\"fired\":" + std::to_string(tally.fired) + ",\"hits\":" + std::to_string(tally.hits) + "}";
+}
+
+std::string PacingJson(const PacingTelemetry& pacing)
+{
+  return "{\"capital_seconds_under_fire\":" + JsonFloats(pacing.capitalSecondsUnderFire)
+         + ",\"capital_hull_seconds\":" + JsonFloats(pacing.capitalHullSeconds)
+         + ",\"capital_hull_max\":" + JsonFloats(pacing.capitalHullMax)
+         + ",\"hull_damage_by_source\":"
+         + JsonFloats({pacing.hullDamageBySource.begin(), pacing.hullDamageBySource.end()})
+         + ",\"craft_seconds_in_space\":" + JsonFloats(pacing.craftSecondsInSpace)
+         + ",\"craft_seconds_under_fire\":" + JsonFloats(pacing.craftSecondsUnderFire)
+         + ",\"ship_vs_craft\":" + JsonShots(pacing.shipVsCraft) + ",\"craft_vs_craft\":" + JsonShots(pacing.craftVsCraft)
+         + ",\"ship_vs_capital\":" + JsonShots(pacing.shipVsCapital) + "}";
+}
 
 RunTelemetry RunMeasured(Battle& battle)
 {
@@ -594,11 +748,13 @@ RunTelemetry RunMeasured(Battle& battle)
   const int initialFighters = FightersAlive(battle.State());
   std::vector<int32_t> previousSpool(battle.State().ships.size());
   result.withdrawals.resize(battle.State().ships.size());
+  PacingRecorder pacing(battle.State());
   while (!battle.Finished()) {
     for (size_t index = 0; index < previousSpool.size(); ++index) {
       previousSpool[index] = battle.State().ships[index].spoolTicks;
     }
     battle.Step();
+    pacing.Observe(battle.State(), result.pacing);
     for (size_t index = 0; index < previousSpool.size(); ++index) {
       const ShipState& ship = battle.State().ships[index];
       result.ionSpoolResets += previousSpool[index] > 0 && ship.spoolTicks < previousSpool[index]
@@ -676,6 +832,7 @@ int RunBatch(const Options& options)
                 << ",\"fighters_lost_60\":" << telemetry.fightersLost60
                 << ",\"fighters_lost_120\":" << telemetry.fightersLost120
                 << ",\"ion_spool_resets\":" << telemetry.ionSpoolResets
+                << ",\"pacing\":" << PacingJson(telemetry.pacing)
                 << ",\"withdrawals\":[";
       bool first = true;
       for (const auto& sample : telemetry.withdrawals) {
