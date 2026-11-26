@@ -22,7 +22,6 @@ using battle::ViewUnitKind;
 
 constexpr float kPiF = std::numbers::pi_v<float>;
 constexpr float kDt = battle::kTickSeconds;
-constexpr float kWellRadius = 7000.0f;
 constexpr float kTractorRange = 3000.0f;
 
 float Wrap(float angle)
@@ -548,9 +547,9 @@ void FakeBattle::UpdateWithdrawals()
     if (!Active(unit) || unit.view.kind != ViewUnitKind::CapitalShip) {
       continue;
     }
-    const bool inWell = well != m_units.end() && well->view.side != unit.view.side
-                        && Dist(well->view.position, unit.view.position) < kWellRadius;
-    unit.view.flags = inWell ? unit.view.flags | battle::kViewInEnemyWell : unit.view.flags & ~battle::kViewInEnemyWell;
+    const bool inWell = well != m_units.end() && well->view.side != unit.view.side;
+    unit.view.flags = inWell ? unit.view.flags | battle::kViewHeldByEnemyWell
+                             : unit.view.flags & ~battle::kViewHeldByEnemyWell;
     if (unit.hull < unit.hullMax * 0.35f && (unit.view.flags & battle::kViewWithdrawing) == 0) {
       unit.view.flags |= battle::kViewWithdrawing;
       Event(unit.view.side, unit.name + ": withdrawing", unit.view.unit);
@@ -714,7 +713,7 @@ void FakeBattle::BuildViewModel(float alpha, battle::ViewModel& out) const
       out.tractors.push_back({unit.view.unit, unit.tractorTarget});
     }
     if (unit.view.typeIndex == 17 && Active(unit)) {
-      out.wells.push_back({unit.view.unit, view.position, kWellRadius, unit.view.side, true});
+      out.wells.push_back({unit.view.unit, view.position, unit.view.side});
     }
   }
   for (int side = 0; side < 2; ++side) {

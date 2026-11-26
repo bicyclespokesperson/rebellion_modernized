@@ -20,9 +20,10 @@ float TurnRate(const BattleState& state, UnitIndex unit); // rad/s now
 float TurnPoints(const BattleState& state, UnitIndex unit);
 float TractorPower(const BattleState& state, UnitIndex ship);
 bool TractorReady(const BattleState& state, UnitIndex ship);
+// A gravity-well projector still in space: it blocks every enemy jump, wherever the ship is (§6.10).
 bool WellActive(const BattleState& state, UnitIndex ship);
-// Inside an active gravity well projected by the other side.
-bool InEnemyWell(const BattleState& state, UnitIndex unit);
+// Whether the other side has an active gravity well, which holds every unit of this side.
+bool HeldByEnemyWell(const BattleState& state, UnitIndex unit);
 // Whether the unit could jump this tick if spooled (§6.10), and if not, why.
 bool CanJump(const BattleState& state, UnitIndex unit, JumpBlocker* blocker = nullptr);
 

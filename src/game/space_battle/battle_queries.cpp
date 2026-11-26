@@ -214,20 +214,15 @@ bool TractorReady(const BattleState& state, UnitIndex ship)
 bool WellActive(const BattleState& state, UnitIndex unit)
 {
   const ShipState* ship = state.Ship(unit);
-  return ship != nullptr && state.InSpace(unit) && state.Profile(unit).gravityWell && ship->systemsOffTicks <= 0;
+  return ship != nullptr && state.InSpace(unit) && state.Profile(unit).gravityWell;
 }
 
-bool InEnemyWell(const BattleState& state, UnitIndex unit)
+bool HeldByEnemyWell(const BattleState& state, UnitIndex unit)
 {
-  const UnitState& self = state.units[unit];
-  for (const ShipState& ship : state.ships) {
-    const UnitState& projector = state.units[ship.unit];
-    if (projector.side != self.side && WellActive(state, ship.unit)
-        && DistanceSq(projector.position, self.position) <= kGravityWellRadius * kGravityWellRadius) {
-      return true;
-    }
-  }
-  return false;
+  const Side side = state.units[unit].side;
+  return std::ranges::any_of(state.ships, [&](const ShipState& ship) {
+    return state.units[ship.unit].side != side && WellActive(state, ship.unit);
+  });
 }
 
 bool CanJump(const BattleState& state, UnitIndex unit, JumpBlocker* blocker)
@@ -249,7 +244,7 @@ bool CanJump(const BattleState& state, UnitIndex unit, JumpBlocker* blocker)
   } else if (profile.kind == UnitKind::Squadron && !profile.CanJumpAlone()) {
     why = JumpBlocker::NoHyperdrive;
   }
-  if (why == JumpBlocker::None && InEnemyWell(state, unit)) {
+  if (why == JumpBlocker::None && HeldByEnemyWell(state, unit)) {
     why = JumpBlocker::GravityWell;
   }
   if (blocker != nullptr) {

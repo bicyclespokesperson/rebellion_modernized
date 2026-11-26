@@ -142,7 +142,7 @@ constexpr std::array<OptionText, kTargetTagCount> kTags{{
     {"Death Star", "Death Star", "The battle station."},
     {"Carriers", "Carriers", "Ships with hangars; losing one strands its fighters."},
     {"Transports", "Transports", "Troop carriers: the weak point of an invasion."},
-    {"Interdictors", "Interdictors", "Ships with a gravity well projector, which stops enemy jumps."},
+    {"Interdictors", "Interdictors", "Ships with a gravity well projector, which stops every enemy jump."},
     {"Tractor ships", "Tractors", "Ships with a tractor beam."},
     {"Pickets", "Pickets", "Laser-heavy anti-fighter ships."},
     {"Bombers", "Bombers", "Fighters with ion cannons: Y-wings, B-wings and TIE Bombers."},

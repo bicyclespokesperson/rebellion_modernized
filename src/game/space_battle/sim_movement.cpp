@@ -445,30 +445,6 @@ std::vector<UnitIndex> FollowingMembers(const BattleState& state, const GroupSta
   return members;
 }
 
-// A withdrawing ship inside an enemy gravity well runs for the edge of the nearest one (§6.10).
-bool EscapeGoal(const BattleState& state, UnitIndex unit, Vec2* goal)
-{
-  const UnitState& self = state.units[unit];
-  float best = 0.0f;
-  bool found = false;
-  for (const ShipState& ship : state.ships) {
-    const UnitState& projector = state.units[ship.unit];
-    if (projector.side == self.side || !WellActive(state, ship.unit)) {
-      continue;
-    }
-    const float distance = Distance(projector.position, self.position);
-    if (distance <= kGravityWellRadius && (!found || distance < best)) {
-      best = distance;
-      found = true;
-      *goal = Clamped(projector.position
-                          + Normalized(self.position - projector.position, state.arrivalDirection)
-                                * (kGravityWellRadius + kWellEscapeMargin),
-                      kBattleHalfExtent);
-    }
-  }
-  return found;
-}
-
 // Steers around the nearest hull on the path ahead, passing it on the side nearer the wanted heading.
 float AvoidHulls(const BattleState& state, UnitIndex unit, float heading, float speed)
 {
@@ -795,17 +771,11 @@ void ThinkShip(BattleState& state, UnitIndex unit)
     ship.goal = at + Normalized(self.position - at) * (kTractorStation * state.Profile(unit).tractorRange + state.Profile(target).radius);
     detached = true;
   }
-  Vec2 escape;
-  if (ship.withdrawing && EscapeGoal(state, unit, &escape)) {
-    ship.goal = escape;
-    detached = true;
-  }
   const bool arrivedWithFacing = !orders.empty() && orders.front().kind == OrderKind::Move && orders.front().hasFacing
                                  && Distance(self.position, orders.front().position) < kMoveArrivalDistance;
-  // An explicit move (or an escape from a gravity well) goes where it was sent; the guns fire at whatever bears.
-  const bool mustMove = (!orders.empty() && orders.front().kind == OrderKind::Move && !arrivedWithFacing
-                         && Distance(self.position, ship.goal) > kMoveArrivalDistance)
-                        || (ship.withdrawing && EscapeGoal(state, unit, &escape));
+  // An explicit move goes where it was sent; the guns fire at whatever bears.
+  const bool mustMove = !orders.empty() && orders.front().kind == OrderKind::Move && !arrivedWithFacing
+                        && Distance(self.position, ship.goal) > kMoveArrivalDistance;
   float firepower = 0.0f;
   if (arrivedWithFacing) {
     ship.desiredHeading = orders.front().facing;

@@ -11,7 +11,7 @@ namespace
 constexpr std::string_view kPrefix = "battle.hud.";
 
 constexpr std::array<AutoPauseText, kAutoPauseEventCount> kAutoPauseTexts{{
-    {"gravity_well", "Gravity well active", "Pause when an enemy gravity well comes on, trapping ships inside it."},
+    {"gravity_well", "Gravity well active", "Pause when an enemy gravity-well projector enters the battle, stopping all your jumps."},
     {"withdraw_threshold", "Ship below withdraw threshold",
      "Pause when one of your ships falls below its doctrine's withdrawal threshold."},
     {"carrier_lost", "Carrier lost", "Pause when one of your carriers is destroyed."},

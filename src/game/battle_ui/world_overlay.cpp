@@ -186,37 +186,32 @@ void PaintTargetReticle(const Painter& p, const ViewUnit& target, Color color)
   }
 }
 
+float WellMarkerRadiusPx(const Painter& p, const battle::ViewWell& well)
+{
+  const ViewUnit* projector = FindUnit(p.scene.view, well.projector);
+  return std::max(12.0f * p.ui, projector ? DrawnRadiusPx(p, *projector) + 4.0f * p.ui : 0.0f);
+}
+
 } // namespace
 
+// The well has no range: it holds every enemy ship on the field, so only the projector is marked, with ripples
+// running outward from it.
 void PaintWells(const Painter& p)
 {
   for (const battle::ViewWell& well : p.scene.view.wells) {
-    if (well.radius <= 0.0f) {
-      continue;
-    }
     const Color color = FactionColor(p.scene.theme, well.side);
-    PlaneSectorShaded(p.out, p.camera, well.center, well.radius * 0.82f, well.radius, 0.0f, kTwoPi, color.WithAlpha(0),
-                      color.WithAlpha(well.active ? 26 : 8));
-    PlaneCircle(p.out, p.camera, well.center, well.radius, color.WithAlpha(well.active ? 110 : 35),
-                Stroke{1.0f * p.ui});
-    if (well.active) {
-      for (int ripple = 0; ripple < 2; ++ripple) {
-        const float phase = Modulo(static_cast<float>(p.scene.seconds * 0.09) + ripple * 0.5f, 1.0f);
-        PlaneCircle(p.out, p.camera, well.center, well.radius * (1.0f - phase * 0.65f),
-                    color.WithAlpha(static_cast<uint8_t>(28.0f * std::sin(phase * kPi))), Stroke{1.0f * p.ui});
-      }
+    const Point at = p.Screen(well.center);
+    const float r = WellMarkerRadiusPx(p, well);
+    for (int ripple = 0; ripple < 2; ++ripple) {
+      const float phase = Modulo(static_cast<float>(p.scene.seconds * 0.5) + ripple * 0.5f, 1.0f);
+      p.out.Circle(at, r * (1.0f + phase * 0.8f), color.WithAlpha(static_cast<uint8_t>(90.0f * (1.0f - phase))),
+                   Stroke{1.0f * p.ui});
     }
-    const ViewUnit* projector = FindUnit(p.scene.view, well.projector);
-    if (projector) {
-      const Point at = p.Screen(projector->position);
-      const float r = std::max(12.0f * p.ui, DrawnRadiusPx(p, *projector) + 4.0f * p.ui);
-      const Color marker = color.WithAlpha(well.active ? 180 : 65);
-      p.out.Circle(at, r, marker, Stroke{1.0f * p.ui});
-      for (int i = 0; i < 4; ++i) {
-        const Point direction = ScreenDirection(static_cast<float>(i) * kPi * 0.5f);
-        p.out.Line(at + direction * (r + 4.0f * p.ui), at + direction * (r - 3.0f * p.ui), marker,
-                   Stroke{1.5f * p.ui});
-      }
+    const Color marker = color.WithAlpha(180);
+    p.out.Circle(at, r, marker, Stroke{1.0f * p.ui});
+    for (int i = 0; i < 4; ++i) {
+      const Point direction = ScreenDirection(static_cast<float>(i) * kPi * 0.5f);
+      p.out.Line(at + direction * (r + 4.0f * p.ui), at + direction * (r - 3.0f * p.ui), marker, Stroke{1.5f * p.ui});
     }
   }
 }
@@ -224,12 +219,12 @@ void PaintWells(const Painter& p)
 namespace
 {
 
-// A circle on the plane that gets an explanatory label: a gravity well, or a side's planetary battery cover.
+// A circle on the plane that gets an explanatory label: a gravity-well projector's marker, or a side's planetary
+// battery cover.
 struct ZoneLabel {
   Vec2 center;
   float radius;
   Side side;
-  bool active;
   std::string title;
   std::string help;
 };
@@ -239,17 +234,13 @@ std::vector<ZoneLabel> ZoneLabels(const Painter& p)
   std::vector<ZoneLabel> labels;
   const battle::ViewModel& view = p.scene.view;
   for (const battle::ViewWell& well : view.wells) {
-    if (well.radius <= 0.0f) {
-      continue;
-    }
     const bool own = well.side == p.scene.playerSide;
     const std::string name = well.projector >= 0 && static_cast<size_t>(well.projector) < p.scene.names.size()
                                  ? p.scene.names[well.projector] : "Unknown projector";
-    labels.push_back({well.center, well.radius, well.side, well.active,
+    labels.push_back({well.center, WellMarkerRadiusPx(p, well) / p.Px(1.0f), well.side,
                       std::string(own ? "YOUR GRAVITY WELL · " : "ENEMY GRAVITY WELL · ") + name,
-                      !well.active ? "Projector down · this well is inactive"
-                      : own        ? "Enemy ships inside cannot jump to hyperspace"
-                                   : "Your ships inside cannot jump to hyperspace"});
+                      own ? "No enemy ship can jump to hyperspace while it survives"
+                          : "None of your ships can jump to hyperspace until it is destroyed"});
   }
   if (view.coverRadius > 0.0f) {
     for (const Side side : {Side::Alliance, Side::Empire}) {
@@ -267,7 +258,7 @@ std::vector<ZoneLabel> ZoneLabels(const Painter& p)
       const bool own = side == p.scene.playerSide;
       std::string help = own ? "Fires on enemy capital ships inside this ring" : "Fires on your capital ships inside this ring";
       help += ion ? " · ion knocks out engines" : "";
-      labels.push_back({view.planetCenter, view.coverRadius, side, true,
+      labels.push_back({view.planetCenter, view.coverRadius, side,
                         std::string(own ? "YOUR PLANETARY DEFENSES · " : "ENEMY PLANETARY DEFENSES · ")
                             + DescribeBatteries(batteries),
                         help});
@@ -331,7 +322,7 @@ void PaintZoneLabels(const Painter& p)
     const Color color = FactionColor(p.scene.theme, zone.side);
     p.out.Line(top, {label.Center().x, label.y}, color.WithAlpha(90), Stroke{1.0f * p.ui});
     p.out.FillRect(label, Rgb(0x050c18, 220));
-    p.out.FillRect({label.x, label.y, 2.0f * p.ui, label.h}, color.WithAlpha(zone.active ? 180 : 70));
+    p.out.FillRect({label.x, label.y, 2.0f * p.ui, label.h}, color.WithAlpha(180));
     p.out.Text(zone.title, {label.Center().x, label.y + 4.0f * p.ui}, 10.0f * p.ui, color.WithAlpha(220),
                Align::Center, VAlign::Top, FontWeight::Bold, label.w - 12.0f * p.ui);
     p.out.Text(zone.help, {label.Center().x, label.y + 4.0f * p.ui + line}, 10.0f * p.ui, p.scene.theme.textDim,

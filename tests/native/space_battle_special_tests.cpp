@@ -116,48 +116,57 @@ void TractorsCatchWithdrawingShips()
   SB_CHECK(battle.State().units[target].intent.kind == IntentKind::Trapped);
 }
 
-// A gravity well blocks jumps inside its circle, not outside (§6.10); ion disruption opens it for a while.
-void GravityWellBlocksJumpsInside()
+// A gravity well blocks every enemy jump on the field, whatever the distance, and ion fire does not open it (§6.10).
+void GravityWellBlocksJumpsEverywhere()
 {
   SnapshotBuilder builder;
-  const UnitIndex inside = builder.Add(Runner(Side::Alliance, 0, "Inside"));
-  const UnitIndex outside = builder.Add(Runner(Side::Alliance, 0, "Outside"));
+  const UnitIndex near = builder.Add(Runner(Side::Alliance, 0, "Near"));
+  const UnitIndex far = builder.Add(Runner(Side::Alliance, 0, "Far"));
   CapitalShipEntry projector = InterdictorShip(Side::Empire);
   projector.sublight = 0;
   projector.weapons = {};
   const UnitIndex interdictor = builder.Add(projector);
+  const UnitIndex escort = builder.Add(Runner(Side::Empire, 0, "Escort"));
   // Sub-light 0 means no engines: give them a crawl so only the well decides.
   BattleSnapshot snapshot = builder.Snapshot();
-  std::get<CapitalShipEntry>(snapshot.units[inside]).sublight = 1;
-  std::get<CapitalShipEntry>(snapshot.units[outside]).sublight = 1;
+  std::get<CapitalShipEntry>(snapshot.units[near]).sublight = 1;
+  std::get<CapitalShipEntry>(snapshot.units[far]).sublight = 1;
+  std::get<CapitalShipEntry>(snapshot.units[escort]).sublight = 1;
   Battle battle(snapshot, Uncommanded());
   Place(battle, interdictor, {0.0f, 0.0f}, 0.0f);
-  Place(battle, inside, {tuning::kGravityWellRadius - 3000.0f, 0.0f}, 0.0f);
-  Place(battle, outside, {-(tuning::kGravityWellRadius + 3000.0f), 0.0f}, kPi);
-  SB_CHECK(InEnemyWell(battle.State(), inside) && !InEnemyWell(battle.State(), outside));
-  JumpBlocker blocker = JumpBlocker::None;
-  SB_CHECK(!CanJump(battle.State(), inside, &blocker) && blocker == JumpBlocker::GravityWell);
-  SB_CHECK(CanJump(battle.State(), outside));
+  Place(battle, near, {3000.0f, 0.0f}, 0.0f);
+  Place(battle, far, {-30000.0f, 0.0f}, kPi);
+  Place(battle, escort, {0.0f, 3000.0f}, 0.0f);
+  for (const UnitIndex held : {near, far}) {
+    JumpBlocker blocker = JumpBlocker::None;
+    SB_CHECK(HeldByEnemyWell(battle.State(), held));
+    SB_CHECK(!CanJump(battle.State(), held, &blocker) && blocker == JumpBlocker::GravityWell);
+  }
+  SB_CHECK(!HeldByEnemyWell(battle.State(), escort) && CanJump(battle.State(), escort));
   ViewModel view;
   battle.BuildViewModel(0.0f, view);
-  SB_CHECK(view.wells.size() == 1 && view.wells[0].active && view.wells[0].radius == tuning::kGravityWellRadius);
-  // Disrupting the projector with ion fire opens the well.
+  SB_CHECK(view.wells.size() == 1 && view.wells[0].projector == interdictor && view.wells[0].side == Side::Empire);
+  // Ion disruption knocks out tractors, not the well.
   Mutable(battle).Ship(interdictor)->shield = 0.0f;
   sim::DamageShip(Mutable(battle), interdictor, 2000.0f, ShotKind::Ion, Subsystem::Hull);
-  SB_CHECK(!WellActive(battle.State(), interdictor));
-  SB_CHECK(CanJump(battle.State(), inside));
-  for (int tick = 0; tick <= sim::Ticks(tuning::kIonSystemsSeconds); ++tick) {
-    sim::UpdateShipSystems(Mutable(battle));
-  }
+  SB_CHECK(battle.State().Ship(interdictor)->systemsOffTicks > 0);
   SB_CHECK(WellActive(battle.State(), interdictor));
+  SB_CHECK(!CanJump(battle.State(), far));
+  // Only losing the projector opens it.
+  sim::DestroyUnit(Mutable(battle), interdictor);
+  SB_CHECK(!WellActive(battle.State(), interdictor));
+  SB_CHECK(CanJump(battle.State(), near) && CanJump(battle.State(), far));
+  battle.BuildViewModel(0.0f, view);
+  SB_CHECK(view.wells.empty());
 }
 
-// When a side withdraws, ships that cannot jump yet keep spooling and fighting until they can (§6.10).
+// When a side withdraws, ships that cannot jump yet keep spooling and fighting, and jump the moment the projector
+// is gone (§6.10).
 void TrappedShipsKeepSpoolingAndFighting()
 {
   SnapshotBuilder builder;
   const UnitIndex trapped = builder.Add(Broadside(Side::Alliance, "Trapped"));
-  const UnitIndex free = builder.Add(Broadside(Side::Alliance, "Free"));
+  const UnitIndex distant = builder.Add(Broadside(Side::Alliance, "Distant"));
   CapitalShipEntry projector = InterdictorShip(Side::Empire);
   projector.sublight = 0;
   const UnitIndex interdictor = builder.Add(projector);
@@ -166,7 +175,7 @@ void TrappedShipsKeepSpoolingAndFighting()
   Place(battle, interdictor, {0.0f, 0.0f}, 0.0f);
   Place(battle, wedge, {1500.0f, -6500.0f}, 0.5f * kPi);
   Place(battle, trapped, {2500.0f, 1500.0f}, 0.0f);
-  Place(battle, free, {-(tuning::kGravityWellRadius + 6000.0f), 0.0f}, kPi);
+  Place(battle, distant, {-30000.0f, 0.0f}, kPi);
   Command withdraw = MakeCommand(Side::Alliance, OrderWithdraw{});
   for (const GroupState& group : battle.State().groups) {
     if (group.side == Side::Alliance) {
@@ -174,7 +183,7 @@ void TrappedShipsKeepSpoolingAndFighting()
     }
   }
   SB_CHECK(battle.Submit(withdraw));
-  const int32_t spool = battle.State().Ship(free)->spoolTotal;
+  const int32_t spool = std::max(battle.State().Ship(trapped)->spoolTotal, battle.State().Ship(distant)->spoolTotal);
   bool fired = false;
   for (int tick = 0; tick < spool + 2 * kTicksPerSecond && !battle.Finished(); ++tick) {
     battle.Step();
@@ -182,26 +191,22 @@ void TrappedShipsKeepSpoolingAndFighting()
       fired = fired || (shot.shooter == trapped && battle.State().Ship(trapped)->withdrawing);
     }
   }
-  SB_CHECK(battle.State().units[free].fate == UnitFate::Withdrawn);
-  SB_CHECK(battle.State().units[trapped].fate == UnitFate::Active);
-  SB_CHECK(battle.State().Ship(trapped)->withdrawing);
-  SB_CHECK(battle.State().Ship(trapped)->spoolTicks == battle.State().Ship(trapped)->spoolTotal);
-  SB_CHECK(battle.State().units[trapped].intent.kind == IntentKind::Trapped);
-  SB_CHECK(battle.State().units[trapped].intent.blocker == JumpBlocker::GravityWell);
-  // It runs for the edge of the well and fights on the way: it gets out, or it dies.
-  for (int tick = 0; tick < 240 * kTicksPerSecond && !battle.Finished(); ++tick) {
-    battle.Step();
-    for (const PendingShot& shot : battle.State().shots) {
-      fired = fired || (shot.shooter == trapped && battle.State().Ship(trapped)->withdrawing);
-    }
-  }
-  const UnitFate fate = battle.State().units[trapped].fate;
-  std::printf("trapped ship: %s after %.0f s\n", fate == UnitFate::Withdrawn ? "escaped" : "destroyed",
-              battle.State().BattleSeconds());
-  SB_CHECK(fate == UnitFate::Withdrawn || fate == UnitFate::Destroyed);
   SB_CHECK(fired);
+  for (const UnitIndex held : {trapped, distant}) {
+    SB_CHECK(battle.State().units[held].fate == UnitFate::Active);
+    SB_CHECK(battle.State().Ship(held)->withdrawing);
+    SB_CHECK(battle.State().Ship(held)->spoolTicks == battle.State().Ship(held)->spoolTotal);
+    SB_CHECK(battle.State().units[held].intent.kind == IntentKind::Trapped);
+    SB_CHECK(battle.State().units[held].intent.blocker == JumpBlocker::GravityWell);
+  }
+  sim::DestroyUnit(Mutable(battle), interdictor);
+  for (int tick = 0; tick < 2 * kTicksPerSecond && !battle.Finished(); ++tick) {
+    battle.Step();
+  }
+  SB_CHECK(battle.State().units[distant].fate == UnitFate::Withdrawn);
+  SB_CHECK(battle.State().units[trapped].fate == UnitFate::Withdrawn);
   const BattleResultSet results = battle.Results();
-  SB_CHECK(results.ships[1].fate == UnitFate::Withdrawn && results.ships[1].hull > 0);
+  SB_CHECK(results.ships[distant].fate == UnitFate::Withdrawn && results.ships[distant].hull > 0);
 }
 
 struct DeathStarBattle {
@@ -645,7 +650,7 @@ int main()
   SpoolTimeUsesRetreatDistanceAndDriveRating();
   TractorStopRule();
   TractorsCatchWithdrawingShips();
-  GravityWellBlocksJumpsInside();
+  GravityWellBlocksJumpsEverywhere();
   TrappedShipsKeepSpoolingAndFighting();
   SuperlaserFiresOnSchedule();
   ChargedSuperlaserLeftUnfiredDoesNotHoldTheBattleOpen();

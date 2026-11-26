@@ -88,7 +88,8 @@ void OutmatchedFleetPrioritizesActiveInterdictor()
     }
     Battle battle(builder.Snapshot(), AllianceAi());
     if (!active) {
-      Mutable(battle).Ship(interdictor)->systemsOffTicks = 100;
+      Mutable(battle).units[interdictor].fate = UnitFate::Destroyed;
+      Mutable(battle).units[interdictor].inSpace = false;
     }
     SB_CHECK(SideStrength(battle.State(), Side::Alliance) < SideStrength(battle.State(), Side::Empire));
     battle.Step();

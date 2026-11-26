@@ -204,8 +204,8 @@ void CommandHud::DrawConfirmWithdraw(Ui& ui)
   y += ui.S(20.0f);
   for (const std::string& line :
        WrapText(ui.Text(),
-                "Every ship spools its hyperdrive and jumps as soon as it can. Ships held by a tractor beam or inside "
-                "a gravity well keep fighting until they can leave.",
+                "Every ship spools its hyperdrive and jumps as soon as it can. Ships held by a tractor beam or an "
+                "enemy gravity well keep fighting until they can leave.",
                 ui.S(11.0f), content.w, 3)) {
     ui.Label({content.x, y, content.w, ui.S(14.0f)}, line, {11.0f, theme.textDim});
     y += ui.S(14.0f);

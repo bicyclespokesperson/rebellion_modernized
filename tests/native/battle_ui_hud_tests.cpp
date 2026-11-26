@@ -78,7 +78,7 @@ class KnowledgeBattle : public FakeBattle
       out.sides[static_cast<int>(Side::Alliance)].signalsReady = 0;
     }
     if (friendlyProjector) {
-      out.wells.push_back({kLiberty, {-6000.0f, 0.0f}, 22500.0f, Side::Alliance, true});
+      out.wells.push_back({kLiberty, {-6000.0f, 0.0f}, Side::Alliance});
     }
     if (enemyBatteries) {
       out.coverRadius = out.planetRadius + 15000.0f;
@@ -589,10 +589,11 @@ void BriefingDeploysAndEngages()
   h.source.friendlyProjector = true;
   h.Frame();
   const std::string warnings = briefingText();
-  REQUIRE(warnings.find("Your Liberty projects a gravity well: enemy ships inside it can't jump to hyperspace.")
+  REQUIRE(warnings.find("Your Liberty projects a gravity well: no enemy ship can jump to hyperspace while it "
+                        "survives.")
           != std::string::npos);
-  REQUIRE(warnings.find("Enemy Hammerhead projects a gravity well: your ships inside it can't jump to hyperspace "
-                        "until the projector is destroyed or disabled by ion fire.")
+  REQUIRE(warnings.find("Enemy Hammerhead projects a gravity well: none of your ships can jump to hyperspace until "
+                        "the projector is destroyed.")
           != std::string::npos);
   h.source.hideEnemy = true;
   h.Frame();
@@ -742,7 +743,7 @@ void AutoPauseWatchesTheView()
   view.units[1].hullFraction = 0.4f;
   view.units[2].hullFraction = 0.4f;
   view.units[0].flags |= battle::kViewDestroyed;
-  view.wells.push_back({2, {}, 15000.0f, Side::Empire, true});
+  view.wells.push_back({2, {}, Side::Empire});
   view.superlaserCharge = 1.0f;
   const std::vector<AutoPauseHit> hits = watcher.Update(view, Side::Alliance, facts, rules);
   const auto has = [&](AutoPauseEvent event) {

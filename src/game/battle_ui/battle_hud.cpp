@@ -84,8 +84,8 @@ std::string StatusLine(const battle::ViewUnit& unit)
   if (unit.flags & battle::kViewWithdrawing) {
     add("Withdrawing " + Percent(unit.spool));
   }
-  if (unit.flags & battle::kViewInEnemyWell) {
-    add("In enemy gravity well");
+  if (unit.flags & battle::kViewHeldByEnemyWell) {
+    add("Held by enemy gravity well");
   }
   if (unit.flags & battle::kViewUnderPlanetaryGuns) {
     add("Under planetary guns");

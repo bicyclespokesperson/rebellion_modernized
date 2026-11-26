@@ -257,7 +257,7 @@ comes with an injury roll that can be fatal.
 ### 5.7 Pacing and pause
 
 - Pause any time in single player; speeds 0.5x, 1x, 2x, 4x and 8x.
-- Auto-pause, each individually toggleable: enemy reinforcements arrive, a gravity well activates, a ship drops
+- Auto-pause, each individually toggleable: enemy reinforcements arrive, an enemy gravity-well projector arrives, a ship drops
   below its withdrawal threshold, a carrier is lost, the Death Star superlaser is charged.
 - **Command phases** (optional): the game pauses every 10, 20 or 30 s of battle time. This is the WEGO mode, and
   it is the default for two-human battles.
@@ -359,10 +359,10 @@ being there, and the Screen role keeps laser-armed ships between the threat and 
 
 Ion fire hits shields only, at full value. Once a capital ship's shields are down, further ion fire **disrupts**
 it, as in the original's ion hit handler: engines go offline for 30-50 s, a weapon arc is discharged, and in this
-design also any tractor lock or gravity well drops. Charged hyperdrive progress is retained; an engine outage
+design also any tractor lock drops. A gravity well is not affected (section 6.10). Charged hyperdrive progress is retained; an engine outage
 must expire before another ion hit can disable the engines again, giving a charged ship an escape window. Disruption is temporary and does
 not carry back to the strategic game. Ion weapons therefore have a clear job that turbolasers cannot do: stopping a
-ship without killing it, freeing a ship from a tractor beam, or opening a gravity well long enough to escape.
+ship without killing it, or freeing a ship from a tractor beam.
 Y-wings, B-wings and TIE Bombers carry ion cannons, and so do most heavy capital ships (the Imperial Star Destroyer
 puts half its bow firepower into ion).
 
@@ -410,24 +410,27 @@ Destroyer could stop almost anything, which made tractor power and target speed 
 
 ### 6.10 Gravity wells and withdrawal
 
-- **Gravity wells.** Only the Interdictor Cruiser and the CC-7700 frigate carry projectors. In the original a
-  working projector anywhere in the enemy fleet blocks all withdrawal. Here it projects a large circle on the plane
-  (initially 15 km radius in design units, 22.5 km on the plane after the world-scale change of section 15;
-  shown on the overlay). No enemy ship inside can jump, so escape becomes a question of
-  killing the Interdictor, disrupting it with ion fire, or running out of its reach. The Battle Alert's Retreat
-  stays disabled while the enemy has a working projector, as now.
+- **Gravity wells.** Only the Interdictor Cruiser and the CC-7700 frigate carry projectors. As in the original, a
+  projector anywhere in the enemy fleet blocks all withdrawal: while it is in space, no ship or squadron of the other
+  side can jump, wherever it is on the field. Its damage does not matter and ion disruption does not switch it off;
+  the block ends only when the projector is destroyed or otherwise leaves the battle. An earlier design gave the well
+  a 22.5 km circle that ships could run out of, or open with ion fire, but that let a beaten fleet slip away too
+  easily: bringing an Interdictor is meant to make a battle decisive, and escape is a question of killing it. The
+  overlay marks each projector rather than drawing a range. The Battle Alert's Retreat stays disabled while the
+  enemy has a working projector, as now.
 - **Withdrawal** is a per-ship, per-group or fleet-wide order, or a doctrine threshold, or the side's strategic
   threshold (section 8.2). A ship can jump if its side can retreat at all (`QueryRetreat`), it has a working
-  primary or backup hyperdrive, its speed is above zero (engines working, not held by tractors), and it is outside
-  every active enemy well.
+  primary or backup hyperdrive, its speed is above zero (engines working, not held by tractors), and the enemy has
+  no gravity-well projector in space.
 - **Spool time** comes from the side's retreat time (the original passed it as seconds to the 3D mode) and the
   ship's hyperdrive rating, where lower is faster: the Assault Transport (50) gets out first, the Medium
   Transport (100) last. Calibration uses `clamp(30 + retreatDays * 0.4, 8, 60)` seconds before multiplying by
   the working drive's rating / 100; this gives pursuit time to matter without changing strategic retreat thresholds.
   A Death Star in the battle greatly lengthens Imperial spool times, as the original README
   describes. A spooling ship is tagged "withdrawing", which enemy doctrines can prioritise.
-- When a side withdraws, ships that cannot jump yet (inside a well, held by tractors, hyperdrive knocked out) keep
-  spooling and fighting until they can, or until they are destroyed. Fighters without a hyperdrive dock with a
+- When a side withdraws, ships that cannot jump yet (held by an enemy well or by tractors, hyperdrive knocked out)
+  keep spooling and fighting until they can, or until they are destroyed; a fully spooled ship jumps the moment the
+  last enemy projector goes. Fighters without a hyperdrive dock with a
   departing carrier or stay behind. The original instead destroyed every unit that could not leave the moment its
   side withdrew; together with the automatic fleet-wide threshold that would kill trapped ships outright, which is
   the kind of result section 8.4 calls a defect. Ships that jumped report as withdrawn with their remaining hull.
@@ -548,7 +551,6 @@ Collected in one place for phase 1. All of them are tuned by calibration.
 | Squadron launch interval | 5 s + 0-7 s |
 | Damage-control interval | 50 s |
 | Ion disruption of engines | 30-50 s |
-| Gravity-well radius | 15 km |
 | Precision (subsystem) fire | 70% hull damage, 3x critical chance on the chosen system |
 | Power-routing switch time | 5 s |
 | Battle time limit | 15 min |
@@ -573,7 +575,7 @@ silhouette scale, vertical coverage exceptions); everything else comes from `CAP
 | Hangars | Carrier behaviour and the Carrier role |
 | Troop capacity | The transport tag: defenders' favourite target |
 | Tractor power and range | Pinning, measured against the target's speed |
-| Gravity-well projector | The interdictor tag and the escape-denial circle |
+| Gravity-well projector | The interdictor tag and field-wide escape denial |
 | Hyperdrive and backup | Spool time, and how many hits strand the ship |
 | Detection | Accuracy at long range and point-defence reaction time (it has no other battle use) |
 
@@ -624,7 +626,7 @@ The data gives the factions different toolkits without any extra rules.
 | Bulk Transport | Six regiments, unarmed, sub-light 1: escort it or keep it out of the fight |
 | Corellian Gunship | The fastest ship in the game (10/4) with long-reach lasers (25); hull 300 |
 | Alliance Dreadnaught | Old turbolaser broadside ship with one squadron; dependable line filler |
-| CC-7700 Frigate | The Alliance's gravity well, behind a laser screen; keep it alive and un-ionized |
+| CC-7700 Frigate | The Alliance's gravity well, behind a laser screen; keep it alive |
 | Bulwark Battlecruiser | The Alliance's Imperial-style bow ship: 600 bow turbolasers, 1,100 shields, ten squadrons, tractor 6 |
 | Liberator Cruiser | Broadside carrier-cruiser: six squadrons and heavy ion broadsides |
 | CC-9600 Frigate | The sniper: the longest turbolaser reach (75) and quick for its size (6/2) |
@@ -771,7 +773,7 @@ It gets no stat bonuses at any difficulty.
 - **Semantic zoom**: zoomed out, ships become faction-coloured tactical symbols by archetype (section 7.2), and
   flights become one marker with a craft count. Zoomed in, the ship art takes over.
 - **Tactical overlay** (Tab): firing arcs of the selection, weapon range rings, target lines (solid when firing,
-  dashed when assigned but not yet in range or arc), gravity-well circles, tractor links, fighter strike paths and
+  dashed when assigned but not yet in range or arc), gravity-well projector markers, tractor links, fighter strike paths and
   projected positions a few seconds ahead. Off by default when zoomed in, on by default when paused.
 
 ### 10.2 Screen layout
@@ -838,8 +840,8 @@ from the installation:
   into sparks and smoke, critical hits add a ring and shorting arcs, and critical damage shows on the hull (engine
   glow sputtering, a scorched burning section, venting).
 - Fighters are drawn slightly above the plane with soft shadows, so strikes visibly sweep over their targets.
-- Tractor beams are a blue cone, brightest at the emitter, with waves running back along it; a gravity well is a
-  ring that brightens toward its edge with ripples moving inward; a ship spooling its hyperdrive shows a countdown
+- Tractor beams are a blue cone, brightest at the emitter, with waves running back along it; a gravity-well
+  projector carries a ring with ripples moving outward; a ship spooling its hyperdrive shows a countdown
   ring and leaves in a streak of light along its heading. Ion disruption crackles around the hull.
 - Explosions scale with hull size: a white flash, overlapping fireballs cooling from yellow-white to red over a pall
   of smoke, a shock wave, tumbling hull fragments that glow and then darken, sparks, and for capital ships secondary
@@ -1002,8 +1004,8 @@ The renderer uses SDL, as the rest of the game does, but on a 2D plane it does n
   critical systems, hangars and rearming, tractors and wells, withdrawal, allocator overkill rules, outcome
   encoding, save round-trips.
 - **Scenario tests**: scripted battles with expected outcomes or outcome bands. For example: "a Mon Calamari
-  cruiser on Auto facing deals more damage per minute than the same ship held Bow-on"; "a fleet inside an active
-  gravity well cannot jump"; "a carrier's flight recovered before the jump survives, one left out is reported
+  cruiser on Auto facing deals more damage per minute than the same ship held Bow-on"; "a fleet facing an enemy
+  gravity-well projector cannot jump"; "a carrier's flight recovered before the jump survives, one left out is reported
   stranded"; "a stalemate leaves both fleets intact".
 - **Golden replays**: a recorded order log must re-simulate to the same final state hash on the same platform.
 - **Calibration**: `REB_SIM` AI matches dump the snapshot of every battle they fight. A harness runs each snapshot

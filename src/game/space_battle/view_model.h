@@ -24,7 +24,7 @@ enum ViewUnitFlag : uint32_t {
   kViewTractored = 1U << 4,
   kViewTractoring = 1U << 5,
   kViewDisrupted = 1U << 6, // ion disruption
-  kViewInEnemyWell = 1U << 7,
+  kViewHeldByEnemyWell = 1U << 7, // the enemy has a gravity-well projector in space
   kViewFlagship = 1U << 8,
   kViewShieldsDown = 1U << 9,
   kViewUnderPlanetaryGuns = 1U << 10, // inside the enemy's planetary battery cover
@@ -100,12 +100,11 @@ struct ViewTractor {
   UnitIndex to = kNoUnit;
 };
 
+// A gravity-well projector in space: no ship of the other side can jump anywhere on the field (§6.10).
 struct ViewWell {
   UnitIndex projector = kNoUnit;
   Vec2 center;
-  float radius = 0.0f;
   Side side = Side::Alliance;
-  bool active = true;
 };
 
 // A planetary battery (§6.13), standing on the planet's limb. It fires at enemy capital ships inside its side's cover

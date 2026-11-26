@@ -120,7 +120,7 @@ inline constexpr float kIonDisruptionMinimum = 10.0f;
 inline constexpr float kIonEngineChance = 0.35f; // otherwise a weapon arc is discharged
 inline constexpr float kIonEngineMinSeconds = 30.0f;
 inline constexpr float kIonEngineMaxSeconds = 50.0f;
-inline constexpr float kIonSystemsSeconds = 12.0f; // tractor and gravity-well projectors stay down this long
+inline constexpr float kIonSystemsSeconds = 12.0f; // tractor projectors stay down this long
 inline constexpr float kIonPoolDecay = 0.05f;      // disruption build-up lost per second, as a share of one event
 
 // ---- movement, facing and formations (§5.2, §6.2-6.3) ------------------------------------------------------------------
@@ -158,7 +158,6 @@ inline constexpr float kMoveArrivalDistance = Meters(250.0f);
 inline constexpr float kMinEngagementRange = Meters(300.0f);
 inline constexpr float kStandOffScan = Meters(10000.0f);    // enemies this close to the target set the stand-off reach
 inline constexpr float kScreenThreatRange = Meters(20000.0f);
-inline constexpr float kWellEscapeMargin = Meters(1500.0f);  // a trapped ship runs this far past a well's edge
 inline constexpr float kGarrisonApproach = Meters(3000.0f);  // an attacker facing only a docked garrison closes to this
 inline constexpr float kFacingRangeSlack = Meters(1000.0f);  // Auto facing half-counts targets this far out of reach
 
@@ -246,7 +245,6 @@ inline constexpr float kCommitRange = Meters(12000.0f);            // "when enem
 
 // ---- tractors, wells, withdrawal (§6.9-6.10) -----------------------------------------------------------------------------
 inline constexpr float kTractorBreakFactor = 1.1f; // locks break beyond this share of the tractor range
-inline constexpr float kGravityWellRadius = Meters(15000.0f);
 inline constexpr float kSpoolBaseSeconds = 20.0f;
 inline constexpr float kSpoolSecondsPerRetreatDay = 0.3f; // scaled with the shorter battle pacing
 inline constexpr float kSpoolMinSeconds = 8.0f;

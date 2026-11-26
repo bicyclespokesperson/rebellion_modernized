@@ -91,7 +91,7 @@ std::vector<AutoPauseHit> AutoPauseWatcher::Update(const battle::ViewModel& view
 
   std::vector<UnitIndex> wells;
   for (const battle::ViewWell& well : view.wells) {
-    if (!well.active || well.side == player) {
+    if (well.side == player) {
       continue;
     }
     wells.push_back(well.projector);

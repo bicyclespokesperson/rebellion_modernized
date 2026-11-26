@@ -369,13 +369,13 @@ void PlanetTypes()
   REQUIRE(!body(planet(1, false), Rgb(0x2f5f9c)));
 }
 
-void GravityWellsIdentifyProjectorsWithoutOverlappingLabels()
+void GravityWellsMarkProjectorsWithoutOverlappingLabels()
 {
   reb::battle::ViewModel view;
   std::vector<std::string> names;
   for (int i = 0; i < 6; ++i) {
     names.push_back("Projector " + std::to_string(i + 1));
-    view.wells.push_back({i, {0.0f, 0.0f}, 1500.0f, i % 2 == 0 ? Side::Alliance : Side::Empire, i != 5});
+    view.wells.push_back({i, {0.0f, 0.0f}, i % 2 == 0 ? Side::Alliance : Side::Empire});
   }
   FixedTextMeasurer text;
   NoSprites sprites;
@@ -395,9 +395,8 @@ void GravityWellsIdentifyProjectorsWithoutOverlappingLabels()
     for (int i = 0; i < 6; ++i) {
       REQUIRE(HasText(frame, std::string(i % 2 == 0 ? "YOUR" : "ENEMY") + " GRAVITY WELL · " + names[i]));
     }
-    REQUIRE(HasText(frame, "Enemy ships inside cannot jump to hyperspace"));
-    REQUIRE(HasText(frame, "Your ships inside cannot jump to hyperspace"));
-    REQUIRE(HasText(frame, "Projector down · this well is inactive"));
+    REQUIRE(HasText(frame, "No enemy ship can jump to hyperspace while it survives"));
+    REQUIRE(HasText(frame, "None of your ships can jump to hyperspace until it is destroyed"));
     for (const DrawCommand& command : frame.Commands()) {
       const auto* label = std::get_if<DrawText>(&command);
       if (!label) {
@@ -420,15 +419,13 @@ void GravityWellsIdentifyProjectorsWithoutOverlappingLabels()
       labels.push_back(bounds);
     }
     REQUIRE(labels.size() == 12);
-    if (angle == CameraView::TopDown) {
-      REQUIRE(CountIf<DrawArc>(frame, [](const DrawArc& ripple) {
-                return ripple.radius > 50.0f && ripple.radius < 140.0f && ripple.color.a > 0
-                       && ripple.stroke.dash == 0.0f;
-              }) >= 5);
-      REQUIRE(CountIf<DrawArc>(frame, [](const DrawArc& ring) {
-                return Near(ring.radius, 150.0f) && ring.stroke.dash == 0.0f;
-              }) >= 5);
-    }
+    // A well covers the whole field, so it marks only its projector: no range circle on the plane.
+    REQUIRE(CountIf<DrawArc>(frame, [](const DrawArc& arc) {
+              return arc.radius > 40.0f;
+            }) == 0);
+    REQUIRE(CountIf<DrawArc>(frame, [](const DrawArc& marker) {
+              return marker.radius >= 12.0f && marker.color.a > 0 && marker.stroke.dash == 0.0f;
+            }) >= 6);
   }
   camera.SetView(CameraView::TopDown);
   camera.SetCenter({0.0f, -3000.0f});
@@ -456,6 +453,6 @@ int main()
   BoltsFollowThePalette();
   PodsAndDamage();
   PlanetTypes();
-  GravityWellsIdentifyProjectorsWithoutOverlappingLabels();
+  GravityWellsMarkProjectorsWithoutOverlappingLabels();
   std::puts("battle_ui angled view tests passed");
 }

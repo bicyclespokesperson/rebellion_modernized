@@ -429,13 +429,11 @@ void CommandHud::DrawBriefing(Ui& ui, const Rect& column)
     std::string line = std::string(of == side ? "Your " : "Enemy ") + projectors
                        + (several ? " project gravity wells: " : " projects a gravity well: ");
     if (of == side) {
-      line += several ? "enemy ships inside them can't jump to hyperspace."
-                      : "enemy ships inside it can't jump to hyperspace.";
+      line += "no enemy ship can jump to hyperspace while ";
+      line += several ? "any of them survives." : "it survives.";
     } else {
-      line += several ? "your ships inside them can't jump to hyperspace until the projectors are destroyed or "
-                        "disabled by ion fire."
-                      : "your ships inside it can't jump to hyperspace until the projector is destroyed or "
-                        "disabled by ion fire.";
+      line += "none of your ships can jump to hyperspace until ";
+      line += several ? "every projector is destroyed." : "the projector is destroyed.";
     }
     paragraph(line, theme.textDim);
     y += ui.S(6.0f);

@@ -232,7 +232,8 @@ void ReassessmentChangesRolesAndDropsDeadThreats()
   SB_CHECK(battle.State().EffectiveShipDoctrine(damaged).role == Role::Line);
 }
 
-void ReassessmentStopsFocusingDisabledInterdictor()
+// Ion fire does not open a gravity well, so only the Interdictor's loss ends the focus on it.
+void ReassessmentStopsFocusingLostInterdictor()
 {
   SnapshotBuilder builder;
   const UnitIndex line = builder.Add(Broadside(Side::Alliance));
@@ -246,6 +247,10 @@ void ReassessmentStopsFocusingDisabledInterdictor()
   battle.Step();
   SB_CHECK(battle.State().EffectiveShipDoctrine(line).priorities.tags[0] == TargetTag::Interdictor);
   Mutable(battle).Ship(interdictor)->systemsOffTicks = 1000;
+  battle.RunHeadless(2 * kTicksPerSecond);
+  SB_CHECK(battle.State().EffectiveShipDoctrine(line).priorities.tags[0] == TargetTag::Interdictor);
+  Mutable(battle).units[interdictor].fate = UnitFate::Destroyed;
+  Mutable(battle).units[interdictor].inSpace = false;
   battle.RunHeadless(2 * kTicksPerSecond);
   SB_CHECK(battle.State().EffectiveShipDoctrine(line).priorities.tags[0] != TargetTag::Interdictor);
 }
@@ -601,7 +606,7 @@ int main()
   AggressiveCommanderStillPreservesTransportsAtHalfHull();
   HigherDifficultiesUseSignals();
   ReassessmentChangesRolesAndDropsDeadThreats();
-  ReassessmentStopsFocusingDisabledInterdictor();
+  ReassessmentStopsFocusingLostInterdictor();
   ObserveStartsWithCurrentDoctrinesAndCanTakeOverAgain();
   HumanDeploymentUsesMatchupsUnlessBriefingDoctrineWasChanged();
   ObservedDepartingCarrierRecoversDependentFighters();

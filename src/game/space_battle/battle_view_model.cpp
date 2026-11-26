@@ -38,7 +38,7 @@ const char* BlockerText(JumpBlocker blocker)
     case JumpBlocker::Tractored:
       return "held by tractor beams";
     case JumpBlocker::GravityWell:
-      return "inside a gravity well";
+      return "held by an enemy gravity well";
     case JumpBlocker::SideCannotRetreat:
       return "no retreat route";
     case JumpBlocker::None:
@@ -192,8 +192,8 @@ uint32_t UnitFlags(const BattleState& state, UnitIndex index)
       flags |= kViewDisrupted;
     }
   }
-  if (unit.inSpace && unit.kind != UnitKind::DeathStar && InEnemyWell(state, index)) {
-    flags |= kViewInEnemyWell;
+  if (unit.inSpace && unit.kind != UnitKind::DeathStar && HeldByEnemyWell(state, index)) {
+    flags |= kViewHeldByEnemyWell;
   }
   if ((state.Profile(index).staticTags & TagBit(TargetTag::Flagship)) != 0) {
     flags |= kViewFlagship;
@@ -402,10 +402,9 @@ void Battle::BuildViewModel(float alpha, ViewModel& out) const
     if (ship.tractorTarget != kNoUnit) {
       out.tractors.push_back({ship.unit, ship.tractorTarget});
     }
-    if (state.Profile(ship.unit).gravityWell) {
+    if (WellActive(state, ship.unit)) {
       const UnitState& unit = state.units[ship.unit];
-      out.wells.push_back({ship.unit, Lerp(unit.previousPosition, unit.position, alpha), kGravityWellRadius, unit.side,
-                           WellActive(state, ship.unit)});
+      out.wells.push_back({ship.unit, Lerp(unit.previousPosition, unit.position, alpha), unit.side});
     }
   }
 

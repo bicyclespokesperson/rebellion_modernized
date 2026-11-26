@@ -114,7 +114,7 @@ struct ShipState {
   PowerRouting powerFrom = PowerRouting::Balanced;
   int32_t powerTicks = 0; // ticks left in a routing transition
   int32_t engineOffTicks = 0;  // ion disruption
-  int32_t systemsOffTicks = 0; // ion: tractor and gravity-well projectors down
+  int32_t systemsOffTicks = 0; // ion: tractor projector down
   float ionPool = 0.0f;
   int32_t damageControlTicks = 0;
   UnitIndex tractorTarget = kNoUnit;
