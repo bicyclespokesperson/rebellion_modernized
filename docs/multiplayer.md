@@ -8,24 +8,29 @@ battles; the guest sends orders and receives the host's game state. Both players
 1. Use the same native build and matching game data on both computers.
 2. Open **Play Head to Head** from the main menu.
 3. On one computer, choose **Host a game**, enter a campaign name, and host the session. Choose the host's faction,
-   galaxy size, and victory conditions.
-4. On the other computer, choose **Join a game**, select the nearby session, and connect. If discovery does not find
-   it, enter the host's displayed IPv4 address. A custom port can be entered as `address:port`.
-5. Both players choose **Ready**. The host selects **Start campaign**.
+   galaxy size, and victory conditions. Use **Copy** to copy the displayed LAN address (or **Next IP** if the computer
+   has multiple network interfaces).
+4. On the other computer, choose **Join a game**, select (or double-click) the nearby session, and connect. If discovery
+   does not find it, enter or **Paste** (Ctrl+V) the host's displayed IPv4 address. A custom port can be entered as
+   `address:port`.
+5. Both players choose **Ready Up**. The host selects **Start campaign**.
 
 Allow the game to access the local network when the operating system asks. Some guest Wi-Fi networks isolate devices;
 both computers need a network that permits them to communicate. The default port is **47624**, using UDP for discovery
-and TCP for the game. No account, external server, or router port forwarding is needed for LAN play.
+(sent to both the global broadcast address and each active LAN subnet's broadcast address) and TCP for the game. No
+account, external server, or router port forwarding is needed for LAN play.
 
-The guest has the other faction. Settings changes clear readiness so both players can review them before starting.
-The connection check reports mismatched builds or game data before a campaign starts.
+The guest has the other faction. Settings changes (including selecting a saved checkpoint to resume) clear readiness and
+sync to the guest so both players can review them before starting. The connection check reports mismatched builds or game
+data before a campaign starts. Space battles in LAN campaigns resolve automatically on the host after both players choose
+Simulate or Retreat (Take Command is disabled in LAN play).
 
 ## Save and resume
 
 The host creates an autosave every **five minutes of connected, unpaused play**, retaining the latest **ten autosaves
 per campaign**. Manual checkpoints are retained separately. Checkpoints wait for a complete strategic step; during a
 battle they wait until strategic play resumes. Leaving during a battle retains the last completed checkpoint.
-The window title shows connection and save status.
+The window title and the in-game top status bar show connection, pause, and save status (visible in fullscreen as well).
 
 Press **F8** to create a manual checkpoint. Either player can request one; the host writes it and transfers a backup
 to the guest. The in-game Save controls also create campaign checkpoints. Existing checkpoints appear in the in-game

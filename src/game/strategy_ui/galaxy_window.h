@@ -249,6 +249,7 @@ class GalaxyWindow : public GameWindowObject
   // Shows the object menu of kind `kind` (0xdead: the object commands, 0xbeef: the order commands) at (x, y).
   void ShowObjectMenu(int x, int y, uint32_t kind); // 0x42d050
   void ShowLatency();                               // 0x42d780
+  void SetLanStatusText(const char* text);
   int MapOffsetX() const; // horizontal offset of the original 640-pixel galaxy scene on a wider canvas
   int SectorSlotX(bool right) const;
   // The GID marker image of the system `system`, null if it has no marker.

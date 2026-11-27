@@ -775,6 +775,20 @@ void GalaxyWindow::ShowLatency()
   reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
 }
 
+void GalaxyWindow::SetLanStatusText(const char* text)
+{
+  const char* safe = text ? text : "";
+  if (m_latencyLabel.m_text && *m_latencyLabel.m_text == safe) {
+    return;
+  }
+  m_latencyLabel.SetText(safe);
+  RECT area = m_latencyLabel.m_rect;
+  if (reb::compat::IsRectEmpty(&area)) {
+    reb::compat::SetRect(&area, 0x46 + MapOffsetX(), 0, 0x46 + MapOffsetX() + 500, 12);
+  }
+  reb::compat::InvalidateRect(m_hwnd, &area, FALSE);
+}
+
 void GalaxyWindow::RedrawSectorMarkers(GameObjNotifier* sector)
 {
   RECT dirty;

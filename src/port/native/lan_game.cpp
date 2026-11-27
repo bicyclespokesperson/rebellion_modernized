@@ -13,17 +13,21 @@
 #include <random>
 #include <sstream>
 
+#include "app/app_strings.h"
 #include "app/battle_flow.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "core/iostream_lib.h"
 #include "core/memory_stream.h"
+#include "economy/side.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_step_driver.h"
 #include "events/game_manager.h"
 #include "gameobj/factory_registries.h"
 #include "gameobj/notif_payload.h"
+#include "gameobj/object_lookup.h"
+#include "gameobj/object_queries.h"
 #include "multiplayer/lan_player.h"
 #include "multiplayer/world_replica.h"
 #include "orders/order_base.h"
@@ -33,6 +37,8 @@
 #include "port/native/platform.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "ui/cool_app.h"
+#include "ui/resource_dll.h"
 
 #ifndef REB_LAN_BUILD_ID
 #define REB_LAN_BUILD_ID "development"
@@ -85,18 +91,44 @@ std::filesystem::path CheckpointDirectory()
 
 uint64_t DataFingerprint()
 {
+  const std::filesystem::path install = mw::config::Global().InstallDir();
+  const std::filesystem::path dataDir = mw::config::Global().DataDir();
+  auto resolveFolder = [&](const char* folder) -> std::filesystem::path {
+    std::error_code ec;
+    if (std::filesystem::is_directory(install / folder, ec) && !ec) {
+      return install / folder;
+    }
+    if (!dataDir.empty() && std::filesystem::is_directory(dataDir / folder, ec) && !ec) {
+      return dataDir / folder;
+    }
+    return install / folder;
+  };
+  const std::filesystem::path gdataPath = resolveFolder("GData");
+  const std::filesystem::path edataPath = resolveFolder("EData");
+
+  static std::filesystem::path cachedGdata;
+  static std::filesystem::path cachedEdata;
+  static uint64_t cachedHash = 0;
+  static bool hasCachedHash = false;
+  if (hasCachedHash && cachedGdata == gdataPath && cachedEdata == edataPath) {
+    return cachedHash;
+  }
+
   struct DataFile {
     std::string key;
     std::string relativePath;
     std::filesystem::path path;
   };
   std::vector<DataFile> files;
-  const std::filesystem::path install = mw::config::Global().InstallDir();
-  for (const char* folder : {"GData", "EData"}) {
+  const std::array<std::pair<const char*, std::filesystem::path>, 2> folders{{
+      {"GData", gdataPath},
+      {"EData", edataPath},
+  }};
+  for (const auto& [folderName, folderPath] : folders) {
     std::error_code error;
-    for (const auto& entry : std::filesystem::directory_iterator(install / folder, error)) {
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath, error)) {
       if (entry.is_regular_file()) {
-        std::string relative = entry.path().lexically_relative(install).generic_string();
+        std::string relative = std::string(folderName) + "/" + entry.path().filename().generic_string();
         std::string key = relative;
         std::ranges::transform(key, key.begin(), [](unsigned char character) {
           return static_cast<char>(std::tolower(character));
@@ -104,7 +136,7 @@ uint64_t DataFingerprint()
         files.push_back({std::move(key), std::move(relative), entry.path()});
       }
     }
-    if (error) throw std::runtime_error("Cannot list game data: " + (install / folder).string());
+    if (error) throw std::runtime_error("Cannot list game data: " + folderPath.string());
   }
   std::ranges::sort(files, [](const DataFile& left, const DataFile& right) {
     if (left.key != right.key) return left.key < right.key;
@@ -137,7 +169,68 @@ uint64_t DataFingerprint()
       throw std::runtime_error("Cannot read game data: " + file.path.string());
     }
   }
+  cachedGdata = gdataPath;
+  cachedEdata = edataPath;
+  cachedHash = hash;
+  hasCachedHash = true;
   return hash;
+}
+
+void EnsureStrategicResources(int humanSide)
+{
+  constexpr uint32_t kTextStraSlot = 2;
+  if (!CoolGetResourceModule(kTextStraSlot)) {
+    char* dllLocation = GetDllLocation();
+    CoolRegisterResourceDll(dllLocation, g_textstraDllName, kTextStraSlot);
+    if (dllLocation) {
+      ::operator delete(dllLocation);
+    }
+  }
+  if (humanSide == 1 || humanSide == 2) {
+    UiLoadSideSpriteDlls(humanSide, 1);
+  }
+}
+
+void SyncStrategicResources(RebellionApplication& app, int humanSide)
+{
+  if (!app.m_strategicWindow || (humanSide != 1 && humanSide != 2)) {
+    return;
+  }
+  auto* side = static_cast<Side*>(GetSideObject(humanSide, humanSide));
+  if (!side) {
+    return;
+  }
+  app.m_strategicWindow->SetResourceCounter(kGalaxyRawMaterials, side->m_rawMaterials, 0);
+  app.m_strategicWindow->SetResourceCounter(kGalaxyRefinedMaterials, side->m_refinedMaterials, 0);
+  app.m_strategicWindow->SetResourceCounter(
+      kGalaxyMaintenance, static_cast<int>(side->m_maintState.m_first) - side->m_maintRequiredB,
+      static_cast<int>(side->m_maintState.m_first));
+}
+
+void SyncStrategicHud(RebellionApplication& app, int humanSide, bool paused, bool connected, bool forceSpeed = false)
+{
+  if (!app.m_strategicWindow) {
+    return;
+  }
+  if (GameSession* session = GetGameSession(); session && session->m_human) {
+    const int baseSpeed = session->m_human->m_speed > 0 ? session->m_human->m_speed : 2;
+    const int displaySpeed = (paused || !connected) ? 0 : baseSpeed;
+    app.m_strategicWindow->SetDateAndSpeed(GameHookDay(), displaySpeed, forceSpeed ? 1 : 0);
+  }
+  SyncStrategicResources(app, humanSide);
+}
+
+void OpenStrategicView(RebellionApplication& app, int humanSide, bool paused, bool connected)
+{
+  EnsureStrategicResources(humanSide);
+  app.SetState(kStateStrategic);
+  if (app.m_strategicWindow) {
+    app.m_strategicWindow->InitializeGameDisplay();
+    SyncStrategicHud(app, humanSide, paused, connected, true);
+  }
+  if (GameSession* session = GetGameSession()) {
+    session->HumanRequestUpdate();
+  }
 }
 
 std::vector<uint8_t> Serialize(const std::function<bool(ostream*)>& write)
@@ -157,6 +250,9 @@ void WriteSettings(lan::Writer& out, const LanSettings& settings)
   out.I32(settings.galaxySize);
   out.I32(settings.victoryMode);
   out.I32(settings.seed);
+  out.U32(settings.resuming ? 1u : 0u);
+  out.String(settings.resumeName, 160);
+  out.U32(settings.resumeTick);
 }
 
 bool ReadSettings(lan::Reader& in, LanSettings& settings)
@@ -165,8 +261,13 @@ bool ReadSettings(lan::Reader& in, LanSettings& settings)
   settings.galaxySize = in.I32();
   settings.victoryMode = in.I32();
   settings.seed = in.I32();
-  return in.Good() && settings.hostSide >= 1 && settings.hostSide <= 2 && settings.galaxySize >= 1
-         && settings.galaxySize <= 3 && settings.victoryMode >= 1 && settings.victoryMode <= 2;
+  const uint32_t resumingValue = in.U32();
+  settings.resuming = resumingValue != 0;
+  settings.resumeName = in.String(160);
+  settings.resumeTick = in.U32();
+  return in.Good() && resumingValue <= 1 && settings.hostSide >= 1 && settings.hostSide <= 2
+         && settings.galaxySize >= 1 && settings.galaxySize <= 3 && settings.victoryMode >= 1
+         && settings.victoryMode <= 2;
 }
 
 bool SaveDriver(std::vector<uint8_t>& bytes)
@@ -177,12 +278,13 @@ bool SaveDriver(std::vector<uint8_t>& bytes)
 }
 
 bool RestoreDriver(RebellionApplication& app, std::span<const uint8_t> bytes, int humanSide,
-                   reb::multiplayer::WorldReplicaState& replica)
+                   reb::multiplayer::WorldReplicaState& replica, bool paused, bool connected)
 {
   app.ReleaseOverlayWindow();
   app.DetachActiveWindow();
   app.DestroyStrategicWindow();
   replica.Reset();
+  EnsureStrategicResources(humanSide);
   CreateBattleFlow();
   BattleFlow* flow = GetBattleFlow();
   if (!flow || !flow->CreateStepDriver()) {
@@ -203,7 +305,7 @@ bool RestoreDriver(RebellionApplication& app, std::span<const uint8_t> bytes, in
   app.m_unknown134 = 0;
   driver->m_setupDone = 1;
   driver->m_hold = 0;
-  app.SetState(kStateStrategic);
+  OpenStrategicView(app, humanSide, paused, connected);
   return true;
 }
 } // namespace
@@ -233,7 +335,13 @@ struct LanGame::Impl
   bool peerResponding = false;
   bool reconnecting = false;
   bool reconnectBlocked = false;
+  bool hasError = false;
   bool awaitingSnapshot = false;
+  bool worldSentOnce = false;
+  int lastWorldTick = -1;
+  int lastWorldDay = -1;
+  uint64_t lastWorldAcceptedOrders = 0;
+  bool lastWorldPaused = false;
   bool battleVotePending = false;
   bool battleVoteRequestedOnConnection = false;
   bool battleVoteDone = false;
@@ -256,6 +364,7 @@ struct LanGame::Impl
   std::string token;
   std::string status = "Host a campaign or join a nearby game.";
   std::string lastSave;
+  std::string transientNotice;
   std::string windowTitle;
   Clock::time_point lastPoll = Clock::now();
   Clock::time_point lastReceive = Clock::now();
@@ -263,6 +372,8 @@ struct LanGame::Impl
   Clock::time_point lastWorld = Clock::now();
   Clock::time_point nextRetry = Clock::now();
   Clock::time_point lastSaveAttempt = Clock::now();
+  Clock::time_point lastSaveTime{};
+  Clock::time_point transientNoticeUntil{};
   lan::Status previousStatus = lan::Status::Idle;
   std::vector<std::vector<uint8_t>> notices;
 
@@ -279,9 +390,22 @@ struct LanGame::Impl
     Send(Kind::Settings, out);
   }
 
+  void RecordSaveMessage(std::string message)
+  {
+    lastSave = std::move(message);
+    lastSaveTime = Clock::now();
+  }
+
+  std::string ConnectedPlayingStatus() const
+  {
+    if (paused) return "Campaign paused. Press Pause or 0 to resume.";
+    return host ? "Both players connected." : "Connected to host.";
+  }
+
   void Fail(const std::string& message, bool tellPeer = true)
   {
     status = message;
+    hasError = true;
     ready = false;
     peerReady = false;
     verified = false;
@@ -292,7 +416,7 @@ struct LanGame::Impl
       lan::Writer out;
       out.String(message);
       Send(ErrorMessage, out);
-      connection.Poll();
+      connection.Drain(std::chrono::milliseconds(150));
     }
     connection.DisconnectPeer();
     std::fprintf(stderr, "LAN: %s\n", message.c_str());
@@ -308,6 +432,7 @@ struct LanGame::Impl
     }
     beginPending = false;
     battleVotePending = false;
+    worldSentOnce = false;
     std::vector<uint8_t> state;
     if (!SaveDriver(state)) {
       Fail("Could not prepare the campaign for the other player.");
@@ -386,6 +511,7 @@ struct LanGame::Impl
       }
       verified = true;
       peerResponding = true;
+      hasError = false;
       lan::Writer out;
       out.String(token);
       out.U32(playing);
@@ -419,6 +545,7 @@ struct LanGame::Impl
       verified = true;
       peerResponding = true;
       reconnecting = false;
+      hasError = false;
       status = resumed ? "Receiving the current campaign..." : "Connected. Choose Ready when you are ready to play.";
       return;
     }
@@ -484,7 +611,7 @@ struct LanGame::Impl
           name = receivedName;
           paused = receivedPaused != 0;
           handlingRemote = true;
-          const bool restored = RestoreDriver(app, state, 3 - settings.hostSide, replica);
+          const bool restored = RestoreDriver(app, state, 3 - settings.hostSide, replica, paused, true);
           handlingRemote = false;
           if (!restored) {
             Fail("Could not load the host's campaign.");
@@ -500,7 +627,7 @@ struct LanGame::Impl
           ack.U32(replicaTick);
           ack.U64(snapshotFingerprint);
           Send(BeginAck, ack);
-          status = paused ? "Campaign paused." : "Connected to host.";
+          status = ConnectedPlayingStatus();
           return;
         }
       case BeginAck:
@@ -510,7 +637,8 @@ struct LanGame::Impl
           return;
         }
         waitingForBeginAck = false;
-        status = paused ? "Campaign paused." : "Both players connected.";
+        status = ConnectedPlayingStatus();
+        SyncStrategicHud(app, settings.hostSide, paused, true);
         break;
       case World:
         if (host || !playing || !GetGameManager()) {
@@ -528,9 +656,11 @@ struct LanGame::Impl
           if (battleVotePending && battleVoteDone && root && !root->m_key8c.IsSet() && root->m_unk70 == 0) {
             battleVotePending = false;
             battleVoteRequestedOnConnection = false;
-            status = paused ? "Campaign paused." : "Connected to host.";
+            status = ConnectedPlayingStatus();
           }
-          UiSetDateAndSpeed(GameHookDay(), GetGameSession()->m_human->m_speed);
+          SyncStrategicHud(app, 3 - settings.hostSide, paused,
+                           verified && peerResponding && !awaitingSnapshot
+                               && connection.GetStatus() == lan::Status::Connected);
           UiRefreshChildWindows();
           if (app.m_strategicWindow) {
             reb::compat::InvalidateRect(app.m_strategicWindow->m_hwnd, nullptr, FALSE);
@@ -586,7 +716,9 @@ struct LanGame::Impl
           }
           const auto noticeKind = in.U32();
           if (noticeKind == 0) {
-            status = in.String();
+            transientNotice = in.String();
+            transientNoticeUntil = Clock::now() + std::chrono::seconds(6);
+            status = transientNotice;
           } else {
             const auto bytes = in.Blob(kMaximumOrder);
             auto notice = std::unique_ptr<NotifPayload>(static_cast<NotifPayload*>(CreateKeyedObject(noticeKind)));
@@ -671,7 +803,10 @@ struct LanGame::Impl
           }
           paused = pauseValue != 0;
         }
-        status = paused ? "Campaign paused. Press Pause to resume." : "Both players connected.";
+        status = ConnectedPlayingStatus();
+        SyncStrategicHud(app, host ? settings.hostSide : 3 - settings.hostSide, paused,
+                         verified && peerResponding && !awaitingSnapshot
+                             && connection.GetStatus() == lan::Status::Connected, true);
         break;
       case SaveRequest:
         if (!host || !playing) {
@@ -705,7 +840,7 @@ struct LanGame::Impl
             return;
           }
           const auto result = checkpoints.Save(metadata, bytes, automatic);
-          lastSave = result ? "Checkpoint copied to this computer." : "Backup save failed: " + result.error;
+          RecordSaveMessage(result ? "Checkpoint copied to this computer." : "Backup save failed: " + result.error);
           return;
         }
       case Heartbeat:
@@ -804,12 +939,20 @@ void LanGame::Discover(uint16_t port)
 
 void LanGame::Close()
 {
+  const bool hadWindowTitle = !impl_->windowTitle.empty();
   if (impl_->connection.GetStatus() == lan::Status::Connected) {
     lan::Writer out;
     impl_->Send(Leave, out);
-    impl_->connection.Drain(std::chrono::milliseconds(250));
+    impl_->connection.Drain(std::chrono::milliseconds(1500));
   }
   impl_ = std::make_unique<Impl>();
+  if (hadWindowTitle) {
+    if (auto* app = dynamic_cast<RebellionApplication*>(g_app)) {
+      const ResourceStringId titleId = {0x1000, 1};
+      const std::string title = LoadStringResource(&titleId);
+      app->SetWindowTitle(title.empty() ? "Star Wars Rebellion" : title.c_str());
+    }
+  }
 }
 
 void LanGame::Poll(RebellionApplication& app)
@@ -822,6 +965,7 @@ void LanGame::Poll(RebellionApplication& app)
   const auto now = Clock::now();
   const auto elapsed = now - state.lastPoll;
   state.lastPoll = now;
+  const bool wasConnected = Connected();
   state.connection.Poll();
   if (state.host && state.battleVotePending && GetBattleFlow()
       && GetBattleFlow()->m_state == kFlowStrategic) state.battleVotePending = false;
@@ -831,6 +975,7 @@ void LanGame::Poll(RebellionApplication& app)
     state.helloSent = false;
     state.verified = false;
     state.peerResponding = false;
+    state.hasError = false;
     if (!state.host && state.playing) state.awaitingSnapshot = true;
     if (!state.host) state.battleVoteRequestedOnConnection = false;
   }
@@ -844,18 +989,26 @@ void LanGame::Poll(RebellionApplication& app)
     state.helloSent = true;
   }
   state.previousStatus = status;
-  while (state.verified || state.connection.GetStatus() == lan::Status::Connected) {
+  // Always drain buffered frames even if ReadFrames() reached EOF on the same Poll(),
+  // so ErrorMessage, Leave, and EndGame frames are never dropped before Disconnect handling.
+  for (;;) {
     auto message = state.connection.TakeMessage();
     if (!message) break;
+    const bool wasResponding = state.peerResponding;
     state.lastReceive = now;
     state.peerResponding = true;
+    if (state.playing && state.verified && !wasResponding && !state.waitingForBeginAck && !state.battleVotePending) {
+      state.status = state.ConnectedPlayingStatus();
+    }
     state.Receive(app, *message);
     if (state.pendingMovieState != 0) {
       const int movieState = state.pendingMovieState;
       app.SetState(movieState);
       return;
     }
-    if (!state.verified) break;
+    if (!state.verified && state.connection.GetStatus() != lan::Status::Connected) {
+      if (state.hasError) break;
+    }
   }
   if (!state.host && state.battleVotePending) SubmitBattleVote();
   if (state.connection.GetStatus() == lan::Status::Connected &&
@@ -876,7 +1029,7 @@ void LanGame::Poll(RebellionApplication& app)
     if (state.reconnectBlocked) {
       // Keep the peer's rejection reason visible until the player starts another session.
     } else if (state.playing) {
-      state.status = "Connection lost. Campaign paused; waiting to reconnect.";
+      state.status = "Connection lost. Campaign paused; waiting to reconnect (F9 to retry).";
       if (!state.host && now >= state.nextRetry) {
         if (state.connection.Join(state.address, state.port)) {
           state.previousStatus = lan::Status::Connecting;
@@ -885,7 +1038,10 @@ void LanGame::Poll(RebellionApplication& app)
         state.reconnecting = true;
       }
     } else if (currentStatus == lan::Status::Error) {
+      state.hasError = true;
       if (!state.connection.Error().empty()) state.status = state.connection.Error();
+    } else if (state.hasError) {
+      // Preserve handshake/validation error text sent right before DisconnectPeer.
     } else if (state.host) {
       state.status = "Waiting for the other player.";
     } else {
@@ -913,9 +1069,10 @@ void LanGame::Poll(RebellionApplication& app)
     if (GetBattleFlow()->m_state == kFlowStrategic) {
       state.starting = false;
       state.playing = true;
+      state.connection.SetAdvertising(false);
       driver->m_hold = 0;
       driver->Session()->m_viewReady = 1;
-      app.SetState(kStateStrategic);
+      OpenStrategicView(app, state.settings.hostSide, state.paused, Connected());
       state.cadence.Reset(GetGameTickCount());
       state.SendBegin();
       state.checkpointPending = true;
@@ -938,10 +1095,27 @@ void LanGame::Poll(RebellionApplication& app)
     }
   }
   if (state.playing) {
+    const bool nowConnected = Connected();
+    if (wasConnected != nowConnected) {
+      SyncStrategicHud(app, state.host ? state.settings.hostSide : 3 - state.settings.hostSide,
+                       state.paused, nowConnected, true);
+    }
     const std::string title = "Rebellion | " + state.status + (state.lastSave.empty() ? "" : " | " + state.lastSave);
     if (title != state.windowTitle) {
       state.windowTitle = title;
       app.SetWindowTitle(title.c_str());
+    }
+    if (app.m_strategicWindow) {
+      std::string banner;
+      if (!nowConnected || state.paused || state.waitingForBeginAck || state.beginPending || state.battleVotePending) {
+        banner = state.status;
+      } else if (!state.transientNotice.empty() && now < state.transientNoticeUntil) {
+        banner = state.transientNotice;
+      } else if (!state.lastSave.empty() && state.lastSaveTime != Clock::time_point{}
+                 && now - state.lastSaveTime < std::chrono::seconds(6)) {
+        banner = state.lastSave;
+      }
+      app.m_strategicWindow->SetLanStatusText(banner.c_str());
     }
   }
   if (state.playing && !state.host && GetGameSession()) {
@@ -962,7 +1136,14 @@ void LanGame::AfterStep(RebellionApplication& app)
     state.lastSaveAttempt = now;
     SaveCheckpoint(app, state.checkpointAutomatic);
   }
-  if (Connected() && state.connection.PendingSendBytes() == 0
+  const int currentTick = GetGameTickCount();
+  const int currentDay = GameHookDay();
+  const bool stateChanged = !state.worldSentOnce || currentTick != state.lastWorldTick
+                            || currentDay != state.lastWorldDay
+                            || state.acceptedOrders != state.lastWorldAcceptedOrders
+                            || state.paused != state.lastWorldPaused
+                            || !state.notices.empty();
+  if (Connected() && state.connection.PendingSendBytes() == 0 && stateChanged
       && !state.waitingForBeginAck && now - state.lastWorld >= std::chrono::milliseconds(200)
       && GetBattleFlow()->m_state == kFlowStrategic && GetGameStepDriver()->m_phase == 0) {
     std::vector<uint8_t> bytes;
@@ -971,7 +1152,12 @@ void LanGame::AfterStep(RebellionApplication& app)
       state.Fail("Could not send campaign update: " + error);
       return;
     }
-    state.replicaTick = GetGameTickCount();
+    state.worldSentOnce = true;
+    state.lastWorldTick = currentTick;
+    state.lastWorldDay = currentDay;
+    state.lastWorldAcceptedOrders = state.acceptedOrders;
+    state.lastWorldPaused = state.paused;
+    state.replicaTick = static_cast<uint32_t>(currentTick);
     state.lastWorld = now;
     for (const auto& notice : state.notices) {
       state.connection.Send(Notice, notice);
@@ -1025,6 +1211,10 @@ bool LanGame::StartNew(RebellionApplication& app)
     return false;
   }
   state.replica.Reset();
+  state.settings.resuming = false;
+  state.settings.resumeName.clear();
+  state.settings.resumeTick = 0;
+  EnsureStrategicResources(state.settings.hostSide);
   app.m_side = state.settings.hostSide;
   app.m_gameType = 1;
   app.m_networkMode = 0;
@@ -1040,6 +1230,7 @@ bool LanGame::StartNew(RebellionApplication& app)
     state.Fail("Could not create the campaign.");
     return false;
   }
+  state.connection.SetAdvertising(false);
   state.starting = true;
   state.status = "Creating the galaxy...";
   return true;
@@ -1056,6 +1247,7 @@ bool LanGame::Resume(RebellionApplication& app, const std::filesystem::path& che
   auto saved = state.checkpoints.Load(checkpoint, &error);
   if (!saved || saved->metadata.protocolVersion != lan::kProtocol || saved->metadata.formatVersion != kSnapshotVersion
       || saved->metadata.hostSide < 1 || saved->metadata.hostSide > 2) {
+    state.hasError = true;
     state.status = "Cannot load checkpoint: " + error;
     return false;
   }
@@ -1064,11 +1256,12 @@ bool LanGame::Resume(RebellionApplication& app, const std::filesystem::path& che
   const auto savedData = checkpointState.U64();
   const auto driverState = checkpointState.Blob();
   if (!checkpointState.Done() || savedBuild.empty() || savedData != state.fingerprint || driverState.empty()) {
+    state.hasError = true;
     state.status = "This checkpoint needs matching game data and a supported save format.";
     return false;
   }
   state.handlingRemote = true;
-  const bool loaded = RestoreDriver(app, driverState, saved->metadata.hostSide, state.replica);
+  const bool loaded = RestoreDriver(app, driverState, saved->metadata.hostSide, state.replica, false, Connected());
   state.handlingRemote = false;
   if (!loaded) {
     state.Fail("Could not restore this campaign.");
@@ -1080,10 +1273,15 @@ bool LanGame::Resume(RebellionApplication& app, const std::filesystem::path& che
   state.settings.galaxySize = settings.m_field04;
   state.settings.victoryMode = settings.m_field08 + 1;
   state.settings.seed = settings.m_field10;
+  state.settings.resuming = false;
+  state.settings.resumeName.clear();
+  state.settings.resumeTick = 0;
   state.campaignId = saved->metadata.campaignId;
   state.name = saved->metadata.displayName;
   state.playing = true;
   state.paused = false;
+  state.hasError = false;
+  state.connection.SetAdvertising(false);
   state.cadence.Reset(GetGameTickCount());
   state.SendBegin();
   return true;
@@ -1113,19 +1311,19 @@ bool LanGame::WriteCheckpoint(RebellionApplication&, bool automatic, bool requir
   if (!state.host) {
     lan::Writer out;
     state.Send(SaveRequest, out);
-    state.lastSave = "Checkpoint requested from host...";
+    state.RecordSaveMessage("Checkpoint requested from host...");
     return true;
   }
   if (!GetBattleFlow() || !GetGameStepDriver() || GetBattleFlow()->m_state != kFlowStrategic
       || (requireCompleteStep && GetGameStepDriver()->m_phase != 0)) {
     state.checkpointPending = true;
     state.checkpointAutomatic = automatic;
-    state.lastSave = "Checkpoint queued until the current step or battle finishes.";
+    state.RecordSaveMessage("Checkpoint queued until the current step or battle finishes.");
     return true;
   }
   std::vector<uint8_t> bytes;
   if (!SaveDriver(bytes)) {
-    state.lastSave = "Checkpoint failed: could not serialize the campaign.";
+    state.RecordSaveMessage("Checkpoint failed: could not serialize the campaign.");
     return false;
   }
   lan::Writer checkpointState;
@@ -1133,7 +1331,7 @@ bool LanGame::WriteCheckpoint(RebellionApplication&, bool automatic, bool requir
   checkpointState.U64(state.fingerprint);
   checkpointState.Blob(bytes);
   if (!checkpointState.Good()) {
-    state.lastSave = "Checkpoint failed: campaign exceeds the supported size.";
+    state.RecordSaveMessage("Checkpoint failed: campaign exceeds the supported size.");
     return false;
   }
   bytes = checkpointState.TakeBytes();
@@ -1147,12 +1345,12 @@ bool LanGame::WriteCheckpoint(RebellionApplication&, bool automatic, bool requir
       std::chrono::system_clock::now().time_since_epoch()).count();
   auto result = state.checkpoints.Save(metadata, bytes, automatic);
   if (!result) {
-    state.lastSave = "Checkpoint failed: " + result.error;
+    state.RecordSaveMessage("Checkpoint failed: " + result.error);
     return false;
   }
   state.checkpointPending = false;
   state.cadence.Saved(metadata.gameTick);
-  state.lastSave = "Saved checkpoint at day " + std::to_string(GameHookDay()) + ".";
+  state.RecordSaveMessage("Saved checkpoint at day " + std::to_string(GameHookDay()) + ".");
   lan::Writer out;
   out.String(metadata.campaignId);
   out.String(metadata.sessionId);
@@ -1163,7 +1361,7 @@ bool LanGame::WriteCheckpoint(RebellionApplication&, bool automatic, bool requir
   out.U32(automatic);
   out.Blob(bytes);
   if (state.connection.GetStatus() == lan::Status::Connected && !state.Send(Checkpoint, out)) {
-    state.lastSave = "Saved locally, but could not copy the checkpoint to the other computer.";
+    state.RecordSaveMessage("Saved locally, but could not copy the checkpoint to the other computer.");
   }
   return true;
 }
@@ -1267,10 +1465,13 @@ void LanGame::TogglePause()
   }
   if (IsHost()) {
     impl_->paused = !impl_->paused;
-    impl_->status = impl_->paused ? "Campaign paused. Press Pause to resume." : "Both players connected.";
+    impl_->status = impl_->ConnectedPlayingStatus();
     lan::Writer out;
     out.U32(impl_->paused);
     impl_->Send(Pause, out);
+    if (auto* app = dynamic_cast<RebellionApplication*>(g_app)) {
+      SyncStrategicHud(*app, impl_->settings.hostSide, impl_->paused, Connected(), true);
+    }
   } else {
     lan::Writer out;
     impl_->Send(Pause, out);
@@ -1285,6 +1486,7 @@ void LanGame::Reconnect()
   impl_->connection.DisconnectPeer();
   impl_->verified = false;
   impl_->peerResponding = false;
+  impl_->hasError = false;
   impl_->awaitingSnapshot = !impl_->host;
   impl_->reconnectBlocked = false;
   impl_->nextRetry = Clock::now();
@@ -1315,6 +1517,10 @@ bool LanGame::PeerReady() const { return impl_->peerReady; }
 const LanSettings& LanGame::Settings() const { return impl_->settings; }
 const std::string& LanGame::StatusText() const { return impl_->status; }
 const std::string& LanGame::LastSaveText() const { return impl_->lastSave; }
+bool LanGame::HasError() const
+{
+  return impl_->hasError || impl_->reconnectBlocked || impl_->connection.GetStatus() == lan::Status::Error;
+}
 std::vector<lan::Advertisement> LanGame::NearbyGames() const { return impl_->discovery.Peers(); }
 std::vector<CampaignCheckpointInfo> LanGame::Checkpoints() const { return impl_->checkpoints.List(); }
 uint16_t LanGame::Port() const { return impl_->port; }

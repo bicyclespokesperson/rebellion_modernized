@@ -21,6 +21,9 @@ struct LanSettings {
   int galaxySize = 1;
   int victoryMode = 1;
   int seed = 0;
+  bool resuming = false;
+  std::string resumeName;
+  uint32_t resumeTick = 0;
 };
 
 class LanGame
@@ -62,6 +65,7 @@ class LanGame
   const LanSettings& Settings() const;
   const std::string& StatusText() const;
   const std::string& LastSaveText() const;
+  bool HasError() const;
   std::vector<lan::Advertisement> NearbyGames() const;
   std::vector<CampaignCheckpointInfo> Checkpoints() const;
   uint16_t Port() const;

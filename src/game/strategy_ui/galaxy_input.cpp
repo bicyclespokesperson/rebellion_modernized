@@ -13,6 +13,7 @@
 #include "gameobj/object_lookup.h"
 #include "gameobj/status_code.h"
 #include "orders/order_base.h"
+#include "port/native/lan_game.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/gid_menu_window.h"
@@ -862,7 +863,7 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
       }
       break;
     case 0xbbc:
-      if (m_speed != 0) {
+      if (m_speed != 0 || (reb::native::CurrentLanGame() && reb::native::CurrentLanGame()->Playing())) {
         UiHumanCommand(0x20, &selection, &target, nullptr);
       }
       break;

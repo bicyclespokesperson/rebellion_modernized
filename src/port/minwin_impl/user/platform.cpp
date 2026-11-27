@@ -526,6 +526,28 @@ void SetSdlTitle(const char* text)
   }
 }
 
+bool SetClipboardText(const std::string& text)
+{
+  if (!SDL_WasInit(SDL_INIT_VIDEO)) {
+    return false;
+  }
+  return SDL_SetClipboardText(text.c_str());
+}
+
+std::string GetClipboardText()
+{
+  if (!SDL_WasInit(SDL_INIT_VIDEO)) {
+    return {};
+  }
+  char* raw = SDL_GetClipboardText();
+  if (!raw) {
+    return {};
+  }
+  std::string result(raw);
+  SDL_free(raw);
+  return result;
+}
+
 int ShowMessageBox(const char* text, const char* caption, unsigned type)
 {
   SDL_MessageBoxFlags flags = SDL_MESSAGEBOX_INFORMATION;

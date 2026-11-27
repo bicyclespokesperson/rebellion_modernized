@@ -22,6 +22,7 @@
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "multiplayer/comm_helpers.h"
+#include "port/native/lan_game.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -309,6 +310,10 @@ void VoteWindow::OnCreate1()
                                       art.m_takeCommandPressed, art.m_takeCommandDisabled, 0x1927);
   m_retreatButton = NewVoteButton(this, module, 0xc, kRetreatButton, art.m_retreatNormal, art.m_retreatPressed,
                                   art.m_retreatDisabled, 0x194a);
+  if (auto* lan = reb::native::CurrentLanGame(); lan && lan->Active() && m_takeCommandButton) {
+    m_takeCommandButton->Disable();
+    UpdateToolText(m_takeCommandButton, "Tactical battles resolve automatically in LAN multiplayer.");
+  }
   if (m_notice->m_attack == 0) {
     m_retreatButton->Disable();
   } else {
@@ -499,7 +504,11 @@ void VoteWindow::ShowButtons(int which, int disabled)
     m_retreatButton->Disable();
     return;
   }
-  button->Enable();
+  if (which != 0 && reb::native::CurrentLanGame() && reb::native::CurrentLanGame()->Active()) {
+    button->Disable();
+  } else {
+    button->Enable();
+  }
   if (m_notice->m_attack != 0) {
     m_retreatButton->Enable();
   } else {

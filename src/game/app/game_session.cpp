@@ -8,8 +8,11 @@
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "core/memory_stream.h"
+#include "economy/side.h"
 #include "events/game_step_driver.h"
 #include "gameobj/notif_payload.h"
+#include "gameobj/object_lookup.h"
+#include "gameobj/object_queries.h"
 #include "multiplayer/remote_player.h"
 #include "multiplayer/lan_player.h"
 #include "port/native/lan_game.h"
@@ -264,6 +267,17 @@ bool GameSession::UseLanControllers(int humanSide)
     }
     if (current && !CopyControllerState(*current, *replacements[index])) {
       return false;
+    }
+    if (local) {
+      auto* human = static_cast<HumanPlayer*>(replacements[index].get());
+      int speed = 2;
+      if (auto* side = static_cast<Side*>(GetSideObject(index + 1, index + 1)); side && side->m_unkC4 > 1) {
+        if (side->m_unkC4 >= 600) speed = 1;
+        else if (side->m_unkC4 >= 60) speed = 2;
+        else if (side->m_unkC4 >= 12) speed = 3;
+        else speed = 4;
+      }
+      human->m_speed = speed;
     }
   }
   for (int index = 0; index < 2; ++index) {

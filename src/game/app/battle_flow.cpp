@@ -12,6 +12,7 @@
 #include "core/checked_new.h"
 #include "events/game_clock_hooks.h"
 #include "multiplayer/multiplayer_window.h"
+#include "port/native/lan_game.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/human_player.h"
 
@@ -247,11 +248,13 @@ void BattleFlow::Step(int* stepped)
       UiExchangeVotesTimed(&allVoted, &unanimous, &m_voteTimeA, &m_voteTimeB);
       if (allVoted != 0) {
         GameSession* session = m_stepDriver->Session();
+        const bool isLan = reb::native::CurrentLanGame() && reb::native::CurrentLanGame()->Active();
+        const bool isMultiplayer = g_isNetworkGame != 0 || isLan;
         const bool takeCommand = session && session->m_human && session->m_human->m_voteState == 2;
-        const bool live = takeCommand && !g_isNetworkGame && LiveBattlePresenterAvailable();
+        const bool live = takeCommand && !isMultiplayer && LiveBattlePresenterAvailable();
         if (takeCommand && !live) {
           std::fprintf(stderr, "battle: Take Command resolved headless: %s\n",
-                       g_isNetworkGame ? "LAN battles are not live yet" : "no SDL renderer for the battle screen");
+                       isMultiplayer ? "LAN battles are not live yet" : "no SDL renderer for the battle screen");
         }
         m_state = live ? kFlowConvertToTactical : kFlowConvertToAbstract;
       }

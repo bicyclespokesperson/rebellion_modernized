@@ -6,6 +6,7 @@
 #include <cstring>
 #include <deque>
 #include <limits>
+#include <string_view>
 #include <thread>
 #include <utility>
 
@@ -73,6 +74,7 @@ constexpr size_t kMaxQueuedBytes = 128 * 1024 * 1024;
 constexpr size_t kPollByteBudget = 1024 * 1024;
 constexpr auto kDiscoveryInterval = std::chrono::seconds(1);
 constexpr auto kPeerLifetime = std::chrono::seconds(5);
+constexpr auto kConnectTimeout = std::chrono::seconds(6);
 
 void Write32(uint8_t* target, uint32_t value)
 {
@@ -108,6 +110,15 @@ bool PrepareSocket(Socket socket)
   return SetNonblocking(socket);
 }
 
+bool PrepareTcpSocket(Socket socket)
+{
+  if (!PrepareSocket(socket)) return false;
+  int enabled = 1;
+  setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&enabled), sizeof(enabled));
+  setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char*>(&enabled), sizeof(enabled));
+  return true;
+}
+
 int SendFlags()
 {
 #ifdef MSG_NOSIGNAL
@@ -117,9 +128,139 @@ int SendFlags()
 #endif
 }
 
+std::string DescribeSocketError(const char* operation, int code)
+{
+#ifdef _WIN32
+  switch (code) {
+    case WSAECONNREFUSED:
+      return "Connection refused. Make sure the host has started hosting on that address and port.";
+    case WSAETIMEDOUT:
+      return "Connection timed out. Check the host address and local network firewall.";
+    case WSAEHOSTUNREACH:
+    case WSAENETUNREACH:
+      return "Host unreachable. Make sure both computers are on the same network.";
+    case WSAEADDRINUSE:
+      return "That LAN port is already in use by another game or program.";
+    case WSAEACCES:
+      return "Network access denied. Allow local network access in your firewall settings.";
+    case WSAECONNRESET:
+    case WSAECONNABORTED:
+      return "Connection was closed by the other computer.";
+    default:
+      break;
+  }
+#else
+  switch (code) {
+    case ECONNREFUSED:
+      return "Connection refused. Make sure the host has started hosting on that address and port.";
+    case ETIMEDOUT:
+      return "Connection timed out. Check the host address and local network firewall.";
+    case EHOSTUNREACH:
+    case ENETUNREACH:
+      return "Host unreachable. Make sure both computers are on the same network.";
+    case EADDRINUSE:
+      return "That LAN port is already in use by another game or program.";
+    case EACCES:
+    case EPERM:
+      return "Network access denied. Allow local network access in your firewall settings.";
+    case ECONNRESET:
+    case ECONNABORTED:
+    case EPIPE:
+      return "Connection was closed by the other computer.";
+    default:
+      break;
+  }
+#endif
+  return std::string(operation) + " failed (socket error " + std::to_string(code) + ")";
+}
+
 std::string SocketErrorText(const char* operation)
 {
-  return std::string(operation) + " failed (socket error " + std::to_string(LastSocketError()) + ")";
+  return DescribeSocketError(operation, LastSocketError());
+}
+
+std::string TrimWhitespace(std::string_view text)
+{
+  size_t begin = 0;
+  while (begin < text.size() && (text[begin] == ' ' || text[begin] == '\t' || text[begin] == '\r' || text[begin] == '\n')) {
+    ++begin;
+  }
+  size_t end = text.size();
+  while (end > begin && (text[end - 1] == ' ' || text[end - 1] == '\t' || text[end - 1] == '\r' || text[end - 1] == '\n')) {
+    --end;
+  }
+  return std::string(text.substr(begin, end - begin));
+}
+
+bool IsLinkLocal(uint32_t ipv4)
+{
+  return (ipv4 & 0xffff0000U) == 0xa9fe0000U; // 169.254.0.0/16
+}
+
+int AddressPriority(uint32_t ipv4, bool pointToPoint)
+{
+  if (IsLinkLocal(ipv4)) return 50;
+  if (pointToPoint) return 30;
+  if ((ipv4 & 0xffff0000U) == 0xc0a80000U) return 0;  // 192.168.0.0/16
+  if ((ipv4 & 0xff000000U) == 0x0a000000U) return 1;  // 10.0.0.0/8
+  if ((ipv4 & 0xfff00000U) == 0xac100000U) return 2;  // 172.16.0.0/12
+  if ((ipv4 & 0xffc00000U) == 0x64400000U) return 25; // 100.64.0.0/10 (CGNAT / VPN)
+  return 10;
+}
+
+std::vector<uint32_t> DiscoveryBroadcastTargets(Socket discoverySocket)
+{
+  std::vector<uint32_t> targets{uint32_t(0xffffffff), uint32_t(0x7f000001)};
+  auto addTarget = [&](uint32_t ipv4) {
+    if (ipv4 == 0 || (ipv4 >> 24) == 127) return;
+    if (std::find(targets.begin(), targets.end(), ipv4) == targets.end()) {
+      targets.push_back(ipv4);
+    }
+  };
+#ifdef _WIN32
+  std::array<INTERFACE_INFO, 32> interfaces{};
+  DWORD bytesReturned = 0;
+  if (WSAIoctl(discoverySocket, SIO_GET_INTERFACE_LIST, nullptr, 0, interfaces.data(),
+               static_cast<DWORD>(interfaces.size() * sizeof(INTERFACE_INFO)), &bytesReturned, nullptr, nullptr) == 0) {
+    const size_t count = std::min(interfaces.size(), static_cast<size_t>(bytesReturned) / sizeof(INTERFACE_INFO));
+    for (size_t i = 0; i < count; ++i) {
+      const auto& info = interfaces[i];
+      if (!(info.iiFlags & IFF_UP) || (info.iiFlags & IFF_LOOPBACK) || !(info.iiFlags & IFF_BROADCAST)) continue;
+      if (info.iiAddress.Address.sa_family != AF_INET || info.iiNetmask.Address.sa_family != AF_INET) continue;
+      const uint32_t ip = ntohl(info.iiAddress.AddressIn.sin_addr.s_addr);
+      const uint32_t mask = ntohl(info.iiNetmask.AddressIn.sin_addr.s_addr);
+      if (ip != 0 && mask != 0 && mask != 0xffffffffU && !IsLinkLocal(ip)) {
+        addTarget((ip & mask) | ~mask);
+      }
+    }
+  }
+#else
+  (void)discoverySocket;
+  ifaddrs* interfaces = nullptr;
+  if (getifaddrs(&interfaces) == 0) {
+    for (const ifaddrs* item = interfaces; item; item = item->ifa_next) {
+      if (!item->ifa_addr || item->ifa_addr->sa_family != AF_INET ||
+          !(item->ifa_flags & IFF_UP) || (item->ifa_flags & IFF_LOOPBACK) ||
+          !(item->ifa_flags & IFF_BROADCAST)) continue;
+      sockaddr_in addr{};
+      std::memcpy(&addr, item->ifa_addr, sizeof(addr));
+      const uint32_t ip = ntohl(addr.sin_addr.s_addr);
+      if (ip == 0 || IsLinkLocal(ip)) continue;
+      if (item->ifa_broadaddr && item->ifa_broadaddr->sa_family == AF_INET) {
+        sockaddr_in broad{};
+        std::memcpy(&broad, item->ifa_broadaddr, sizeof(broad));
+        addTarget(ntohl(broad.sin_addr.s_addr));
+      } else if (item->ifa_netmask && item->ifa_netmask->sa_family == AF_INET) {
+        sockaddr_in maskAddr{};
+        std::memcpy(&maskAddr, item->ifa_netmask, sizeof(maskAddr));
+        const uint32_t mask = ntohl(maskAddr.sin_addr.s_addr);
+        if (mask != 0 && mask != 0xffffffffU) addTarget((ip & mask) | ~mask);
+      }
+    }
+    freeifaddrs(interfaces);
+  }
+#endif
+  return targets;
 }
 
 std::string AddressText(const sockaddr_in& address)
@@ -142,7 +283,11 @@ sockaddr_in MakeAddress(uint32_t ipv4, uint16_t port)
 
 std::vector<std::string> LocalAddresses()
 {
-  std::vector<std::string> addresses;
+  struct Candidate {
+    int priority;
+    std::string text;
+  };
+  std::vector<Candidate> candidates;
   if (!Runtime().ready) return {"127.0.0.1"};
 #ifdef _WIN32
   std::array<char, 256> hostname{};
@@ -155,7 +300,10 @@ std::vector<std::string> LocalAddresses()
       for (addrinfo* item = resolved; item; item = item->ai_next) {
         const auto* address = reinterpret_cast<const sockaddr_in*>(item->ai_addr);
         const uint32_t ipv4 = ntohl(address->sin_addr.s_addr);
-        if (ipv4 != 0 && (ipv4 >> 24) != 127) addresses.push_back(AddressText(*address));
+        if (ipv4 != 0 && (ipv4 >> 24) != 127) {
+          std::string text = AddressText(*address);
+          if (!text.empty()) candidates.push_back({AddressPriority(ipv4, false), std::move(text)});
+        }
       }
       freeaddrinfo(resolved);
     }
@@ -167,14 +315,29 @@ std::vector<std::string> LocalAddresses()
       if (!item->ifa_addr || item->ifa_addr->sa_family != AF_INET ||
           !(item->ifa_flags & IFF_UP) || (item->ifa_flags & IFF_LOOPBACK)) continue;
       const auto& address = *reinterpret_cast<const sockaddr_in*>(item->ifa_addr);
-      if (address.sin_addr.s_addr != htonl(INADDR_ANY)) addresses.push_back(AddressText(address));
+      const uint32_t ipv4 = ntohl(address.sin_addr.s_addr);
+      if (ipv4 != 0) {
+        std::string text = AddressText(address);
+        const bool pointToPoint = (item->ifa_flags & IFF_POINTOPOINT) != 0;
+        if (!text.empty()) candidates.push_back({AddressPriority(ipv4, pointToPoint), std::move(text)});
+      }
     }
     freeifaddrs(interfaces);
   }
 #endif
-  std::erase(addresses, std::string{});
-  std::ranges::sort(addresses);
-  addresses.erase(std::unique(addresses.begin(), addresses.end()), addresses.end());
+  std::ranges::sort(candidates, [](const Candidate& a, const Candidate& b) {
+    if (a.priority != b.priority) return a.priority < b.priority;
+    return a.text < b.text;
+  });
+  const bool hasNonLinkLocal = std::any_of(candidates.begin(), candidates.end(),
+                                           [](const Candidate& c) { return c.priority < 50; });
+  std::vector<std::string> addresses;
+  for (const auto& candidate : candidates) {
+    if (hasNonLinkLocal && candidate.priority >= 50) continue;
+    if (std::find(addresses.begin(), addresses.end(), candidate.text) == addresses.end()) {
+      addresses.push_back(candidate.text);
+    }
+  }
   if (addresses.empty()) addresses.push_back("127.0.0.1");
   return addresses;
 }
@@ -193,6 +356,7 @@ struct Transport::Impl
   Socket discovery = kInvalidSocket;
   Status status = Status::Idle;
   bool host = false;
+  bool advertising = true;
   bool discovering = false;
   std::string error;
   std::string name;
@@ -200,6 +364,7 @@ struct Transport::Impl
   uint16_t localPort = 0;
   uint16_t discoveryPort = 0;
   std::chrono::steady_clock::time_point lastDiscovery{};
+  std::chrono::steady_clock::time_point connectStart{};
   std::vector<SeenPeer> seenPeers;
   std::deque<Message> messages;
   size_t queuedMessageBytes = 0;
@@ -207,15 +372,18 @@ struct Transport::Impl
   size_t queuedOutboundBytes = 0;
   size_t outboundOffset = 0;
   std::vector<uint8_t> inbound;
+  size_t inboundOffset = 0;
 
   void ResetPeer()
   {
     CloseSocket(peer);
     peer = kInvalidSocket;
     inbound.clear();
+    inboundOffset = 0;
     outbound.clear();
     outboundOffset = 0;
     queuedOutboundBytes = 0;
+    connectStart = {};
   }
 
   void Disconnect(std::string reason = {})
@@ -248,27 +416,36 @@ struct Transport::Impl
       }
       budget -= static_cast<size_t>(count);
       inbound.insert(inbound.end(), chunk.begin(), chunk.begin() + count);
-      while (inbound.size() >= kFrameHeaderSize) {
-        const uint32_t magic = Read32(inbound.data());
-        const uint32_t protocol = Read32(inbound.data() + 4);
-        const uint32_t kind = Read32(inbound.data() + 8);
-        const uint32_t length = Read32(inbound.data() + 12);
+      while (inbound.size() - inboundOffset >= kFrameHeaderSize) {
+        const uint8_t* header = inbound.data() + inboundOffset;
+        const uint32_t magic = Read32(header);
+        const uint32_t protocol = Read32(header + 4);
+        const uint32_t kind = Read32(header + 8);
+        const uint32_t length = Read32(header + 12);
         if (magic != kFrameMagic || protocol != kProtocol || length > kMaxMessageSize) {
           Disconnect("Invalid LAN frame or protocol version");
           return false;
         }
-        if (inbound.size() < kFrameHeaderSize + size_t(length)) break;
+        if (inbound.size() - inboundOffset < kFrameHeaderSize + size_t(length)) break;
         if (queuedMessageBytes + kFrameHeaderSize + length > kMaxQueuedBytes) {
           Disconnect("LAN receive queue is full");
           return false;
         }
         Message message;
         message.kind = kind;
-        message.bytes.assign(inbound.begin() + kFrameHeaderSize,
-                             inbound.begin() + kFrameHeaderSize + length);
+        const size_t bodyStart = inboundOffset + kFrameHeaderSize;
+        message.bytes.assign(inbound.begin() + static_cast<ptrdiff_t>(bodyStart),
+                             inbound.begin() + static_cast<ptrdiff_t>(bodyStart + length));
         queuedMessageBytes += kFrameHeaderSize + length;
         messages.push_back(std::move(message));
-        inbound.erase(inbound.begin(), inbound.begin() + kFrameHeaderSize + length);
+        inboundOffset += kFrameHeaderSize + length;
+      }
+      if (inboundOffset == inbound.size()) {
+        inbound.clear();
+        inboundOffset = 0;
+      } else if (inboundOffset >= 65536) {
+        inbound.erase(inbound.begin(), inbound.begin() + static_cast<ptrdiff_t>(inboundOffset));
+        inboundOffset = 0;
       }
     }
     return true;
@@ -307,7 +484,7 @@ struct Transport::Impl
       SockLen length = sizeof(address);
       Socket candidate = accept(listener, reinterpret_cast<sockaddr*>(&address), &length);
       if (candidate == kInvalidSocket) return;
-      if (peer != kInvalidSocket || !PrepareSocket(candidate)) {
+      if (peer != kInvalidSocket || !PrepareTcpSocket(candidate)) {
         CloseSocket(candidate);
         continue;
       }
@@ -323,15 +500,24 @@ struct Transport::Impl
   {
     if (status != Status::Connecting || peer == kInvalidSocket) return;
     fd_set writable;
+    fd_set exceptional;
     FD_ZERO(&writable);
+    FD_ZERO(&exceptional);
     FD_SET(peer, &writable);
+    FD_SET(peer, &exceptional);
     timeval timeout{};
 #ifdef _WIN32
-    const int ready = select(0, nullptr, &writable, nullptr, &timeout);
+    const int ready = select(0, nullptr, &writable, &exceptional, &timeout);
 #else
-    const int ready = select(peer + 1, nullptr, &writable, nullptr, &timeout);
+    const int ready = select(peer + 1, nullptr, &writable, &exceptional, &timeout);
 #endif
-    if (ready == 0) return;
+    if (ready == 0) {
+      if (connectStart != std::chrono::steady_clock::time_point{}
+          && std::chrono::steady_clock::now() - connectStart >= kConnectTimeout) {
+        Disconnect("Connection timed out. Check the host address and local network firewall.");
+      }
+      return;
+    }
     if (ready < 0) {
       Disconnect(SocketErrorText("connect"));
       return;
@@ -339,9 +525,10 @@ struct Transport::Impl
     int errorCode = 0;
     SockLen length = sizeof(errorCode);
     if (getsockopt(peer, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&errorCode), &length) != 0 || errorCode != 0) {
-      Disconnect("LAN connection failed (socket error " + std::to_string(errorCode ? errorCode : LastSocketError()) + ")");
+      Disconnect(DescribeSocketError("LAN connection", errorCode ? errorCode : LastSocketError()));
       return;
     }
+    connectStart = {};
     status = Status::Connected;
   }
 
@@ -369,7 +556,7 @@ struct Transport::Impl
       std::array<uint8_t, 8> query{};
       Write32(query.data(), kDiscoveryMagic);
       Write32(query.data() + 4, kProtocol);
-      for (uint32_t target : {uint32_t(0xffffffff), uint32_t(0x7f000001)}) {
+      for (uint32_t target : DiscoveryBroadcastTargets(discovery)) {
         const sockaddr_in address = MakeAddress(target, discoveryPort);
         sendto(discovery, reinterpret_cast<const char*>(query.data()), static_cast<int>(query.size()),
                0, reinterpret_cast<const sockaddr*>(&address), sizeof(address));
@@ -385,7 +572,7 @@ struct Transport::Impl
                                  reinterpret_cast<sockaddr*>(&source), &sourceLength);
       if (count < 0) break;
       if (count < 8 || Read32(packet.data()) != kDiscoveryMagic || Read32(packet.data() + 4) != kProtocol) continue;
-      if (host && count == 8) {
+      if (host && advertising && peer == kInvalidSocket && count == 8) {
         AnnounceTo(source);
       } else if (discovering && count >= 20) {
         const uint16_t port = Read16(packet.data() + 8);
@@ -438,6 +625,7 @@ void Transport::Close()
   impl_->listener = impl_->discovery = kInvalidSocket;
   impl_->status = Status::Idle;
   impl_->host = impl_->discovering = false;
+  impl_->advertising = true;
   impl_->localPort = impl_->discoveryPort = 0;
   impl_->name.clear();
   impl_->error.clear();
@@ -481,6 +669,11 @@ bool Transport::Host(std::string name, uint16_t port)
     const uint16_t selectedPort = ntohs(bound.sin_port);
     Socket discovery = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     const sockaddr_in discoveryAddress = MakeAddress(INADDR_ANY, selectedPort);
+    if (discovery != kInvalidSocket) {
+      int discoveryReuse = 1;
+      setsockopt(discovery, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&discoveryReuse),
+                 sizeof(discoveryReuse));
+    }
     if (discovery == kInvalidSocket || !PrepareSocket(discovery) ||
         bind(discovery, reinterpret_cast<const sockaddr*>(&discoveryAddress), sizeof(discoveryAddress)) != 0) {
       impl_->error = SocketErrorText("discovery listener");
@@ -493,6 +686,7 @@ bool Transport::Host(std::string name, uint16_t port)
     impl_->discovery = discovery;
     impl_->localPort = selectedPort;
     impl_->host = true;
+    impl_->advertising = true;
     impl_->name = std::move(name);
     impl_->status = Status::Hosting;
     impl_->error.clear();
@@ -505,8 +699,9 @@ bool Transport::Host(std::string name, uint16_t port)
 bool Transport::Join(const std::string& address, uint16_t port)
 {
   Close();
-  if (!Runtime().ready || address.empty() || port == 0) {
-    impl_->error = "Invalid LAN address or port";
+  const std::string trimmed = TrimWhitespace(address);
+  if (!Runtime().ready || trimmed.empty() || port == 0) {
+    impl_->error = "Enter a valid IPv4 address or host name.";
     impl_->status = Status::Error;
     return false;
   }
@@ -514,27 +709,35 @@ bool Transport::Join(const std::string& address, uint16_t port)
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
+  hints.ai_flags = AI_NUMERICHOST;
   addrinfo* addresses = nullptr;
-  if (getaddrinfo(address.c_str(), std::to_string(port).c_str(), &hints, &addresses) != 0) {
-    impl_->error = "Could not resolve LAN address";
-    impl_->status = Status::Error;
-    return false;
+  const std::string portText = std::to_string(port);
+  if (getaddrinfo(trimmed.c_str(), portText.c_str(), &hints, &addresses) != 0) {
+    hints.ai_flags = 0;
+    if (getaddrinfo(trimmed.c_str(), portText.c_str(), &hints, &addresses) != 0) {
+      impl_->error = "Could not resolve host address \"" + trimmed + "\".";
+      impl_->status = Status::Error;
+      return false;
+    }
   }
+  int lastError = 0;
   for (addrinfo* item = addresses; item; item = item->ai_next) {
     Socket peer = socket(item->ai_family, item->ai_socktype, item->ai_protocol);
     if (peer == kInvalidSocket) continue;
-    if (!PrepareSocket(peer)) { CloseSocket(peer); continue; }
+    if (!PrepareTcpSocket(peer)) { CloseSocket(peer); continue; }
     const int result = connect(peer, item->ai_addr, static_cast<SockLen>(item->ai_addrlen));
     if (result == 0 || WouldBlock(LastSocketError())) {
       impl_->peer = peer;
       impl_->status = result == 0 ? Status::Connected : Status::Connecting;
+      impl_->connectStart = result == 0 ? std::chrono::steady_clock::time_point{} : std::chrono::steady_clock::now();
       break;
     }
+    lastError = LastSocketError();
     CloseSocket(peer);
   }
   freeaddrinfo(addresses);
   if (impl_->peer == kInvalidSocket) {
-    impl_->error = "Could not connect to LAN host";
+    impl_->error = lastError ? DescribeSocketError("LAN connection", lastError) : "Could not connect to LAN host.";
     impl_->status = Status::Error;
     return false;
   }
@@ -636,6 +839,10 @@ std::vector<Advertisement> Transport::Peers() const
   peers.reserve(impl_->seenPeers.size());
   for (const auto& peer : impl_->seenPeers) peers.push_back(peer.advertisement);
   return peers;
+}
+void Transport::SetAdvertising(bool enabled)
+{
+  impl_->advertising = enabled;
 }
 void Transport::DisconnectPeer()
 {

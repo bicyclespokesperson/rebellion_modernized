@@ -11,6 +11,7 @@
 #include "events/game_clock_hooks.h"
 #include "gameobj/object_key.h"
 #include "gfx/dib_bitmap.h"
+#include "port/native/lan_game.h"
 #include "strategy_ui/developer_menu.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
@@ -378,7 +379,9 @@ LRESULT GalaxyWindow::OnCreate()
   CreateDroidAnimations();
   m_normalCursor = g_defaultCursor ? g_defaultCursor : reb::compat::LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f00));
   m_targetCursor = reb::compat::LoadCursorA(m_instance, MAKEINTRESOURCEA(0x3ea));
-  if (AppGetCommandLineFlags() & 0x100) {
+  const bool showStatusBar = (AppGetCommandLineFlags() & 0x100) != 0
+                             || (reb::native::CurrentLanGame() && reb::native::CurrentLanGame()->Active());
+  if (showStatusBar) {
     m_latencyLabel.m_width = 500;
     m_latencyLabel.m_height = 10;
     m_latencyLabel.MoveTo(0x46 + mapOffsetX, 0);
@@ -439,7 +442,7 @@ LRESULT GalaxyWindow::OnPaint()
 
 void GalaxyWindow::ShowDeveloperMenu()
 {
-  if (AppGetGameType() != 1) {
+  if (AppGetGameType() != 1 || (reb::native::CurrentLanGame() && reb::native::CurrentLanGame()->Active())) {
     return;
   }
   ShowAiDeveloperMenu(this, 230, 100, 7, true);

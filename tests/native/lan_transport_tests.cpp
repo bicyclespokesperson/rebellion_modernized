@@ -133,8 +133,34 @@ int main()
           peers[0].address == "127.0.0.1" && peers[0].port == host.LocalPort() &&
           peers[0].protocol == reb::native::lan::kProtocol, "discovery result is wrong");
 
+  // Verify SetAdvertising(false) suppresses new discovery replies.
+  host.SetAdvertising(false);
+  Transport quietBrowser;
+  Require(quietBrowser.Discover(host.LocalPort()), "quiet discovery setup failed");
+  for (int i = 0; i < 40; ++i) {
+    quietBrowser.Poll();
+    host.Poll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+  Require(quietBrowser.Peers().empty(), "host advertised while advertising was disabled");
+  host.SetAdvertising(true);
+
   Transport guest;
-  Connect(host, guest);
+  Require(guest.Join("  127.0.0.1 \n", host.LocalPort()), "join with whitespace failed");
+  Require(Until([&] {
+    host.Poll();
+    guest.Poll();
+    return host.GetStatus() == Status::Connected && guest.GetStatus() == Status::Connected;
+  }), "whitespace join connection timed out");
+  // Connected host must not advertise to a third browser.
+  Transport busyBrowser;
+  Require(busyBrowser.Discover(host.LocalPort()), "busy discovery setup failed");
+  for (int i = 0; i < 40; ++i) {
+    busyBrowser.Poll();
+    host.Poll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+  Require(busyBrowser.Peers().empty(), "connected host still advertised to another browser");
   CheckTransfer(guest, host, 7, {});
   CheckTransfer(host, guest, 9, {1, 2, 3, 4});
   const std::array<uint8_t, 3> gracefulBytes{1, 2, 3};
@@ -193,6 +219,21 @@ int main()
   }), "oversized frame was accepted");
   Connect(host, guest);
   Require(host.Error().empty(), "reconnect did not clear error");
+  const uint16_t closedPort = host.LocalPort();
   host.Close();
   Require(host.GetStatus() == Status::Idle && host.LocalPort() == 0, "close did not reset host");
+
+  // Connecting to a closed port should produce a human-readable refusal message.
+  Transport refused;
+  const bool started = refused.Join("127.0.0.1", closedPort);
+  if (started) {
+    Require(Until([&] {
+      refused.Poll();
+      return refused.GetStatus() == Status::Error;
+    }), "refused connection did not report error");
+  }
+  Require(refused.GetStatus() == Status::Error && !refused.Error().empty(),
+          "closed port did not produce error text");
+  Require(refused.Error().find("socket error") == std::string::npos,
+          "closed port exposed raw socket error number");
 }

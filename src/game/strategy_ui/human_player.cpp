@@ -216,7 +216,11 @@ void HumanPlayer::RefreshPlayerInterface()
 {
   UiRefreshChildWindows();
   const int day = GameHookDay();
-  UiSetDateAndSpeed(day, m_speed);
+  int displaySpeed = m_speed;
+  if (auto* game = reb::native::CurrentLanGame(); game && game->Playing() && (game->Paused() || !game->Connected())) {
+    displaySpeed = 0;
+  }
+  UiSetDateAndSpeed(day, displaySpeed);
   m_advisor->SpeakIfIdle();
 }
 

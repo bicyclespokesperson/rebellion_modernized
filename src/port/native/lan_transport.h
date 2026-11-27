@@ -63,6 +63,7 @@ public:
   Status GetStatus() const;
   const std::string& Error() const;
   std::vector<Advertisement> Peers() const;
+  void SetAdvertising(bool enabled);
   void DisconnectPeer();
   void Close();
   bool IsHost() const;

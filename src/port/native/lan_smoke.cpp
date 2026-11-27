@@ -23,7 +23,9 @@
 #include "gameobj/object_family.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
+#include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "ui/cool_app.h"
 #include "port/native/lan_game.h"
 #include "port/native/lan_battle_smoke.h"
 #include "orders/orders_210_216.h"
@@ -392,6 +394,24 @@ int RunLanSmoke(RebellionApplication& app)
         targetTick = initialTick + kRequiredTicks;
         orderName = "LAN smoke order " + std::to_string(initialTick);
         initialTickSet = true;
+        if (!CoolGetResourceModule(2)) {
+          error = "TEXTSTRA.DLL (resource slot 2) was not loaded for LAN strategic play";
+          break;
+        }
+        if (!CoolGetResourceModule(9)) {
+          error = "side sprite DLL (resource slot 9) was not loaded for LAN strategic play";
+          break;
+        }
+        if (!app.m_strategicWindow || app.m_strategicWindow->m_sectorItems.Count() == 0
+            || !app.m_strategicWindow->m_encyclopediaItems) {
+          error = "GalaxyWindow::InitializeGameDisplay() was not completed for LAN play";
+          break;
+        }
+        if (!GetGameSession() || !GetGameSession()->m_human || GetGameSession()->m_human->m_speed < 1
+            || GetGameSession()->m_human->m_speed > 4) {
+          error = "LAN human controller started with an invalid speed";
+          break;
+        }
         std::cout << "LAN smoke " << role << " campaign started at tick " << initialTick << '\n';
       }
       if (role == "host") {
@@ -435,9 +455,13 @@ int RunLanSmoke(RebellionApplication& app)
         if (manual != checkpoints.end()) checkpointPath = manual->path;
         const int guestSide = 3 - campaignHostSide;
         renameApplied = HasNamedObject(guestSide, orderName);
-        basePhasesComplete = game->AcceptedOrders() >= 1 && game->Paused() && !checkpointPath.empty() && renameApplied;
+        const bool hudPaused = app.m_strategicWindow && app.m_strategicWindow->m_speed == 0
+                               && app.m_strategicWindow->m_latencyLabel.m_text
+                               && !app.m_strategicWindow->m_latencyLabel.m_text->empty();
+        basePhasesComplete = game->AcceptedOrders() >= 1 && game->Paused() && hudPaused
+                             && !checkpointPath.empty() && renameApplied;
         if (!basePhasesComplete) {
-          error = "host did not accept the rename, pause, save a checkpoint, and expose the renamed system";
+          error = "host did not accept the rename, pause with HUD indicator, save a checkpoint, and expose the renamed system";
         } else if (!endgameRequested) {
           success = true;
           break;
@@ -452,7 +476,10 @@ int RunLanSmoke(RebellionApplication& app)
       const auto manual = std::find_if(checkpoints.begin(), checkpoints.end(), [](const auto& item) {
         return !item.automatic;
       });
-      if (manual != checkpoints.end() && renameApplied && (!battleRequested || guestVoted)) {
+      const bool hudPaused = app.m_strategicWindow && app.m_strategicWindow->m_speed == 0
+                             && app.m_strategicWindow->m_latencyLabel.m_text
+                             && !app.m_strategicWindow->m_latencyLabel.m_text->empty();
+      if (manual != checkpoints.end() && renameApplied && hudPaused && (!battleRequested || guestVoted)) {
         checkpointPath = manual->path;
         basePhasesComplete = true;
         reportTick = game->ReplicaTick();

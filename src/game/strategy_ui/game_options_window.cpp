@@ -751,8 +751,10 @@ void GameOptionsWindow::SaveSelectedSlot()
 {
   if (auto* game = reb::native::CurrentLanGame(); game && game->Playing()) {
     if (auto* app = dynamic_cast<RebellionApplication*>(g_app)) {
-      game->SaveCheckpoint(*app);
+      const bool saved = game->SaveCheckpoint(*app);
       UpdateSlotButtons();
+      reb::compat::InvalidateRect(m_hwnd, nullptr, FALSE);
+      ShowResultDialog(saved ? kMessageSaved : kMessageSaveFailed);
     }
     return;
   }
@@ -948,7 +950,11 @@ void GameOptionsWindow::UpdateSlotButtons()
 {
   if (auto* game = reb::native::CurrentLanGame(); game && game->Playing()) {
     const auto saves = game->Checkpoints();
+    auto* pristine = NewOrNull<DibBitmap>(CoolAppGetResourceModule(kCommonSlot), kBackdropId, kBitmapKind);
     for (int slot = 1; slot <= kSlotCount; ++slot) {
+      if (pristine && GetBackground()) {
+        ClearSaveIcon(GetBackground(), *pristine, slot - 1);
+      }
       auto* load = static_cast<CoolStrobeButton*>(m_children.FindById(slot + 0x78));
       if (load) {
         load->Disable();
@@ -967,6 +973,10 @@ void GameOptionsWindow::UpdateSlotButtons()
         field->SetText(name.c_str());
         field->Disable();
       }
+    }
+    if (pristine) {
+      pristine->~DibBitmap();
+      operator delete(pristine);
     }
     return;
   }

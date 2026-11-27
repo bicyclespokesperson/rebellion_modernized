@@ -8,6 +8,7 @@
 
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
+#include "port/minwin_impl/user/canvas.h"
 #include "port/native/lan_game.h"
 
 namespace
@@ -30,6 +31,19 @@ constexpr COLORREF kDanger = RGB(243, 139, 127);
 
 RECT Rect(int left, int top, int right, int bottom) { return {left, top, right, bottom}; }
 bool Contains(RECT area, int x, int y) { return x >= area.left && x < area.right && y >= area.top && y < area.bottom; }
+
+std::string TrimText(const std::string& text)
+{
+  size_t start = 0;
+  while (start < text.size() && (text[start] == ' ' || text[start] == '\t' || text[start] == '\r' || text[start] == '\n')) {
+    ++start;
+  }
+  size_t end = text.size();
+  while (end > start && (text[end - 1] == ' ' || text[end - 1] == '\t' || text[end - 1] == '\r' || text[end - 1] == '\n')) {
+    --end;
+  }
+  return text.substr(start, end - start);
+}
 
 HFONT MakeFont(int height, LONG weight, bool italic = false)
 {
@@ -55,7 +69,7 @@ std::string DateLabel(int64_t timestamp)
   localtime_r(&value, &local);
 #endif
   char text[32]{};
-  if (std::strftime(text, sizeof(text), "%b %d, %Y", &local) == 0) return "Unknown date";
+  if (std::strftime(text, sizeof(text), "%b %d %H:%M", &local) == 0) return "Unknown date";
   return text;
 }
 
@@ -112,18 +126,135 @@ void LanLobbyWindow::RefreshCheckpointCache(const reb::native::LanGame* game, bo
   m_checkpointsLoaded = true;
 }
 
-void LanLobbyWindow::RefreshHostAddress(const reb::native::LanGame* game)
+void LanLobbyWindow::RefreshHostAddress(const reb::native::LanGame* game, bool force)
 {
   if (!game || !game->IsHost()) {
+    m_hostAddresses.clear();
+    m_hostAddressIndex = 0;
     m_hostAddress.clear();
     m_hostAddressPort = 0;
     return;
   }
-  if (m_hostAddressPort == game->Port() && !m_hostAddress.empty()) return;
-  const auto addresses = reb::native::lan::LocalAddresses();
-  const std::string address = addresses.empty() ? "127.0.0.1" : addresses.front();
-  m_hostAddress = address + ":" + std::to_string(game->Port());
+  if (!force && m_hostAddressPort == game->Port() && !m_hostAddress.empty()) return;
+  m_hostAddresses = reb::native::lan::LocalAddresses();
+  if (m_hostAddresses.empty()) m_hostAddresses.push_back("127.0.0.1");
+  if (m_hostAddressIndex >= m_hostAddresses.size()) m_hostAddressIndex = 0;
+  m_hostAddress = m_hostAddresses[m_hostAddressIndex] + ":" + std::to_string(game->Port());
   m_hostAddressPort = game->Port();
+}
+
+void LanLobbyWindow::SyncHostSettings(reb::native::LanGame* game)
+{
+  if (!game || !game->IsHost()) return;
+  auto settings = game->Settings();
+  if (m_selectedCheckpoint < m_checkpoints.size()) {
+    const auto& checkpoint = m_checkpoints[m_selectedCheckpoint];
+    settings.hostSide = checkpoint.metadata.hostSide;
+    settings.resuming = true;
+    settings.resumeName = checkpoint.metadata.displayName;
+    settings.resumeTick = checkpoint.metadata.gameTick;
+  } else {
+    settings.hostSide = m_hostSide;
+    settings.galaxySize = m_galaxySize;
+    settings.victoryMode = m_victoryMode;
+    settings.resuming = false;
+    settings.resumeName.clear();
+    settings.resumeTick = 0;
+  }
+  game->SetSettings(settings);
+}
+
+void LanLobbyWindow::SetLocalNotice(std::string text, bool isError)
+{
+  m_localNotice = std::move(text);
+  m_localNoticeError = isError;
+  m_localNoticeUntil = std::chrono::steady_clock::now() + std::chrono::seconds(4);
+}
+
+void LanLobbyWindow::PasteIntoField(int fieldId)
+{
+  auto* game = Game();
+  if (fieldId == 1 && game && game->Active()) return;
+  if (fieldId == 2 && game && game->IsGuest()) return;
+  std::string* field = fieldId == 1 ? &m_sessionName : (fieldId == 2 ? &m_manualAddress : nullptr);
+  if (!field) return;
+  const std::string pasted = TrimText(minwin::GetClipboardText());
+  if (pasted.empty()) {
+    SetLocalNotice("Clipboard is empty.", true);
+    Refresh();
+    return;
+  }
+  const size_t limit = fieldId == 1 ? 48U : 64U;
+  std::string clean;
+  clean.reserve(std::min(pasted.size(), limit));
+  for (unsigned char ch : pasted) {
+    if (ch >= 32 && ch < 127 && clean.size() < limit) clean.push_back(static_cast<char>(ch));
+  }
+  if (clean.empty()) {
+    SetLocalNotice("Clipboard does not contain a valid address.", true);
+    Refresh();
+    return;
+  }
+  if (fieldId == 2) {
+    *field = clean;
+    m_selectedNearbyAddress.clear();
+    m_selectedNearbyPort = 0;
+    m_activeField = 2;
+  } else {
+    *field = clean;
+    m_activeField = 1;
+  }
+  m_localNotice.clear();
+  Refresh();
+}
+
+void LanLobbyWindow::ConnectSelectedOrManual(reb::native::LanGame* game)
+{
+  if (!game) return;
+  std::string address = TrimText(m_manualAddress);
+  uint16_t port = reb::native::lan::kDefaultPort;
+  if (!address.empty()) {
+    const auto colon = address.rfind(':');
+    if (colon != std::string::npos) {
+      const std::string portText = TrimText(address.substr(colon + 1));
+      uint32_t parsed = 0;
+      const auto [end, error] = std::from_chars(portText.data(), portText.data() + portText.size(), parsed);
+      if (error != std::errc{} || end != portText.data() + portText.size() || parsed == 0 || parsed > 65535) {
+        SetLocalNotice("Invalid port number. Use address or address:port (1-65535).", true);
+        Refresh();
+        return;
+      }
+      port = static_cast<uint16_t>(parsed);
+      address = TrimText(address.substr(0, colon));
+    }
+    if (address.empty()) {
+      SetLocalNotice("Enter a host IPv4 address before connecting.", true);
+      Refresh();
+      return;
+    }
+  } else {
+    const auto games = game->NearbyGames();
+    const auto found = std::find_if(games.begin(), games.end(), [&](const auto& item) {
+      return item.address == m_selectedNearbyAddress && item.port == m_selectedNearbyPort;
+    });
+    if (found != games.end()) {
+      address = found->address;
+      port = found->port;
+    } else if (games.size() == 1) {
+      address = games[0].address;
+      port = games[0].port;
+      m_selectedNearbyAddress = address;
+      m_selectedNearbyPort = port;
+    } else {
+      SetLocalNotice("Select a nearby game or enter the host's IPv4 address.", true);
+      Refresh();
+      return;
+    }
+  }
+  m_activeField = 0;
+  m_localNotice.clear();
+  game->Join(address, port);
+  Refresh();
 }
 
 void LanLobbyWindow::ChangeCheckpointPage(int direction)
@@ -131,7 +262,10 @@ void LanLobbyWindow::ChangeCheckpointPage(int direction)
   const size_t pages = std::max<size_t>(1, (m_checkpoints.size() + kCheckpointRows - 1) / kCheckpointRows);
   if (direction < 0 && m_checkpointPage > 0) --m_checkpointPage;
   if (direction > 0 && m_checkpointPage + 1 < pages) ++m_checkpointPage;
-  m_selectedCheckpoint = static_cast<size_t>(-1);
+  if (m_selectedCheckpoint != static_cast<size_t>(-1)) {
+    m_selectedCheckpoint = static_cast<size_t>(-1);
+    SyncHostSettings(Game());
+  }
   Refresh();
 }
 
@@ -168,18 +302,25 @@ void LanLobbyWindow::DrawButton(HDC dc, RECT area, const char* label, bool selec
 
 void LanLobbyWindow::DrawSettings(HDC dc, const reb::native::LanGame* game)
 {
-  const bool editable = m_tab == 0 && (!game || !game->IsGuest());
+  const bool hostResuming = m_tab == 0 && m_selectedCheckpoint < m_checkpoints.size();
+  const bool connectedGuest = m_tab == 1 && game && game->Connected();
   auto settings = game ? game->Settings() : reb::native::LanSettings{};
-  if (m_tab == 0 && (!game || !game->IsHost())) {
+  if (m_tab == 0 && hostResuming) {
+    settings.hostSide = m_checkpoints[m_selectedCheckpoint].metadata.hostSide;
+    settings.resuming = true;
+  } else if (m_tab == 0 && (!game || !game->IsHost())) {
     settings.hostSide = m_hostSide;
     settings.galaxySize = m_galaxySize;
     settings.victoryMode = m_victoryMode;
+    settings.resuming = false;
   }
-  const int visibleSide = m_tab == 1 ? (game && game->IsGuest() ? 3 - settings.hostSide : 0)
+  const bool resuming = hostResuming || (connectedGuest && settings.resuming);
+  const bool editable = m_tab == 0 && !resuming && (!game || !game->IsGuest());
+  const int visibleSide = m_tab == 1 ? (connectedGuest ? 3 - settings.hostSide : 0)
                                      : settings.hostSide;
-  const bool settingsKnown = m_tab == 0 || (game && game->IsGuest());
+  const bool settingsKnown = (m_tab == 0 || connectedGuest) && !resuming;
   DrawPanel(dc, Rect(318, 116, 616, 260), kPanel, kEdge);
-  DrawText(dc, "CAMPAIGN SETTINGS", Rect(334, 126, 600, 149), kAccent, 2);
+  DrawText(dc, resuming ? "CHECKPOINT SETTINGS" : "CAMPAIGN SETTINGS", Rect(334, 126, 600, 149), kAccent, 2);
   DrawText(dc, "YOUR FACTION", Rect(334, 158, 430, 180), kMuted, 3);
   DrawButton(dc, Rect(430, 153, 510, 182), "Alliance", visibleSide == 1, editable);
   DrawButton(dc, Rect(516, 153, 600, 182), "Empire", visibleSide == 2, editable);
@@ -195,8 +336,8 @@ void LanLobbyWindow::DrawSettings(HDC dc, const reb::native::LanGame* game)
 void LanLobbyWindow::DrawCheckpoints(HDC dc)
 {
   DrawPanel(dc, Rect(318, 270, 616, 376), kPanel, kEdge);
-  DrawText(dc, "RESUME A CAMPAIGN", Rect(334, 278, 478, 299), kAccent, 2);
-  DrawButton(dc, Rect(480, 276, 522, 298), "NEW", m_selectedCheckpoint == static_cast<size_t>(-1));
+  DrawText(dc, "RESUME CAMPAIGN", Rect(334, 278, 474, 299), kAccent, 2);
+  DrawButton(dc, Rect(478, 276, 522, 298), "NEW", m_selectedCheckpoint == static_cast<size_t>(-1));
   const size_t pages = std::max<size_t>(1, (m_checkpoints.size() + kCheckpointRows - 1) / kCheckpointRows);
   DrawButton(dc, Rect(530, 276, 561, 298), "<", false, m_checkpointPage > 0);
   DrawButton(dc, Rect(567, 276, 598, 298), ">", false, m_checkpointPage + 1 < pages);
@@ -213,10 +354,10 @@ void LanLobbyWindow::DrawCheckpoints(HDC dc)
     const bool selected = i == m_selectedCheckpoint;
     if (selected) DrawPanel(dc, Rect(330, top - 1, 606, top + 19), RGB(20, 48, 60), kAccent);
     std::string label = DateLabel(checkpoint.metadata.unixTimestamp);
-    label += checkpoint.automatic ? "  -  Auto" : "  -  Manual";
-    if (!checkpoint.metadata.displayName.empty()) label = checkpoint.metadata.displayName + "  -  " + label;
-    if (label.size() > 46) label.resize(43), label += "...";
-    DrawText(dc, label.c_str(), Rect(338, top, 596, top + 17), selected ? kText : kMuted, 2,
+    label += checkpoint.automatic ? " - Auto" : " - Manual";
+    if (!checkpoint.metadata.displayName.empty()) label = checkpoint.metadata.displayName + " - " + label;
+    if (label.size() > 44) label.resize(41), label += "...";
+    DrawText(dc, label.c_str(), Rect(338, top, 598, top + 17), selected ? kText : kMuted, 3,
              DT_LEFT | DT_VCENTER | DT_SINGLELINE);
   }
 }
@@ -245,33 +386,44 @@ void LanLobbyWindow::Paint(HDC dc)
   const auto* game = Game();
   RefreshCheckpointCache(game);
   RefreshHostAddress(game);
+  const bool showCaret = ((m_blinkCounter / 3) % 2) == 0;
   if (m_tab == 0) {
     DrawPanel(dc, Rect(24, 116, 306, 376), kPanel, kEdge);
     DrawText(dc, "HOST A CAMPAIGN", Rect(40, 128, 290, 151), kAccent, 2);
     DrawText(dc, "SESSION NAME", Rect(40, 162, 280, 183), kMuted, 2);
     DrawPanel(dc, Rect(40, 185, 290, 221), m_activeField == 1 ? RGB(18, 43, 57) : RGB(9, 20, 31),
               m_activeField == 1 ? kAccent : kEdge);
-    DrawText(dc, m_sessionName.c_str(), Rect(50, 190, 280, 216), kText, 0, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    std::string shownName = m_sessionName;
+    if (m_activeField == 1 && (!game || !game->Active()) && showCaret) shownName.push_back('|');
+    DrawText(dc, shownName.c_str(), Rect(50, 190, 280, 216), kText, 0, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
     DrawButton(dc, Rect(40, 236, 290, 276), game && game->IsHost() ? "CANCEL HOSTING" : "HOST SESSION",
                game && game->IsHost(), true);
     if (game && game->IsHost()) {
-      DrawText(dc, "SHARE THIS ADDRESS", Rect(42, 283, 287, 302), kMuted, 2);
-      DrawText(dc, m_hostAddress.c_str(), Rect(42, 303, 287, 327), kAccent, 0,
+      DrawText(dc, "SHARE THIS ADDRESS", Rect(42, 283, 226, 301), kMuted, 2);
+      if (m_hostAddresses.size() > 1) {
+        DrawButton(dc, Rect(230, 281, 290, 300), "NEXT IP", false, true, 3);
+      }
+      DrawText(dc, m_hostAddress.c_str(), Rect(42, 303, 230, 327), kAccent, 2,
                DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+      DrawButton(dc, Rect(234, 303, 290, 327), "COPY", false, true, 3);
     } else {
       DrawText(dc, "Create a session for a nearby player.", Rect(42, 285, 287, 325), kMuted, 2, DT_WORDBREAK);
     }
     if (game && game->Connected()) {
       DrawText(dc, game->PeerReady() ? "Player connected and ready." : "Player connected; waiting for ready.",
-               Rect(42, 331, 287, 356), game->PeerReady() ? kAccent : kGold, 2, DT_WORDBREAK);
+               Rect(42, 333, 287, 366), game->PeerReady() ? kAccent : kGold, 2, DT_WORDBREAK);
     }
     DrawSettings(dc, game);
     DrawCheckpoints(dc);
   } else {
     DrawPanel(dc, Rect(24, 116, 306, 376), kPanel, kEdge);
-    DrawText(dc, "NEARBY GAMES", Rect(40, 128, 286, 151), kAccent, 2);
+    DrawText(dc, "NEARBY GAMES", Rect(40, 128, 198, 151), kAccent, 2);
     DrawButton(dc, Rect(204, 124, 290, 153), "SCAN", false);
     const auto nearby = game ? game->NearbyGames() : std::vector<reb::native::lan::Advertisement>{};
+    if (nearby.size() == 1 && m_manualAddress.empty() && m_activeField != 2 && m_selectedNearbyAddress.empty()) {
+      m_selectedNearbyAddress = nearby[0].address;
+      m_selectedNearbyPort = nearby[0].port;
+    }
     if (nearby.empty()) {
       DrawText(dc, "No games found. Make sure both computers are on the same network.", Rect(42, 165, 287, 222), kMuted,
                2, DT_WORDBREAK);
@@ -279,45 +431,75 @@ void LanLobbyWindow::Paint(HDC dc)
       const size_t count = std::min<size_t>(5, nearby.size());
       for (size_t i = 0; i < count; ++i) {
         const RECT row = Rect(38, 160 + static_cast<int>(i) * 31, 292, 188 + static_cast<int>(i) * 31);
-        DrawPanel(dc, row, i == m_selectedNearby ? RGB(20, 48, 60) : kPanelLight,
-                  i == m_selectedNearby ? kAccent : kEdge);
-        std::string label = nearby[i].name + "  ·  " + nearby[i].address;
+        const bool selected = nearby[i].address == m_selectedNearbyAddress && nearby[i].port == m_selectedNearbyPort;
+        DrawPanel(dc, row, selected ? RGB(20, 48, 60) : kPanelLight,
+                  selected ? kAccent : kEdge);
+        std::string label = nearby[i].name + " - " + nearby[i].address;
+        if (nearby[i].port != reb::native::lan::kDefaultPort) {
+          label += ":" + std::to_string(nearby[i].port);
+        }
         DrawText(dc, label.c_str(), Rect(row.left + 8, row.top + 3, row.right - 7, row.bottom - 3),
-                 i == m_selectedNearby ? kText : kMuted, 2, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                 selected ? kText : kMuted, 2, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
       }
     }
-    DrawText(dc, "OR ENTER AN ADDRESS", Rect(40, 325, 285, 344), kMuted, 2);
+    DrawText(dc, "OR ENTER AN ADDRESS", Rect(40, 323, 226, 342), kMuted, 2);
+    DrawButton(dc, Rect(232, 321, 290, 342), "PASTE", false, !game || !game->IsGuest(), 3);
     DrawPanel(dc, Rect(40, 346, 190, 373), m_activeField == 2 ? RGB(18, 43, 57) : RGB(9, 20, 31),
               m_activeField == 2 ? kAccent : kEdge);
-    DrawText(dc, m_manualAddress.c_str(), Rect(48, 347, 185, 370), kText, 2,
+    const bool showManualPlaceholder = m_manualAddress.empty() && m_activeField != 2;
+    std::string shownAddress = showManualPlaceholder ? "192.168.x.x" : m_manualAddress;
+    if (m_activeField == 2 && (!game || !game->IsGuest()) && showCaret) shownAddress.push_back('|');
+    DrawText(dc, shownAddress.c_str(), Rect(48, 347, 185, 370), showManualPlaceholder ? RGB(87, 106, 118) : kText, 2,
              DT_LEFT | DT_VCENTER | DT_SINGLELINE);
     DrawButton(dc, Rect(198, 346, 290, 373), game && game->IsGuest() ? "CANCEL" : "CONNECT", false);
     DrawSettings(dc, game);
     DrawPanel(dc, Rect(318, 270, 616, 376), kPanel, kEdge);
-    DrawText(dc, game && game->IsGuest() ? "CONNECTED TO HOST" : "READY TO JOIN?", Rect(334, 280, 600, 302), kAccent, 2);
-    DrawText(dc, game && game->IsGuest() ? "The host chooses settings. Select Ready when you are set."
-                                         : "Select a nearby game or enter its IPv4 address and port.",
-             Rect(334, 307, 600, 351), kMuted, 2, DT_WORDBREAK);
-    if (game && game->Connected()) {
+    const bool guestConnected = game && game->Connected();
+    const bool guestConnecting = game && game->IsGuest() && !guestConnected;
+    const auto settings = game ? game->Settings() : reb::native::LanSettings{};
+    if (guestConnected && settings.resuming) {
+      DrawText(dc, "RESUMING CAMPAIGN", Rect(334, 280, 600, 302), kAccent, 2);
+      std::string summary = settings.resumeName.empty() ? "Saved LAN campaign" : settings.resumeName;
+      summary += " (tick " + std::to_string(settings.resumeTick) + "). Select Ready Up when set.";
+      DrawText(dc, summary.c_str(), Rect(334, 305, 600, 348), kMuted, 2, DT_WORDBREAK);
+    } else if (guestConnected) {
+      DrawText(dc, "CONNECTED TO HOST", Rect(334, 280, 600, 302), kAccent, 2);
+      DrawText(dc, "The host chooses settings. Select Ready Up when you are set.",
+               Rect(334, 307, 600, 351), kMuted, 2, DT_WORDBREAK);
+    } else if (guestConnecting) {
+      DrawText(dc, "CONNECTING TO HOST", Rect(334, 280, 600, 302), kGold, 2);
+      DrawText(dc, "Waiting for the host to respond. Check the host address and firewall if needed.",
+               Rect(334, 307, 600, 351), kMuted, 2, DT_WORDBREAK);
+    } else {
+      DrawText(dc, "READY TO JOIN?", Rect(334, 280, 600, 302), kAccent, 2);
+      DrawText(dc, "Select a nearby game (double-click to join) or enter the host's IPv4 address.",
+               Rect(334, 307, 600, 351), kMuted, 2, DT_WORDBREAK);
+    }
+    if (guestConnected) {
       DrawText(dc, game->PeerReady() ? "Host is ready." : "Waiting for host to be ready.",
                Rect(334, 350, 600, 372), game->PeerReady() ? kAccent : kGold, 2);
     }
   }
 
   DrawPanel(dc, Rect(24, 389, 616, 456), RGB(10, 22, 33), kEdge);
-  std::string status = game ? game->StatusText() : "LAN service is unavailable.";
+  const auto now = std::chrono::steady_clock::now();
+  const bool showLocalNotice = !m_localNotice.empty() && now < m_localNoticeUntil;
+  std::string status = showLocalNotice ? m_localNotice : (game ? game->StatusText() : "LAN service is unavailable.");
   if (status.empty()) status = "Same network required. Allow local network access in your firewall settings.";
-  DrawText(dc, status.c_str(), Rect(40, 396, 382, 427), game && game->Connected() ? kAccent : kMuted, 2,
-           DT_LEFT | DT_WORDBREAK);
+  const bool statusIsError = showLocalNotice ? m_localNoticeError : (game && game->HasError());
+  const COLORREF statusColor = statusIsError ? kDanger : ((showLocalNotice || (game && game->Connected())) ? kAccent : kMuted);
+  DrawText(dc, status.c_str(), Rect(40, 396, 382, 427), statusColor, 2, DT_LEFT | DT_WORDBREAK);
   DrawText(dc, "F8 saves manually; autosaves every 5 min.", Rect(40, 428, 382, 440), kMuted, 3, DT_LEFT | DT_SINGLELINE);
-  DrawText(dc, "Guest Wi-Fi may isolate devices.", Rect(40, 441, 382, 453), kMuted, 3, DT_LEFT | DT_SINGLELINE);
+  DrawText(dc, "Guest Wi-Fi may isolate devices. Port 47624.", Rect(40, 441, 382, 453), kMuted, 3, DT_LEFT | DT_SINGLELINE);
   const bool connected = game && game->Connected();
   const bool bothReady = connected && game->Ready() && game->PeerReady();
-  DrawButton(dc, Rect(394, 399, 482, 446), game && game->Ready() ? "READY" : "NOT READY",
+  DrawButton(dc, Rect(394, 399, 482, 446), game && game->Ready() ? "READY" : "READY UP",
              game && game->Ready(), connected, 3);
   const bool canStart = game && game->IsHost() && bothReady;
   const bool resume = m_tab == 0 && m_selectedCheckpoint < m_checkpoints.size();
-  DrawButton(dc, Rect(490, 399, 600, 446), resume ? "RESUME SELECTED" : "START CAMPAIGN", false,
+  const char* actionLabel = m_tab == 1 ? (bothReady ? "WAIT FOR HOST" : "HOST STARTS")
+                                       : (resume ? "RESUME SELECTED" : "START CAMPAIGN");
+  DrawButton(dc, Rect(490, 399, 600, 446), actionLabel, m_tab == 1 && bothReady,
              canStart, 3);
 }
 
@@ -349,48 +531,65 @@ void LanLobbyWindow::Click(int x, int y)
       reb::compat::SetFocus(m_hwnd); Refresh(); return;
     }
     if (Contains(Rect(40, 236, 290, 276), x, y) && game) {
+      m_activeField = 0;
+      m_localNotice.clear();
       if (game->IsHost()) {
         game->Close();
+        m_hostAddresses.clear();
+        m_hostAddressIndex = 0;
         m_hostAddress.clear();
       } else {
         if (game->Active()) game->Close();
-        auto selectedSettings = game->Settings();
-        selectedSettings.hostSide = m_hostSide;
-        selectedSettings.galaxySize = m_galaxySize;
-        selectedSettings.victoryMode = m_victoryMode;
-        if (game->Host(m_sessionName)) {
-          game->SetSettings(selectedSettings);
-          RefreshHostAddress(game);
+        if (game->Host(TrimText(m_sessionName))) {
+          SyncHostSettings(game);
+          RefreshHostAddress(game, true);
         }
       }
       RefreshCheckpointCache(game, true);
       Refresh(); return;
     }
-    auto settings = game ? game->Settings() : reb::native::LanSettings{};
-    if (!game || !game->IsHost()) {
-      settings.hostSide = m_hostSide;
-      settings.galaxySize = m_galaxySize;
-      settings.victoryMode = m_victoryMode;
+    if (game && game->IsHost() && m_hostAddresses.size() > 1 && Contains(Rect(230, 281, 290, 300), x, y)) {
+      m_hostAddressIndex = (m_hostAddressIndex + 1) % m_hostAddresses.size();
+      RefreshHostAddress(game, true);
+      Refresh(); return;
     }
-    bool changed = true;
-    if (Contains(Rect(430, 153, 510, 182), x, y)) settings.hostSide = 1;
-    else if (Contains(Rect(516, 153, 600, 182), x, y)) settings.hostSide = 2;
-    else if (Contains(Rect(430, 190, 483, 220), x, y)) settings.galaxySize = 1;
-    else if (Contains(Rect(489, 190, 542, 220), x, y)) settings.galaxySize = 2;
-    else if (Contains(Rect(548, 190, 600, 220), x, y)) settings.galaxySize = 3;
-    else if (Contains(Rect(430, 226, 510, 255), x, y)) settings.victoryMode = 1;
-    else if (Contains(Rect(516, 226, 600, 255), x, y)) settings.victoryMode = 2;
-    else changed = false;
-    if (changed) {
-      m_hostSide = settings.hostSide;
-      m_galaxySize = settings.galaxySize;
-      m_victoryMode = settings.victoryMode;
-      if (game && game->IsHost()) game->SetSettings(settings);
-      Refresh();
-      return;
+    if (game && game->IsHost() && Contains(Rect(234, 303, 290, 327), x, y)) {
+      if (minwin::SetClipboardText(m_hostAddress)) {
+        SetLocalNotice("Copied " + m_hostAddress + " to clipboard.", false);
+      } else {
+        SetLocalNotice("Could not copy address to clipboard.", true);
+      }
+      Refresh(); return;
     }
-    if (Contains(Rect(480, 276, 522, 298), x, y)) {
+    const bool resuming = m_selectedCheckpoint < m_checkpoints.size();
+    if (!resuming) {
+      auto settings = game ? game->Settings() : reb::native::LanSettings{};
+      if (!game || !game->IsHost()) {
+        settings.hostSide = m_hostSide;
+        settings.galaxySize = m_galaxySize;
+        settings.victoryMode = m_victoryMode;
+      }
+      bool changed = true;
+      if (Contains(Rect(430, 153, 510, 182), x, y)) settings.hostSide = 1;
+      else if (Contains(Rect(516, 153, 600, 182), x, y)) settings.hostSide = 2;
+      else if (Contains(Rect(430, 190, 483, 220), x, y)) settings.galaxySize = 1;
+      else if (Contains(Rect(489, 190, 542, 220), x, y)) settings.galaxySize = 2;
+      else if (Contains(Rect(548, 190, 600, 220), x, y)) settings.galaxySize = 3;
+      else if (Contains(Rect(430, 226, 510, 255), x, y)) settings.victoryMode = 1;
+      else if (Contains(Rect(516, 226, 600, 255), x, y)) settings.victoryMode = 2;
+      else changed = false;
+      if (changed) {
+        m_hostSide = settings.hostSide;
+        m_galaxySize = settings.galaxySize;
+        m_victoryMode = settings.victoryMode;
+        SyncHostSettings(game);
+        Refresh();
+        return;
+      }
+    }
+    if (Contains(Rect(478, 276, 522, 298), x, y)) {
       m_selectedCheckpoint = static_cast<size_t>(-1);
+      SyncHostSettings(game);
       Refresh(); return;
     }
     if (Contains(Rect(530, 276, 561, 298), x, y)) { ChangeCheckpointPage(-1); return; }
@@ -401,23 +600,48 @@ void LanLobbyWindow::Click(int x, int y)
           && Contains(Rect(330, 302 + static_cast<int>(row) * 22,
                            606, 322 + static_cast<int>(row) * 22), x, y)) {
         m_selectedCheckpoint = m_selectedCheckpoint == index ? static_cast<size_t>(-1) : index;
+        SyncHostSettings(game);
         Refresh(); return;
       }
     }
   } else {
-    if (Contains(Rect(204, 124, 290, 153), x, y)) { if (game) game->Discover(); Refresh(); return; }
+    if (Contains(Rect(204, 124, 290, 153), x, y)) {
+      if (game) game->Discover();
+      SetLocalNotice("Scanning local network for games...", false);
+      Refresh(); return;
+    }
     const auto nearby = game ? game->NearbyGames() : std::vector<reb::native::lan::Advertisement>{};
     for (size_t i = 0; i < std::min<size_t>(5, nearby.size()); ++i) {
       if (Contains(Rect(38, 160 + static_cast<int>(i) * 31, 292, 188 + static_cast<int>(i) * 31), x, y)) {
-        m_selectedNearby = i;
+        const auto now = std::chrono::steady_clock::now();
+        const bool isDoubleClick = (!game || !game->IsGuest())
+                                   && nearby[i].address == m_lastNearbyClickAddress
+                                   && nearby[i].port == m_lastNearbyClickPort
+                                   && (now - m_lastNearbyClick) <= std::chrono::milliseconds(500);
+        m_selectedNearbyAddress = nearby[i].address;
+        m_selectedNearbyPort = nearby[i].port;
+        m_lastNearbyClick = now;
+        m_lastNearbyClickAddress = nearby[i].address;
+        m_lastNearbyClickPort = nearby[i].port;
         m_manualAddress.clear();
+        m_activeField = 0;
+        m_localNotice.clear();
+        if (isDoubleClick) {
+          ConnectSelectedOrManual(game);
+          return;
+        }
         Refresh(); return;
       }
+    }
+    if (Contains(Rect(232, 321, 290, 342), x, y) && (!game || !game->IsGuest())) {
+      PasteIntoField(2);
+      return;
     }
     if (Contains(Rect(40, 346, 190, 373), x, y)) {
       if (!game || !game->IsGuest()) {
         m_activeField = 2;
-        m_selectedNearby = static_cast<size_t>(-1);
+        m_selectedNearbyAddress.clear();
+        m_selectedNearbyPort = 0;
       }
       reb::compat::SetFocus(m_hwnd); Refresh(); return;
     }
@@ -425,28 +649,11 @@ void LanLobbyWindow::Click(int x, int y)
       if (game->IsGuest()) {
         game->Close();
         game->Discover();
+        m_localNotice.clear();
         Refresh(); return;
       }
-      std::string address = m_manualAddress;
-      uint16_t port = reb::native::lan::kDefaultPort;
-      if (!address.empty()) {
-        const auto colon = address.rfind(':');
-        if (colon != std::string::npos) {
-          const std::string portText = address.substr(colon + 1);
-          uint32_t parsed = 0;
-          const auto [end, error] = std::from_chars(portText.data(), portText.data() + portText.size(), parsed);
-          if (error != std::errc{} || end != portText.data() + portText.size() || parsed == 0 || parsed > 65535) {
-            Refresh(); return;
-          }
-          port = static_cast<uint16_t>(parsed);
-          address.resize(colon);
-        }
-      } else if (auto games = game->NearbyGames(); m_selectedNearby < games.size()) {
-        address = games[m_selectedNearby].address;
-        port = games[m_selectedNearby].port;
-      }
-      if (!address.empty()) game->Join(address, port);
-      Refresh(); return;
+      ConnectSelectedOrManual(game);
+      return;
     }
   }
 
@@ -471,16 +678,34 @@ void LanLobbyWindow::Click(int x, int y)
 
 void LanLobbyWindow::HandleCharacter(WPARAM character)
 {
+  if (character == 22) { // Ctrl+V
+    const int target = m_activeField != 0 ? m_activeField : (m_tab == 1 ? 2 : 1);
+    PasteIntoField(target);
+    return;
+  }
+  if (character == 3 && m_tab == 0 && Game() && Game()->IsHost() && !m_hostAddress.empty()) { // Ctrl+C
+    if (minwin::SetClipboardText(m_hostAddress)) {
+      SetLocalNotice("Copied " + m_hostAddress + " to clipboard.", false);
+      Refresh();
+    }
+    return;
+  }
   std::string* field = m_activeField == 1 ? &m_sessionName : (m_activeField == 2 ? &m_manualAddress : nullptr);
   if (!field) return;
   if (m_activeField == 1 && Game() && Game()->Active()) return;
   if (m_activeField == 2 && Game() && Game()->IsGuest()) return;
-  if (m_activeField == 2 && m_tab == 1) m_selectedNearby = static_cast<size_t>(-1);
+  if (m_activeField == 2 && m_tab == 1) {
+    m_selectedNearbyAddress.clear();
+    m_selectedNearbyPort = 0;
+  }
   if (character == '\b') {
     if (!field->empty()) field->pop_back();
+  } else if (character == 21) { // Ctrl+U clear field
+    field->clear();
   } else if (character >= 32 && character < 127 && field->size() < (m_activeField == 1 ? 48U : 64U)) {
     field->push_back(static_cast<char>(character));
   }
+  m_localNotice.clear();
   Refresh();
 }
 
@@ -501,6 +726,7 @@ LRESULT LanLobbyWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       return 1;
     case WM_TIMER:
       if (wParam == kRefreshTimer) {
+        ++m_blinkCounter;
         RefreshCheckpointCache(Game());
         RefreshHostAddress(Game());
         Refresh(); return 0;

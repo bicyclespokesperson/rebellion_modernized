@@ -39,6 +39,11 @@ int RunLanLobbySmoke(RebellionApplication& app)
   if (!minwin::present::CaptureScreenshot((directory / "host.bmp").string().c_str())) {
     throw std::runtime_error("Could not capture the Host lobby");
   }
+  reb::compat::SendMessageA(app.m_activeWindow->m_hwnd, WM_LBUTTONUP, 0, 160 | (255 << 16));
+  pump();
+  if (!minwin::present::CaptureScreenshot((directory / "hosting.bmp").string().c_str())) {
+    throw std::runtime_error("Could not capture the active Hosting lobby");
+  }
   reb::compat::SendMessageA(app.m_activeWindow->m_hwnd, WM_LBUTTONUP, 0, 220 | (90 << 16));
   pump();
   if (!minwin::present::CaptureScreenshot((directory / "join.bmp").string().c_str())) {
